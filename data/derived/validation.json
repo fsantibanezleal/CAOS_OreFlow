@@ -1,0 +1,11 @@
+{
+  "checks": {
+    "case_count": true,
+    "mass_balance": true,
+    "method_cells": true,
+    "variant_count": true
+  },
+  "max_mass_balance_error_pct": 2.842170943040401e-14,
+  "schema": "oreflow.validation/v1",
+  "status": "passed"
+}

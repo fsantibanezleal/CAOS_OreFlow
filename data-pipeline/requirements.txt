@@ -1,0 +1,2 @@
+# Kept for users invoking the pipeline folder directly.
+-r ../requirements-precompute.txt

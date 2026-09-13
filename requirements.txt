@@ -1,0 +1,2 @@
+# Thin runtime and live engine lane.
+numpy==2.2.6

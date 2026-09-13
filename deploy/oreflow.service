@@ -1,0 +1,21 @@
+[Unit]
+Description=CAOS OreFlow research workbench
+After=network.target
+
+[Service]
+Type=simple
+User=fasl
+Group=fasl
+WorkingDirectory=/opt/fasl-apps/CAOS_OreFlow
+Environment=APP_ENV=prod
+Environment=APP_HOST=127.0.0.1
+Environment=APP_PORT=8146
+Environment=PROD_ORIGINS=https://oreflow.ml.fasl-work.com
+ExecStart=/opt/fasl-apps/CAOS_OreFlow/.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8146
+Restart=on-failure
+RestartSec=4
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,198 @@
+{
+  "dataset": "HZDR particle mineralogy constructed cases",
+  "doi": "10.14278/rodare.336",
+  "features": {
+    "Test data": {
+      "Aspect Ratio": {
+        "mean": -0.528809,
+        "p05": -1.164126,
+        "p50": -0.437273,
+        "p95": 0.0
+      },
+      "ECD": {
+        "mean": 2.213292,
+        "p05": 1.075487,
+        "p50": 2.209829,
+        "p95": 3.436222
+      },
+      "ECD2": {
+        "mean": 5.440052,
+        "p05": 1.156672,
+        "p50": 4.883342,
+        "p95": 11.807622
+      },
+      "Mineral 1 modal": {
+        "mean": 0.481105,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 1.0
+      },
+      "Mineral 1 surface": {
+        "mean": 0.481114,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 1.0
+      },
+      "Mineral 2 modal": {
+        "mean": 0.518895,
+        "p05": 0.0,
+        "p50": 1.0,
+        "p95": 1.0
+      },
+      "Mineral 2 surface": {
+        "mean": 0.518886,
+        "p05": 0.0,
+        "p50": 1.0,
+        "p95": 1.0
+      },
+      "Predicted probability 1": {
+        "mean": 0.58933,
+        "p05": 0.355238,
+        "p50": 0.576859,
+        "p95": 0.804269
+      },
+      "Predicted probability 2": {
+        "mean": 0.485635,
+        "p05": 0.067858,
+        "p50": 0.067858,
+        "p95": 0.936249
+      },
+      "Predicted probability 3": {
+        "mean": 0.335661,
+        "p05": 0.153124,
+        "p50": 0.322162,
+        "p95": 0.574693
+      },
+      "Predicted probability 4": {
+        "mean": 0.424932,
+        "p05": 0.002923,
+        "p50": 0.360005,
+        "p95": 0.963213
+      },
+      "Probability 1": {
+        "mean": 0.589716,
+        "p05": 0.321933,
+        "p50": 0.589703,
+        "p95": 0.85543
+      },
+      "Probability 2": {
+        "mean": 0.485208,
+        "p05": 0.051219,
+        "p50": 0.054691,
+        "p95": 0.953037
+      },
+      "Probability 3": {
+        "mean": 0.339316,
+        "p05": 0.114367,
+        "p50": 0.338424,
+        "p95": 0.583145
+      },
+      "Probability 4": {
+        "mean": 0.424537,
+        "p05": 2e-05,
+        "p50": 0.348276,
+        "p95": 0.964236
+      },
+      "Solidity": {
+        "mean": -0.001597,
+        "p05": -0.20154,
+        "p50": -0.007919,
+        "p95": 0.212477
+      }
+    },
+    "Train data": {
+      "Aspect Ratio": {
+        "mean": -0.527504,
+        "p05": -1.165837,
+        "p50": -0.437073,
+        "p95": 0.0
+      },
+      "ECD": {
+        "mean": 2.215703,
+        "p05": 1.075487,
+        "p50": 2.209829,
+        "p95": 3.457498
+      },
+      "ECD2": {
+        "mean": 5.461202,
+        "p05": 1.156672,
+        "p50": 4.883342,
+        "p95": 11.954296
+      },
+      "Mineral 1 modal": {
+        "mean": 0.480578,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 1.0
+      },
+      "Mineral 1 surface": {
+        "mean": 0.480575,
+        "p05": 0.0,
+        "p50": 0.0,
+        "p95": 1.0
+      },
+      "Mineral 2 modal": {
+        "mean": 0.519422,
+        "p05": 0.0,
+        "p50": 1.0,
+        "p95": 1.0
+      },
+      "Mineral 2 surface": {
+        "mean": 0.519425,
+        "p05": 0.0,
+        "p50": 1.0,
+        "p95": 1.0
+      },
+      "Probability 1": {
+        "mean": 0.589772,
+        "p05": 0.321933,
+        "p50": 0.590523,
+        "p95": 0.855748
+      },
+      "Probability 2": {
+        "mean": 0.484736,
+        "p05": 0.051219,
+        "p50": 0.054495,
+        "p95": 0.953045
+      },
+      "Probability 3": {
+        "mean": 0.339727,
+        "p05": 0.114367,
+        "p50": 0.338424,
+        "p95": 0.586975
+      },
+      "Probability 4": {
+        "mean": 0.423599,
+        "p05": 2.6e-05,
+        "p50": 0.348089,
+        "p95": 0.963977
+      },
+      "Solidity": {
+        "mean": -0.001714,
+        "p05": -0.204652,
+        "p50": -0.007491,
+        "p95": 0.212477
+      }
+    }
+  },
+  "license": "CC BY 4.0",
+  "main_mineral_counts": {
+    "Test data": {
+      "Min1": 14022,
+      "Min2": 15125
+    },
+    "Train data": {
+      "Min1": 32677,
+      "Min2": 35331
+    }
+  },
+  "note": "Particle-mineralogy reference; not a measured plant campaign and not used as a plant label.",
+  "raw_available": true,
+  "raw_file": "SM1.Constructed_cases_data.xlsx",
+  "rows": {
+    "Test data": 29147,
+    "Train data": 68008
+  },
+  "status": "processed",
+  "url": "https://rodare.hzdr.de/record/336"
+}

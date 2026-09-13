@@ -1,0 +1,7 @@
+# Canonical offline lane. Versions verified on Python 3.12.
+-r requirements.txt
+scipy==1.17.1
+pandas==2.2.3
+openpyxl==3.1.5
+scikit-learn==1.5.2
+joblib==1.4.2

@@ -1,0 +1,6 @@
+# Accelerator lane. The torch wheel uses CUDA when an NVIDIA driver is present;
+# the same code records a CPU fallback instead of pretending acceleration.
+-r requirements-precompute.txt
+torch==2.12.0
+onnx==1.20.0
+onnxruntime==1.24.2
