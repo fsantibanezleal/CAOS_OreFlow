@@ -4,7 +4,8 @@ APP_ROOT=/opt/fasl-apps/CAOS_OreFlow
 REPO=https://github.com/fsantibanezleal/CAOS_OreFlow.git
 apt-get update
 apt-get install -y git nginx curl ca-certificates python3-venv certbot python3-certbot-nginx
-if ! command -v node >/dev/null 2>&1 || [ "$(node -p 'process.versions.node.split(".")[0]')" -lt 20 ]; then
+NODE_MAJOR="$(node -p 'process.versions.node.split(".")[0]' 2>/dev/null || printf '0')"
+if [ "$NODE_MAJOR" -lt 22 ]; then
   curl -fsSL https://deb.nodesource.com/setup_22.x | bash -
 fi
 apt-get install -y nodejs
