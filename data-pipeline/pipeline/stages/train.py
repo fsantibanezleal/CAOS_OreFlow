@@ -130,7 +130,7 @@ def run(dataset: dict[str, Any], models_dir: str | Path, seed: int = 42) -> dict
         mlp, mlp_meta = _train_torch(x_train, y_train, scaler, models, seed)
         ae, ae_meta = _train_autoencoder(x_train, scaler, models, seed)
         predictors["mlp"], predictors["autoencoder"] = mlp, ae
-        records.extend([{**mlp_meta, "family": "frontier", **_scores(y_test, mlp.predict(x_test))}, {**ae_meta, "family": "frontier", "ood_rmse": round(float(np.sqrt(np.mean(ae.predict(x_test)))), 6)}])
+        records.extend([{**mlp_meta, "family": "frontier", **_scores(y_test, mlp.predict(x_test))}, {**ae_meta, "family": "frontier", "reconstruction_rmse": round(float(np.sqrt(np.mean(ae.predict(x_test)))), 6)}])
     except ImportError:
         records.extend([{"method_id": "mlp", "family": "frontier", "backend": "unavailable", "status": "install requirements-gpu.txt"}, {"method_id": "autoencoder", "family": "frontier", "backend": "unavailable", "status": "install requirements-gpu.txt"}])
 

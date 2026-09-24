@@ -1,11 +1,11 @@
 export type Method = { id: string; tier: string; domain: string; name: string };
 export type Params = Record<string, number>;
 export type Metrics = Record<string, number>;
-export type Trace = { schema: string; case_id: string; size_um: number[]; feed_psd: number[]; crushed_psd: number[]; ground_psd: number[]; overflow_psd: number[]; flotation_recovery: number[]; metrics: Metrics; method_outputs: Array<Method & { value: number; unit: string }> };
+export type Trace = { schema: string; case_id: string; size_um: number[]; feed_psd: number[]; crushed_psd: number[]; ground_psd: number[]; overflow_psd: number[]; flotation_recovery: number[]; metrics: Metrics; method_outputs: Array<Method & { value: number | null; unit: string; status?: string }> };
 export type Variant = { id: string; label: string; params: Params; trace: Trace; metrics: Metrics; method_outputs: Trace['method_outputs'] };
 export type CaseArtifact = { schema: string; case_id: string; category: string; title: string; description: string; expected_band: string; provenance: string; variants: Variant[] };
 export type CaseManifest = { schema: string; case_id: string; category: string; real_or_synthetic: string; expected_band: string; engine: { package: string; version: string; model: string }; params: Params; seed: number; artifact: { path: string; format: string; trace_schema: string; bytes: number }; lane: 'live' | 'precompute'; gate: { lane: string; reasons: string[]; trace_bytes: number; run_ms_budget: number; trace_bytes_budget: number }; flags: Array<Record<string, unknown>>; metrics: { nominal: Metrics; evaluation: Evaluation } };
 export type CaseIndexEntry = { case_id: string; category: string; title: string; manifest_path: string; artifact_path: string; variants: number; methods: number };
 export type CaseIndex = { schema: string; engine_version: string; n_cases: number; n_variants: number; cases: CaseIndexEntry[] };
-export type Evaluation = { protocol: string; n_holdout: number; target: string; models: Record<string, { rmse_pct_points?: number; r2?: number; ood_rmse?: number; status?: string }>; mass_balance_tolerance_pct: number };
+export type Evaluation = { protocol: string; n_holdout: number; target: string; models: Record<string, { rmse_pct_points?: number; r2?: number; reconstruction_rmse?: number; reconstruction_mse_median?: number; reconstruction_mse_p95?: number; status?: string }>; mass_balance_tolerance_pct: number };
 export type Benchmark = { schema: string; protocol: string; case_count: number; variant_count: number; method_count: number; source: { dataset: string; doi: string; url: string; license: string; status: string; rows: Record<string, number> }; evaluation: Evaluation; method_matrix_path: string; compute: Record<string, string> };

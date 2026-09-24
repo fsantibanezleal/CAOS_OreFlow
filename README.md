@@ -6,15 +6,15 @@ OreFlow is a visual, didactic and reproducible mineral-processing research workb
 [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_OreFlow)](LICENSE)
 [![Live app](https://img.shields.io/badge/live-oreflow.ml.fasl--work.com-6cd5c6)](https://oreflow.ml.fasl-work.com/)
 
-The public workbench is at [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/). It provides six routes: Workbench, Introduction, Methodology, Implementation, Experiments and Benchmark. The main route has linked process nodes, animated material paths, hover-readable SVG plots, replay artifacts and a bounded live engine controlled by throughput, P80, classifier cut, residence time, air, reagent and angle step.
+The public workbench is at [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/). It provides six routes: Workbench, Introduction, Methodology, Implementation, Experiments and Benchmark. The main route opens directly on a quantitative one-pass circuit, with separate views for response curves, a grind–collector decision surface, individual methods and variant comparison. Its angle-step control rotates the decision-surface projection; it does not alter the process calculation.
 
 ## What is implemented
 
 - 12 authored ore-process cases across liberation, classification, flotation and integration.
-- 6 variants per case, 19 executed methods per variant and a committed 1,368-cell method matrix.
+- 6 variants per case, 19 method records per variant and a committed 1,368-cell method matrix; unavailable model results remain explicit.
 - Explicit Contract 1 for units, ranges, physical ordering, rejection and review flags.
 - Contract 2 manifests, byte counts, schemas, lane verdicts and compact JSON artifacts.
-- Rittinger, Kick, Bond, Whiten, population-balance, logistic partition, Plitt-style cut size, first-order, Kelsall and compressed-exponential flotation, mass balance, constrained search and robust Monte Carlo.
+- Rittinger, Kick and Bond energy laws; Whiten-style crusher and cumulative size-distribution proxies (not a solved population-balance kernel); size-bin logistic classification; Plitt-style cut-size approximation; first-order, Kelsall and compressed-exponential flotation; mass balance, bounded search and seeded perturbation quantiles.
 - Ridge, random forest, gradient boosting, Gaussian process, PyTorch MLP and autoencoder diagnostic tiers.
 - HZDR RODARE particle-mineralogy workbook downloaded and preprocessed to a compact CC BY 4.0 summary. The source is explicitly not treated as plant recovery labels.
 - Local CPU and accelerator environments, reproducible scripts, tests, model registry and an authored manuscript proposal for an uncertainty-aware digital twin study.
@@ -34,7 +34,7 @@ npm ci
 npm run build
 ```
 
-The accelerator lane is `.venv-gpu`. The pipeline records `cuda_available` and the PyTorch device in `models/registry.json`; if the host has no compatible NVIDIA device, it records a CPU fallback rather than claiming GPU execution.
+The accelerator lane is `.venv-gpu`. The pipeline records the PyTorch device in `models/registry.json`; if the host has no compatible NVIDIA device, it records a CPU fallback rather than claiming GPU execution. The committed model registry records CUDA training on the local RTX 4070 Laptop GPU for the neural tiers; the public browser does not perform GPU training.
 
 To bring new data, use the schema and policies in [docs/data-contract.md](docs/data-contract.md). To run the API locally, install `requirements-api.txt` and use `uvicorn app.main:app --reload`.
 
