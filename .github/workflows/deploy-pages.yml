@@ -21,6 +21,7 @@ jobs:
       - run: cd frontend && npm ci && npm run build
         env:
           VITE_BASE_PATH: /CAOS_OreFlow/
+      - run: test -f frontend/dist/404.html && test -f frontend/dist/methodology/index.html && test -f frontend/dist/experiments/index.html
       - uses: actions/upload-pages-artifact@v3
         with: {path: frontend/dist}
   deploy:
