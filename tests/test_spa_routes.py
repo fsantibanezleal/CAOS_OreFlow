@@ -3,7 +3,15 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
+from app import __version__
+from app.main import create_app
 from app.main import SpaStaticFiles
+
+
+def test_service_version_matches_package() -> None:
+    client = TestClient(create_app())
+    assert client.get("/healthz").json()["version"] == __version__
+    assert client.get("/openapi.json").json()["info"]["version"] == __version__
 
 
 def test_document_routes_fallback_without_masking_missing_assets(tmp_path):
