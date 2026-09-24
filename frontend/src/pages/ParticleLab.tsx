@@ -73,7 +73,7 @@ export default function ParticleLab() {
   const point = selectedModel.thresholds[Math.round(threshold * 100)];
   return <div className="of-particle-page">
     <PageHeading title={['Particle-level separation learning', 'Aprendizaje de separación a nivel de partícula']} lede={[
-      'The published HZDR workbook provides 68,008 training particles and a separate 29,147-particle test sheet for four constructed separation cases. OreFlow trains L1 logistic and GPU-capable neural models on the training classes, then compares held-out probabilities with the workbook’s constructed oracle—not with a mine’s measured recovery.',
+      'The published HZDR workbook provides 68,008 training particles and a separate 29,147-particle test sheet for four constructed separation cases. OreFlow trains L1 logistic and GPU-capable neural models on the training classes, then compares held-out probabilities with the workbook’s constructed oracle, not with a mine’s measured recovery.',
       'El libro público de HZDR contiene 68.008 partículas de entrenamiento y una hoja separada de 29.147 partículas de prueba para cuatro casos de separación construidos. OreFlow entrena modelos logísticos L1 y neuronales, y compara probabilidades reservadas con el oráculo construido del libro, no con recuperación medida en una mina.',
     ]} />
     <div className="of-particle-toolbar">
