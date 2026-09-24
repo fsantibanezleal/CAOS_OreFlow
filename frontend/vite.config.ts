@@ -8,6 +8,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
+  resolve: { dedupe: ['react', 'react-dom', 'react-router', 'zustand'] },
   plugins: [react(), {
     name: 'spa-pages-fallback',
     closeBundle() {

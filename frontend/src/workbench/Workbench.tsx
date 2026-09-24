@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { Link, useNavigate } from "react-router";
 import { useShellLang } from "@fasl-work/caos-app-shell";
 import { loadBenchmark, loadCase, loadIndex } from "../api/artifacts";
 import type {
@@ -15,6 +15,7 @@ import CircuitDiagram from "../components/CircuitDiagram";
 import DecisionSurface from "../components/DecisionSurface";
 import MethodVisual from "../components/MethodVisual";
 import { localizedCase, localizedVariant } from "../lib/locale";
+import { readFocusState, writeFocusState } from "./focusState";
 
 type Stage =
   | "feed"
@@ -36,7 +37,7 @@ type View =
 type Group = "size" | "separation" | "flotation";
 const fmt = (n: number | null | undefined, digits = 1) =>
   n == null || !Number.isFinite(n) ? "n/a" : n.toFixed(digits);
-const controls: Record<
+export const controls: Record<
   string,
   {
     en: string;
@@ -122,7 +123,7 @@ const views: Array<{ id: View; en: string; es: string }> = [
 ];
 const walkthroughStages: Record<string, Stage[]> = {
   rougher: ["feed", "crush", "grind", "classify", "float", "product"],
-  gravity_rougher: ["crush", "grind", "classify", "gravity", "float", "product"],
+  gravity_rougher: ["feed", "crush", "grind", "classify", "gravity", "float", "product"],
   magnetic: ["feed", "crush", "grind", "magnetic", "product"],
   deslime_rougher: ["feed", "crush", "grind", "classify", "float", "product"],
 };
@@ -241,6 +242,9 @@ const tierSpanish: Record<string, string> = {
 
 export default function Workbench() {
   const es = useShellLang() === "es";
+  const navigate = useNavigate();
+  const initialFocus = useMemo(readFocusState, []);
+  const restoreOnce = useRef(initialFocus);
   const [index, setIndex] = useState<CaseIndex | null>(null);
   const [benchmark, setBenchmark] = useState<Benchmark | null>(null);
   const [caseData, setCaseData] = useState<CaseArtifact | null>(null);
@@ -265,7 +269,7 @@ export default function Workbench() {
       .then(([ix, b]) => {
         setIndex(ix);
         setBenchmark(b);
-        setCaseId(ix.cases[0]?.case_id ?? "");
+        setCaseId(ix.cases.some(c => c.case_id === initialFocus?.caseId) ? initialFocus!.caseId : (ix.cases[0]?.case_id ?? ""));
       })
       .catch((e) => setError(String(e)));
   }, []);
@@ -276,8 +280,12 @@ export default function Workbench() {
       .then((data) => {
         if (!valid) return;
         setCaseData(data);
-        setVariantId(data.variants[0]?.id ?? "");
-        setParams(data.variants[0]?.params ?? null);
+        const saved = restoreOnce.current?.caseId === data.case_id ? restoreOnce.current : null;
+        restoreOnce.current = null;
+        const chosen = data.variants.find(v => v.id === saved?.variantId) ?? data.variants[0];
+        setVariantId(chosen?.id ?? "");
+        setParams(saved?.params ?? chosen?.params ?? null);
+        if (saved?.stageId) setStageId(saved.stageId as Stage);
       })
       .catch((e) => {
         if (valid) setError(String(e));
@@ -285,7 +293,10 @@ export default function Workbench() {
     return () => {
       valid = false;
     };
-  }, [caseId]);
+  }, [caseId, initialFocus]);
+  useEffect(() => {
+    if (caseData?.case_id === caseId && params) writeFocusState({ caseId, variantId, params, stageId });
+  }, [caseData, caseId, variantId, params, stageId]);
   const changeCase = (id: string) => {
     if (id === caseId) return;
     setCaseData(null);
@@ -569,6 +580,11 @@ export default function Workbench() {
             ))}
           </select>
         </label>
+        <button type="button" className="of-focus-entry" disabled={!caseData || !params} onClick={() => {
+          if (!params) return;
+          writeFocusState({ caseId, variantId, params, stageId });
+          navigate(`/focus/${encodeURIComponent(caseId)}`);
+        }}>{es ? "Expandir escenario ↗" : "Focus scenario ↗"}</button>
         <span className={`of-source-badge ${dirty ? "live" : ""}`}>
           {dirty
             ? es

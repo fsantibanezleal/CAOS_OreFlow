@@ -1,6 +1,6 @@
 {
   "name": "oreflow-workbench",
-  "version": "0.3.1",
+  "version": "0.3.2",
   "private": true,
   "type": "module",
   "engines": {
@@ -15,7 +15,7 @@
     "preview": "vite preview --host 127.0.0.1 --port 4914 --strictPort"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "github:fsantibanezleal/CAOS_APP_SHELL#v0.06.009",
+    "@fasl-work/caos-app-shell": "github:fsantibanezleal/CAOS_APP_SHELL#v0.06.011",
     "katex": "0.16.47",
     "lucide-react": "1.43.0",
     "onnxruntime-web": "1.29.0",

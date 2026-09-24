@@ -1,6 +1,6 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes } from "react-router";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router";
 import {
   AppShell,
   applyTheme,
@@ -14,6 +14,7 @@ import "./rebuild.css";
 import { ARCHITECTURE } from "./content/architecture";
 import { CONTENT_CITATIONS } from "./content/citations";
 import Workbench from "./workbench/Workbench";
+import FocusWorkbench from "./workbench/FocusWorkbench";
 import Introduction from "./pages/Introduction";
 import Methodology from "./pages/Methodology";
 import Implementation from "./pages/Implementation";
@@ -67,10 +68,10 @@ function Boundary({ children }: { children: React.ReactNode }) {
     </React.Suspense>
   );
 }
-createRoot(document.getElementById("root")!).render(
-  <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
-    <CitationsProvider items={CONTENT_CITATIONS}>
-      <AppShell config={config}>
+function AppRoutes() {
+  const { pathname } = useLocation();
+  if (pathname.startsWith('/focus/')) return <Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes>;
+  return <AppShell config={config}>
         <Boundary>
           <Routes>
             <Route path="/" element={<Workbench />} />
@@ -82,7 +83,12 @@ createRoot(document.getElementById("root")!).render(
             <Route path="*" element={<Workbench />} />
           </Routes>
         </Boundary>
-      </AppShell>
+      </AppShell>;
+}
+createRoot(document.getElementById("root")!).render(
+  <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
+    <CitationsProvider items={CONTENT_CITATIONS}>
+      <AppRoutes />
     </CitationsProvider>
   </BrowserRouter>,
 );
