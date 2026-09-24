@@ -31,6 +31,7 @@ RANGES: dict[str, tuple[float, float, str]] = {
     "water_m3_t": (0.01, 20.0, "m³/t"),
 }
 FLAG_LIMITS = {"feed_tph": 5_000.0, "reagent_gpt": 1_500.0, "water_m3_t": 8.0}
+PROCESS_FAMILIES = {"rougher", "gravity_rougher", "magnetic", "deslime_rougher"}
 
 
 @dataclass
@@ -75,6 +76,9 @@ def validate_rows(raw_rows: list[dict[str, Any]]) -> ContractReport:
             bad.append("grind_p80_um must be smaller than feed_p80_um")
         if vals["classifier_cut_um"] < vals["grind_p80_um"] * 0.5:
             bad.append("classifier_cut_um is below half the grind P80")
+        family = str(row.get("process_family", "rougher"))
+        if family not in PROCESS_FAMILIES:
+            bad.append(f"unsupported process_family={family}")
         if bad:
             rejected.append({"row": i, "case_id": cid, "reason": "; ".join(bad)})
             continue
@@ -87,5 +91,5 @@ def validate_rows(raw_rows: list[dict[str, Any]]) -> ContractReport:
             seed = int(float(row.get("seed") or 42))
         except (TypeError, ValueError):
             seed = 42
-        accepted.append(FeedParams(case_id=cid, **vals, seed=seed))
+        accepted.append(FeedParams(case_id=cid, **vals, seed=seed, process_family=family))
     return ContractReport(accepted=accepted, rejected=rejected, flagged=flagged)

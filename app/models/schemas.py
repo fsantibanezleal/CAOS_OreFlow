@@ -2,10 +2,12 @@
 from __future__ import annotations
 
 from pydantic import BaseModel, Field
+from typing import Literal
 
 
 class SimRequest(BaseModel):
     case_id: str = Field(min_length=1, max_length=80)
+    process_family: Literal["rougher", "gravity_rougher", "magnetic", "deslime_rougher"] | None = None
     feed_tph: float
     feed_grade_pct: float
     feed_p80_um: float

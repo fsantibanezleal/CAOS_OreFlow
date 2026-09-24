@@ -44,10 +44,14 @@ def get_manifest(case_id: str) -> dict:
 
 @router.post("/simulate")
 def simulate(request: SimRequest) -> dict:
+    from pipeline.cases.catalog import CASES
     from pipeline.io.contract import validate_rows
     from pipeline.model.process import simulate as run_model
 
     raw = request.model_dump()
+    if raw["process_family"] is None:
+        known_case = next((case for case in CASES if case.id == request.case_id.split(":", 1)[0]), None)
+        raw["process_family"] = known_case.params.process_family if known_case else "rougher"
     report = validate_rows([raw])
     if not report.accepted:
         raise HTTPException(status_code=422, detail={"rejected": report.rejected, "flagged": report.flagged})
