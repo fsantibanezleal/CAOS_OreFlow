@@ -1,34 +1,17 @@
 import { Link } from "react-router";
 import { PageHeading, ResearchSection, Tabset } from "../content/Research";
-import { useShellLang } from "@fasl-work/caos-app-shell";
 
 const p = (en: string, es: string) => [en, es] as const;
 export default function Introduction() {
-  const es = useShellLang() === "es";
   return (
     <div className="of-page of-content">
       <PageHeading
-        title={p("Circuit scope and research questions", "Alcance del circuito y preguntas de investigación")}
+        title={p("Mineral-processing circuit", "Circuito de procesamiento mineral")}
         lede={p(
           "A one-pass mineral-processing model links size reduction, solids classification and rougher flotation. The cases are authored scenarios; the HZDR particle dataset is not a plant recovery campaign. This page distinguishes calculated quantities from untested conclusions.",
           "Un modelo de procesamiento mineral de una pasada vincula reducción de tamaño, clasificación de sólidos y flotación rougher. Los casos son escenarios de autor; el conjunto de partículas HZDR no es una campaña de recuperación de planta. Esta página distingue cálculos de conclusiones aún no probadas.",
         )}
       />
-      <div className="of-content-lead">
-        <div>
-          <span className="of-kicker">{es ? "PREGUNTA DE INVESTIGACIÓN" : "RESEARCH QUESTION"}</span>
-          <h2>{es ? "¿Qué efecto tiene cada decisión de proceso?" : "What does each process choice change?"}</h2>
-          <p>
-            {es
-              ? "Molienda, clasificación y flotación están acopladas. El P80 altera la curva de tamaños y la energía; la partición decide qué masa alcanza el rougher; el tiempo y el colector modifican la recuperación condicional. OreFlow muestra esas relaciones dentro de un simulador declarado, no de una planta calibrada."
-              : "Grinding, classification and flotation are coupled. P80 changes the size curve and energy; partition controls how much mass reaches the rougher; residence and collector change conditional recovery. OreFlow exposes those relationships within a declared simulator, not a calibrated plant."}
-          </p>
-        </div>
-        <div className="of-quote">
-          {es ? "Cada resultado se interpreta junto con su base de masa, unidades y supuestos." : "Each result carries its mass basis, units and assumptions."}
-          <small>{es ? "Alcance del instrumento" : "Instrument scope"}</small>
-        </div>
-      </div>
       <Tabset
         tabs={[
           {
@@ -125,8 +108,8 @@ export default function Introduction() {
                 ]}
                 paragraphs={[
                   p(
-                    "OreFlow exposes a constrained grid optimizer rather than a magic answer. It sweeps grind and reagent factors, evaluates the same mass-balance circuit and retains the candidate with the declared objective. The sweep is bounded to remain legible and responsive in a browser.",
-                    "OreFlow expone un optimizador de grilla acotada, no una respuesta mágica. Barre factores de molienda y reactivo, evalúa el mismo circuito y conserva el candidato con objetivo declarado. El barrido es acotado para ser legible y responsivo en navegador.",
+                    "OreFlow uses bounded grid search over grind and reagent factors. Each candidate is evaluated with the same mass-balance circuit and ranked against the declared objective. The displayed domain defines the limits of the result.",
+                    "OreFlow aplica una búsqueda en grilla acotada sobre factores de molienda y reactivo. Cada candidato se evalúa con el mismo circuito de balance de masa y se ordena según el objetivo declarado. El dominio mostrado delimita el resultado.",
                   ),
                   p(
                     "This makes trade-offs visible. A finer grind can improve the flotation rate proxy but raise Bond energy. A classifier cut can change the overflow fraction and therefore mass pull. A reagent increase can lift recovery without creating grade for free.",
@@ -161,12 +144,12 @@ export default function Introduction() {
                     "Las capas aprendidas aproximan la respuesta del simulador en un dominio de diseño explícito. Ridge da base lineal estable, random forest y gradient boosting capturan interacciones no lineales, Gaussian process agrega incertidumbre local y MLP PyTorch ofrece alternativa neuronal exportada.",
                   ),
                   p(
-                    "This is useful when a flowsheet needs many evaluations, but it is only safe when the domain is known. Every prediction should carry feature bounds, training partition, error on held-out perturbations and an out-of-domain signal. The app does not replace a numerical label with model confidence theater.",
-                    "Esto es útil cuando un flowsheet necesita muchas evaluaciones, pero solo es seguro con dominio conocido. Cada predicción debe llevar límites de variables, partición de entrenamiento, error de perturbaciones reservadas y señal fuera de dominio. La app no reemplaza etiqueta numérica con teatro de confianza.",
+                    "Surrogates can reduce evaluation time within a defined domain. Their outputs must be interpreted alongside feature bounds, the training partition, held-out error and out-of-domain status. These quantities do not establish accuracy on unmeasured ore families.",
+                    "Los modelos sustitutos pueden reducir el tiempo de evaluación dentro de un dominio definido. Sus salidas deben interpretarse junto con los límites de variables, la partición de entrenamiento, el error reservado y el estado fuera de dominio. Estas medidas no establecen exactitud para familias de mineral no medidas.",
                   ),
                   p(
-                    "The training design is synthetic by construction because the public evidence has no complete measured plant label set. That is a limitation, not a secret. The manuscript proposal is to benchmark transfer from particle-derived features to calibrated process labels once such a campaign is available.",
-                    "El diseño de entrenamiento es sintético por construcción porque evidencia pública no tiene conjunto completo de etiquetas de planta medidas. Es limitación, no secreto. La propuesta de manuscrito es evaluar transferencia desde features de partículas a etiquetas calibradas cuando exista campaña.",
+                    "The training labels come from the authored simulator; the public particle data do not contain matched plant recovery labels. The manuscript proposes a future transfer study using particle-derived features and calibrated process labels when such a campaign becomes available.",
+                    "Las etiquetas de entrenamiento provienen del simulador creado para este estudio; los datos públicos de partículas no incluyen etiquetas vinculadas de recuperación de planta. El manuscrito propone estudiar transferencia con características de partículas y respuestas de proceso calibradas cuando exista una campaña apropiada.",
                   ),
                   p(
                     "Browser inference is optional and read-only. ONNX Runtime Web is used only for a small exported model when the asset and parity record exist; the exact replay artifact remains the reference for scientific comparison.",
@@ -178,12 +161,12 @@ export default function Introduction() {
           },
           {
             id: "evidence",
-            label: p("Evidence discipline", "Disciplina de evidencia"),
+            label: p("Evaluation limits", "Límites de evaluación"),
             content: (
               <ResearchSection
                 title={p(
-                  "5. A beautiful result must still be falsifiable",
-                  "5. Un resultado bello debe seguir siendo falsable",
+                  "5. Provenance and evaluation limits",
+                  "5. Procedencia y límites de evaluación",
                 )}
                 refs={["sklearn", "modsim", "prommis"]}
                 paragraphs={[
@@ -196,8 +179,8 @@ export default function Introduction() {
                     "Benchmark separa verdad del simulador y error aprendido. Usa perturbaciones disjuntas y reporta RMSE en puntos porcentuales y R2. R2 alto no crea garantía de planta, sobre todo en baja ley o arcillas.",
                   ),
                   p(
-                    "The visual design is intentionally rich because process intuition is spatial and temporal. Animated particles, linked charts and hover readouts help form hypotheses. They are coupled to a state model and therefore remain accountable to the same metrics and inputs.",
-                    "El diseño visual es rico porque intuición de proceso es espacial y temporal. Partículas animadas, gráficos vinculados y lecturas hover ayudan a formar hipótesis. Están acoplados a estado y por tanto responden a métricas y entradas.",
+                    "The circuit, response curves and method views refer to the same selected case and parameter state. A change to an input updates the linked calculations; replay artifacts remain identifiable separately from local recalculation.",
+                    "El circuito, las curvas de respuesta y los métodos comparten el mismo caso y estado de parámetros. Un cambio de entrada actualiza los cálculos vinculados; los artefactos reproducidos se distinguen del recálculo local.",
                   ),
                   p(
                     "The final question is not whether the page looks complete. It is whether another researcher can rerun the pipeline, inspect the assumptions, change a parameter and tell exactly which statement is evidence and which is interpretation.",

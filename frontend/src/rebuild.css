@@ -1,61 +1,26 @@
 /* OreFlow rebuild: process roles, not decorative dashboard chrome. */
-:root,
-[data-theme="dark"] {
-  --of-bg: #10191c;
-  --of-surface: #19262a;
-  --of-surface-2: #233338;
-  --of-line: #385056;
-  --of-text: #edf3f0;
-  --of-muted: #afc2c1;
-  --of-teal: #84d3cb;
-  --of-cyan: #75c4d4;
-  --of-gold: #ddb37c;
-  --of-violet: #b4a5d9;
-  --of-red: #ec9b8b;
-  --of-gridline: #24343a;
-  --of-surface-grid: #173238;
+:root {
+  /* App widgets consume the shared shell's visual tokens; the shell owns themes. */
+  --of-bg: var(--color-bg);
+  --of-surface: var(--color-surface);
+  --of-surface-2: var(--color-surface-2);
+  --of-line: var(--color-border);
+  --of-text: var(--color-fg);
+  --of-muted: var(--color-fg-subtle);
+  --of-teal: var(--color-accent);
+  --of-cyan: var(--color-accent-2);
+  --of-gold: var(--color-warn);
+  --of-violet: var(--color-accent-2);
+  --of-red: var(--color-bad);
+  --of-gridline: var(--color-border);
+  --of-surface-grid: var(--color-surface-2);
   --of-shadow: none;
-  --of-radius: 12px;
-  --color-bg: var(--of-bg);
-  --color-surface: var(--of-surface);
-  --color-surface-2: var(--of-surface-2);
-  --color-border: var(--of-line);
-  --color-fg: var(--of-text);
-  --color-fg-subtle: var(--of-muted);
-  --color-accent: var(--of-teal);
-  --color-accent-soft: #25423e;
-  color-scheme: dark;
-}
-[data-theme="light"] {
-  --of-bg: #f1f0eb;
-  --of-surface: #fffcf7;
-  --of-surface-2: #ece9e0;
-  --of-line: #d4d0c5;
-  --of-text: #183037;
-  --of-muted: #52666a;
-  --of-teal: #146e73;
-  --of-cyan: #2f7892;
-  --of-gold: #9a6329;
-  --of-violet: #6e618d;
-  --of-red: #a94e3b;
-  --of-gridline: #e9e4d9;
-  --of-surface-grid: #d7d3c9;
-  --of-shadow: none;
-  --color-bg: var(--of-bg);
-  --color-surface: var(--of-surface);
-  --color-surface-2: var(--of-surface-2);
-  --color-border: var(--of-line);
-  --color-fg: var(--of-text);
-  --color-fg-subtle: var(--of-muted);
-  --color-accent: var(--of-teal);
-  --color-accent-soft: #d9eeea;
-  color-scheme: light;
+  --of-radius: 8px;
 }
 body {
   background: var(--of-bg);
   color: var(--of-text);
-  font-family:
-    "Segoe UI Variable", "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+  font-family: var(--font-sans);
 }
 .of-page {
   width: 100%;
@@ -81,22 +46,28 @@ body {
   border-bottom: 1px solid var(--of-line);
 }
 .of-content .of-page-heading h1 {
-  font-size: clamp(1.55rem, 3.3vw, 2.8rem);
-  letter-spacing: -0.045em;
-  line-height: 1.08;
+  font-size: clamp(1.3rem, 2.25vw, 2rem);
+  letter-spacing: -0.025em;
+  line-height: 1.2;
   margin: 5px 0;
 }
 .of-content .of-page-heading p {
-  font-size: clamp(0.85rem, 1.15vw, 1rem);
+  font-size: clamp(0.83rem, 1vw, 0.95rem);
   line-height: 1.45;
   margin: 0;
   max-width: 80ch;
 }
-.of-content .of-tabs {
+.of-content .of-tabnav {
   position: sticky;
   top: 0;
   z-index: 4;
   display: flex;
+  min-width: 0;
+  background: var(--of-bg);
+}
+.of-content .of-tabs {
+  flex: 1;
+  position: static;
   flex-wrap: nowrap;
   white-space: nowrap;
   overflow-x: auto;
@@ -106,6 +77,20 @@ body {
   padding: 6px 0;
   border-bottom: 1px solid var(--of-line);
   scrollbar-width: thin;
+}
+.of-tab-pan {
+  display: none;
+  flex: none;
+  width: 28px;
+  border: 0;
+  border-bottom: 1px solid var(--of-line);
+  color: var(--of-text);
+  background: var(--of-bg);
+  font-size: 20px;
+  cursor: pointer;
+}
+@media (max-width: 900px) {
+  .of-tab-pan { display: block; }
 }
 .of-content .of-tabs button {
   flex: none;
@@ -117,6 +102,52 @@ body {
 }
 .of-content .of-research-section {
   max-width: 100%;
+}
+.of-research-layout {
+  min-width: 0;
+}
+.of-research-layout.has-figure {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(330px, 0.88fr);
+  gap: clamp(20px, 3vw, 44px);
+  align-items: start;
+}
+.of-research-copy,
+.of-research-visual {
+  min-width: 0;
+}
+.of-research-copy > p:first-child {
+  margin-top: 0;
+}
+.of-research-visual {
+  display: grid;
+  gap: 12px;
+}
+.of-research-visual .of-research-figure {
+  margin: 0;
+  width: 100%;
+}
+.of-research-visual .of-research-figure img {
+  width: 100%;
+  height: auto;
+}
+.of-inline-svg,
+.of-inline-svg svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.of-figure-loading {
+  padding: 20px;
+  color: var(--of-muted);
+}
+@media (max-width: 900px) {
+  .of-research-layout.has-figure {
+    grid-template-columns: 1fr;
+  }
+  .of-research-visual {
+    grid-row: 1;
+  }
 }
 .of-content .of-research-section > p {
   max-width: 82ch;
@@ -132,7 +163,20 @@ body {
   margin-bottom: 12px;
 }
 .of-content .of-quote {
-  font-size: 1.05rem;
+  font-size: 0.92rem;
+}
+.of-content .of-content-lead {
+  padding: 14px 18px;
+  gap: 20px;
+}
+.of-content .of-content-lead h2 {
+  font-size: clamp(1.15rem, 1.7vw, 1.5rem);
+  letter-spacing: -0.025em;
+}
+.of-content .of-content-lead p {
+  margin: 5px 0 0;
+  font-size: 0.88rem;
+  line-height: 1.48;
 }
 .of-content .of-research-figure {
   max-width: 960px;
@@ -360,16 +404,16 @@ body {
   stroke-linejoin: round;
 }
 .of-stream-ore {
-  stroke: #b98850;
+  stroke: var(--color-fg-subtle);
 }
 .of-stream-water {
-  stroke: #3ba6a8;
+  stroke: var(--color-accent);
 }
 .of-stream-product {
-  stroke: #d4674d;
+  stroke: var(--color-good);
 }
 .of-stream-tail {
-  stroke: #718b90;
+  stroke: var(--color-fg-faint);
 }
 .of-stream-label {
   fill: var(--of-text);
@@ -386,18 +430,18 @@ body {
 }
 .of-unit-core {
   fill: var(--of-surface-2);
-  stroke: #b98850;
+  stroke: var(--color-fg-subtle);
   stroke-width: 2;
 }
 .of-unit-water .of-unit-core {
-  stroke: #3ba6a8;
+  stroke: var(--color-accent);
 }
 .of-unit-copper .of-unit-core,
 .of-unit-product .of-unit-core {
-  stroke: #d4674d;
+  stroke: var(--color-good);
 }
 .of-unit-tail .of-unit-core {
-  stroke: #718b90;
+  stroke: var(--color-fg-faint);
 }
 .of-unit.is-active .of-unit-ring,
 .of-unit:focus-visible .of-unit-ring {
