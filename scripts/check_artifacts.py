@@ -84,11 +84,33 @@ def main() -> int:
                     errors.append(f"nonmonotone particle threshold: {case.get('case')}:{model_id}")
                 if sum(row.get("count", 0) for row in model.get("calibration", [])) != case.get("test_rows"):
                     errors.append(f"particle calibration population: {case.get('case')}:{model_id}")
+    geomet_path = DERIVED / "source" / "geomet_lct_benchmark.json"
+    if not geomet_path.is_file():
+        errors.append("missing measured GeoMet LCT benchmark")
+    else:
+        geomet = json.loads(geomet_path.read_text(encoding="utf-8"))
+        source = geomet.get("source", {})
+        if geomet.get("schema") != "oreflow.geomet-lct/v1" or (source.get("raw_rows"), source.get("usable_rows"), source.get("holes")) != (53, 52, 29):
+            errors.append("GeoMet source population or schema")
+        if source.get("sha256") != "e7968c250c1ccc17b63da6d9624473dd92b32a7ba8d8772e70070a0115e42eda":
+            errors.append("GeoMet source SHA256")
+        for protocol_name, n_folds in (("hole", 5), ("zone", 3)):
+            protocol = geomet.get("protocols", {}).get(protocol_name, {})
+            if len(protocol.get("folds", [])) != n_folds or len(protocol.get("rows", [])) != 52:
+                errors.append(f"GeoMet {protocol_name} coverage")
+            if set(protocol.get("scores", {})) != {"train_mean", "ridge", "random_forest", "gaussian_process"}:
+                errors.append(f"GeoMet {protocol_name} model matrix")
+            for model in protocol.get("scores", {}).values():
+                if not all(math.isfinite(model.get(key, float('nan'))) for key in ("mae_pp", "rmse_pp", "bias_pp", "r2")):
+                    errors.append(f"GeoMet {protocol_name} invalid score")
+            for row in protocol.get("rows", []):
+                if set(row.get("predictions_pct", {})) != {"train_mean", "ridge", "random_forest", "gaussian_process"}:
+                    errors.append(f"GeoMet {protocol_name} incomplete prediction")
     if errors:
         print("CONTRACT 2 DRIFT:")
         print("\n".join(f"  - {error}" for error in errors))
         return 1
-    print("CONTRACT 2 OK: 12 cases, 72 variants, 1512 method records; 4 HZDR particle experiments and ONNX model.")
+    print("CONTRACT 2 OK: 12 cases, 72 variants, 1512 method records; HZDR particle and measured GeoMet LCT evaluations.")
     return 0
 
 
