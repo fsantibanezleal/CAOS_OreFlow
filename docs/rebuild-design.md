@@ -1,4 +1,4 @@
-# OreFlow rebuild design — 2026-09-23
+# OreFlow rebuild design: 2026-09-23
 
 ## Product boundary
 
