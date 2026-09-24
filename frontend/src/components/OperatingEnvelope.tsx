@@ -5,7 +5,7 @@ import { analyzeEnvelope, defaultEnvelopeLimits, envelopeReport, type EnvelopeLi
 import DecisionSurface from './DecisionSurface';
 
 type Props = { params: Params; caseId: string; es: boolean; onApply: (next: Params) => void };
-const num = (value: number, places = 1) => Number.isFinite(value) ? value.toFixed(places) : '—';
+const num = (value: number, places = 1) => Number.isFinite(value) ? value.toFixed(places) : 'n/a';
 const labels: Record<keyof EnvelopeLimits, [string, string, string]> = {
   minRecoveryPct: ['Minimum recovery', 'Recuperación mínima', '%'],
   minStressRecoveryPct: ['Minimum under declared stress', 'Mínima bajo estrés declarado', '%'],
