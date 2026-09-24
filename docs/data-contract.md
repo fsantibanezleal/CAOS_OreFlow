@@ -4,6 +4,8 @@ OreFlow has two boundaries. Contract 1 is `pipeline/io/contract.py`: it validate
 
 The input schema is intentionally narrow enough for a browser request and rich enough to couple throughput, size, hardness, density, water, air, reagent and residence time. Rejection is used for missing or physically impossible values. Review flags are used for plausible but unusual intensities, including very high throughput, reagent dose, water use and very low head grade.
 
+The optional `process_family` field is restricted to `rougher`, `gravity_rougher`, `magnetic` or `deslime_rougher` and is preserved through validation. The live API infers the family from a known authored case ID when omitted; an unknown case ID defaults to the generic rougher. This keeps live calculations consistent with the selected case topology while rejecting unsupported family names.
+
 The output case schema is `oreflow.case/v1`. A case artifact contains six variants and an explicit `process_family`. Each variant stores the complete size grid, feed, crushed, ground and overflow cumulative passing curves, a kinetic curve (zero for the magnetic circuit), metric dictionary and all 21 method records. Records distinguish `precomputed`, `not-applicable`, and `unavailable`. The manifest points to the artifact, records its byte count, engine version, seed, lane and evaluation summary. `frontend/src/lib/contract.types.ts` mirrors the shape.
 
 This design makes the repo applicable to new operating-point data while preserving an honest boundary between exact offline evidence and the browser's bounded live response.

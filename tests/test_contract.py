@@ -24,3 +24,10 @@ def test_bad_rows_rejected_without_silent_coercion():
 def test_review_flags_are_not_rejections():
     report = validate_rows([good() | {"feed_tph": 6000, "reagent_gpt": 1800}])
     assert report.ok and report.flagged and not report.rejected
+
+
+def test_process_family_is_preserved_and_invalid_family_rejected():
+    magnetic = validate_rows([good() | {"process_family": "magnetic"}])
+    assert magnetic.ok and magnetic.accepted[0].process_family == "magnetic"
+    invalid = validate_rows([good() | {"process_family": "unknown"}])
+    assert not invalid.ok and "unsupported process_family" in invalid.rejected[0]["reason"]

@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.03.001, 2026-09-24
+
+- Preserve and validate process family at the live API boundary. Requests for known authored cases infer their gravity, magnetic, desliming or rougher path when the family field is omitted; explicit unsupported families are rejected.
+
 ## 0.03.000, 2026-09-24
 
 - Rebuilt the contained workbench around selectable, mass-linked circuit operations and an explicit walkthrough with playback, stage selection and local-versus-baked state.
