@@ -10,14 +10,16 @@ from ..model.process import circuit_metrics, variant_params
 
 FEATURE_NAMES = ("feed_tph", "feed_grade_pct", "feed_p80_um", "hardness_kwh_t", "density_t_m3",
                  "grind_p80_um", "classifier_cut_um", "flotation_time_min", "air_rate_m3_min",
-                 "reagent_gpt", "water_m3_t")
+                 "reagent_gpt", "water_m3_t", "is_gravity_rougher", "is_magnetic", "is_deslime_rougher")
 
 
 def vector(params) -> np.ndarray:
     return np.array([params.feed_tph / 1000.0, params.feed_grade_pct / 5.0, params.feed_p80_um / 15_000.0,
                      params.hardness_kwh_t / 20.0, params.density_t_m3 / 3.0, params.grind_p80_um / 200.0,
                      params.classifier_cut_um / 150.0, params.flotation_time_min / 20.0,
-                     params.air_rate_m3_min / 2.5, params.reagent_gpt / 250.0, params.water_m3_t / 3.0], dtype=np.float64)
+                     params.air_rate_m3_min / 2.5, params.reagent_gpt / 250.0, params.water_m3_t / 3.0,
+                     float(params.process_family == "gravity_rougher"), float(params.process_family == "magnetic"),
+                     float(params.process_family == "deslime_rougher")], dtype=np.float64)
 
 
 def run(seed: int = 42, samples: int = 720) -> dict[str, Any]:

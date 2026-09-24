@@ -116,7 +116,7 @@ export default function DecisionSurface({
             <polygon
               key={`${q.x}-${q.y}`}
               points={q.p.map((p) => `${p.px},${p.py}`).join(" ")}
-              fill={`hsl(${190 - (150 * (q.recovery - min)) / Math.max(max - min, 0.001)} 55% 48%)`}
+              fill={`color-mix(in srgb, var(--color-accent) ${Math.round(20 + 65 * (q.recovery - min) / Math.max(max - min, 0.001))}%, var(--color-surface-2))`}
               stroke="var(--of-surface-grid)"
               strokeWidth="1.5"
               opacity=".9"

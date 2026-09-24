@@ -3,9 +3,10 @@ from __future__ import annotations
 
 from pathlib import Path
 import json
+from ..model.process import METHODS
 
 
-def run(derived_dir: str | Path, expected_cases: int = 12, expected_variants: int = 72, expected_methods: int = 19) -> dict:
+def run(derived_dir: str | Path, expected_cases: int = 12, expected_variants: int = 72, expected_methods: int = len(METHODS)) -> dict:
     root = Path(derived_dir)
     index = json.loads((root / "manifests" / "index.json").read_text(encoding="utf-8"))
     matrix = json.loads((root / "metrics" / "matrix.json").read_text(encoding="utf-8"))

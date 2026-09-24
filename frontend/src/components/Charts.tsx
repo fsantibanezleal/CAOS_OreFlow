@@ -24,7 +24,19 @@ export function Chart({ title, subtitle, series, labels = [], height = 240, form
   const index = hover ?? Math.max(0, Math.round((series[0]?.values.length ?? 1) / 2));
   return <div className="of-chart" onMouseLeave={() => setHover(null)}>
     <div className="of-chart-head"><div><h3>{title}</h3>{subtitle && <p>{subtitle}</p>}</div><div className="of-legend">{series.map(s => <span key={s.name}><i style={{ background: s.color }} />{s.name}</span>)}</div></div>
-    <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} onMouseMove={(event) => { const rect = event.currentTarget.getBoundingClientRect(); const raw = (event.clientX - rect.left) / rect.width * (series[0]?.values.length ?? 1); setHover(Math.max(0, Math.min((series[0]?.values.length ?? 1) - 1, Math.round(raw)))); }}>
+    <svg ref={svgRef} viewBox={`0 0 ${width} ${height}`} role="img" aria-label={title} onMouseMove={(event) => {
+      const svg = event.currentTarget;
+      const transform = svg.getScreenCTM();
+      if (!transform) return;
+      const point = svg.createSVGPoint();
+      point.x = event.clientX;
+      point.y = event.clientY;
+      const svgX = point.matrixTransform(transform.inverse()).x;
+      const count = series[0]?.values.length ?? 0;
+      if (count < 1) return;
+      const raw = (svgX - 56) / (width - 78) * (count - 1);
+      setHover(Math.max(0, Math.min(count - 1, Math.round(raw))));
+    }}>
       {[0, .25, .5, .75, 1].map(t => <g key={t}><line x1="56" x2={width - 22} y1={18 + t * (height - 52)} y2={18 + t * (height - 52)} className="of-grid" /><text x="48" y={22 + t * (height - 52)} textAnchor="end" className="of-axis">{format(max - t * span)}</text></g>)}
       <line x1={x(index, series[0]?.values.length ?? 1)} x2={x(index, series[0]?.values.length ?? 1)} y1="16" y2={height - 34} className="of-hover-line" />
       {series.map(s => <polyline key={s.name} points={points(s.values)} fill="none" stroke={s.color} strokeWidth="3" strokeLinejoin="round" strokeLinecap="round" />)}

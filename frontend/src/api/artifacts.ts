@@ -6,3 +6,24 @@ export const loadIndex = () => get<CaseIndex>('manifests/index.json');
 export const loadManifest = (id: string) => get<CaseManifest>(`manifests/${id}.json`);
 export const loadCase = (id: string) => get<CaseArtifact>(`cases/${id}.json`);
 export const loadBenchmark = () => get<Benchmark>('benchmark.json');
+export type MethodMatrix = { methods: Array<{ id: string; name: string; domain: string }>; rows: Array<{ case_id: string; variant_id: string; method_id: string; value: number | null; status: string }> };
+export const loadMethodMatrix = () => get<MethodMatrix>('metrics/matrix.json');
+export type ParticleThreshold = { threshold: number; selected_fraction: number; expected_recovery: number; expected_grade_proxy: number };
+export type ParticleModelEvaluation = {
+  rmse: number; mae: number; bias: number;
+  calibration: Array<{ bin: number; count: number; predicted: number; oracle: number }>;
+  thresholds: ParticleThreshold[];
+};
+export type ParticleBenchmark = {
+  schema: string;
+  source: { doi: string; url: string; license: string; sha256: string };
+  protocol: {
+    train_rows: number; fit_rows: number; validation_rows: number; test_rows: number;
+    features: string[]; excluded_from_features: string[]; target: string; test_oracle: string;
+    published_reference: string; split: string; device: string; mlp_best_epoch: number;
+    missingness: string; threshold_interpretation: string;
+  };
+  standardization: { mean: number[]; scale: number[] };
+  cases: Array<{ case: string; train_class_b: number; test_rows: number; excluded_test_rows: number; oracle_expected_b: number; models: Record<string, ParticleModelEvaluation> }>;
+};
+export const loadParticleBenchmark = () => get<ParticleBenchmark>('source/hzdr_particle_benchmark.json');

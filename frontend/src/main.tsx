@@ -38,11 +38,18 @@ const config: ShellConfig = {
   ],
   links: { github: "https://github.com/fsantibanezleal/CAOS_OreFlow" },
   footer: {
-    attribution: false,
+    attribution: {
+      en: "Developed by Felipe Santibáñez-Leal",
+      es: "Desarrollado por Felipe Santibáñez-Leal",
+    },
     license: { en: "Apache-2.0", es: "Apache-2.0" },
     provenance: {
-      en: "Reproducible process models · local and replayable inference",
-      es: "Modelos de proceso reproducibles · inferencia local y reproducible",
+      en: "Particle reference: HZDR RODARE 336 (CC BY 4.0); authored circuits",
+      es: "Referencia de partículas: HZDR RODARE 336 (CC BY 4.0); circuitos de autor",
+    },
+    disclaimer: {
+      en: "Simulator only; not plant-calibrated",
+      es: "Solo simulador; sin calibración de planta",
     },
   },
 };
