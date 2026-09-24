@@ -49,13 +49,13 @@ def run_all(seed: int = 42, output_root: str | Path | None = None) -> list[dict]
         variant_payloads = [_variant_payload(case, variant, bundle) for variant in case.variants]
         for payload in variant_payloads:
             for method in payload["method_outputs"]:
-                matrix_rows.append({"case_id": case.id, "category": case.category, "variant_id": payload["id"], "method_id": method["id"], "tier": method["tier"], "value": method["value"], "unit": method["unit"]})
+                matrix_rows.append({"case_id": case.id, "category": case.category, "variant_id": payload["id"], "method_id": method["id"], "tier": method["tier"], "value": method["value"], "unit": method["unit"], "status": method["status"]})
         export.run_case(case=case, variants=variant_payloads, seed=seed, run_ms=(time.perf_counter() - started) * 1000.0,
                         metrics={"nominal": variant_payloads[0]["metrics"], "evaluation": evaluation}, derived_dir=derived, manifests_dir=manifests)
         entries.append({"case_id": case.id, "category": case.category, "title": case.title, "manifest_path": f"manifests/{case.id}.json", "artifact_path": f"cases/{case.id}.json", "variants": len(variant_payloads), "methods": len(METHODS)})
     write_json(manifests / "index.json", build_index(entries))
     write_json(derived / "metrics" / "matrix.json", {"schema": "oreflow.metrics/v1", "rows": matrix_rows, "methods": list(METHODS), "evaluation": evaluation})
-    benchmark = {"schema": "oreflow.benchmark/v1", "protocol": "12 cases x 6 variants x 19 methods; truth is the declared process simulator; test set is disjoint parameter perturbations",
+    benchmark = {"schema": "oreflow.benchmark/v1", "protocol": f"{len(entries)} cases x 6 variants x {len(METHODS)} method records; truth is the declared process simulator; test set is disjoint parameter perturbations",
                  "case_count": len(entries), "variant_count": sum(e["variants"] for e in entries), "method_count": len(METHODS),
                  "source": source, "evaluation": evaluation, "method_matrix_path": "metrics/matrix.json", "compute": bundle["registry"]["compute"]}
     write_json(derived / "benchmark.json", benchmark)

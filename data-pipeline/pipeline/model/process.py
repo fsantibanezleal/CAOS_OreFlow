@@ -23,6 +23,8 @@ METHODS = (
     {"id": "pbm", "tier": "classical", "domain": "grinding", "name": "Distribution-shape mill proxy"},
     {"id": "partition", "tier": "classical", "domain": "classification", "name": "Logistic partition curve"},
     {"id": "plitt", "tier": "classical", "domain": "classification", "name": "Plitt-style cut-size proxy"},
+    {"id": "gravity_window", "tier": "classical", "domain": "gravity", "name": "Free-gold gravity size-window proxy"},
+    {"id": "lims_capture", "tier": "classical", "domain": "magnetic", "name": "Magnetic size-window capture proxy"},
     {"id": "first_order", "tier": "classical", "domain": "flotation", "name": "First-order flotation kinetics"},
     {"id": "kelsall", "tier": "classical", "domain": "flotation", "name": "Kelsall fast/slow kinetics"},
     {"id": "compressed_exponential", "tier": "classical", "domain": "flotation", "name": "Compressed exponential kinetics"},
@@ -153,6 +155,57 @@ def concentrate_metrics(p: FeedParams, recovery: float, partition: float) -> dic
             "metal_balance_pct": (valuable_conc + valuable_feed * (1 - recovery)) / max(valuable_feed, 1e-9) * 100.0}
 
 
+def gravity_branch(p: FeedParams, size: np.ndarray, ground: np.ndarray, cut: float, overflow_fraction: float) -> dict[str, float]:
+    """Authored one-pass gravity branch on classifier underflow, followed by rougher on overflow.
+
+    The size window and 18% gravity-product grade are explicit research assumptions,
+    not fitted GRG testwork or a centrifugal concentrator performance guarantee.
+    """
+    bins = np.diff(np.r_[0.0, np.clip(ground, 0.0, 1.0)])
+    bins[-1] += max(0.0, 1.0 - float(bins.sum()))
+    underflow = bins * (1.0 - logistic_partition(size, cut, 0.16))
+    window = (1.0 - np.exp(-size / 45.0)) * np.exp(-size / 700.0)
+    gravity_recovery = float(min(0.95, 0.82 * np.sum(underflow * window)))
+    flotation_recovery = first_order_recovery(p) * overflow_fraction
+    recovery = min(0.98, gravity_recovery + flotation_recovery)
+    float_mass_pull = min(_clip(0.018 + 0.085 * overflow_fraction + 0.000015 * p.reagent_gpt, 0.015, 0.18), overflow_fraction * 0.95)
+    gravity_mass_pull = min(max(0.0, 1.0 - overflow_fraction) * 0.012,
+                            (p.feed_grade_pct / 100.0) * gravity_recovery / 0.18)
+    mass_pull = float_mass_pull + gravity_mass_pull
+    valuable_feed = p.feed_tph * p.feed_grade_pct / 100.0
+    product_tph = p.feed_tph * mass_pull
+    valuable_product = valuable_feed * recovery
+    return {"recovery_pct": 100.0 * recovery, "flotation_recovery_pct": 100.0 * flotation_recovery,
+            "gravity_recovery_pct": 100.0 * gravity_recovery,
+            "gravity_product_tph": p.feed_tph * gravity_mass_pull,
+            "rougher_product_tph": p.feed_tph * float_mass_pull,
+            "concentrate_tph": product_tph, "mass_pull_pct": 100.0 * mass_pull,
+            "concentrate_grade_pct": 100.0 * valuable_product / max(product_tph, 1e-9),
+            "tail_grade_pct": 100.0 * (valuable_feed - valuable_product) / max(p.feed_tph - product_tph, 1e-9),
+            "metal_balance_pct": 100.0}
+
+
+def magnetic_branch(p: FeedParams, size: np.ndarray, ground: np.ndarray) -> dict[str, float]:
+    """Size-window LIMS proxy for magnetite; no cyclone or flotation in this path.
+
+    Capture shape and 62% product grade are authored assumptions, not measured
+    susceptibility, separator field strength, or magnetite liberation testwork.
+    """
+    bins = np.diff(np.r_[0.0, np.clip(ground, 0.0, 1.0)])
+    bins[-1] += max(0.0, 1.0 - float(bins.sum()))
+    capture = 0.91 * (1.0 - np.exp(-size / 25.0)) * np.exp(-size / 1800.0)
+    recovery = float(np.clip(np.sum(bins * capture), 0.0, 0.98))
+    valuable_feed = p.feed_tph * p.feed_grade_pct / 100.0
+    product_tph = valuable_feed * recovery / 0.62
+    tail_tph = p.feed_tph - product_tph
+    return {"recovery_pct": 100.0 * recovery, "magnetic_recovery_pct": 100.0 * recovery,
+            "flotation_recovery_pct": 0.0, "concentrate_grade_pct": 62.0,
+            "concentrate_tph": product_tph, "magnetic_product_tph": product_tph,
+            "mass_pull_pct": 100.0 * product_tph / p.feed_tph,
+            "tail_grade_pct": 100.0 * valuable_feed * (1.0 - recovery) / max(tail_tph, 1e-9),
+            "metal_balance_pct": 100.0}
+
+
 def constrained_optimize(p: FeedParams) -> dict[str, float]:
     """Deterministic constrained grid search used as the browser-safe optimizer.
 
@@ -164,7 +217,7 @@ def constrained_optimize(p: FeedParams) -> dict[str, float]:
     for grind_factor in (0.72, 0.86, 1.0, 1.14, 1.28):
         for reagent_factor in (0.72, 0.9, 1.0, 1.15, 1.3):
             grind = _clip(p.grind_p80_um * grind_factor, 8.0, p.feed_p80_um * 0.85)
-            candidate = FeedParams(case_id=p.case_id, feed_tph=p.feed_tph, feed_grade_pct=p.feed_grade_pct,
+            candidate = FeedParams(case_id=p.case_id, process_family=p.process_family, feed_tph=p.feed_tph, feed_grade_pct=p.feed_grade_pct,
                                    feed_p80_um=p.feed_p80_um, hardness_kwh_t=p.hardness_kwh_t, density_t_m3=p.density_t_m3,
                                    grind_p80_um=grind, classifier_cut_um=_clip(p.classifier_cut_um * (0.84 + 0.22 * grind_factor), grind * 0.55, p.feed_p80_um * 0.7),
                                    flotation_time_min=p.flotation_time_min, air_rate_m3_min=p.air_rate_m3_min,
@@ -183,7 +236,7 @@ def robust_monte_carlo(p: FeedParams, samples: int = 128) -> dict[str, float]:
     recovery: list[float] = []
     energy: list[float] = []
     for hardness, grade, cut in zip(rng.lognormal(0.0, 0.10, samples), rng.lognormal(0.0, 0.12, samples), rng.lognormal(0.0, 0.08, samples)):
-        q = FeedParams(case_id=p.case_id, feed_tph=p.feed_tph, feed_grade_pct=p.feed_grade_pct * grade, feed_p80_um=p.feed_p80_um,
+        q = FeedParams(case_id=p.case_id, process_family=p.process_family, feed_tph=p.feed_tph, feed_grade_pct=p.feed_grade_pct * grade, feed_p80_um=p.feed_p80_um,
                        hardness_kwh_t=p.hardness_kwh_t * hardness, density_t_m3=p.density_t_m3, grind_p80_um=p.grind_p80_um,
                        classifier_cut_um=p.classifier_cut_um * cut, flotation_time_min=p.flotation_time_min,
                        air_rate_m3_min=p.air_rate_m3_min, reagent_gpt=p.reagent_gpt, water_m3_t=p.water_m3_t, seed=p.seed)
@@ -198,10 +251,15 @@ def circuit_metrics(p: FeedParams) -> dict[str, float]:
     size = np.geomspace(10.0, max(p.feed_p80_um * 2.3, 1_000.0), 96)
     crusher, crusher_p80 = whiten_crusher(size, p.feed_p80_um, max(80.0, p.feed_p80_um * 0.22))
     ground = population_balance(size, crusher_p80, p.grind_p80_um, p.hardness_kwh_t)
-    cut = plitt_cut_size(p)
-    _, overflow_fraction = classify_size_distribution(size, ground, cut)
-    recovery = first_order_recovery(p) * overflow_fraction
-    metrics = concentrate_metrics(p, recovery, overflow_fraction)
+    cut = plitt_cut_size(p) if p.process_family != "magnetic" else 0.0
+    _, overflow_fraction = classify_size_distribution(size, ground, cut) if p.process_family != "magnetic" else (ground, 1.0)
+    rougher_feed_fraction = 1.0 - overflow_fraction if p.process_family == "deslime_rougher" else overflow_fraction
+    recovery = first_order_recovery(p) * rougher_feed_fraction
+    metrics = (gravity_branch(p, size, ground, cut, overflow_fraction) if p.process_family == "gravity_rougher"
+               else magnetic_branch(p, size, ground) if p.process_family == "magnetic"
+               else concentrate_metrics(p, recovery, rougher_feed_fraction))
+    if p.process_family in {"rougher", "deslime_rougher"}:
+        metrics["flotation_recovery_pct"] = metrics["recovery_pct"]
     e_rit = rittinger_energy(p.feed_p80_um, p.grind_p80_um)
     e_kick = kick_energy(p.feed_p80_um, p.grind_p80_um)
     e_bond = bond_energy(p.feed_p80_um, p.grind_p80_um, p.hardness_kwh_t)
@@ -213,25 +271,36 @@ def circuit_metrics(p: FeedParams) -> dict[str, float]:
 
 
 def method_outputs(p: FeedParams, metrics: dict[str, float], learned: dict[str, float] | None = None) -> list[dict[str, Any]]:
-    optimum = constrained_optimize(p)
+    optimum = constrained_optimize(p) if p.process_family != "magnetic" else None
     uncertainty = robust_monte_carlo(p)
     out = []
     classical = {
         "rittinger": metrics["energy_rittinger_kwh_t"], "kick": metrics["energy_kick_kwh_t"], "bond": metrics["energy_bond_kwh_t"],
         "whiten": metrics["crusher_p80_um"], "pbm": p.grind_p80_um, "partition": metrics["overflow_fraction"] * 100,
-        "plitt": metrics["cyclone_d50_um"], "first_order": metrics["recovery_pct"], "kelsall": kelsall_recovery(p) * metrics["overflow_fraction"] * 100,
-        "compressed_exponential": compressed_exponential_recovery(p) * metrics["overflow_fraction"] * 100, "mass_balance": metrics["metal_balance_pct"],
-        "constrained_opt": optimum["objective"],
+        "plitt": metrics["cyclone_d50_um"] if p.process_family != "magnetic" else None,
+        "gravity_window": metrics.get("gravity_recovery_pct"),
+        "lims_capture": metrics.get("magnetic_recovery_pct"),
+        "first_order": metrics["flotation_recovery_pct"] if p.process_family != "magnetic" else None,
+        "kelsall": kelsall_recovery(p) * (1.0 - metrics["overflow_fraction"] if p.process_family == "deslime_rougher" else metrics["overflow_fraction"]) * 100 if p.process_family != "magnetic" else None,
+        "compressed_exponential": compressed_exponential_recovery(p) * (1.0 - metrics["overflow_fraction"] if p.process_family == "deslime_rougher" else metrics["overflow_fraction"]) * 100 if p.process_family != "magnetic" else None,
+        "mass_balance": metrics["metal_balance_pct"],
+        "constrained_opt": optimum["objective"] if optimum else None,
         "robust_mc": uncertainty["p05_recovery_pct"],
     }
     for method in METHODS:
         value = classical.get(method["id"], (learned or {}).get(method["id"]))
+        if p.process_family == "magnetic" and method["id"] == "partition":
+            value = None
         unit = ("kWh/t" if method["id"] in {"rittinger", "kick", "bond"} else
                 "µm" if method["id"] in {"whiten", "pbm", "plitt"} else
                 "score" if method["id"] == "constrained_opt" else
                 "MSE" if method["id"] == "autoencoder" else "%")
+        not_applicable = (method["id"] == "gravity_window" and p.process_family != "gravity_rougher"
+                          or method["id"] == "lims_capture" and p.process_family != "magnetic"
+                          or p.process_family == "magnetic" and method["id"] in {
+                              "partition", "plitt", "first_order", "kelsall", "compressed_exponential", "constrained_opt"})
         out.append({**method, "value": round(float(value), 6) if value is not None else None,
-                    "unit": unit, "status": "precomputed" if value is not None else "unavailable"})
+                    "unit": unit, "status": "precomputed" if value is not None else "not-applicable" if not_applicable else "unavailable"})
     return out
 
 
@@ -242,10 +311,15 @@ def simulate(p: FeedParams, angle_step: float = 6.0, learned: dict[str, float] |
     feed = feed_psd(size, p.feed_p80_um)
     crushed, crusher_p80 = whiten_crusher(size, p.feed_p80_um, max(80.0, p.feed_p80_um * 0.22))
     ground = population_balance(size, crusher_p80, p.grind_p80_um, p.hardness_kwh_t)
-    cut = plitt_cut_size(p)
-    overflow, overflow_fraction = classify_size_distribution(size, ground, cut)
-    recovery_curve = overflow_fraction * 0.97 * (1.0 - np.exp(-flotation_rate(p) * np.linspace(0.0, p.flotation_time_min, 96)))
+    cut = plitt_cut_size(p) if p.process_family != "magnetic" else 0.0
+    overflow, overflow_fraction = classify_size_distribution(size, ground, cut) if p.process_family != "magnetic" else (ground, 1.0)
     metrics = circuit_metrics(p)
+    rougher_feed_fraction = 1.0 - overflow_fraction if p.process_family == "deslime_rougher" else overflow_fraction
+    recovery_curve = rougher_feed_fraction * 0.97 * (1.0 - np.exp(-flotation_rate(p) * np.linspace(0.0, p.flotation_time_min, 96)))
+    if p.process_family == "gravity_rougher":
+        recovery_curve += metrics["gravity_recovery_pct"] / 100.0
+    elif p.process_family == "magnetic":
+        recovery_curve[:] = 0.0
     return ProcessResult(case_id=p.case_id, size_um=size.tolist(), feed_psd=feed.tolist(), crushed_psd=crushed.tolist(),
                          ground_psd=ground.tolist(), overflow_psd=overflow.tolist(), flotation_recovery=recovery_curve.tolist(),
                          metrics=metrics, method_outputs=method_outputs(p, metrics, learned))
@@ -260,4 +334,4 @@ def variant_params(base: FeedParams, overrides: dict[str, Any], case_id: str | N
             values[key[:-7]] *= float(value)
         elif key in values:
             values[key] = float(value)
-    return FeedParams(case_id=case_id or base.case_id, seed=base.seed, **values)
+    return FeedParams(case_id=case_id or base.case_id, seed=base.seed, process_family=base.process_family, **values)

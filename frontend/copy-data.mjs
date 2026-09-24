@@ -9,6 +9,11 @@ const derived = join(ROOT, 'data', 'derived');
 if (existsSync(derived)) { mkdirSync(join(PUB, 'data'), { recursive: true }); cpSync(derived, join(PUB, 'data'), { recursive: true }); }
 const models = join(ROOT, 'models');
 if (existsSync(models)) { mkdirSync(join(PUB, 'models'), { recursive: true }); for (const file of readdirSync(models)) if (file.endsWith('.onnx') || file === 'registry.json') cpSync(join(models, file), join(PUB, 'models', file)); }
+const ort = join(HERE, 'node_modules', 'onnxruntime-web', 'dist');
+if (existsSync(ort)) {
+  mkdirSync(join(PUB, 'ort'), { recursive: true });
+  for (const file of ['ort-wasm-simd-threaded.wasm', 'ort-wasm-simd-threaded.mjs']) cpSync(join(ort, file), join(PUB, 'ort', file));
+}
 const pkg = join(ROOT, 'data-pipeline', 'pipeline');
 if (existsSync(pkg)) {
   const sources = {};

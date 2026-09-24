@@ -12,6 +12,6 @@ def test_case_artifact_and_index_are_complete(tmp_path):
     assert len(entries) == len(registry.list_cases()) == 12
     assert index["schema"].startswith("oreflow.index/")
     assert index["n_cases"] == 12 and index["n_variants"] == 72
-    assert len(matrix["rows"]) == 1368
+    assert len(matrix["rows"]) == 1512
     assert len(first["variants"]) == 6
-    assert all(len(v["method_outputs"]) == 19 for v in first["variants"])
+    assert all(len(v["method_outputs"]) == 21 for v in first["variants"])

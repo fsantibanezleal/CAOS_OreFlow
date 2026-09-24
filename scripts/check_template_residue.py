@@ -28,8 +28,11 @@ def main() -> int:
             if token in content:
                 hits.append(f"content: {rel} contains {token}")
     if hits:
-        print("template residue found:"); print("\n".join(f"  {h}" for h in hits)); return 1
-    print(f"template residue: OK ({len(files)} tracked files)"); return 0
+        print("template residue found:")
+        print("\n".join(f"  {h}" for h in hits))
+        return 1
+    print(f"template residue: OK ({len(files)} tracked files)")
+    return 0
 
 
 if __name__ == "__main__":

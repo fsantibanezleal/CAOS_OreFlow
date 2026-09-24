@@ -26,23 +26,36 @@ export default function MethodVisual({
   caseData,
   es,
 }: Props) {
+  const method = caseData.variants[0]?.method_outputs.find(item => item.id === methodId);
+  if (method?.status === "not-applicable") return <div className="of-method-warning">{es ? "Este circuito no contiene esa operación; el método no se ejecuta." : "This circuit does not contain that operation; the method is not executed."}</div>;
+  if (methodId === "gravity_window" || methodId === "lims_capture") {
+    const gravity = methodId === "gravity_window";
+    return <Chart
+      title={gravity ? (es ? "Captura gravimétrica por tamaño" : "Gravity capture by size") : (es ? "Captura magnética por tamaño" : "Magnetic capture by size")}
+      subtitle={es ? "Respuesta supuesta, no calibrada" : "Authored response, not calibrated"}
+      height={220}
+      labels={trace.size_um.map(size => `${size.toFixed(0)} µm`)}
+      series={[{ name: es ? "Captura" : "Capture", color: "var(--color-accent)", values: trace.size_um.map(size => gravity ? 0.82 * (1 - Math.exp(-size / 45)) * Math.exp(-size / 700) : 0.91 * (1 - Math.exp(-size / 25)) * Math.exp(-size / 1800)) }]}
+      format={value => `${(100 * value).toFixed(0)}%`}
+    />;
+  }
   if (energyIds.has(methodId)) {
     const sizes = Array.from({ length: 48 }, (_, i) => 40 + i * 9);
     const feed = params.feed_p80_um;
     const curves = [
       {
         name: "Rittinger",
-        color: "#d4674d",
+        color: "var(--color-warn)",
         values: sizes.map((s) => 0.028 * Math.max(0, 1e6 / s - 1e6 / feed)),
       },
       {
         name: "Kick",
-        color: "#3ba6a8",
+        color: "var(--color-accent-2)",
         values: sizes.map((s) => 1.85 * Math.max(0, Math.log(feed / s))),
       },
       {
         name: "Bond",
-        color: "#7687bd",
+        color: "var(--color-accent)",
         values: sizes.map(
           (s) =>
             10 *
@@ -80,9 +93,9 @@ export default function MethodVisual({
         height={220}
         labels={trace.size_um.map((s) => `${s.toFixed(0)} µm`)}
         series={[
-          { name: "Feed", color: "#bd8b50", values: trace.feed_psd },
-          { name: "Crushed", color: "#d4674d", values: trace.crushed_psd },
-          { name: "Ground", color: "#7687bd", values: trace.ground_psd },
+          { name: es ? "Alimentación" : "Feed", color: "var(--color-fg-subtle)", values: trace.feed_psd },
+          { name: es ? "Triturado" : "Crushed", color: "var(--color-warn)", values: trace.crushed_psd },
+          { name: es ? "Molido" : "Ground", color: "var(--color-accent)", values: trace.ground_psd },
         ]}
         format={(v) => `${(v * 100).toFixed(0)}%`}
       />
@@ -105,7 +118,7 @@ export default function MethodVisual({
         series={[
           {
             name: es ? "A overflow" : "To overflow",
-            color: "#3ba6a8",
+            color: "var(--color-accent-2)",
             values: partition,
           },
         ]}
@@ -119,7 +132,7 @@ export default function MethodVisual({
         ? trace.flotation_recovery
         : alternativeKinetics(
             params,
-            trace.metrics.overflow_fraction,
+            caseData.process_family === "deslime_rougher" ? 1 - trace.metrics.overflow_fraction : trace.metrics.overflow_fraction,
             methodId as "kelsall" | "compressed_exponential",
           );
     return (
@@ -141,7 +154,7 @@ export default function MethodVisual({
         series={[
           {
             name: es ? "Modelo seleccionado" : "Selected model",
-            color: "#d4674d",
+            color: "var(--color-accent)",
             values: selected.map((v) => v * 100),
           },
           ...(methodId === "first_order"
@@ -149,7 +162,7 @@ export default function MethodVisual({
             : [
                 {
                   name: es ? "Primer orden" : "First order",
-                  color: "#3ba6a8",
+                  color: "var(--color-accent-2)",
                   values: trace.flotation_recovery.map((v) => v * 100),
                 },
               ]),
@@ -175,7 +188,7 @@ export default function MethodVisual({
       height={220}
       labels={caseData.variants.map((v) => localizedVariant(v.id, v.label, es))}
       series={[
-        { name: methodId.replaceAll("_", " "), color: "#7687bd", values: vals },
+        { name: methodId.replaceAll("_", " "), color: "var(--color-accent)", values: vals },
       ]}
       format={(v) => `${v.toFixed(2)} ${unit}`}
     />

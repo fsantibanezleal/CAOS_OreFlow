@@ -11,12 +11,12 @@ The public workbench is at [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-wo
 ## What is implemented
 
 - 12 authored ore-process cases across liberation, classification, flotation and integration.
-- 6 variants per case, 19 method records per variant and a committed 1,368-cell method matrix; unavailable model results remain explicit.
+- 6 variants per case, 21 method records per variant and a committed 1,512-cell method matrix; inapplicable and unavailable results remain explicit.
 - Explicit Contract 1 for units, ranges, physical ordering, rejection and review flags.
 - Contract 2 manifests, byte counts, schemas, lane verdicts and compact JSON artifacts.
 - Rittinger, Kick and Bond energy laws; Whiten-style crusher and cumulative size-distribution proxies (not a solved population-balance kernel); size-bin logistic classification; Plitt-style cut-size approximation; first-order, Kelsall and compressed-exponential flotation; mass balance, bounded search and seeded perturbation quantiles.
 - Ridge, random forest, gradient boosting, Gaussian process, PyTorch MLP and autoencoder diagnostic tiers.
-- HZDR RODARE particle-mineralogy workbook downloaded and preprocessed to a compact CC BY 4.0 summary. The source is explicitly not treated as plant recovery labels.
+- HZDR RODARE particle workbook downloaded locally and processed into a committed CC BY 4.0 aggregate benchmark: 68,008 training rows, 29,147 separate test rows and four constructed separation cases. L1 logistic and PyTorch MLP models are compared with a published reference against constructed test probabilities. Browser-side ONNX inference runs on adjustable particle features. These are not plant-recovery labels.
 - Local CPU and accelerator environments, reproducible scripts, tests, model registry and an authored manuscript proposal for an uncertainty-aware digital twin study.
 
 ## Reproduce locally
@@ -36,11 +36,13 @@ npm run build
 
 The accelerator lane is `.venv-gpu`. The pipeline records the PyTorch device in `models/registry.json`; if the host has no compatible NVIDIA device, it records a CPU fallback rather than claiming GPU execution. The committed model registry records CUDA training on the local RTX 4070 Laptop GPU for the neural tiers; the public browser does not perform GPU training.
 
+`precompute.ps1` runs both independent lanes. The particle lane needs the CC BY 4.0 workbook fetched by `fetch-data.ps1`; to rerun it alone use `./.venv-gpu/Scripts/python.exe data-pipeline/run_particles.py`. Its compact scores, calibration bins and threshold curves are committed in `data/derived/source/hzdr_particle_benchmark.json`, while the executable small ONNX model is `models/particle_mlp.onnx`. The large raw workbook and training checkpoint stay local/ignored. See [data contract](docs/data-contract.md) for leakage and missingness rules.
+
 To bring new data, use the schema and policies in [docs/data-contract.md](docs/data-contract.md). To run the API locally, install `requirements-api.txt` and use `uvicorn app.main:app --reload`.
 
 ## Evidence boundary
 
-The authored cases are engineering scenarios for reproducible comparison. They are not measured mine campaigns. Learned models approximate the declared simulator and are evaluated on held-out parametric perturbations. They are not a production control system or a transfer guarantee. The next scientifically valid step is calibration against a licensed metallurgical campaign with a mine-family holdout.
+The authored cases are engineering scenarios for reproducible comparison. They are not measured mine campaigns. Circuit surrogates approximate the declared simulator and are evaluated on held-out parametric perturbations. Separately, the HZDR particle experiment trains on published constructed A/B classes; its test sheet has probabilities but no realized A/B labels. Neither lane is a production control system or a transfer guarantee. The next scientifically valid step is calibration against a licensed metallurgical campaign with a mine-family holdout.
 
 ## Research sources
 

@@ -27,6 +27,7 @@ frontend/public/data/
 frontend/public/manifests/
 frontend/public/pyodide/
 frontend/public/models/
+frontend/public/ort/
 *.tsbuildinfo
 
 # --- Secrets / env (public repo — only .env.example is committed) ---
