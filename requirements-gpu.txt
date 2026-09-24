@@ -1,6 +1,9 @@
-# Accelerator lane. The torch wheel uses CUDA when an NVIDIA driver is present;
-# the same code records a CPU fallback instead of pretending acceleration.
+# Accelerator lane. CUDA 12.6 wheel is required for the RTX 4070/driver 560
+# environment; the ordinary PyPI Windows wheel resolved to CPU-only here.
+# On other hardware choose a wheel from the official PyTorch selector and
+# verify torch.cuda.is_available() before making any GPU-run claim.
 -r requirements-precompute.txt
-torch==2.12.0
+--extra-index-url https://download.pytorch.org/whl/cu126
+torch==2.12.0+cu126
 onnx==1.20.0
 onnxruntime==1.24.2
