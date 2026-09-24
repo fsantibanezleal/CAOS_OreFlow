@@ -1,11 +1,24 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { simulateLive } from '../live/engine';
 import type { CaseArtifact } from '../lib/contract.types';
+import { loadIndex } from '../api/artifacts';
+import { APP_VERSION } from '../lib/version';
 
 const params = { feed_tph: 640, feed_grade_pct: .74, feed_p80_um: 14000, hardness_kwh_t: 11, density_t_m3: 2.65, grind_p80_um: 165, classifier_cut_um: 125, flotation_time_min: 18, air_rate_m3_min: 2.4, reagent_gpt: 145, water_m3_t: 2.2 };
 describe('OreFlow live contract', () => {
+  it('requests the current artifact version without a browser cache', async () => {
+    const originalFetch = globalThis.fetch;
+    const mockFetch = vi.fn().mockResolvedValue({ ok: true, json: async () => ({}) });
+    globalThis.fetch = mockFetch;
+    try {
+      await loadIndex();
+      expect(mockFetch).toHaveBeenCalledWith(expect.stringContaining(`manifests/index.json?v=${APP_VERSION}`), { cache: 'no-store' });
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
+  });
   it('returns aligned curves and a closed balance', () => {
     const trace = simulateLive(params, 'test');
     expect(trace.schema).toBe('oreflow.trace/v1');

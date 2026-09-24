@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.02.001, 2026-09-23
+
+- Version and bypass browser caches for baked artifact requests, preventing old case JSON from persisting after a shell deployment.
+
 ## 0.02.000, 2026-09-23
 
 - Rebuilt the fixed-viewport instrument: quantitative circuit, response curves, selectable grind-by-collector decision surface, method-specific plots, variant comparison and mobile control view. Added bilingual linked readouts and light/dark responsive layouts.

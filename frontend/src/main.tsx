@@ -20,11 +20,12 @@ import Implementation from "./pages/Implementation";
 import Experiments from "./pages/Experiments";
 import Benchmark from "./pages/Benchmark";
 import { Pickaxe } from "lucide-react";
+import { APP_VERSION } from "./lib/version";
 
 applyTheme(readTheme());
 const config: ShellConfig = {
   product: { name: "OreFlow", mark: <Pickaxe size={18} /> },
-  version: "0.02.000",
+  version: APP_VERSION,
   fixed: true,
   architecture: ARCHITECTURE,
   routes: [
