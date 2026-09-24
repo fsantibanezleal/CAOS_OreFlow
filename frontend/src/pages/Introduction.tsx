@@ -10,8 +10,8 @@ export default function Introduction() {
       <PageHeading
         title={p("Mineral-processing circuit", "Circuito de procesamiento mineral")}
         lede={p(
-          "Four declared one-pass process paths connect size reduction to rougher flotation, gravity recovery, magnetic separation or desliming. The cases are authored scenarios; the HZDR particle dataset is not a plant recovery campaign. This page distinguishes calculated quantities from untested conclusions.",
-          "Cuatro rutas declaradas de una pasada conectan reducción de tamaño con flotación rougher, gravedad, separación magnética o deslamado. Los casos son escenarios de autor; el conjunto HZDR no es campaña de recuperación de planta. Esta página distingue cálculos de conclusiones no probadas.",
+          "Investigate a case-specific operating envelope under explicit recovery, grade, energy and water limits, then inspect the circuit physics and a separate measured locked-cycle recovery benchmark. Four declared one-pass process paths remain authored scenarios; neither the HZDR particles nor the GeoMet tests calibrate their operating controls.",
+          "Investigue la envolvente de operación de un caso bajo límites explícitos de recuperación, ley, energía y agua; luego examine la física del circuito y un benchmark separado de recuperación medida en ciclo cerrado. Las cuatro rutas de una pasada siguen siendo escenarios de autor; ni las partículas HZDR ni los ensayos GeoMet calibran sus controles operativos.",
         )}
       />
       <Tabset
@@ -101,25 +101,25 @@ export default function Introduction() {
                 refs={["bond", "hydrocyclone", "flotation"]}
                 equations={[
                   {
-                    tex: String.raw`J=R_c+\lambda G_c-\mu E-\nu D`,
+                    tex: String.raw`\mathcal{F}=\{x:R(x)\ge R_{\min},\;G(x)\ge G_{\min},\;E(x)\le E_{\max},\;W(x)\le W_{\max}\}`,
                     caption: p(
-                      "A transparent objective combining recovery, grade, energy and reagent dose; weights are declared, not universal.",
-                      "Objetivo transparente que combina recuperación, ley, energía y reactivo; los pesos se declaran, no son universales.",
+                      "Finite feasible sample F: x is an operating point, R recovery, G concentrate grade, E specific energy and W water demand; limits are user-set, not plant constraints.",
+                      "Muestra factible finita F: x es punto operativo, R recuperación, G ley, E energía específica y W demanda de agua; los límites son del usuario, no de planta.",
                     ),
                   },
                 ]}
                 paragraphs={[
                   p(
-                    "OreFlow uses bounded grid search over grind and reagent factors. Each candidate is evaluated with the same mass-balance circuit and ranked against the declared objective. The displayed domain defines the limits of the result.",
-                    "OreFlow aplica una búsqueda en grilla acotada sobre factores de molienda y reactivo. Cada candidato se evalúa con el mismo circuito de balance de masa y se ordena según el objetivo declarado. El dominio mostrado delimita el resultado.",
+                    "The workbench samples 49 bounded operating points around the selected case: grind versus collector, or grind versus feed rate for magnetite. It classifies each point against editable limits, then exposes non-dominated feasible points in recovered valuable mass, total power and material consumption. The recommended sampled point maximizes recovered valuable mass within that finite set; it is not a continuous optimum.",
+                    "El laboratorio evalúa 49 puntos acotados alrededor del caso: molienda frente a colector, o molienda frente a alimentación para magnetita. Clasifica cada punto según límites editables y presenta los factibles no dominados en masa valiosa recuperada, potencia y consumo. El punto muestreado recomendado maximiza masa valiosa dentro de ese conjunto finito; no es óptimo continuo.",
                   ),
                   p(
                     "This makes trade-offs visible. A finer grind can improve the flotation rate proxy but raise Bond energy. A classifier cut can change the overflow fraction and therefore mass pull. A reagent increase can lift recovery without creating grade for free.",
                     "Esto hace visibles los compromisos. Molienda fina puede mejorar proxy de tasa pero elevar energía Bond. Corte de clasificador cambia overflow y por tanto mass pull. Más reactivo puede elevar recuperación sin crear ley gratis.",
                   ),
                   p(
-                    "The optimizer is a research instrument, not a production set-point recommender. It has no economic price sheet, equipment constraints, ore-blending schedule or metallurgical test calibration. Its purpose is to identify which assumptions deserve a real test.",
-                    "El optimizador es instrumento de investigación, no recomendador de setpoint productivo. No tiene precios, restricciones de equipos, programa de mezcla ni calibración de pruebas metalúrgicas. Su propósito es identificar supuestos que merecen prueba real.",
+                    "The operating-envelope study is a conditional simulator experiment, not a production set-point recommender. It has no equipment constraints, ore-blending schedule or linked metallurgical calibration. Its export records every candidate, limit and stress perturbation so another researcher can reproduce the comparison and identify assumptions that need testwork.",
+                    "La envolvente es un experimento condicional del simulador, no recomendador de setpoints. No incluye restricciones de equipos, mezcla de mineral ni calibración metalúrgica vinculada. La exportación registra candidatos, límites y perturbaciones para reproducir la comparación e identificar supuestos que necesitan ensayos.",
                   ),
                   p(
                     "The workbench makes the boundary actionable: change the parameters, observe the live response, then inspect the baked matrix to see whether the same method behaved consistently across cases.",
@@ -150,8 +150,8 @@ export default function Introduction() {
                     "Los modelos sustitutos pueden reducir el tiempo de evaluación dentro de un dominio definido. Sus salidas deben interpretarse junto con los límites de variables, la partición de entrenamiento, el error reservado y el estado fuera de dominio. Estas medidas no establecen exactitud para familias de mineral no medidas.",
                   ),
                   p(
-                    "The training labels come from the authored simulator; the public particle data do not contain matched plant recovery labels. The manuscript proposes a future transfer study using particle-derived features and calibrated process labels when such a campaign becomes available.",
-                    "Las etiquetas de entrenamiento provienen del simulador creado para este estudio; los datos públicos de partículas no incluyen etiquetas vinculadas de recuperación de planta. El manuscrito propone estudiar transferencia con características de partículas y respuestas de proceso calibradas cuando exista una campaña apropiada.",
+                    "Circuit-surrogate labels come from the authored simulator. Separately, the GeoMet lane predicts measured locked-cycle copper recovery from five assays using whole-hole and spatial-zone holdouts. Those rows lack the grind, collector and residence controls needed to calibrate the circuit, and the HZDR particle data do not supply matched plant recovery either.",
+                    "Las etiquetas de los sustitutos del circuito provienen del simulador. Por separado, GeoMet predice recuperación medida de ensayos de ciclo cerrado a partir de cinco leyes químicas y reservas por pozo y zona espacial. Esas filas no contienen molienda, colector ni residencia para calibrar el circuito; HZDR tampoco aporta recuperación de planta vinculada.",
                   ),
                   p(
                     "The browser currently replays versioned variant artifacts and recalculates the bounded process model when controls move. Exported ONNX assets are preserved for separate parity checks, but neural inference is not wired into the interactive browser state.",
@@ -170,7 +170,7 @@ export default function Introduction() {
                   "5. Provenance and evaluation limits",
                   "5. Procedencia y límites de evaluación",
                 )}
-                refs={["sklearn", "modsim", "prommis"]}
+                refs={["sklearn", "modsim", "prommis", "geomet", "geomet-paper"]}
                 paragraphs={[
                   p(
                     "OreFlow records the provenance of each number. A case manifest points to a byte-counted artifact; the artifact contains parameters, traces, metrics and method outputs; the index records the complete matrix. This makes an absent or stale result visible instead of silently filling it with a placeholder.",
@@ -195,7 +195,7 @@ export default function Introduction() {
         ]}
       />
       <div className="of-next">
-        <span>{es ? "Seis secciones, un estado científico." : "Six sections, one scientific state."}</span>
+        <span>{es ? "Compare siempre los cálculos del circuito con la evidencia medida en carriles separados." : "Keep circuit calculations and measured test evidence in separate lanes."}</span>
         <Link to="/methodology">{es ? "Continuar a metodología" : "Continue to methodology"} ↗</Link>
       </div>
     </div>

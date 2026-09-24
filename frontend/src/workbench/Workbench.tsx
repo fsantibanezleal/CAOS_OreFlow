@@ -12,7 +12,7 @@ import type {
 import { alternativeKinetics, simulateLive } from "../live/engine";
 import { Chart } from "../components/Charts";
 import CircuitDiagram from "../components/CircuitDiagram";
-import DecisionSurface from "../components/DecisionSurface";
+import OperatingEnvelope from "../components/OperatingEnvelope";
 import MethodVisual from "../components/MethodVisual";
 import { localizedCase, localizedVariant } from "../lib/locale";
 import { readFocusState, writeFocusState } from "./focusState";
@@ -30,7 +30,7 @@ type Stage =
 type View =
   | "circuit"
   | "response"
-  | "surface"
+  | "investigate"
   | "methods"
   | "compare"
   | "controls";
@@ -114,10 +114,10 @@ export const controls: Record<
   },
 };
 const views: Array<{ id: View; en: string; es: string }> = [
+  { id: "investigate", en: "Investigate", es: "Investigar" },
   { id: "circuit", en: "Circuit", es: "Circuito" },
   { id: "controls", en: "Controls", es: "Controles" },
   { id: "response", en: "Response", es: "Respuesta" },
-  { id: "surface", en: "Decision surface", es: "Superficie de decisión" },
   { id: "methods", en: "Methods", es: "Métodos" },
   { id: "compare", en: "Compare", es: "Comparar" },
 ];
@@ -251,7 +251,7 @@ export default function Workbench() {
   const [caseId, setCaseId] = useState("");
   const [variantId, setVariantId] = useState("nominal");
   const [params, setParams] = useState<Params | null>(null);
-  const [view, setView] = useState<View>("circuit");
+  const [view, setView] = useState<View>("investigate");
   const [group, setGroup] = useState<Group>("size");
   const [stageId, setStageId] = useState<Stage>("classify");
   const [playing, setPlaying] = useState(false);
@@ -302,7 +302,7 @@ export default function Workbench() {
     setCaseData(null);
     setParams(null);
     setVariantId("nominal");
-    setView("circuit");
+    setView("investigate");
     setGroup("size");
     setResponse("size");
     setMethodId("bond");
@@ -596,7 +596,7 @@ export default function Workbench() {
         </span>
       </div>
       <div className="of-view-tabs" role="tablist">
-        {views.filter(item => family !== "magnetic" || item.id !== "surface").map((item) => (
+        {views.map((item) => (
           <button
             type="button"
             key={item.id}
@@ -619,6 +619,7 @@ export default function Workbench() {
         </div>
       ) : (
         <div className="of-view-area" role="tabpanel">
+          {view === "investigate" && <OperatingEnvelope key={`${caseId}|${variantId}`} params={params} caseId={caseId} es={es} onApply={next => setParams(next)}/>}
           {view === "circuit" && (
             <div className="of-circuit-layout">
               <CircuitDiagram
@@ -765,18 +766,6 @@ export default function Workbench() {
                 </p>
               </aside>
             </div>
-          )}
-          {view === "surface" && (
-            <DecisionSurface
-              params={params}
-              caseId={caseId}
-              es={es}
-              onChoose={(grind, reagent) =>
-                setParams((p) =>
-                  p ? { ...p, grind_p80_um: grind, reagent_gpt: reagent } : p,
-                )
-              }
-            />
           )}
           {view === "methods" && (
             <div className="of-method-layout">
