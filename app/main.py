@@ -27,7 +27,7 @@ class SpaStaticFiles(StaticFiles):
 
 def create_app() -> FastAPI:
     settings = Settings()
-    app = FastAPI(title="OreFlow process intelligence", version="0.02.000")
+    app = FastAPI(title="OreFlow process intelligence", version="0.02.001")
     app.add_middleware(GZipMiddleware, minimum_size=1024)
     app.add_middleware(CORSMiddleware, allow_origins=origins(settings) or ["*"], allow_methods=["GET", "POST"], allow_headers=["*"])
     app.include_router(content.router)
@@ -35,7 +35,7 @@ def create_app() -> FastAPI:
     @app.get("/health")
     @app.get("/healthz")
     def health() -> dict:
-        return {"status": "ok", "service": "oreflow", "version": "0.02.000"}
+        return {"status": "ok", "service": "oreflow", "version": "0.02.001"}
 
     dist = Path(__file__).resolve().parents[1] / "frontend" / "dist"
     if dist.exists():
