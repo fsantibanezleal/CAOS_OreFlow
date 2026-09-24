@@ -26,7 +26,7 @@ const descriptions: Record<string, [string,string]> = {
   feed: ['Feed tonnage and grade set the solids and valuable-mineral basis.','El caudal y la ley definen la base de sólidos y mineral valioso.'],
   crush: ['Crusher product size responds to the ore and reduction setting.','El tamaño triturado responde al mineral y al ajuste de reducción.'],
   grind: ['Target P80 changes the size distribution and specific energy.','El P80 objetivo cambia la distribución y la energía específica.'],
-  classify: ['Size-bin partition divides mill discharge into two measured solids streams.','La partición por tamaño divide la descarga en dos corrientes de sólidos.'],
+  classify: ['Size-bin partition divides mill discharge into two calculated solids streams.','La partición por tamaño divide la descarga en dos corrientes de sólidos calculadas.'],
   gravity: ['An authored size-window captures free gold from classifier underflow.','Una ventana granulométrica supuesta captura oro libre del underflow.'],
   magnetic: ['An authored size response partitions magnetic concentrate and reject.','Una respuesta por tamaño supuesta separa concentrado magnético y rechazo.'],
   float: ['Residence time, air and collector set the conditional rougher response.','Residencia, aire y colector definen la respuesta condicional rougher.'],
