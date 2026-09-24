@@ -13,11 +13,12 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ## Local product gate
 
-### 0.03.002 focus and flowsheet correction (2026-09-24)
+### 0.03.003 focus and flowsheet correction (2026-09-24)
 
 - Shared focus layout was added to `@fasl-work/caos-app-shell` and the OreFlow route uses it outside the document shell. The normal workbench retains its scientific routes and tabs; the flowsheet is again the primary circuit visual with explicit stream values.
 - Click-through QA in the local browser: App focus entry opened the selected copper-molybdenum case; feed rate changed 640 to 800 t/h and updated readouts; Return restored the same case and 800 t/h. The focus case picker changed to free-milling gold and displayed a distinct gravity/rougher branch. Phone width 390 px, both themes and Spanish labels were inspected. This is local browser evidence, not production or user design acceptance.
 - Full multi-route production QA and Felipe's visual acceptance remain release gates. The 12 authored cases are not 12 distinct topologies: they currently fall into rougher, gravity/rougher, magnetic and deslime/rougher families.
+- Production phone inspection of 0.03.002 found an empty CSS grid row under the flowsheet after hiding the obsolete stage tabs. 0.03.003 removes that row so the process body fills the available panel; this must be rechecked live after deployment.
 
 - TypeScript typecheck: passed.
 - Frontend unit tests: passed.

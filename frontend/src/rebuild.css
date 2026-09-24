@@ -1640,6 +1640,7 @@ body {
 }
 
 /* The flowsheet is the primary instrument; stage analysis is an explicit alternate view. */
+.of-process-studio { grid-template-rows: auto minmax(0,1fr); }
 .of-circuit-layout { grid-template-rows: minmax(0,1fr); }
 .of-circuit-rail { display: none; }
 .of-process-tabs { display: none; }
@@ -1654,7 +1655,7 @@ body {
 .of-process-analysis.is-detail > .of-process-plot,
 .of-process-analysis.is-detail > .of-product-balance,
 .of-process-analysis.is-detail > .of-partition-field { display: grid; }
-.of-process-heading-actions { display: grid; justify-items: end; gap: 5px; }
+.of-process-heading-actions { flex: none; display: grid; justify-items: end; gap: 5px; }
 .of-process-heading-actions button,
 .of-focus-entry { border: 1px solid var(--of-line); border-radius: 4px; padding: 5px 8px; background: var(--of-surface-2); color: var(--of-text); font: 650 11px var(--font-sans); cursor: pointer; white-space: nowrap; }
 .of-process-heading-actions button:hover,
@@ -1694,9 +1695,9 @@ body {
   .of-topology-mobile { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); grid-auto-rows: minmax(0,1fr); gap: 5px; height: 100%; padding: 8px; }
   .of-topology-mobile button { min-width: 0; display: grid; grid-template-columns: 24px minmax(0,1fr); align-content: center; gap: 2px 5px; text-align: left; border: 1px solid var(--of-line); border-radius: 4px; background: var(--of-surface-2); color: var(--of-text); cursor: pointer; }
   .of-topology-mobile button.active { border-color: var(--color-accent); }
-  .of-topology-mobile b { grid-row: span 2; align-self: center; color: var(--color-accent); font: 700 11px var(--font-mono); }
-  .of-topology-mobile span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 10px var(--font-sans); }
-  .of-topology-mobile strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--of-muted); font: 600 9px var(--font-mono); }
+  .of-topology-mobile b { grid-row: span 2; align-self: center; color: var(--color-accent); font: 700 12px var(--font-mono); }
+  .of-topology-mobile span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font: 700 12px var(--font-sans); }
+  .of-topology-mobile strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--of-muted); font: 600 10px var(--font-mono); }
   .of-focus-stage .of-topology { padding: 105px 0 53px; }
   .of-focus-stage .of-topology { height: 100%; }
   .of-focus-stage-chart { display: none; }
