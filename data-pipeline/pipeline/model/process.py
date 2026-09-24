@@ -19,22 +19,22 @@ METHODS = (
     {"id": "rittinger", "tier": "classical", "domain": "comminution", "name": "Rittinger surface-area law"},
     {"id": "kick", "tier": "classical", "domain": "comminution", "name": "Kick similarity law"},
     {"id": "bond", "tier": "classical", "domain": "comminution", "name": "Bond work-index law"},
-    {"id": "whiten", "tier": "classical", "domain": "comminution", "name": "Whiten crusher model"},
-    {"id": "pbm", "tier": "classical", "domain": "grinding", "name": "Population-balance mill model"},
+    {"id": "whiten", "tier": "classical", "domain": "comminution", "name": "Whiten-style crusher proxy"},
+    {"id": "pbm", "tier": "classical", "domain": "grinding", "name": "Distribution-shape mill proxy"},
     {"id": "partition", "tier": "classical", "domain": "classification", "name": "Logistic partition curve"},
-    {"id": "plitt", "tier": "classical", "domain": "classification", "name": "Plitt hydrocyclone approximation"},
+    {"id": "plitt", "tier": "classical", "domain": "classification", "name": "Plitt-style cut-size proxy"},
     {"id": "first_order", "tier": "classical", "domain": "flotation", "name": "First-order flotation kinetics"},
     {"id": "kelsall", "tier": "classical", "domain": "flotation", "name": "Kelsall fast/slow kinetics"},
     {"id": "compressed_exponential", "tier": "classical", "domain": "flotation", "name": "Compressed exponential kinetics"},
     {"id": "mass_balance", "tier": "integration", "domain": "circuit", "name": "Circuit mass balance"},
-    {"id": "constrained_opt", "tier": "optimization", "domain": "circuit", "name": "Constrained nonlinear optimization"},
-    {"id": "robust_mc", "tier": "uncertainty", "domain": "circuit", "name": "Robust Monte Carlo"},
+    {"id": "constrained_opt", "tier": "optimization", "domain": "circuit", "name": "Bounded grid search"},
+    {"id": "robust_mc", "tier": "uncertainty", "domain": "circuit", "name": "Scenario perturbation ensemble"},
     {"id": "ridge", "tier": "learned", "domain": "surrogate", "name": "Ridge surrogate"},
     {"id": "random_forest", "tier": "learned", "domain": "surrogate", "name": "Random forest surrogate"},
     {"id": "hist_gradient_boosting", "tier": "learned", "domain": "surrogate", "name": "Histogram gradient boosting"},
-    {"id": "gaussian_process", "tier": "frontier", "domain": "surrogate", "name": "Gaussian process with uncertainty"},
+    {"id": "gaussian_process", "tier": "frontier", "domain": "surrogate", "name": "Gaussian process surrogate"},
     {"id": "mlp", "tier": "frontier", "domain": "surrogate", "name": "PyTorch MLP surrogate"},
-    {"id": "autoencoder", "tier": "frontier", "domain": "diagnostics", "name": "Autoencoder OOD detector"},
+    {"id": "autoencoder", "tier": "frontier", "domain": "diagnostics", "name": "Autoencoder reconstruction diagnostic"},
 )
 
 
@@ -90,6 +90,23 @@ def logistic_partition(size_um: np.ndarray, d50_um: float, imperfection: float) 
     return 1.0 / (1.0 + np.exp(z))
 
 
+def classify_size_distribution(size_um: np.ndarray, feed_cdf: np.ndarray, d50_um: float,
+                               imperfection: float = 0.16) -> tuple[np.ndarray, float]:
+    """Apply a partition to size-bin masses, then normalize the overflow CDF.
+
+    A cumulative passing curve is not a mass in a size class: multiplying its
+    ordinates by a partition curve can produce a decreasing, non-physical CDF.
+    The last bin includes the unrepresented coarse tail so the two streams
+    conserve the unit feed mass on the finite display grid.
+    """
+    bin_mass = np.diff(np.r_[0.0, np.clip(feed_cdf, 0.0, 1.0)])
+    bin_mass[-1] += max(0.0, 1.0 - float(bin_mass.sum()))
+    overflow_bin_mass = bin_mass * logistic_partition(size_um, d50_um, imperfection)
+    split = float(overflow_bin_mass.sum())
+    overflow_cdf = np.cumsum(overflow_bin_mass) / max(split, 1e-12)
+    return np.clip(overflow_cdf, 0.0, 1.0), split
+
+
 def plitt_cut_size(p: FeedParams) -> float:
     """Plitt-style hydrocyclone cut-size approximation with transparent factors."""
     pressure_factor = 1.0 / math.sqrt(max(0.25, p.water_m3_t / 2.0))
@@ -125,7 +142,7 @@ def compressed_exponential_recovery(p: FeedParams) -> float:
 def concentrate_metrics(p: FeedParams, recovery: float, partition: float) -> dict[str, float]:
     """Mass-balance closure for a one-stage rougher concentrate."""
     feed_mass = p.feed_tph
-    mass_pull = _clip(0.018 + 0.085 * partition + 0.000015 * p.reagent_gpt, 0.015, 0.18)
+    mass_pull = min(_clip(0.018 + 0.085 * partition + 0.000015 * p.reagent_gpt, 0.015, 0.18), partition * 0.95)
     concentrate_tph = feed_mass * mass_pull
     valuable_feed = feed_mass * p.feed_grade_pct / 100.0
     valuable_conc = valuable_feed * recovery
@@ -182,11 +199,8 @@ def circuit_metrics(p: FeedParams) -> dict[str, float]:
     crusher, crusher_p80 = whiten_crusher(size, p.feed_p80_um, max(80.0, p.feed_p80_um * 0.22))
     ground = population_balance(size, crusher_p80, p.grind_p80_um, p.hardness_kwh_t)
     cut = plitt_cut_size(p)
-    part = logistic_partition(size, cut, 0.16)
-    overflow = ground * part
-    overflow_fraction = float(np.trapezoid(np.gradient(overflow, size), size)) if hasattr(np, "trapezoid") else float(np.trapz(np.gradient(overflow, size), size))
-    overflow_fraction = _clip(overflow_fraction, 0.05, 0.98)
-    recovery = first_order_recovery(p)
+    _, overflow_fraction = classify_size_distribution(size, ground, cut)
+    recovery = first_order_recovery(p) * overflow_fraction
     metrics = concentrate_metrics(p, recovery, overflow_fraction)
     e_rit = rittinger_energy(p.feed_p80_um, p.grind_p80_um)
     e_kick = kick_energy(p.feed_p80_um, p.grind_p80_um)
@@ -204,15 +218,20 @@ def method_outputs(p: FeedParams, metrics: dict[str, float], learned: dict[str, 
     out = []
     classical = {
         "rittinger": metrics["energy_rittinger_kwh_t"], "kick": metrics["energy_kick_kwh_t"], "bond": metrics["energy_bond_kwh_t"],
-        "whiten": metrics["crusher_p80_um"], "pbm": metrics["specific_energy_kwh_t"], "partition": metrics["overflow_fraction"],
-        "plitt": metrics["cyclone_d50_um"], "first_order": metrics["recovery_pct"], "kelsall": kelsall_recovery(p) * 100,
-        "compressed_exponential": compressed_exponential_recovery(p) * 100, "mass_balance": metrics["metal_balance_pct"],
+        "whiten": metrics["crusher_p80_um"], "pbm": p.grind_p80_um, "partition": metrics["overflow_fraction"] * 100,
+        "plitt": metrics["cyclone_d50_um"], "first_order": metrics["recovery_pct"], "kelsall": kelsall_recovery(p) * metrics["overflow_fraction"] * 100,
+        "compressed_exponential": compressed_exponential_recovery(p) * metrics["overflow_fraction"] * 100, "mass_balance": metrics["metal_balance_pct"],
         "constrained_opt": optimum["objective"],
         "robust_mc": uncertainty["p05_recovery_pct"],
     }
     for method in METHODS:
-        value = classical.get(method["id"], (learned or {}).get(method["id"], metrics["recovery_pct"]))
-        out.append({**method, "value": round(float(value), 6), "unit": "%" if method["id"] in {"first_order", "kelsall", "compressed_exponential", "mass_balance", "robust_mc", "autoencoder"} else "index"})
+        value = classical.get(method["id"], (learned or {}).get(method["id"]))
+        unit = ("kWh/t" if method["id"] in {"rittinger", "kick", "bond"} else
+                "µm" if method["id"] in {"whiten", "pbm", "plitt"} else
+                "score" if method["id"] == "constrained_opt" else
+                "MSE" if method["id"] == "autoencoder" else "%")
+        out.append({**method, "value": round(float(value), 6) if value is not None else None,
+                    "unit": unit, "status": "precomputed" if value is not None else "unavailable"})
     return out
 
 
@@ -224,9 +243,8 @@ def simulate(p: FeedParams, angle_step: float = 6.0, learned: dict[str, float] |
     crushed, crusher_p80 = whiten_crusher(size, p.feed_p80_um, max(80.0, p.feed_p80_um * 0.22))
     ground = population_balance(size, crusher_p80, p.grind_p80_um, p.hardness_kwh_t)
     cut = plitt_cut_size(p)
-    partition = logistic_partition(size, cut, 0.16)
-    overflow = ground * partition
-    recovery_curve = 0.97 * (1.0 - np.exp(-flotation_rate(p) * np.linspace(0.0, p.flotation_time_min, 96)))
+    overflow, overflow_fraction = classify_size_distribution(size, ground, cut)
+    recovery_curve = overflow_fraction * 0.97 * (1.0 - np.exp(-flotation_rate(p) * np.linspace(0.0, p.flotation_time_min, 96)))
     metrics = circuit_metrics(p)
     return ProcessResult(case_id=p.case_id, size_um=size.tolist(), feed_psd=feed.tolist(), crushed_psd=crushed.tolist(),
                          ground_psd=ground.tolist(), overflow_psd=overflow.tolist(), flotation_recovery=recovery_curve.tolist(),

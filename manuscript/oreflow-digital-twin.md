@@ -1,8 +1,8 @@
-# OreFlow: an uncertainty-aware digital twin for mineral-processing method comparison
+# OreFlow: a proposed conservation-aware surrogate study for mineral-processing decisions
 
 ## Abstract
 
-Mineral-processing optimisation couples feed heterogeneity, comminution, classification and flotation. This manuscript proposes a reproducible digital-twin study in which particle-mineralogy descriptors inform a feature contract, a calibrated circuit simulator generates process labels, and learned surrogates report both prediction and out-of-domain diagnostics. The OreFlow implementation supplies the interactive research instrument, a 12-case by 6-variant coverage matrix, 19 method tiers, a seeded uncertainty engine and an artifact contract. The current public result is an authored, simulator-labelled demonstration. It intentionally does not claim plant transfer. The publishable phase requires measured metallurgical labels, calibration and a mine-family holdout.
+Mineral-processing optimisation couples feed heterogeneity, comminution, classification and flotation. This document proposes a future study of decision transfer across ore families. The current OreFlow implementation supplies an interactive one-pass simulator, 12 authored cases with six variants each, 19 method records per variant, seeded perturbation quantiles and a versioned artifact contract. Its external particle-mineralogy dataset is not joined to plant recovery observations, the circuit is not calibrated to a plant, and the browser does not report out-of-domain probability. The existing benchmark measures how well surrogate models reproduce the authored simulator on disjoint perturbations of the same case families. A publishable transfer claim requires measured metallurgical labels, calibration and a complete ore-family holdout.
 
 ## Research question
 
@@ -10,7 +10,7 @@ Can a conservation-aware surrogate preserve process-decision rankings across hel
 
 ## Methods
 
-The process state contains feed throughput, head grade, feed P80, work index proxy, density, grind P80, classifier cut, residence time, air rate, reagent dose and water use. Comminution uses comparative Rittinger, Kick and Bond relations, a Whiten-style crusher response and a compact population-balance size curve. Classification uses a logistic partition and a Plitt-style cut-size approximation. Flotation compares first-order, Kelsall and compressed-exponential kinetics. Concentrate grade is calculated by a declared mass-pull relation and valuable-metal balance.
+The process state contains feed throughput, head grade, feed P80, work index proxy, density, grind P80, classifier cut, residence time, air rate, reagent dose and water use. Comminution uses comparative Rittinger, Kick and Bond relations, a Whiten-style crusher response and a cumulative size-distribution proxy rather than a solved population-balance kernel. Classification applies a logistic partition to size-bin masses and uses a Plitt-style cut-size approximation; uniform valuable grade by size is assumed. Flotation compares first-order, Kelsall and compressed-exponential kinetics. Concentrate grade is calculated by a declared mass-pull relation and valuable-metal balance.
 
 The learned design contains 720 seeded parametric samples around twelve authored cases. Ridge, random forest, gradient boosting, Gaussian process, PyTorch MLP and autoencoder are trained in separate tiers. Evaluation uses 48 disjoint perturbations generated after training. Metrics are recovery RMSE in percentage points, R2 and autoencoder reconstruction error. The future calibrated study will replace simulator targets with laboratory and plant labels, reserve an entire ore-family or campaign from model fitting and test decision ranking against the mechanistic solution.
 
@@ -20,7 +20,7 @@ The HZDR RODARE particle-mineralogy workbook is downloaded by `scripts/fetch-dat
 
 ## Current implemented evidence
 
-The current bake contains 12 cases, 72 variants and 1,368 method cells. The benchmark reports held-out scores for four statistical surrogates and two neural diagnostics. These scores quantify approximation of the declared simulator only. They do not establish plant accuracy, safety, economics or transfer between mines. The benchmark page and JSON artifacts make that distinction visible to the reader.
+The current bake contains 12 cases, 72 variants and 1,368 method records. The benchmark reports recovery RMSE and R² for five surrogate predictors and separate feature-reconstruction MSE for the autoencoder. These scores quantify approximation of the declared simulator only. They do not establish plant accuracy, calibrated uncertainty, safety, economics or transfer between mines. The benchmark page and JSON artifacts make that distinction visible to the reader.
 
 ## Proposed calibrated experiment
 

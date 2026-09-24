@@ -26,8 +26,13 @@ def run(bundle, seed: int = 42, n: int = 48) -> dict:
     scores = {}
     for name, values in predictions.items():
         pred = np.array(values)
+        if name == "autoencoder":
+            scores[name] = {"reconstruction_mse_median": round(float(np.median(pred)), 6),
+                            "reconstruction_mse_p95": round(float(np.quantile(pred, 0.95)), 6),
+                            "status": "diagnostic only; not a recovery predictor"}
+            continue
         rmse = float(np.sqrt(np.mean((pred - y) ** 2)))
         ss = float(np.sum((y - y.mean()) ** 2))
         scores[name] = {"rmse_pct_points": round(rmse, 5), "r2": round(1 - float(np.sum((pred - y) ** 2)) / ss if ss else 0.0, 5)}
-    return {"protocol": "48 disjoint parametric perturbations; no labels used during model selection", "n_holdout": n,
-            "target": "rougher recovery (%)", "models": scores, "mass_balance_tolerance_pct": 1e-8}
+    return {"protocol": "48 disjoint parametric perturbations of the same authored case families; simulator interpolation, not ore-family holdout", "n_holdout": n,
+            "target": "overall one-pass circuit recovery (%)", "models": scores, "mass_balance_tolerance_pct": 1e-8}

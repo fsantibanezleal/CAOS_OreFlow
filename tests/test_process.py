@@ -17,6 +17,18 @@ def test_determinism_and_monotonic_size_grid():
     result_b = simulate(CASES[3].params)
     assert result_a == result_b
     assert np.all(np.diff(result_a.size_um) > 0)
+    assert np.all(np.diff(result_a.overflow_psd) >= -1e-12)
+    assert abs(result_a.overflow_psd[-1] - 1.0) < 1e-9
+
+
+def test_classifier_changes_mass_split_and_overall_recovery():
+    p = CASES[0].params
+    from pipeline.model.process import variant_params
+    fine_cut = simulate(variant_params(p, {"classifier_cut_um": p.classifier_cut_um * 0.6}))
+    coarse_cut = simulate(variant_params(p, {"classifier_cut_um": p.classifier_cut_um * 1.4}))
+    assert fine_cut.metrics["overflow_fraction"] < coarse_cut.metrics["overflow_fraction"]
+    assert fine_cut.metrics["recovery_pct"] < coarse_cut.metrics["recovery_pct"]
+    assert fine_cut.metrics["concentrate_tph"] < p.feed_tph * fine_cut.metrics["overflow_fraction"]
 
 
 def test_optimizer_and_uncertainty_are_bounded():
