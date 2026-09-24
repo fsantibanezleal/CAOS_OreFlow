@@ -710,23 +710,23 @@ export default function Workbench() {
                     labels={shown.size_um.map((v) => `${v.toFixed(0)} µm`)}
                     series={[
                       {
-                        name: "Feed",
-                        color: "#bd8b50",
+                        name: es ? "Alimentación" : "Feed",
+                        color: "var(--color-fg-subtle)",
                         values: shown.feed_psd,
                       },
                       {
-                        name: "Crushed",
-                        color: "#d4674d",
+                        name: es ? "Triturado" : "Crushed",
+                        color: "var(--color-warn)",
                         values: shown.crushed_psd,
                       },
                       {
-                        name: "Ground",
-                        color: "#7687bd",
+                        name: es ? "Molido" : "Ground",
+                        color: "var(--color-accent)",
                         values: shown.ground_psd,
                       },
                       {
-                        name: "Overflow",
-                        color: "#3ba6a8",
+                        name: es ? "Finos" : "Overflow",
+                        color: "var(--color-accent-2)",
                         values: shown.overflow_psd,
                       },
                     ]}
@@ -751,8 +751,8 @@ export default function Workbench() {
                     )}
                     series={[
                       {
-                        name: "Recovery",
-                        color: "#d4674d",
+                        name: es ? "Recuperación" : "Recovery",
+                        color: "var(--color-accent)",
                         values: shown.flotation_recovery.map((v) => v * 100),
                       },
                     ]}

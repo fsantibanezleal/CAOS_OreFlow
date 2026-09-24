@@ -126,6 +126,11 @@ body {
 .of-research-visual .of-research-figure {
   margin: 0;
   width: 100%;
+  background: var(--color-surface);
+  border-radius: 8px;
+}
+.of-research-visual .of-research-figure figcaption {
+  color: var(--color-fg-subtle);
 }
 .of-research-visual .of-research-figure img {
   width: 100%;
@@ -722,7 +727,7 @@ body {
   flex: 1;
   height: 7px;
   border-radius: 4px;
-  background: linear-gradient(90deg, #367f8a, #bd8b50, #cb684b);
+  background: linear-gradient(90deg, var(--color-fg-subtle), var(--color-accent), var(--color-warn));
 }
 .of-surface-point {
   fill: var(--of-text);
