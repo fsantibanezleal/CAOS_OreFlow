@@ -13,7 +13,7 @@ const nodes: Array<{ id: Stage; x: number; y: number; en: string; es: string; to
   { id: 'tail', x: 830, y: 320, en: 'TAILINGS', es: 'RELAVES', tone: 'tail' },
 ];
 
-const fmt = (v: number, digits = 0) => Number.isFinite(v) ? v.toFixed(digits) : '—';
+const fmt = (v: number, digits = 0) => Number.isFinite(v) ? v.toFixed(digits) : 'n/a';
 
 export default function CircuitDiagram({ active, onSelect, metrics, params, es }: Props) {
   const overflowTph = params.feed_tph * (metrics.overflow_fraction ?? 0);
