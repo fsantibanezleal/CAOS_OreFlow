@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Chart, type Series } from "./Charts";
 import PartitionField from "./PartitionField";
 import TopologyMap from "./TopologyMap";
@@ -76,6 +77,7 @@ export default function CircuitDiagram({
   onTogglePlay,
   onStep,
 }: Props) {
+  const [showDetail, setShowDetail] = useState(false);
   const m = trace.metrics;
   const hasGravity = (m.gravity_recovery_pct ?? 0) > 0;
   const hasMagnetic = (m.magnetic_recovery_pct ?? 0) > 0;
@@ -223,7 +225,7 @@ export default function CircuitDiagram({
         ))}
       </div>
       <div className="of-process-body" role="tabpanel">
-        <div className="of-process-analysis">
+        <div className={`of-process-analysis ${showDetail ? 'is-detail' : ''}`}>
           <TopologyMap trace={trace} params={params} active={active} es={es} onSelect={stage => onSelect(stage as Stage)} />
           <div className="of-process-heading">
             <div>
@@ -231,7 +233,7 @@ export default function CircuitDiagram({
               <h2>{productView ? (es ? "Balance de productos" : "Product balance") : (es ? visibleStages.find(stage => stage.id === active)?.es : visibleStages.find(stage => stage.id === active)?.en)}</h2>
               <p>{es ? detail.es : detail.en}</p>
             </div>
-            <output>{number(detail.value, detail.digits ?? 1)} <small>{detail.unit}</small></output>
+            <div className="of-process-heading-actions"><output>{number(detail.value, detail.digits ?? 1)} <small>{detail.unit}</small></output><button type="button" onClick={() => setShowDetail(value => !value)}>{showDetail ? (es ? 'Ver circuito' : 'View circuit') : (es ? 'Inspeccionar respuesta' : 'Inspect response')}</button></div>
           </div>
           {productView ? (
             <div className="of-product-balance">
