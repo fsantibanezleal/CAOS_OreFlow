@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.04.000, 2026-09-24
+
+- Added a case-aware operating-envelope investigation: explicit feasible limits, declared perturbation stress, finite-grid Pareto classification, point inspection, baseline comparison, apply-to-circuit and reproducible JSON export.
+- Added an independent measured GeoMet locked-cycle recovery lane from pinned CC BY 4.0 source data: 52 usable tests from 29 holes, whole-hole and spatial-zone holdouts, four evaluated baselines/models, rendered observed-versus-predicted and spatial diagnostics.
+- Added local, checksummed five-assay CSV inference with a full-data checkpoint and out-of-reference-range flags. Measured inference and circuit simulation remain separate; neither is a calibrated plant set-point predictor.
+- Added feature-level software design contracts, automated artifact/numerical/browser gates and responsive EN/ES light/dark visual QA at phone, tablet and desktop viewports.
+
 ## 0.03.001, 2026-09-24
 
 - Preserve and validate process family at the live API boundary. Requests for known authored cases infer their gravity, magnetic, desliming or rougher path when the family field is omitted; explicit unsupported families are rejected.

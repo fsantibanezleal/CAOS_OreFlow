@@ -6,6 +6,7 @@ import type { Benchmark as BenchmarkArtifact, CaseIndex } from '../lib/contract.
 import { PageHeading, Tabset } from '../content/Research';
 import ParticleLab from './ParticleLab';
 import ParticleInference from './ParticleInference';
+import GeometLab from './GeometLab';
 
 function SimulatorBenchmark() {
   const es = useShellLang() === 'es';
@@ -28,6 +29,7 @@ function SimulatorBenchmark() {
 
 export default function Benchmark() {
   return <div className="of-page of-content"><Tabset tabs={[
+    { id: 'measured', label: ['Measured LCT recovery', 'Recuperación LCT medida'], content: <GeometLab /> },
     { id: 'simulator', label: ['Simulator surrogates', 'Sustitutos del simulador'], content: <SimulatorBenchmark /> },
     { id: 'particles', label: ['Particle separation ML', 'ML de separación de partículas'], content: <ParticleLab /> },
     { id: 'inference', label: ['Live particle inference', 'Inferencia de partículas'], content: <ParticleInference /> },

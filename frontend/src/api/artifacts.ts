@@ -27,3 +27,7 @@ export type ParticleBenchmark = {
   cases: Array<{ case: string; train_class_b: number; test_rows: number; excluded_test_rows: number; oracle_expected_b: number; models: Record<string, ParticleModelEvaluation> }>;
 };
 export const loadParticleBenchmark = () => get<ParticleBenchmark>('source/hzdr_particle_benchmark.json');
+export type GeometRow = { source_row: number; hole_id: string; x: number; y: number; observed_lct_pct: number; fold: number; predictions_pct: Record<string, number> };
+export type GeometProtocol = { folds: Array<{ id: number; train_rows: number; test_rows: number; train_holes: number; test_holes: number; test_source_rows: number[] }>; scores: Record<string, { mae_pp: number; rmse_pp: number; bias_pp: number; r2: number }>; rows: GeometRow[] };
+export type GeometBenchmark = { schema: string; source: { title: string; record: string; doi: string; concept_doi: string; paper_doi: string; license: string; md5: string; sha256: string; raw_rows: number; usable_rows: number; holes: number; exclusions: Array<{ source_row: number; reason: string }> }; protocol: { target: string; features: string[]; excluded_features: string[]; hole: string; zone: string; boundary: string }; protocols: { hole: GeometProtocol; zone: GeometProtocol } };
+export const loadGeometBenchmark = () => get<GeometBenchmark>('source/geomet_lct_benchmark.json');

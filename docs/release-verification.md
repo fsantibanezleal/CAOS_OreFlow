@@ -13,6 +13,13 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ## Local product gate
 
+### 0.04.000 investigation and measured-data lane (2026-09-24)
+
+- Local verification: all Python and frontend tests passed; Vite production build and Contract 2 artifact check passed. The GeoMet artifact is pinned to SHA256 `e7968c250c1ccc17b63da6d9624473dd92b32a7ba8d8772e70070a0115e42eda` and holds 52 eligible measured LCT rows, 29 holes, five whole-hole folds, three spatial-zone folds and four complete prediction matrices.
+- Rendered interaction verification: EN/light and ES/dark at 390, 628, 1280 and 1600 px for the operating envelope, with no document overflow or JavaScript errors; constraint-empty state, reset, point selection, JSON download, apply-to-circuit, family switch and angular projection exercised. Measured Benchmark inspected at 390 and 1280 px with 52 rendered points, model/holdout switch and no document overflow/errors. Screenshots and JSON report are local ignored QA output.
+- Local full-data GeoMet checkpoint and example five-assay CSV prediction smoke passed. Predictions are descriptive within this sparse source and are not plant set-points. The circuit simulator is still uncalibrated, and the four topology families remain a limitation.
+- Remote CI, Pages, VPS HTTPS and live-browser verification must be recorded below after promotion; local checks alone do not establish deployment or design acceptance.
+
 ### 0.03.004 focus and flowsheet correction (2026-09-24)
 
 - Shared focus layout was added to `@fasl-work/caos-app-shell` and the OreFlow route uses it outside the document shell. The normal workbench retains its scientific routes and tabs; the flowsheet is again the primary circuit visual with explicit stream values.

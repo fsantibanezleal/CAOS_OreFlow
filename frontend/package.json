@@ -1,6 +1,6 @@
 {
   "name": "oreflow-workbench",
-  "version": "0.3.4",
+  "version": "0.4.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -11,6 +11,7 @@
     "dev": "vite --host 127.0.0.1 --port 5914 --strictPort",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "verify:ui": "node verify-envelope.mjs",
     "build": "npm run typecheck && node copy-data.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4914 --strictPort"
   },
@@ -30,6 +31,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
+    "playwright": "1.61.0",
     "typescript": "7.0.2",
     "vite": "8.2.2",
     "vitest": "5.0.0"

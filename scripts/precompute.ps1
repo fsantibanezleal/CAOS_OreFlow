@@ -7,3 +7,5 @@ if (-not (Test-Path $vp)) { $vp = "python" }
 if ($LASTEXITCODE -ne 0) { throw "Process pipeline failed: $LASTEXITCODE" }
 & $vp data-pipeline/run_particles.py
 if ($LASTEXITCODE -ne 0) { throw "Particle pipeline failed: $LASTEXITCODE" }
+& $vp data-pipeline/run_geomet.py --fit-checkpoint
+if ($LASTEXITCODE -ne 0) { throw "GeoMet LCT pipeline failed: $LASTEXITCODE" }
