@@ -2,7 +2,7 @@
 
 ## Abstract
 
-Mineral-processing optimisation couples feed heterogeneity, comminution, classification and flotation. This document proposes a future study of decision transfer across ore families. The current OreFlow implementation supplies an interactive one-pass simulator, 12 authored cases with six variants each, 19 method records per variant, seeded perturbation quantiles and a versioned artifact contract. Its external particle-mineralogy dataset is not joined to plant recovery observations, the circuit is not calibrated to a plant, and the browser does not report out-of-domain probability. The existing benchmark measures how well surrogate models reproduce the authored simulator on disjoint perturbations of the same case families. A publishable transfer claim requires measured metallurgical labels, calibration and a complete ore-family holdout.
+Mineral-processing optimisation couples feed heterogeneity, comminution and downstream separation. This document proposes a future study of decision transfer across ore families. The current OreFlow implementation supplies four authored one-pass process paths, 12 scenarios with six variants each, 21 method records per variant, seeded perturbation quantiles and a versioned artifact contract. Some records are explicitly not applicable or unavailable. Its external particle-mineralogy dataset is not joined to plant recovery observations, no circuit is calibrated to a plant, and the browser does not report out-of-domain probability. The existing benchmark measures how well surrogates reproduce the authored simulator on disjoint perturbations of the same case families. A publishable transfer claim requires measured metallurgical labels, calibration and an ore-family holdout.
 
 ## Research question
 
@@ -10,7 +10,7 @@ Can a conservation-aware surrogate preserve process-decision rankings across hel
 
 ## Methods
 
-The process state contains feed throughput, head grade, feed P80, work index proxy, density, grind P80, classifier cut, residence time, air rate, reagent dose and water use. Comminution uses comparative Rittinger, Kick and Bond relations, a Whiten-style crusher response and a cumulative size-distribution proxy rather than a solved population-balance kernel. Classification applies a logistic partition to size-bin masses and uses a Plitt-style cut-size approximation; uniform valuable grade by size is assumed. Flotation compares first-order, Kelsall and compressed-exponential kinetics. Concentrate grade is calculated by a declared mass-pull relation and valuable-metal balance.
+The process state contains feed throughput, head grade, feed P80, work index proxy, density, grind P80, classifier cut, residence time, air rate, reagent dose and water use. Comminution uses comparative Rittinger, Kick and Bond relations, a Whiten-style crusher response and a cumulative size-distribution proxy rather than a solved population-balance kernel. Classification applies a logistic partition to size-bin masses and uses a Plitt-style cut-size approximation; uniform valuable grade by size is assumed. Four paths are implemented: a generic rougher, a free-gold gravity branch plus rougher, a magnetite magnetic size-window proxy, and phosphate desliming followed by a rougher on retained solids. Nickel laterite is only a generic rougher proxy, not a laterite leach model. Flotation, where applicable, compares first-order, Kelsall and compressed-exponential kinetics. Concentrate grade is calculated by a declared mass-pull relation and valuable-metal balance.
 
 The learned design contains 720 seeded parametric samples around twelve authored cases. Ridge, random forest, gradient boosting, Gaussian process, PyTorch MLP and autoencoder are trained in separate tiers. Evaluation uses 48 disjoint perturbations generated after training. Metrics are recovery RMSE in percentage points, R2 and autoencoder reconstruction error. The future calibrated study will replace simulator targets with laboratory and plant labels, reserve an entire ore-family or campaign from model fitting and test decision ranking against the mechanistic solution.
 
@@ -20,7 +20,7 @@ The HZDR RODARE particle-mineralogy workbook is downloaded by `scripts/fetch-dat
 
 ## Current implemented evidence
 
-The current bake contains 12 cases, 72 variants and 1,368 method records. The benchmark reports recovery RMSE and R² for five surrogate predictors and separate feature-reconstruction MSE for the autoencoder. These scores quantify approximation of the declared simulator only. They do not establish plant accuracy, calibrated uncertainty, safety, economics or transfer between mines. The benchmark page and JSON artifacts make that distinction visible to the reader.
+The current bake contains 12 cases, 72 variants and 1,512 registry records, including not-applicable entries. The local RTX 4070 executed neural training, and an ONNX inference check reproduced a baked MLP result within 0.00001 percentage point. The benchmark reports recovery RMSE and R² for five surrogate predictors and separate feature-reconstruction MSE for the autoencoder. These scores quantify approximation of the declared simulator only. They do not establish plant accuracy, calibrated uncertainty, safety, economics or transfer between mines. The benchmark page and JSON artifacts make that distinction visible to the reader.
 
 ## Proposed calibrated experiment
 
@@ -40,3 +40,6 @@ The current cases are authored scenarios and the current target is generated by 
 - Austin, L. G. A review introduction to the description of size reduction by the mathematical treatment of milling. Powder Technology, 1973. https://doi.org/10.1016/0032-5910(73)80013-7
 - HZDR RODARE. Constructed particle-mineralogy cases. DOI 10.14278/rodare.336. https://doi.org/10.14278/rodare.336
 - Mineral-processing machine-learning review. Minerals 14(4), 331. https://doi.org/10.3390/min14040331
+- Metso. Low-intensity magnetic separators for iron ore, technical data sheet. https://www.metso.com/globalassets/saleshub/documents---episerver/lims_iron-ore-technical-datasheet-en.pdf
+- Metso. Basics in Mineral Processing Handbook. https://www.metso.com/globalassets/insights/ebooks/mo-basics-in-mineral-processing-handbook_lowres.pdf
+- USGS. Nickel laterite processing review, SIR 2010-5070-H. https://pubs.usgs.gov/sir/2010/5070/h/pdf/SIR10-5070-H.pdf

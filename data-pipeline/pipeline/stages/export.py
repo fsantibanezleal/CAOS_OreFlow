@@ -19,7 +19,7 @@ def _round_trace(result) -> dict[str, Any]:
 
 
 def run_case(*, case, variants: list[dict[str, Any]], seed: int, run_ms: float, metrics: dict, derived_dir: str | Path, manifests_dir: str | Path) -> dict:
-    case_artifact = {"schema": "oreflow.case/v1", "case_id": case.id, "category": case.category, "title": case.title,
+    case_artifact = {"schema": "oreflow.case/v1", "case_id": case.id, "category": case.category, "process_family": case.params.process_family, "title": case.title,
                      "description": case.description, "expected_band": case.expected_band, "provenance": case.provenance,
                      "variants": variants}
     rel = f"cases/{case.id}.json"

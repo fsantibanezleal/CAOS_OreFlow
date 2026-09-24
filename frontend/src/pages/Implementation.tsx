@@ -93,10 +93,10 @@ export default function Implementation() {
         ),
         ["scipy-opt"],
         p(
-          "The constrained grid evaluates 25 real candidate points and records the objective, selected grind P80, reagent, recovery, grade and energy. Robust Monte Carlo draws hardness, grade and cut multipliers from a declared lognormal distribution, solves the same circuit and records p05, p50 and p95 recovery.",
-          "Grilla acotada evalúa 25 puntos y registra objetivo, P80, reactivo, recuperación, ley y energía. Monte Carlo robusto dibuja multiplicadores lognormales de dureza, ley y corte, resuelve mismo circuito y registra p05, p50 y p95.",
+          "The constrained grid evaluates 25 candidates and computes the objective, selected grind P80, reagent, recovery, grade and energy. Robust Monte Carlo draws hardness, grade and cut multipliers from a seeded lognormal distribution. Its public method record currently retains p05 recovery only; p50 and p95 are computed but not exported in that record.",
+          "La grilla acotada evalúa 25 candidatos y calcula objetivo, P80, reactivo, recuperación, ley y energía. Monte Carlo dibuja multiplicadores lognormales con semilla para dureza, ley y corte. El registro público conserva solo recuperación p05; p50 y p95 se calculan pero no se exportan allí.",
         ),
-        "release",
+        "optimization-grid",
       ),
     },
     {
@@ -120,13 +120,13 @@ export default function Implementation() {
       label: p("Inference", "Inferencia"),
       content: base(
         p(
-          "6. Exact replay and live inference are separate",
-          "6. Replay exacto e inferencia viva son separadas",
+          "6. Baked scenarios and local calculations are separate",
+          "6. Escenarios precomputados y cálculos locales son separados",
         ),
         ["onnx"],
         p(
-          "The static build reads the case artifact and replays the exact baked arrays. Editing a slider switches to a bounded TypeScript engine that mirrors the physical formulas for fast feedback. The live response is marked LIVE ENGINE and does not pretend to be the signed offline matrix.",
-          "Build estático lee artefacto y repite arreglos exactos. Editar slider cambia a motor TypeScript acotado que refleja fórmulas. Respuesta viva se marca LIVE ENGINE y no suplanta matriz firmada.",
+          "The static build reads baked case arrays. The circuit walkthrough steps through operations and does not simulate physical time. Editing a slider switches to a bounded TypeScript engine that mirrors the declared formulas. That state is marked LOCAL CALCULATION and does not overwrite the offline method matrix; learned values remain marked stale.",
+          "El build estático lee arreglos precomputados. El recorrido avanza por operaciones y no simula tiempo físico. Editar un control cambia al motor TypeScript que refleja las fórmulas declaradas. Ese estado se marca CÁLCULO LOCAL y no sobrescribe la matriz; valores aprendidos quedan desactualizados.",
         ),
         "lanes",
       ),
@@ -189,8 +189,8 @@ export default function Implementation() {
             [
               p("Scientific coverage", "Cobertura científica"),
               p(
-                "12 cases x 6 variants x 19 methods",
-                "12 casos x 6 variantes x 19 métodos",
+                "12 cases x 6 variants x 21 method records",
+                "12 casos x 6 variantes x 21 registros de método",
               ),
             ],
             [

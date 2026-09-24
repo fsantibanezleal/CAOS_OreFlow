@@ -11,7 +11,7 @@ INDEX_SCHEMA = "oreflow.index/v1"
 def build_case_manifest(*, case, params, seed: int, artifact_rel: str, trace_bytes: int, gate: dict, flags: list[dict], metrics: dict) -> dict:
     names = ("feed_tph", "feed_grade_pct", "feed_p80_um", "hardness_kwh_t", "density_t_m3", "grind_p80_um",
              "classifier_cut_um", "flotation_time_min", "air_rate_m3_min", "reagent_gpt", "water_m3_t")
-    return {"schema": MANIFEST_SCHEMA, "case_id": case.id, "category": case.category,
+    return {"schema": MANIFEST_SCHEMA, "case_id": case.id, "category": case.category, "process_family": case.params.process_family,
             "real_or_synthetic": case.provenance, "expected_band": case.expected_band,
             "engine": {"package": "oreflow-pipeline", "version": __version__, "model": "integrated comminution-classification-flotation"},
             "params": {name: getattr(params, name) for name in names}, "seed": seed,

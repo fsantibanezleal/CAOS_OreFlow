@@ -27,8 +27,8 @@ export default function Methodology() {
           "Definiciones y supuestos de los modelos",
         )}
         lede={p(
-          "The equations describe energy scaling, a size-distribution proxy, size-by-size classification and conditional rougher kinetics. Coefficients are illustrative unless a case-specific source is stated. None establishes a plant operating point.",
-          "Las ecuaciones describen escalas de energía, un proxy de distribución de tamaños, clasificación por clase granulométrica y cinética rougher condicional. Los coeficientes son ilustrativos salvo fuente específica. Ningún cálculo establece un punto de operación de planta.",
+          "The equations specify energy, particle-size response, four process families, separation, flotation and learning. Coefficients are authored unless case-specific testwork is supplied; none establishes a plant operating point.",
+          "Las ecuaciones especifican energía, respuesta granulométrica, cuatro familias de proceso, separación, flotación y aprendizaje. Los coeficientes son supuestos salvo ensayos específicos; ningún cálculo establece un punto de operación de planta.",
         )}
       />
       <Tabset
@@ -76,7 +76,7 @@ export default function Methodology() {
                   ),
                 },
               ],
-              "pipeline",
+              "energy-laws",
             ),
           },
           {
@@ -154,7 +154,49 @@ export default function Methodology() {
                   ),
                 },
               ],
-              "data",
+              "classification-curve",
+            ),
+          },
+          {
+            id: "gravity",
+            label: p("Gold gravity branch", "Rama gravimétrica"),
+            content: common(
+              p("4. Free gold is a separate branch", "4. El oro libre es una rama separada"),
+              ["gold-flowsheet", "metso-handbook"],
+              [
+                p("The free-milling gold case sends classifier underflow through a one-pass gravity size window while overflow enters a rougher. The two products and two reject streams are balanced separately before overall recovery is reported.", "El caso de oro libre envía gruesos del clasificador a una ventana gravimétrica de una pasada, mientras finos entran al rougher. Ambos productos y rechazos se balancean por separado antes de reportar recuperación global."),
+                p("The capture window penalises very fine and very coarse particles. Its 0.82 scale and 45/700 micron shape parameters are authored teaching assumptions, not fitted gravity-recoverable-gold tests. The assumed gravity-product grade also lacks an assay basis.", "La ventana penaliza partículas muy finas y muy gruesas. Su escala 0,82 y parámetros 45/700 micrómetros son supuestos didácticos, no ensayos GRG ajustados. La ley del producto gravimétrico tampoco tiene base de ensaye."),
+                p("Moving the classification cut reallocates mass between gravity and flotation, not merely a label on the same rougher. The browser and Python kernels are checked against every baked variant.", "Mover el corte reasigna masa entre gravedad y flotación, no solo cambia la etiqueta de un rougher. Los motores de navegador y Python se comparan en cada variante."),
+              ],
+              [{ tex: String.raw`R_g=0.82\sum_i m_i^{U}(1-e^{-d_i/45})e^{-d_i/700}`, caption: p("Authored gravity response on classifier underflow size-bin mass.", "Respuesta gravimétrica supuesta sobre masa de gruesos por tamaño.") }],
+            ),
+          },
+          {
+            id: "magnetic",
+            label: p("Magnetic separation", "Separación magnética"),
+            content: common(
+              p("5. Magnetite bypasses the rougher", "5. Magnetita no pasa por rougher"),
+              ["metso-lims"],
+              [
+                p("The magnetite path sends ground ore directly to a low-intensity magnetic separation proxy. It has no hydrocyclone or flotation stage, and those registry methods are marked not applicable. The visual mass ledger shows magnetic concentrate and nonmagnetic reject.", "La ruta de magnetita envía mineral molido directamente a un proxy de separación magnética de baja intensidad. No tiene hidrociclón ni flotación, y esos métodos se marcan no aplicables. El balance muestra concentrado magnético y rechazo."),
+                p("A size-window capture is integrated over the ground distribution. A 62% product grade closes the valuable-metal balance, but it is an authored assumption, not measured iron grade. No field strength, susceptibility, mineral liberation or separator geometry is modeled.", "Se integra una ventana de captura por tamaño sobre la distribución molida. Una ley de producto de 62% cierra el balance de metal, pero es un supuesto, no una ley de hierro medida. No se modelan campo, susceptibilidad, liberación ni geometría."),
+                p("Changing grind P80 alters both the size distribution and energy estimate. Collector dose, residence and air controls are omitted because they would not affect this path.", "Cambiar P80 altera distribución y energía. Dosis de colector, residencia y aire se omiten porque no afectan esta ruta."),
+              ],
+              [{ tex: String.raw`R_m=\sum_i m_i\,0.91(1-e^{-d_i/25})e^{-d_i/1800}`, caption: p("Authored LIMS capture response; not separator calibration.", "Respuesta LIMS supuesta; no calibración de separador.") }],
+            ),
+          },
+          {
+            id: "deslime",
+            label: p("Desliming path", "Ruta de deslamado"),
+            content: common(
+              p("6. Phosphate retains the coarse stream", "6. Fosfato conserva los gruesos"),
+              ["metso-handbook", "usgs-laterite"],
+              [
+                p("In the phosphate-with-clay scenario, classifier overflow leaves as slimes. The retained underflow, not overflow, enters the rougher. Changing the cut therefore changes both slime discard and the fraction of solids available for recovery.", "En fosfato con arcilla, el overflow sale como lamas. El underflow retenido, no los finos, entra al rougher. Cambiar el corte altera descarte y fracción disponible para recuperación."),
+                p("The current model assumes head grade is uniform across size classes. Real desliming can preferentially lose or retain valuable mineral, so a measured mineral-by-size assay and separation test are required before interpreting this as a phosphate prediction.", "El modelo supone ley uniforme entre tamaños. El deslamado real puede perder o retener mineral valioso preferentemente; se requiere ensaye mineralógico por tamaño y prueba de separación antes de interpretarlo como predicción de fosfato."),
+                p("The nickel laterite case remains a named proxy using the generic rougher path. It is explicitly not a hydrometallurgical laterite flowsheet; leach kinetics, acid consumption and residue chemistry are outside this implementation.", "El caso de laterita de níquel sigue siendo un proxy con rougher genérico. No es un flowsheet hidrometalúrgico; cinética de lixiviación, ácido y química de residuos están fuera de esta implementación."),
+              ],
+              [{ tex: String.raw`R_c=(1-\phi_{\mathrm{slimes}})R_f(t)`, caption: p("Overall recovery when classifier overflow is discarded as slimes.", "Recuperación global cuando los finos se descartan como lamas.") }],
             ),
           },
           {
@@ -162,8 +204,8 @@ export default function Methodology() {
             label: p("Flotation kinetics", "Cinética de flotación"),
             content: common(
               p(
-                "4. Residence time reveals kinetic populations",
-                "4. Tiempo de residencia revela poblaciones cinéticas",
+                "7. Residence time reveals kinetic populations",
+                "7. Tiempo de residencia revela poblaciones cinéticas",
               ),
               ["flotation"],
               [
@@ -200,7 +242,7 @@ export default function Methodology() {
                   ),
                 },
               ],
-              "lanes",
+              "flotation-kinetics",
             ),
           },
           {
@@ -208,8 +250,8 @@ export default function Methodology() {
             label: p("Optimisation", "Optimización"),
             content: common(
               p(
-                "5. Constrained optimisation is a transparent search",
-                "5. Optimización acotada es búsqueda transparente",
+                "8. Constrained optimisation is a transparent search",
+                "8. Optimización acotada es búsqueda transparente",
               ),
               ["scipy-opt"],
               [
@@ -239,7 +281,7 @@ export default function Methodology() {
                   ),
                 },
               ],
-              "release",
+              "optimization-grid",
             ),
           },
           {
@@ -247,8 +289,8 @@ export default function Methodology() {
             label: p("Learning limits", "Límites del aprendizaje"),
             content: common(
               p(
-                "6. Learned models inherit the simulator boundary",
-                "6. Modelos aprendidos heredan límite del simulador",
+                "9. Learned models inherit the simulator boundary",
+                "9. Modelos aprendidos heredan límite del simulador",
               ),
               ["ml-mining", "ml-review", "sklearn", "pytorch"],
               [
@@ -278,7 +320,7 @@ export default function Methodology() {
                   ),
                 },
               ],
-              "lanes",
+              "surrogate-errors",
             ),
           },
         ]}

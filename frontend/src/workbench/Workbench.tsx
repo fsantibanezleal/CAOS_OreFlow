@@ -21,6 +21,8 @@ type Stage =
   | "crush"
   | "grind"
   | "classify"
+  | "gravity"
+  | "magnetic"
   | "float"
   | "product"
   | "tail";
@@ -112,73 +114,17 @@ const controls: Record<
 };
 const views: Array<{ id: View; en: string; es: string }> = [
   { id: "circuit", en: "Circuit", es: "Circuito" },
+  { id: "controls", en: "Controls", es: "Controles" },
   { id: "response", en: "Response", es: "Respuesta" },
   { id: "surface", en: "Decision surface", es: "Superficie de decisión" },
   { id: "methods", en: "Methods", es: "Métodos" },
   { id: "compare", en: "Compare", es: "Comparar" },
-  { id: "controls", en: "Controls", es: "Controles" },
 ];
-const stages: Record<
-  Stage,
-  { en: string; es: string; detail: readonly [string, string]; unit: string }
-> = {
-  feed: {
-    en: "Feed",
-    es: "Alimentación",
-    detail: [
-      "Scenario solids flow and head grade",
-      "Caudal de sólidos y ley de alimentación del escenario",
-    ],
-    unit: "t/h",
-  },
-  crush: {
-    en: "Crushing",
-    es: "Trituración",
-    detail: [
-      "Estimated crusher product P80",
-      "P80 estimado del producto de trituración",
-    ],
-    unit: "µm",
-  },
-  grind: {
-    en: "Grinding",
-    es: "Molienda",
-    detail: [
-      "Target mill product P80",
-      "P80 objetivo del producto de molienda",
-    ],
-    unit: "µm",
-  },
-  classify: {
-    en: "Classification",
-    es: "Clasificación",
-    detail: [
-      "One-pass solids fraction to overflow",
-      "Fracción de sólidos hacia overflow en una pasada",
-    ],
-    unit: "%",
-  },
-  float: {
-    en: "Rougher",
-    es: "Rougher",
-    detail: [
-      "Overall valuable mineral recovery",
-      "Recuperación global del mineral valioso",
-    ],
-    unit: "%",
-  },
-  product: {
-    en: "Concentrate",
-    es: "Concentrado",
-    detail: ["Concentrate solids flow", "Caudal de sólidos del concentrado"],
-    unit: "t/h",
-  },
-  tail: {
-    en: "Tailings",
-    es: "Relaves",
-    detail: ["Remaining solids flow", "Caudal de sólidos restante"],
-    unit: "t/h",
-  },
+const walkthroughStages: Record<string, Stage[]> = {
+  rougher: ["feed", "crush", "grind", "classify", "float", "product"],
+  gravity_rougher: ["crush", "grind", "classify", "gravity", "float", "product"],
+  magnetic: ["feed", "crush", "grind", "magnetic", "product"],
+  deslime_rougher: ["feed", "crush", "grind", "classify", "float", "product"],
 };
 const methodContext: Record<string, string> = {
   rittinger: "Surface-area scaling with an authored research coefficient.",
@@ -188,18 +134,23 @@ const methodContext: Record<string, string> = {
   pbm: "Compact distribution proxy, not a fitted breakage kernel.",
   partition: "One-pass solids split calculated from size-bin masses.",
   plitt: "Cut-size proxy with water, density and feed factors.",
+  gravity_window: "Size-window gravity capture on classifier underflow; not a fitted GRG test.",
+  lims_capture: "Magnetic capture response integrated over the ground size distribution; not separator-calibrated.",
   first_order: "Single-population rougher kinetic recovery.",
   kelsall: "Fast/slow kinetic comparison.",
   compressed_exponential: "Alternative kinetic shape.",
   mass_balance: "One-stage conservation check.",
   constrained_opt: "Weighted bounded search, not plant economics.",
-  robust_mc: "Seeded perturbation, not calibrated uncertainty.",
+  robust_mc: "P05 circuit recovery from seeded perturbations; not calibrated plant uncertainty.",
   ridge: "Simulator-trained linear surrogate.",
   random_forest: "Simulator-trained nonlinear surrogate.",
   hist_gradient_boosting: "Simulator-trained boosted surrogate.",
   gaussian_process: "Simulator-trained local surrogate.",
   mlp: "Offline-trained neural surrogate.",
   autoencoder: "Feature reconstruction diagnostic.",
+};
+const methodEnglish: Record<string, string> = {
+  robust_mc: "Scenario recovery p05",
 };
 const methodSpanish: Record<string, [string, string]> = {
   rittinger: [
@@ -230,6 +181,8 @@ const methodSpanish: Record<string, [string, string]> = {
     "Proxy de corte estilo Plitt",
     "Corte con factores de agua, densidad y caudal de alimentación.",
   ],
+  gravity_window: ["Captura gravimétrica por tamaño", "Respuesta supuesta del oro libre en gruesos; sin ensayo GRG ajustado."],
+  lims_capture: ["Captura magnética por tamaño", "Respuesta integrada por tamaños; sin calibración de campo ni liberación."],
   first_order: [
     "Cinética de primer orden",
     "Recuperación global con una población cinética.",
@@ -251,8 +204,8 @@ const methodSpanish: Record<string, [string, string]> = {
     "Objetivo ponderado, no economía ni óptimo de planta.",
   ],
   robust_mc: [
-    "Ensamble de perturbaciones",
-    "Variación sembrada de parámetros, no incertidumbre calibrada.",
+    "Recuperación p05 de perturbaciones",
+    "Percentil 5 de recuperación en perturbaciones sembradas; no incertidumbre calibrada de planta.",
   ],
   ridge: [
     "Sustituto ridge",
@@ -280,7 +233,7 @@ const methodSpanish: Record<string, [string, string]> = {
   ],
 };
 const domainSpanish: Record<string, string> = {
-  comminution: 'CONMINUCIÓN', grinding: 'MOLIENDA', classification: 'CLASIFICACIÓN', flotation: 'FLOTACIÓN', circuit: 'CIRCUITO', surrogate: 'SUSTITUTO', diagnostics: 'DIAGNÓSTICO',
+  comminution: 'CONMINUCIÓN', grinding: 'MOLIENDA', classification: 'CLASIFICACIÓN', gravity: 'GRAVEDAD', magnetic: 'MAGNÉTICA', flotation: 'FLOTACIÓN', circuit: 'CIRCUITO', surrogate: 'SUSTITUTO', diagnostics: 'DIAGNÓSTICO',
 };
 const tierSpanish: Record<string, string> = {
   classical: 'CLÁSICO', integration: 'INTEGRACIÓN', optimization: 'OPTIMIZACIÓN', uncertainty: 'PERTURBACIÓN', learned: 'APRENDIDO', frontier: 'EXPLORATORIO',
@@ -297,6 +250,7 @@ export default function Workbench() {
   const [view, setView] = useState<View>("circuit");
   const [group, setGroup] = useState<Group>("size");
   const [stageId, setStageId] = useState<Stage>("classify");
+  const [playing, setPlaying] = useState(false);
   const [response, setResponse] = useState<"size" | "kinetics">("size");
   const [methodId, setMethodId] = useState("partition");
   const [compareMetric, setCompareMetric] = useState<
@@ -332,9 +286,45 @@ export default function Workbench() {
       valid = false;
     };
   }, [caseId]);
+  const changeCase = (id: string) => {
+    if (id === caseId) return;
+    setCaseData(null);
+    setParams(null);
+    setVariantId("nominal");
+    setView("circuit");
+    setGroup("size");
+    setResponse("size");
+    setMethodId("bond");
+    setPlaying(false);
+    setStageId(id === "gold_free_milling" ? "gravity" : id === "iron_magnetite_fine" ? "magnetic" : "classify");
+    setCaseId(id);
+  };
   const variant: Variant | undefined = caseData?.variants.find(
     (v) => v.id === variantId,
   );
+  const family = caseData?.process_family ?? "rougher";
+  const sequence = walkthroughStages[family] ?? walkthroughStages.rougher;
+  const stepStage = (direction: -1 | 1) => {
+    setPlaying(false);
+    setStageId(current => {
+      const index = sequence.indexOf(current === "tail" ? "product" : current);
+      return sequence[Math.max(0, Math.min(sequence.length - 1, index + direction))];
+    });
+  };
+  useEffect(() => {
+    if (!playing) return;
+    const timer = window.setInterval(() => {
+      setStageId(current => {
+        const index = sequence.indexOf(current === "tail" ? "product" : current);
+        if (index >= sequence.length - 1) {
+          setPlaying(false);
+          return current;
+        }
+        return sequence[index + 1];
+      });
+    }, 1800);
+    return () => window.clearInterval(timer);
+  }, [playing, family]);
   const dirty = Boolean(
     variant &&
       params &&
@@ -375,13 +365,15 @@ export default function Workbench() {
       unit: "%",
     },
     plitt: { value: live?.metrics.cyclone_d50_um, unit: "µm" },
-    first_order: { value: live?.metrics.recovery_pct, unit: "%" },
+    gravity_window: { value: live?.metrics.gravity_recovery_pct, unit: "%" },
+    lims_capture: { value: live?.metrics.magnetic_recovery_pct, unit: "%" },
+    first_order: { value: family === "magnetic" ? undefined : live?.metrics.flotation_recovery_pct, unit: "%" },
     kelsall: {
       value:
         live && params
           ? alternativeKinetics(
               params,
-              live.metrics.overflow_fraction,
+              family === "deslime_rougher" ? 1 - live.metrics.overflow_fraction : live.metrics.overflow_fraction,
               "kelsall",
             ).at(-1)! * 100
           : undefined,
@@ -392,7 +384,7 @@ export default function Workbench() {
         live && params
           ? alternativeKinetics(
               params,
-              live.metrics.overflow_fraction,
+              family === "deslime_rougher" ? 1 - live.metrics.overflow_fraction : live.metrics.overflow_fraction,
               "compressed_exponential",
             ).at(-1)! * 100
           : undefined,
@@ -400,7 +392,7 @@ export default function Workbench() {
     },
     mass_balance: { value: live?.metrics.metal_balance_pct, unit: "%" },
   };
-  const methodLive = dirty && methodId in liveMethods;
+  const methodLive = dirty && method?.status !== "not-applicable" && methodId in liveMethods;
   const methodValue = methodLive ? liveMethods[methodId].value : method?.value;
   const methodUnit = methodLive ? liveMethods[methodId].unit : method?.unit;
   const selectVariant = (id: string) => {
@@ -412,23 +404,13 @@ export default function Workbench() {
   };
   const changeParam = (key: string, value: number) =>
     setParams((p) => (p ? { ...p, [key]: value } : p));
-  const stage = stages[stageId];
-  const stageValue =
-    stageId === "feed"
-      ? params?.feed_tph
-      : stageId === "crush"
-        ? shown?.metrics.crusher_p80_um
-        : stageId === "grind"
-          ? params?.grind_p80_um
-          : stageId === "classify"
-            ? (shown?.metrics.overflow_fraction ?? 0) * 100
-            : stageId === "float"
-              ? shown?.metrics.recovery_pct
-              : stageId === "product"
-                ? shown?.metrics.concentrate_tph
-                : (params?.feed_tph ?? 0) -
-                  (shown?.metrics.concentrate_tph ?? 0);
-  const readouts: Array<[string, number, string, number]> = group === "size"
+  const readouts: Array<[string, number, string, number]> = family === "magnetic"
+    ? [
+        [es ? "Recuperación magnética" : "Magnetic recovery", shown?.metrics.magnetic_recovery_pct ?? 0, "%", 1],
+        [es ? "Concentrado magnético" : "Magnetic concentrate", shown?.metrics.concentrate_tph ?? 0, "t/h", 1],
+        [es ? "Energía específica" : "Specific energy", shown?.metrics.specific_energy_kwh_t ?? 0, "kWh/t", 1],
+      ]
+    : group === "size"
     ? [
         [es ? "Energía específica" : "Specific energy", shown?.metrics.specific_energy_kwh_t ?? 0, "kWh/t", 1],
         [es ? "P80 trituración" : "Crusher P80", shown?.metrics.crusher_p80_um ?? 0, "µm", 0],
@@ -438,7 +420,7 @@ export default function Workbench() {
       ? [
           [es ? "Fracción a finos" : "Overflow fraction", (shown?.metrics.overflow_fraction ?? 0) * 100, "%", 1],
           [es ? "Corte efectivo d50" : "Effective cut d50", shown?.metrics.cyclone_d50_um ?? 0, "µm", 1],
-          [es ? "Sólidos al rougher" : "Solids to rougher", (shown?.metrics.overflow_fraction ?? 0) * (params?.feed_tph ?? 0), "t/h", 0],
+          [es ? "Sólidos al rougher" : "Solids to rougher", (family === "deslime_rougher" ? 1 - (shown?.metrics.overflow_fraction ?? 0) : (shown?.metrics.overflow_fraction ?? 0)) * (params?.feed_tph ?? 0), "t/h", 0],
         ]
       : [
           [es ? "Recuperación global" : "Overall recovery", shown?.metrics.recovery_pct ?? 0, "%", 1],
@@ -464,7 +446,7 @@ export default function Workbench() {
         </button>
       </div>
       <div className="of-control-groups" role="tablist">
-        {(["size", "separation", "flotation"] as Group[]).map((g) => (
+        {((family === "magnetic" ? ["size"] : ["size", "separation", "flotation"]) as Group[]).map((g) => (
           <button
             type="button"
             role="tab"
@@ -518,7 +500,9 @@ export default function Workbench() {
         ))}
       </div>
       <p className="of-controls-explain">
-        {group === "size"
+        {family === "magnetic"
+          ? es ? "P80 cambia la distribución de tamaños, la captura magnética y la energía. El separador es una respuesta supuesta, no calibrada." : "P80 changes size distribution, magnetic capture and energy. The separator response is authored, not calibrated."
+          : group === "size"
           ? es
             ? "Caudal controla masa; P80 controla tamaño y energía."
             : "Rate controls mass; P80 controls size and energy."
@@ -556,10 +540,11 @@ export default function Workbench() {
                 ? "Cargando…"
                 : "Loading…"}
           </strong>
+          {caseData && <small className="of-case-family">{family === "gravity_rougher" ? (es ? "GRAVEDAD → ROUGHER" : "GRAVITY → ROUGHER") : family === "magnetic" ? (es ? "SEPARACIÓN MAGNÉTICA" : "MAGNETIC SEPARATION") : family === "deslime_rougher" ? (es ? "DESLAMADO → ROUGHER" : "DESLIME → ROUGHER") : (es ? "CIRCUITO ROUGHER" : "ROUGHER CIRCUIT")}</small>}
         </div>
         <label>
           {es ? "Caso" : "Case"}
-          <select value={caseId} onChange={(e) => setCaseId(e.target.value)}>
+          <select value={caseId} onChange={(e) => changeCase(e.target.value)}>
             {Object.entries(categories).map(([cat, items]) => (
               <optgroup key={cat} label={cat}>
                 {items.map((item) => (
@@ -590,12 +575,12 @@ export default function Workbench() {
               ? "CÁLCULO LOCAL"
               : "LOCAL CALCULATION"
             : es
-              ? "REPRODUCCIÓN"
-              : "REPLAY"}
+              ? "ESCENARIO PRECOMPUTADO"
+              : "PRECOMPUTED SCENARIO"}
         </span>
       </div>
       <div className="of-view-tabs" role="tablist">
-        {views.map((item) => (
+        {views.filter(item => family !== "magnetic" || item.id !== "surface").map((item) => (
           <button
             type="button"
             key={item.id}
@@ -620,49 +605,18 @@ export default function Workbench() {
         <div className="of-view-area" role="tabpanel">
           {view === "circuit" && (
             <div className="of-circuit-layout">
-              <main className="of-circuit-main">
-                <div className="of-viz-head">
-                  <div>
-                    <span className="of-kicker">
-                      {es ? "BALANCE DE UNA PASADA" : "ONE-PASS BALANCE"}
-                    </span>
-                    <h2>
-                      {es
-                        ? "Flujos y operaciones"
-                        : "Streams and unit operations"}
-                    </h2>
-                  </div>
-                  <span className="of-boundary">
-                    {es ? "ESCENARIO ILUSTRATIVO" : "ILLUSTRATIVE SCENARIO"}
-                  </span>
-                </div>
-                <CircuitDiagram
-                  active={stageId}
-                  onSelect={setStageId}
-                  metrics={shown.metrics}
-                  params={params}
-                  es={es}
-                />
-                <div className="of-stage-inspector">
-                  <div>
-                    <span className="of-kicker">
-                      {es ? "OPERACIÓN SELECCIONADA" : "SELECTED OPERATION"}
-                    </span>
-                    <h3>{es ? stage.es : stage.en}</h3>
-                    <p>{stage.detail[es ? 1 : 0]}</p>
-                  </div>
-                  <strong>
-                    {fmt(
-                      stageValue,
-                      ["float", "classify", "product"].includes(stageId)
-                        ? 1
-                        : 0,
-                    )}{" "}
-                    <small>{stage.unit}</small>
-                  </strong>
-                </div>
-              </main>
-              {rail}
+              <CircuitDiagram
+                active={stageId}
+                onSelect={(stage) => { setPlaying(false); setStageId(stage); }}
+                trace={shown}
+                params={params}
+                es={es}
+                live={dirty}
+                playing={playing}
+                onTogglePlay={() => { if (stageId === sequence.at(-1)) setStageId(sequence[0]); setPlaying(value => !value); }}
+                onStep={stepStage}
+              />
+              <div className="of-circuit-rail">{rail}</div>
             </div>
           )}
           {view === "response" && (
@@ -673,11 +627,7 @@ export default function Workbench() {
                     <span className="of-kicker">
                       {es ? "RESPUESTA DEL CIRCUITO" : "CIRCUIT RESPONSE"}
                     </span>
-                    <h2>
-                      {es
-                        ? "Distribuciones y cinética"
-                        : "Distributions and kinetics"}
-                    </h2>
+                    <h2>{family === "magnetic" ? (es ? "Distribución y captura" : "Distribution and capture") : (es ? "Distribuciones y cinética" : "Distributions and kinetics")}</h2>
                   </div>
                   <div className="of-segmented">
                     <button
@@ -690,7 +640,7 @@ export default function Workbench() {
                       className={response === "kinetics" ? "active" : ""}
                       onClick={() => setResponse("kinetics")}
                     >
-                      {es ? "Cinética" : "Kinetics"}
+                      {family === "magnetic" ? (es ? "Captura" : "Capture") : (es ? "Cinética" : "Kinetics")}
                     </button>
                   </div>
                 </div>
@@ -702,7 +652,7 @@ export default function Workbench() {
                         : "Cumulative passing by operation"
                     }
                     subtitle={
-                      es
+                        family === "magnetic" ? (es ? "Sin clasificador: alimentación molida al separador" : "No classifier: ground feed to separator") : es
                         ? "Overflow normalizado por masa del flujo"
                         : "Overflow normalized by stream mass"
                     }
@@ -724,36 +674,25 @@ export default function Workbench() {
                         color: "var(--color-accent)",
                         values: shown.ground_psd,
                       },
-                      {
+                      ...(! (family === "magnetic") ? [{
                         name: es ? "Finos" : "Overflow",
                         color: "var(--color-accent-2)",
                         values: shown.overflow_psd,
-                      },
+                      }] : []),
                     ]}
                     format={(v) => `${(v * 100).toFixed(0)}%`}
                   />
                 ) : (
                   <Chart
-                    title={
-                      es
-                        ? "Recuperación global vs residencia"
-                        : "Overall recovery vs residence"
-                    }
-                    subtitle={
-                      es
-                        ? "Incluye partición de sólidos al rougher"
-                        : "Includes solids partition to rougher"
-                    }
+                    title={family === "magnetic" ? (es ? "Captura magnética por tamaño" : "Magnetic capture by size") : (es ? "Recuperación global vs residencia" : "Overall recovery vs residence")}
+                    subtitle={family === "magnetic" ? (es ? "Respuesta supuesta; no ajustada a un separador" : "Authored response; not separator-calibrated") : family === "deslime_rougher" ? (es ? "Los finos descartados como lamas no entran al rougher" : "Discarded slimes do not reach the rougher") : (es ? "Incluye partición de sólidos al rougher" : "Includes solids partition to rougher")}
                     height={380}
-                    labels={shown.flotation_recovery.map(
-                      (_, i) =>
-                        `${((i / 95) * params.flotation_time_min).toFixed(1)} min`,
-                    )}
+                    labels={family === "magnetic" ? shown.size_um.map(size => `${size.toFixed(0)} µm`) : shown.flotation_recovery.map((_, i) => `${((i / 95) * params.flotation_time_min).toFixed(1)} min`)}
                     series={[
                       {
-                        name: es ? "Recuperación" : "Recovery",
+                        name: family === "magnetic" ? (es ? "Captura" : "Capture") : (es ? "Recuperación" : "Recovery"),
                         color: "var(--color-accent)",
-                        values: shown.flotation_recovery.map((v) => v * 100),
+                        values: family === "magnetic" ? shown.size_um.map(size => 91 * (1 - Math.exp(-size / 25)) * Math.exp(-size / 1800)) : shown.flotation_recovery.map((v) => v * 100),
                       },
                     ]}
                     format={(v) => `${v.toFixed(1)}%`}
@@ -783,12 +722,12 @@ export default function Workbench() {
                     "kWh/t",
                     1,
                   ],
-                  [
+                  ...(! (family === "magnetic") ? [[
                     es ? "Overflow de sólidos" : "Solids overflow",
                     shown.metrics.overflow_fraction * 100,
                     "%",
                     1,
-                  ],
+                  ]] : []),
                   [
                     es ? "Agua de planta" : "Plant water",
                     shown.metrics.water_use_m3_h,
@@ -839,7 +778,7 @@ export default function Workbench() {
                       <optgroup key={domain} label={domain}>
                         {methods.map((m) => (
                           <option key={m.id} value={m.id}>
-                            {es ? (methodSpanish[m.id]?.[0] ?? m.name) : m.name}
+                            {es ? (methodSpanish[m.id]?.[0] ?? m.name) : (methodEnglish[m.id] ?? m.name)}
                           </option>
                         ))}
                       </optgroup>
@@ -866,7 +805,7 @@ export default function Workbench() {
                 <h2>
                   {es
                     ? (methodSpanish[methodId]?.[0] ?? method?.name)
-                    : (method?.name ?? "n/a")}
+                    : (methodEnglish[methodId] ?? method?.name ?? "n/a")}
                 </h2>
                 <p>
                   {es
@@ -897,9 +836,7 @@ export default function Workbench() {
                           ? "ARTEFACTO PRECOMPUTADO"
                           : "PRECOMPUTED ARTIFACT"}
                   </span>
-                  <strong>
-                    {fmt(methodValue, 2)} <small>{methodUnit}</small>
-                  </strong>
+                  <strong>{method?.status === "not-applicable" ? (es ? "NO APLICA EN ESTE CIRCUITO" : "NOT APPLICABLE TO THIS CIRCUIT") : <>{fmt(methodValue, 2)} <small>{methodUnit}</small></>}</strong>
                 </div>
                 {dirty && !methodLive && (
                   <div className="of-method-warning">

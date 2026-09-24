@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.03.000, 2026-09-24
+
+- Rebuilt the contained workbench around selectable, mass-linked circuit operations and an explicit walkthrough with playback, stage selection and local-versus-baked state.
+- Added distinct gravity/rougher, magnetite magnetic-separation and phosphate-desliming process paths alongside generic rougher scenarios; exported applicability status for 21 method records in all 72 variants.
+- Added process-family-specific controls, size-by-size classification and magnetic views, a material-balance diagram, and method-applicability evidence visualization.
+- Recomputed the artifact matrix and ONNX exports with local CUDA training; the public browser remains a simulator explorer, not a plant predictor.
+- Added an independent HZDR particle-learning lane with original-sheet train/test separation, L1 and CUDA-capable MLP models, common-row missingness handling, calibration and threshold artifacts, and on-demand browser ONNX inference. Constructed probabilities are not plant recovery.
+- Reworked research pages, assumptions, sources and mobile workbench access. Pinned CAOS App Shell v0.06.009 for a single-row mobile header and footer.
+
 ## 0.02.001, 2026-09-23
 
 - Version and bypass browser caches for baked artifact requests, preventing old case JSON from persisting after a shell deployment.

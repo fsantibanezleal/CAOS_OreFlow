@@ -26,6 +26,19 @@ export default function MethodVisual({
   caseData,
   es,
 }: Props) {
+  const method = caseData.variants[0]?.method_outputs.find(item => item.id === methodId);
+  if (method?.status === "not-applicable") return <div className="of-method-warning">{es ? "Este circuito no contiene esa operación; el método no se ejecuta." : "This circuit does not contain that operation; the method is not executed."}</div>;
+  if (methodId === "gravity_window" || methodId === "lims_capture") {
+    const gravity = methodId === "gravity_window";
+    return <Chart
+      title={gravity ? (es ? "Captura gravimétrica por tamaño" : "Gravity capture by size") : (es ? "Captura magnética por tamaño" : "Magnetic capture by size")}
+      subtitle={es ? "Respuesta supuesta, no calibrada" : "Authored response, not calibrated"}
+      height={220}
+      labels={trace.size_um.map(size => `${size.toFixed(0)} µm`)}
+      series={[{ name: es ? "Captura" : "Capture", color: "var(--color-accent)", values: trace.size_um.map(size => gravity ? 0.82 * (1 - Math.exp(-size / 45)) * Math.exp(-size / 700) : 0.91 * (1 - Math.exp(-size / 25)) * Math.exp(-size / 1800)) }]}
+      format={value => `${(100 * value).toFixed(0)}%`}
+    />;
+  }
   if (energyIds.has(methodId)) {
     const sizes = Array.from({ length: 48 }, (_, i) => 40 + i * 9);
     const feed = params.feed_p80_um;
@@ -119,7 +132,7 @@ export default function MethodVisual({
         ? trace.flotation_recovery
         : alternativeKinetics(
             params,
-            trace.metrics.overflow_fraction,
+            caseData.process_family === "deslime_rougher" ? 1 - trace.metrics.overflow_fraction : trace.metrics.overflow_fraction,
             methodId as "kelsall" | "compressed_exponential",
           );
     return (

@@ -1,5 +1,8 @@
+import * as React from 'react';
 import type { ReactNode } from 'react';
 import { Callout, Cite, Equation, Refs, useShellLang } from '@fasl-work/caos-app-shell';
+import MethodFigure from '../components/MethodFigures';
+import EvidenceFigure from '../components/EvidenceFigure';
 
 export type Bilingual = readonly [string, string];
 export const tx = (v: Bilingual, es: boolean) => v[es ? 1 : 0];
@@ -40,7 +43,7 @@ export function ResearchSection({ title, paragraphs, equations = [], refs, diagr
         {children}
       </div>
       {(diagram || equations.length > 0) && <aside className="of-research-visual">
-        {diagram && <InlineFigure name={diagram} es={es} />}
+        {diagram && (['energy-laws', 'classification-curve', 'flotation-kinetics', 'optimization-grid'].includes(diagram) ? <MethodFigure name={diagram} es={es} /> : ['coverage-matrix', 'surrogate-errors'].includes(diagram) ? <EvidenceFigure name={diagram} es={es} /> : <InlineFigure name={diagram} es={es} />)}
         {equations.map(eq => <Equation key={eq.tex} tex={eq.tex} caption={tx(eq.caption, es)} />)}
       </aside>}
     </div>
@@ -55,7 +58,7 @@ export function Tabset({ tabs }: { tabs: Array<{ id: string; label: Bilingual; c
   const item = tabs.find(tab => tab.id === active) ?? tabs[0];
   return <div className="of-tabset"><div className="of-tabnav">
     <button type="button" className="of-tab-pan" aria-label={es ? 'Ver temas anteriores' : 'Show previous topics'} onClick={() => tabRow.current?.scrollBy({left: -240, behavior: 'smooth'})}>‹</button>
-    <div className="of-tabs" role="tablist" ref={tabRow}>{tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={tab.id === item.id} className={tab.id === item.id ? 'active' : ''} onClick={() => setActive(tab.id)}>{tx(tab.label, es)}</button>)}</div>
+    <div className="of-tabs" role="tablist" ref={tabRow}>{tabs.map(tab => <button key={tab.id} type="button" role="tab" aria-selected={tab.id === item.id} className={tab.id === item.id ? 'active' : ''} onClick={() => { setActive(tab.id); tabRow.current?.closest('.of-content')?.scrollTo({ top: 0, behavior: 'auto' }); }}>{tx(tab.label, es)}</button>)}</div>
     <button type="button" className="of-tab-pan" aria-label={es ? 'Ver temas siguientes' : 'Show next topics'} onClick={() => tabRow.current?.scrollBy({left: 240, behavior: 'smooth'})}>›</button>
   </div><div className="of-tab-content">{item?.content}</div></div>;
 }
@@ -64,5 +67,3 @@ export function InfoTable({ rows }: { rows: Array<[Bilingual, Bilingual]> }) {
   const es = useShellLang() === 'es';
   return <table className="of-info-table"><tbody>{rows.map(([a, b]) => <tr key={a[0]}><th>{tx(a, es)}</th><td>{tx(b, es)}</td></tr>)}</tbody></table>;
 }
-
-import React from 'react';

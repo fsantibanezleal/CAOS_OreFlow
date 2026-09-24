@@ -22,6 +22,7 @@ class FeedParams:
     reagent_gpt: float
     water_m3_t: float
     seed: int = 42
+    process_family: str = "rougher"
 
 
 @dataclass(frozen=True)

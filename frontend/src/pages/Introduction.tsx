@@ -1,15 +1,17 @@
 import { Link } from "react-router";
 import { PageHeading, ResearchSection, Tabset } from "../content/Research";
+import { useShellLang } from "@fasl-work/caos-app-shell";
 
 const p = (en: string, es: string) => [en, es] as const;
 export default function Introduction() {
+  const es = useShellLang() === "es";
   return (
     <div className="of-page of-content">
       <PageHeading
         title={p("Mineral-processing circuit", "Circuito de procesamiento mineral")}
         lede={p(
-          "A one-pass mineral-processing model links size reduction, solids classification and rougher flotation. The cases are authored scenarios; the HZDR particle dataset is not a plant recovery campaign. This page distinguishes calculated quantities from untested conclusions.",
-          "Un modelo de procesamiento mineral de una pasada vincula reducción de tamaño, clasificación de sólidos y flotación rougher. Los casos son escenarios de autor; el conjunto de partículas HZDR no es una campaña de recuperación de planta. Esta página distingue cálculos de conclusiones aún no probadas.",
+          "Four declared one-pass process paths connect size reduction to rougher flotation, gravity recovery, magnetic separation or desliming. The cases are authored scenarios; the HZDR particle dataset is not a plant recovery campaign. This page distinguishes calculated quantities from untested conclusions.",
+          "Cuatro rutas declaradas de una pasada conectan reducción de tamaño con flotación rougher, gravedad, separación magnética o deslamado. Los casos son escenarios de autor; el conjunto HZDR no es campaña de recuperación de planta. Esta página distingue cálculos de conclusiones no probadas.",
         )}
       />
       <Tabset
@@ -27,12 +29,12 @@ export default function Introduction() {
                 refs={["nptel", "bond", "flotation"]}
                 paragraphs={[
                   p(
-                    "The feed is not a scalar. It is a distribution of sizes, mineral associations, grade and hardness. Comminution changes the distribution; classification separates it by a probability; flotation converts a liberated fraction into a time-dependent recovery. The useful object is therefore a circuit state, not an isolated formula.",
-                    "La alimentación no es un escalar. Es una distribución de tamaños, asociaciones minerales, ley y dureza. La conminución cambia la distribución; clasificación la separa por probabilidad; flotación convierte fracción liberada en recuperación dependiente del tiempo. El objeto útil es un estado de circuito, no una fórmula aislada.",
+                    "The feed is not a scalar. It is a distribution of sizes, grade and hardness. Comminution changes the distribution; a classifier, gravity branch or magnetic separator routes size classes differently. Where flotation applies, recovery also depends on residence. The useful object is a circuit state and its topology, not an isolated formula.",
+                    "La alimentación no es un escalar. Es una distribución de tamaños, ley y dureza. La conminución cambia esa distribución; clasificador, gravedad y separador magnético encaminan clases de modo diferente. Donde hay flotación, la recuperación depende además de residencia. El objeto útil es estado y topología del circuito, no fórmula aislada.",
                   ),
                   p(
-                    "OreFlow keeps the sequence visible in the flowsheet. Click a node to link the narrative, controls and chart state. The feed, crusher, mill, cyclone, rougher and streams are not decorative icons: each one owns a response array or a mass-balance term in the artifact.",
-                    "OreFlow mantiene visible la secuencia en el flowsheet. Seleccionar un nodo vincula relato, controles y gráficos. Alimentación, trituradora, molino, ciclón, rougher y corrientes no son iconos decorativos: cada uno posee una respuesta o término de balance en el artefacto.",
+                    "The workbench selects stages from the active process family. Gold has a separate gravity product; magnetite omits flotation; phosphate rejects slimes before its rougher. Each stage uses response arrays or mass-balance terms from the selected scenario, and a control change recalculates the linked model.",
+                    "El laboratorio selecciona etapas según la familia activa. Oro tiene producto gravimétrico separado; magnetita omite flotación; fosfato rechaza lamas antes del rougher. Cada etapa usa arreglos o términos de balance del escenario, y cambiar un control recalcula el modelo vinculado.",
                   ),
                   p(
                     "The reference models are intentionally modest enough to audit. They are not a commercial plant simulator and do not claim to capture liberation classes, froth stability, residence-time distributions or circulating-load dynamics that were not measured. Their value is to show how such effects enter the reasoning chain.",
@@ -95,7 +97,7 @@ export default function Introduction() {
                   "3. The decision is a surface, not a single optimum",
                   "3. La decisión es una superficie, no un único óptimo",
                 )}
-                diagram="data"
+                diagram="optimization-grid"
                 refs={["bond", "hydrocyclone", "flotation"]}
                 equations={[
                   {
@@ -136,12 +138,12 @@ export default function Introduction() {
                   "4. Learning accelerates a declared simulator",
                   "4. El aprendizaje acelera un simulador declarado",
                 )}
-                diagram="lanes"
+                diagram="surrogate-errors"
                 refs={["ml-mining", "sklearn", "pytorch", "onnx"]}
                 paragraphs={[
                   p(
-                    "The learned tiers approximate the simulator response over an explicit design domain. Ridge provides a stable linear baseline, random forest and gradient boosting capture nonlinear interactions, Gaussian process adds local uncertainty, and a PyTorch MLP provides an exported neural alternative.",
-                    "Las capas aprendidas aproximan la respuesta del simulador en un dominio de diseño explícito. Ridge da base lineal estable, random forest y gradient boosting capturan interacciones no lineales, Gaussian process agrega incertidumbre local y MLP PyTorch ofrece alternativa neuronal exportada.",
+                    "The learned tiers approximate the simulator response over an explicit design domain. Ridge provides a linear baseline; random forest, gradient boosting and Gaussian process provide nonlinear point-prediction comparisons; a PyTorch MLP provides a neural comparison. Posterior uncertainty is not calibrated here.",
+                    "Las capas aprendidas aproximan la respuesta del simulador en un dominio de diseño explícito. Ridge ofrece base lineal; bosque aleatorio, boosting y proceso gaussiano comparan predicciones puntuales no lineales; una MLP PyTorch ofrece comparación neuronal. La incertidumbre posterior no se calibra aquí.",
                   ),
                   p(
                     "Surrogates can reduce evaluation time within a defined domain. Their outputs must be interpreted alongside feature bounds, the training partition, held-out error and out-of-domain status. These quantities do not establish accuracy on unmeasured ore families.",
@@ -152,8 +154,8 @@ export default function Introduction() {
                     "Las etiquetas de entrenamiento provienen del simulador creado para este estudio; los datos públicos de partículas no incluyen etiquetas vinculadas de recuperación de planta. El manuscrito propone estudiar transferencia con características de partículas y respuestas de proceso calibradas cuando exista una campaña apropiada.",
                   ),
                   p(
-                    "Browser inference is optional and read-only. ONNX Runtime Web is used only for a small exported model when the asset and parity record exist; the exact replay artifact remains the reference for scientific comparison.",
-                    "La inferencia en navegador es opcional y solo lectura. ONNX Runtime Web se usa para modelo pequeño exportado cuando existe asset y registro de concordancia; artefacto exacto sigue siendo referencia científica.",
+                    "The browser currently replays versioned variant artifacts and recalculates the bounded process model when controls move. Exported ONNX assets are preserved for separate parity checks, but neural inference is not wired into the interactive browser state.",
+                    "El navegador reproduce artefactos de variante y recalcula el modelo de proceso acotado al mover controles. Los archivos ONNX exportados se conservan para pruebas separadas de concordancia, pero la inferencia neuronal no está conectada al estado interactivo del navegador.",
                   ),
                 ]}
               />
@@ -193,8 +195,8 @@ export default function Introduction() {
         ]}
       />
       <div className="of-next">
-        <span>Six routes, one scientific state.</span>
-        <Link to="/methodology">Continue to methodology ↗</Link>
+        <span>{es ? "Seis secciones, un estado científico." : "Six sections, one scientific state."}</span>
+        <Link to="/methodology">{es ? "Continuar a metodología" : "Continue to methodology"} ↗</Link>
       </div>
     </div>
   );

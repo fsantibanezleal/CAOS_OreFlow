@@ -1,4 +1,4 @@
-# OreFlow visual and interaction rebuild — requirements
+# OreFlow visual and interaction rebuild: requirements
 
 Status: implementation in progress; user acceptance has not been recorded. This document records the defects reported after v0.02.001. A green build is not acceptance.
 
@@ -12,5 +12,7 @@ Status: implementation in progress; user acceptance has not been recorded. This 
 | VR-06 | THE primary visualization SHALL communicate unit operations and measured/assumed quantities rather than a decorative numbered-node sequence. | Expert review of annotated, rendered circuit against artifact fields; each visible quantity traced to a contract field. |
 | VR-07 | THE scientific routes SHALL put equations, assumptions, diagrams, cited evidence and inspectable results in navigable sections rather than billboard-scale introductions. | Route-by-route content inventory, linked reference audit, keyboard/pointer tab traversal, viewport screenshots. |
 | VR-08 | THE release SHALL be withheld until design, accessibility, interaction, scientific-boundary and deployment gates all pass; HTTP 200/build green alone do not suffice. | Release checklist and production browser walkthrough in both themes and languages. |
+| VR-09 | CASE changes SHALL switch to their declared process family, stream path, applicable controls and method results, rather than merely replacing the case label. | Gold gravity, magnetite magnetic and phosphate desliming browser checks; 72-variant Python/TypeScript parity. |
+| VR-10 | THE walkthrough SHALL visibly traverse process stages, pause and step, while clearly saying it is not a physical-time simulation. | Play/pause/step and case-switch browser checks at desktop and mobile widths. |
 
 Evidence boundary: the current cases are authored simulator scenarios, and the particle reference is not a plant recovery campaign. Visual polish cannot upgrade that evidence.
