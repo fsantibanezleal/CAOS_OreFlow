@@ -47,6 +47,8 @@ html, body, #root { height: auto; min-height: 100%; }
 .of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-faint); font-style: italic; }
 .of-doc-table td { white-space: nowrap; }
 .of-doc-table td.of-doc-wrap { white-space: normal; min-width: 14rem; }
+/* a name that may break over two lines where the table is short of width (the case catalog) */
+.of-doc-table .of-doc-soft { white-space: normal; min-width: 8rem; }
 .of-doc-state { padding: 0.8rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-fg-subtle); }
 
 /* an interactive panel on a content page: a control, a sized chart, its cursor reading, then its table */

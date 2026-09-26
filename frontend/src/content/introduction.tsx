@@ -7,7 +7,7 @@
 import { Link } from 'react-router';
 import { loadBenchmark, loadContract, loadIndex } from '../lib/artifacts';
 import { formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
-import { categoryName, CATEGORY, familyName } from '../lib/i18n';
+import { categoryName, CATEGORY, familyName, formulaText } from '../lib/i18n';
 import { Loaded, useArtifact } from './data';
 import { Arrow, Box, pick } from './figures';
 import type { Bi, Topic } from './doc';
@@ -225,6 +225,9 @@ function CaseCatalog({ lang }: { lang: Lang }) {
       {() => {
         const counts: Record<string, number> = {};
         return (
+          // the case names and circuit names wrap, so ten columns fit a 1280 px page in Spanish too; the
+          // scroll box keeps a narrower screen from widening the page
+          <div className="of-doc-scroll">
           <table className="of-doc-table of-doc-table-data">
             <caption>{TEXT.caption[lang]}</caption>
             <thead><tr>{[TEXT.code, TEXT.case, TEXT.category, TEXT.circuit, TEXT.payable, TEXT.recovery, TEXT.grade, TEXT.energy, TEXT.p80, TEXT.checks].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
@@ -238,10 +241,10 @@ function CaseCatalog({ lang }: { lang: Lang }) {
               return (
                 <tr key={entry.case_id}>
                   <td>{code}</td>
-                  <th scope="row"><Link to={`/?case=${entry.case_id}`}>{entry.title[lang]}</Link></th>
+                  <th scope="row" className="of-doc-soft"><Link to={`/?case=${entry.case_id}`}>{entry.title[lang]}</Link></th>
                   <td>{categoryName(entry.category, lang)}</td>
-                  <td>{familyName(entry.family, lang)}</td>
-                  <td>{`${primary.species} (${unitLabel(primary.unit)})`}</td>
+                  <td className="of-doc-soft">{familyName(entry.family, lang)}</td>
+                  <td>{`${formulaText(primary.species)} (${unitLabel(primary.unit)})`}</td>
                   <td>{formatValue(nominal.recovery_pct as number, '%', lang)}</td>
                   <td>{formatWithUnit(nominal.concentrate_grade as number, primary.unit, lang)}</td>
                   <td>{formatValue(nominal.specific_energy_total_kwh_t as number, 'kWh/t', lang)}</td>
@@ -251,6 +254,7 @@ function CaseCatalog({ lang }: { lang: Lang }) {
               );
             })}</tbody>
           </table>
+          </div>
         );
       }}
     </Loaded>
