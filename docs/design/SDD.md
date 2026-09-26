@@ -136,5 +136,5 @@ authored plant and are not confidence statements.
 Unchanged in purpose and kept separate from the simulator: the GeoMet locked-cycle recovery lane
 (`data-pipeline/run_geomet.py`, 52 tests from 29 holes, hole and spatial-zone holdouts) and the HZDR
 particle lane (`data-pipeline/pipeline/stages/particle_experiment.py`). The GeoMet lane adds paired
-bootstrap intervals over holes for the error difference of every pair of models, because no model
-clearly beats the training mean on 52 tests and a ranking without intervals would overstate it.
+bootstrap intervals over holes for the error difference of every pair of models, because on 52 tests
+the point estimates do not rank the models: under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does.

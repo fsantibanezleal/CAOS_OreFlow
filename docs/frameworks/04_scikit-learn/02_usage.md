@@ -91,8 +91,8 @@ with a training-mean baseline and a Gaussian process alongside. Two protocols: `
 folds over whole holes, and a three-fold split by spatial zone. `clone` gives every fold a fresh,
 unfitted copy. After the evaluation, `--fit-checkpoint` fits the models on all 52 tests and
 `joblib.dump` writes the checkpoint that `scripts/predict-geomet` loads to score a CSV of new assays.
-On 52 tests no model clearly beats the training mean; the lane reports paired bootstrap intervals of
-every pair's error difference so the ranking is not overstated ([data contract 05](../../data-contract/05_geomet-lane.md)).
+On 52 tests the point estimates do not rank the models, so the lane reports a paired bootstrap of every
+pair's error difference: under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does ([data contract 05](../../data-contract/05_geomet-lane.md)).
 
 ## Tests
 

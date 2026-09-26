@@ -70,9 +70,8 @@ it refuses a checkpoint built from other source data (it compares the source's S
 if none exists, so `--fit-checkpoint` is only needed to rebuild it.
 
 Read the predictions as what these 52 tests from one deposit suggest, not as a recovery for another
-ore: the source has no grind, reagent or residence information, and on its own data no model beats the
-training mean by a margin its bootstrap interval supports
-([data contract 05](../../data-contract/05_geomet-lane.md)).
+ore: the source has no grind, reagent or residence information, and on its own data the models barely
+separate: under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does ([data contract 05](../../data-contract/05_geomet-lane.md)).
 
 ## Traps
 

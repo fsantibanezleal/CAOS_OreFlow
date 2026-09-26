@@ -81,8 +81,8 @@ one deposit:
 needs the columns `Cu ppm`, `Fe ppm`, `S ppm`, `Si ppm` and `Al ppm`; any other column (a sample id) is kept.
 The output adds the three fitted models' predictions (`ridge_lct_pct`, `random_forest_lct_pct`,
 `gaussian_process_lct_pct`; about 86% for the example), the number of missing assays, a flag when an assay
-lies outside the range of the training tests, and the evidence boundary. On its own data no model beats the training mean by a margin
-its bootstrap interval supports, so read a prediction as what those 52 tests suggest
+lies outside the range of the training tests, and the evidence boundary. On its own data the models
+barely separate (under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does), so read a prediction as what those 52 tests suggest
 ([frameworks 04](../frameworks/04_scikit-learn/03_applying.md), [data contract 05](../data-contract/05_geomet-lane.md)).
 
 ## Reading the records instead
