@@ -19,6 +19,15 @@ draws its end bars whole, and a failed build reports its own error.
   x axis on the bin centres. A bar chart on a numeric axis now reaches half a bin past them. Its bars keep
   their share of the bin at any width; at 2560 px they had stopped at 64 px and stood apart like
   categories.
+- In Spanish at 1280x800 the rail cut every control's value at its edge ("720 t,", "8,0 r"). Its controls
+  column took the width of the longest row (the crusher setting and its value), wider than the rail. The
+  column now stays within the rail, and a long control name wraps beside its value. The gate measures
+  the rails' content against their box (`RAIL_PROBE`). On the build before this fix, whose rail was the
+  0.05.000 one, the check fails all ten App views.
+- The readout's status was cut in Spanish at 1280x800 ("Dentro de todas las verif..."), with no title to
+  read it by. It is now "Sin avisos del motor", the Case view's word for the engine's flags, and a cut
+  status or cursor reading is named in full on hover. The gate requires every text an ellipsis cuts to
+  carry its full text (`ELLIPSIS_PROBE`).
 - The optimizer's headline gave the gain without its sign ("Optimum found: 0.2594 t/h recovered metal"),
   which read as the optimum's own recovered metal. It now reads "+0.2594 t/h of recovered metal".
 - A failed build reported the Pages fallback's missing `index.html` instead of its own error; the fallback

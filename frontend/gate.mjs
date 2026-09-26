@@ -84,6 +84,41 @@ const OVERFLOW_PROBE = () => {
   return offenders;
 };
 
+// A rail's content inside the rail's content box: in Spanish at 1280x800 the longest control row
+// ("Abertura de descarga del chancador" and its value) widened the whole controls column, and the rail's
+// overflow cut every value at its edge ("720 t,", "8,0 r") while every other check passed (0.05.000)
+const RAIL_PROBE = () => {
+  const cut = [];
+  for (const rail of document.querySelectorAll('.of-rail, .of-focus-rail')) {
+    const b = rail.getBoundingClientRect();
+    if (b.width === 0) continue;
+    const s = getComputedStyle(rail);
+    const x0 = b.left + rail.clientLeft + parseFloat(s.paddingLeft) - 1;
+    const x1 = b.left + rail.clientLeft + rail.clientWidth - parseFloat(s.paddingRight) + 1;
+    for (const el of rail.querySelectorAll('*')) {
+      if (el.closest('.of-sr-only')) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0 && (r.left < x0 || r.right > x1)) cut.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]} ${Math.round(r.left)}..${Math.round(r.right)} of ${Math.round(x0)}..${Math.round(x1)}`);
+      if (cut.length >= 5) return cut;
+    }
+  }
+  return cut;
+};
+
+// Text an ellipsis cuts must be named in full in its title: in Spanish at 1280x800 the readout's status
+// ("Dentro de todas las verificaciones del motor") was cut with nothing to read it by (0.05.000)
+const ELLIPSIS_PROBE = () => {
+  const cut = [];
+  for (const el of document.body.querySelectorAll('*')) {
+    if (el.closest('.sr-only, .of-sr-only, .katex-mathml')) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0 || getComputedStyle(el).textOverflow !== 'ellipsis' || el.scrollWidth <= el.clientWidth + 1) continue;
+    if (!(el.getAttribute('title') ?? '').trim()) cut.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}: ${(el.textContent ?? '').slice(0, 48)}`);
+    if (cut.length >= 5) break;
+  }
+  return cut;
+};
+
 // Inside a sized view, content past the view's own box is clipped out of reach unless a scroll area
 // inside the view owns it (ADR-0071 rule 1). Charts' own overlays are part of their plot box.
 const CLIP_PROBE = selector => {
@@ -222,6 +257,8 @@ async function measure(page, stageSelector) {
   const outside = await page.evaluate(OVERFLOW_PROBE);
   const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
   const decimals = await page.evaluate(LOCALE_PROBE);
+  const railCut = await page.evaluate(RAIL_PROBE);
+  const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
   // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
   const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
@@ -274,7 +311,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, decimals, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0,
+  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0,
     filled: (m.drawn === null || m.drawn.ok) && m.panels.every(f => f >= 0.3) };
 }
 
@@ -435,6 +472,8 @@ for (const tag of SMALL) {
     await page.locator('.of-viewbar [role=tab]').nth(index).click();
     await page.waitForTimeout(500);
     const outside = await page.evaluate(OVERFLOW_PROBE);
+    const railCut = await page.evaluate(RAIL_PROBE);
+    const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
     const m = await page.evaluate(() => {
       const rail = document.querySelector('.of-rail');
       const r = rail.getBoundingClientRect();
@@ -456,7 +495,7 @@ for (const tag of SMALL) {
         lang: document.documentElement.lang, units, overlaps,
       };
     });
-    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside });
+    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis });
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));

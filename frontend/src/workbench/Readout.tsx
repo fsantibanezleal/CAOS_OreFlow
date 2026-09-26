@@ -12,6 +12,8 @@ const HEADLINE = ['recovery_pct', 'concentrate_grade', 'specific_energy_total_kw
 export function Readout({ trace, lang, computing, cursor }: { trace: Trace | null; lang: Lang; computing: boolean; cursor?: string | null }) {
   if (!trace) return <div className="of-readout" role="status">{t(UI.loading, lang)}</div>;
   const flags = trace.flags;
+  // the row never wraps, so a status cut at its end is still named in full on hover
+  const status = flags.length ? flags.map(f => flagText(f.code, lang)).join(' · ') : t(UI.noFlags, lang);
   return (
     <div className="of-readout" role="status" aria-live="polite">
       {HEADLINE.filter(key => key in trace.metrics).map(key => (
@@ -20,11 +22,9 @@ export function Readout({ trace, lang, computing, cursor }: { trace: Trace | nul
           <strong>{formatWithUnit(trace.metrics[key], trace.metric_units[key], lang)}</strong>
         </span>
       ))}
-      <span className={`of-readout-flags${flags.length ? ' warn' : ''}`} title={flags.map(f => flagText(f.code, lang)).join(' ')}>
-        {flags.length ? flags.map(f => flagText(f.code, lang)).join(' · ') : t(UI.noFlags, lang)}
-      </span>
+      <span className={`of-readout-flags${flags.length ? ' warn' : ''}`} title={status}>{status}</span>
       {computing && <span className="of-readout-busy">{t(UI.computing, lang)}</span>}
-      {cursor && <span className="of-readout-cursor">{cursor}</span>}
+      {cursor && <span className="of-readout-cursor" title={cursor}>{cursor}</span>}
     </div>
   );
 }

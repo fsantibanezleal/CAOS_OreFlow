@@ -53,11 +53,14 @@ input, select, textarea { font: inherit; }
 .of-rail-sections button:hover { color: var(--color-fg); }
 .of-rail-sections button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
 .of-rail-sections button.invalid { border-color: var(--color-bad); }
-.of-rail-controls { display: grid; gap: 10px; min-height: 0; }
+/* one column no wider than the rail: an auto column took the longest row's width (the Spanish crusher
+ * setting and its value) and the rail's overflow cut every value at its edge */
+.of-rail-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-height: 0; }
 
 .of-knob { display: grid; gap: 2px; }
-.of-knob label { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
-.of-knob label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-knob label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
+/* a long name wraps rather than hiding its end; the value keeps its line */
+.of-knob label span { min-width: 0; overflow-wrap: break-word; }
 .of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
