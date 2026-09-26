@@ -56,6 +56,14 @@ A structural check comes free with the method: an input the output does not depe
 $f(A_B^{(i)}) = f(A)$ row by row, so both indices are exactly zero. Grinding energy does not depend
 on floatability, and its floatability indices are exactly 0.0, not merely small.
 
+The opposite case needs a rule. When an output does not vary over the design, the ratio of the
+estimators is floating-point noise divided by floating-point noise. A mill at installed power in every
+sample is the example: its grinding energy is installed power over throughput, equal to the last
+digits at every row, and SALib apportioned that spread to the head grade with a total index of 1.1
+(the hard porphyry at a 110 µm target). An output whose spread $\max_j y_j - \min_j y_j$ is at most
+$10^{-9}$ of $\max_j |y_j|$ (`sensitivity.constant_tolerance`) is therefore recorded as constant, and
+the Sensitivity view says so instead of drawing indices.
+
 ## What the nominal cases show
 
 Measured on 2026-09-26 on two cases (the baked records for every case are on the Experiments page):

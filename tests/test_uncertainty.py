@@ -70,3 +70,13 @@ def test_grade_margin_shows_in_the_probability():
     magnetite = json.loads(_mc("iron_magnetite_fine"))["probabilities"]["grade_meets_spec"]
     copper = json.loads(_mc("copper_porphyry_soft"))["probabilities"]["grade_meets_spec"]
     assert magnetite < copper
+
+
+def test_an_output_constant_up_to_round_off_is_recorded_as_constant():
+    # at a 110 um target the hard porphyry's mill runs at installed power at every sample, so its grinding
+    # energy is installed power over throughput to the last bits; before the tolerance its indices ranked
+    # that floating-point spread (a total index of 1.1 for the head grade, 0 for the work index)
+    case = CASE_BY_ID["copper_porphyry_hard"]
+    s = sensitivity(case, case.nominal.with_values(target_p80_um=110.0), base_samples=32)
+    assert s["indices"]["specific_energy_grinding_kwh_t"] == {"constant": True}
+    assert s["indices"]["recovery_pct"]["ST"]["work_index"] > 0.5

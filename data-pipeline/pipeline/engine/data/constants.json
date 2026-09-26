@@ -476,6 +476,11 @@
       "unit": "probability",
       "source": "Design: confidence level of the Sobol index intervals."
     },
+    "sensitivity.constant_tolerance": {
+      "value": 1e-09,
+      "unit": "1",
+      "source": "Numerics: an output whose spread across the design is below this share of its magnitude is constant up to round-off (the grinding energy of a mill at installed power at every sample); Sobol indices of it would apportion floating-point noise, so it is recorded as constant."
+    },
     "learning.design_points_per_case": {
       "value": 256,
       "unit": "1",

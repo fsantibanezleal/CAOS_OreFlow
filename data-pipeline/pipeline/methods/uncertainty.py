@@ -122,7 +122,9 @@ def sensitivity(case: CaseDef, point: OperatingPoint, base_samples: int | None =
     indices = {}
     for key in OUTPUTS:
         y = results[key]
-        if float(np.var(y)) == 0.0:
+        # constant up to round-off, not only exactly: a mill at installed power at every sample has the
+        # same grinding energy to the last bits, and the indices of that spread would rank noise
+        if float(np.ptp(y)) <= float(constant("sensitivity.constant_tolerance")) * float(np.max(np.abs(y))):
             indices[key] = {"constant": True}
             continue
         analysis = sobol_analyze.analyze(problem, y, calc_second_order=False,
