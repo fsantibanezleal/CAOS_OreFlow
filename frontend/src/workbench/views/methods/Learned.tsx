@@ -55,8 +55,8 @@ const TEXT = {
   guardRates: { en: 'Guard false alarms / false accepts', es: 'Guardia: falsas alarmas / falsas aceptaciones' },
   heldOut: { en: 'States of the held-out case the guard flags', es: 'Estados del caso excluido que marca el guardia' },
   bimodal: {
-    en: 'The mean over the twelve folds: the guard flags every state of an unseen plant unlike any trained one and almost none of a copper sulphide plant like the others (methodology page 14).',
-    es: 'Media de los doce pliegues: el guardia marca todos los estados de una planta no vista distinta de las entrenadas y casi ninguno de una planta de sulfuros de cobre parecida a las demás (página 14 de la metodología).',
+    en: 'The mean over the twelve folds: the guard flags every state of an unseen plant unlike any trained one and almost none of a copper sulphide plant like the others (see Methodology, learned lane).',
+    es: 'Media de los doce pliegues: el guardia marca todos los estados de una planta no vista distinta de las entrenadas y casi ninguno de una planta de sulfuros de cobre parecida a las demás (ver Metodología, vía aprendida).',
   },
   learnedAs: { en: 'learned as the log10 upgrade ratio', es: 'aprendida como log10 de la razón de enriquecimiento' },
   summary: { en: 'The engine and the surrogate over one contract input, other inputs held at the current state.', es: 'El motor y el sustituto sobre una entrada del contrato, con las demás en el estado actual.' },

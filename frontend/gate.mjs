@@ -24,7 +24,7 @@ const VIEWPORTS = [[1280, 800], [1600, 900], [2560, 1440]];
 const COMBOS = FULL
   ? VIEWPORTS.flatMap(v => ['dark', 'light'].flatMap(theme => ['en', 'es'].map(lang => ({ v, theme, lang }))))
   : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
-const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'compare'];
+const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case'];
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -78,6 +78,20 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     if (view === 'response') {
       await page.locator('.of-view-response .of-cta').click();
       await page.waitForFunction(() => { const p = document.querySelector('.of-progress'); if (!p) return false; const [a, b] = p.textContent.split('/').map(s => parseInt(s, 10)); return a === b; }, null, { timeout: 120000 });
+    }
+    if (view === 'case') {
+      const subtabs = page.locator('.of-view-case .subtablist [role=tab]');
+      for (let k = 0; k < await subtabs.count(); k += 1) {
+        await subtabs.nth(k).click();
+        const name = (await subtabs.nth(k).textContent()).trim();
+        if (k === 0) await page.waitForSelector('.of-context .katex', { timeout: 60000 });
+        else await settleCharts(page, 2);
+        const m = await measure(page);
+        const ok = !m.overX && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+        record(`${tag} case/${name}`, ok, m);
+        await page.screenshot({ path: join(OUT, `case-${k + 1}-${tag}.png`) });
+      }
+      continue;
     }
     if (view === 'methods') {
       const subtabs = page.locator('.of-view-methods .subtablist [role=tab]');

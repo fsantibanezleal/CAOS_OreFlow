@@ -158,7 +158,9 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
           </table>
         )}
         <Facts trace={trace} lang={lang} keys={['flotation_recovery_pct', 'rougher_recovery_pct', 'cleaner_recovery_pct', 'recleaner_recovery_pct', 'rougher_residence_min',
-          'bubble_surface_flux_s', 'rougher_water_recovery_pct', 'entrained_gangue_share_pct', 'cleaner_recycle_tph', 'slimes_mass_pct', 'slimes_loss_pct', 'gravity_recovery_pct', 'gold_circulating_load_pct'].filter(k => k in m)} />
+          'bubble_surface_flux_s', 'rougher_water_recovery_pct', 'entrained_gangue_share_pct', 'cleaner_recycle_tph', 'slimes_mass_pct', 'slimes_loss_pct', 'gravity_recovery_pct', 'gold_circulating_load_pct',
+          // a second payable's own recovery (molybdenum beside copper)
+          ...Object.keys(m).filter(k => /^recovery_[A-Za-z0-9]+_pct$/.test(k) && k !== `recovery_${primary.species}_pct`)].filter(k => k in m)} />
       </div>
     </div>
   );

@@ -66,9 +66,9 @@ export default function ParticleInference() {
         <span className="of-kicker">02 / {es ? 'PROBABILIDADES CONSTRUIDAS' : 'CONSTRUCTED PROBABILITIES'}</span>
         <h2>{es ? 'Respuesta del modelo' : 'Model response'}</h2>
         {prediction ? prediction.map((value, i) => <div className="of-inference-result" key={i}><div><span>{es ? 'Caso de separación' : 'Separation case'} {i + 1}</span><strong>{(value * 100).toFixed(1)}%</strong></div><div className="of-balance-track"><i style={{ width: `${value * 100}%` }} /></div></div>) : <p className="of-inference-empty">{es ? 'Ajuste la partícula y ejecute el modelo para obtener cuatro probabilidades calculadas.' : 'Adjust the particle and run the model to obtain four calculated probabilities.'}</p>}
-        <p className="of-inference-boundary">{es ? 'Insumo de entrenamiento: clases A/B de 68.008 filas HZDR. Evaluación: probabilidad construida en la hoja separada de 29.147 filas. La inferencia no predice mineralurgia de una mina.' : 'Training input: A/B classes from 68,008 HZDR rows. Evaluation: constructed probabilities on a separate 29,147-row test sheet. This inference does not predict mine metallurgy.'} <Cite id="hzdr" /> <Cite id="onnx" /></p>
+        <p className="of-inference-boundary">{es ? 'Insumo de entrenamiento: clases A/B de 68.008 filas HZDR. Evaluación: probabilidad construida en la hoja separada de 29.147 filas. La inferencia no predice mineralurgia de una mina.' : 'Training input: A/B classes from 68,008 HZDR rows. Evaluation: constructed probabilities on a separate 29,147-row test sheet. This inference does not predict mine metallurgy.'} <Cite id="hzdr" /> <Cite id="onnx-web" /></p>
       </section>
     </div>
-    <Refs ids={['hzdr', 'particle-paper', 'onnx']} label={es ? 'Referencias' : 'References'} />
+    <Refs ids={['hzdr', 'particle-paper', 'onnx-web']} label={es ? 'Referencias' : 'References'} />
   </div>;
 }

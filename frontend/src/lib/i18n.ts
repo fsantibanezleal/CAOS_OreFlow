@@ -187,7 +187,7 @@ export const UI = {
     separation: { en: 'Separation', es: 'Separación' },
     response: { en: 'Response', es: 'Respuesta' },
     methods: { en: 'Methods', es: 'Métodos' },
-    compare: { en: 'Compare', es: 'Comparar' },
+    case: { en: 'Case', es: 'Caso' },
   },
   viewsLabel: { en: 'Views', es: 'Vistas' },
   sections: {

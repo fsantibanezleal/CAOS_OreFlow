@@ -1,6 +1,6 @@
 """Breakage matrices, the Whiten crusher and the energy-specific ball-mill operator.
 
-Sources (docs/methodologies/02_crushing.md, 03_grinding-circuit.md): Whiten crusher form as reproduced in Andrejev et al. (2021),
+Sources (docs/methodologies/02_crushing.md, 03_grinding-circuit.md): Whiten crusher form as reproduced in Duarte et al. (2021),
 doi:10.3390/min11111256; energy-specific selection after Herbst and Fuerstenau (1980),
 doi:10.1016/0301-7516(80)90034-4, in the Moly-Cop form; Austin breakage function; three perfect
 mixers after Austin, Klimpel and Luckie (1984).

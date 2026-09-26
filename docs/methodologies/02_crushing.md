@@ -17,9 +17,11 @@ $K_1$ is the size below which nothing is broken, $K_2$ the size above which ever
 $K_3$ the shape (about 2 to 2.3). Industrial calibrations report $K_1$ of about 0.5 to 0.95 times the
 closed-side setting (CSS) and $K_2$ of about 1.7 to 3.5 CSS.
 
-Sources: the Andersen-Whiten form reproduced in Andrejev et al. (2021), *Calibration and validation of
-a cone crusher model with industrial data*, Minerals 11(11):1256, doi:10.3390/min11111256; the HP500
-fit-for-purpose study, Minerals 14(9):919 (2024), doi:10.3390/min14090919; SysCAD *Crusher 2 model
+Sources: the Andersen-Whiten form reproduced in Duarte, Yamashita, da Silva, Cota and Euzébio (2021),
+*Calibration and validation of a cone crusher model with industrial data*, Minerals 11(11):1256,
+doi:10.3390/min11111256; Rocha, Campos, Silva and Tavares (2024), *Fit-for-purpose model of HP500 cone
+crusher in size reduction of itabirite iron ore*, Minerals 14(9):919, doi:10.3390/min14090919 (authors
+and titles checked against Crossref on 2026-09-26); SysCAD *Crusher 2 model
 theory*; Napier-Munn, Morrell, Morrison and Kojovic (1996), *Mineral Comminution Circuits*, JKMRC,
 chapter 6.
 

@@ -22,7 +22,7 @@ import { Readout } from './Readout';
 import { changedInputs, parseSet, stateQuery, useWorkbench, VIEWS, type View } from './state';
 import { ViewTabs } from './ViewTabs';
 import { CircuitView } from './views/CircuitView';
-import { CompareView } from './views/CompareView';
+import { CaseView } from './views/CaseView';
 import { GrindingView } from './views/GrindingView';
 import { MethodsView } from './views/MethodsView';
 import { ResponseView } from './views/ResponseView';
@@ -142,7 +142,7 @@ export default function Workbench() {
     else if (view === 'separation') body = <SeparationView trace={trace} primary={primary} lang={lang} onCursor={setCursor} />;
     else if (view === 'response') body = <ResponseView contract={contract} artifact={artifact} optimization={variant.methods.optimization} point={accepted} lang={lang} onCursor={setCursor} />;
     else if (view === 'methods') body = <MethodsView contract={contract} artifact={artifact} variant={variant} point={accepted} trace={trace} modified={modified} lang={lang} onCursor={setCursor} />;
-    else body = <CompareView contract={contract} artifact={artifact} index={index} benchmark={benchmark} variantId={variantId} lang={lang} onCursor={setCursor} />;
+    else body = <CaseView contract={contract} artifact={artifact} index={index} benchmark={benchmark} variantId={variantId} lang={lang} onCursor={setCursor} />;
   }
 
   return (

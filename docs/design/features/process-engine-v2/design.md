@@ -220,10 +220,17 @@ The layout follows ADR-0071 and the shell (`@fasl-work/caos-app-shell`), with no
      one input by the engine in the worker with the surrogate asked for the same states and the
      guard's error against its threshold; the protocol results of the bake (interpolation R²,
      leave-one-case-out median R² and RMSE, guard rates) say how far to trust it.
-  6. *Compare*: the chosen metric for the six variants of the case as bars against the nominal,
-     with a table of every variant's change and headline metrics, and the twelve cases at their
-     nominal states on one map of recovery against total specific energy (from `benchmark.json`,
-     whose variant metrics the artifact checks hold equal to the case artifacts).
+  6. *Case*, as two sub-tabs. *Context* is the case's write-up in the order ADR-0016 section 9.B binds:
+     the problem, the components and variables (the ore's minerals with their roles, liberation
+     sizes, composite contents and densities, the plant's units and the operating inputs with their
+     contract bounds, all read from the artifact), the formalization (the family's governing
+     equations), the scope and assumptions (with the KPI plausibility checks at the nominal state),
+     what each variant shows (a note per kind of change beside that variant's measured result) and
+     how to read the views, with the case's references. *Variants and cases* holds the comparison: the
+     chosen metric for the six variants as a dot plot against the nominal, a table of every variant's
+     change and headline metrics, and the twelve cases at their nominal states on one map of recovery
+     against total specific energy (from `benchmark.json`, whose variant metrics the artifact checks
+     hold equal to the case artifacts).
 - **Charts.** Every analytical chart is a uPlot host that follows the shell theme tokens, sizes itself
   from its box, draws what the engine computed as labelled marks, reports the cursor into the readout
   row, supports brush zoom with a reset, and carries a text summary and a data table for screen

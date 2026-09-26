@@ -103,6 +103,6 @@ export default function ParticleLab() {
       <div className="of-table-wrap"><table className="of-info-table"><thead><tr><th>{es ? 'Modelo' : 'Model'}</th><th>RMSE</th><th>MAE</th><th>{es ? 'Sesgo' : 'Bias'}</th></tr></thead><tbody>{MODEL_IDS.map(id => <tr key={id}><th>{name(id, es)}</th><td>{selectedCase.models[id].rmse.toFixed(4)}</td><td>{selectedCase.models[id].mae.toFixed(4)}</td><td>{selectedCase.models[id].bias.toFixed(4)}</td></tr>)}</tbody></table></div>
       <p>{es ? 'La referencia publicada ya figura en la hoja de prueba y no se reentrenó aquí. Un error menor frente a la probabilidad construida no prueba desempeño industrial ni generalización a otro mineral.' : 'The published reference is supplied in the test sheet and was not retrained here. Lower error against a constructed probability does not prove industrial performance or transfer to another ore.'} <Cite id="particle-paper" /></p>
     </section>
-    <Refs ids={['hzdr', 'particle-paper', 'sklearn', 'pytorch']} label={es ? 'Referencias' : 'References'} />
+    <Refs ids={['hzdr', 'particle-paper', 'sklearn2011', 'pytorch2019']} label={es ? 'Referencias' : 'References'} />
   </div>;
 }

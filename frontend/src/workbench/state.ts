@@ -7,9 +7,9 @@
 import { create } from 'zustand';
 import type { OperatingPoint } from '../engine/model';
 
-export type View = 'circuit' | 'grinding' | 'separation' | 'response' | 'methods' | 'compare';
+export type View = 'circuit' | 'grinding' | 'separation' | 'response' | 'methods' | 'case';
 export type Section = 'feed' | 'classification' | 'separation';
-export const VIEWS: View[] = ['circuit', 'grinding', 'separation', 'response', 'methods', 'compare'];
+export const VIEWS: View[] = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case'];
 
 export type WorkbenchState = {
   caseId: string;
