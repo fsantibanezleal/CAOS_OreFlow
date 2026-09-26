@@ -1,37 +1,35 @@
-import { useEffect, useState } from 'react';
-import { Link } from 'react-router';
-import { useShellLang, Cite, Refs } from '@fasl-work/caos-app-shell';
-import { loadBenchmark, loadIndex } from '../api/artifacts';
-import type { Benchmark as BenchmarkArtifact, CaseIndex } from '../lib/contract.types';
-import { PageHeading, Tabset } from '../content/Research';
-import ParticleLab from './ParticleLab';
-import ParticleInference from './ParticleInference';
-import GeometLab from './GeometLab';
+/**
+ * Benchmark (ADR-0016 section 9.C): the real numbers from the committed artifacts, grouped by the
+ * question each answers: does the engine reproduce published examples, what do its method records
+ * show, how far can the learned lane be trusted, and what do the two measured lanes say.
+ */
+import { useShellLang } from '@fasl-work/caos-app-shell';
+import { ENGINE_BENCHMARK } from '../content/benchmark';
+import { DocPage, TopicGroups } from '../content/doc';
+import { MEASURED_LANES } from '../content/lanes';
+import type { Lang } from '../lib/format';
 
-function SimulatorBenchmark() {
-  const es = useShellLang() === 'es';
-  const [benchmark, setBenchmark] = useState<BenchmarkArtifact | null>(null);
-  const [index, setIndex] = useState<CaseIndex | null>(null);
-  const [error, setError] = useState('');
-  useEffect(() => { Promise.all([loadBenchmark(), loadIndex()]).then(([b, ix]) => { setBenchmark(b); setIndex(ix); }).catch(e => setError(String(e))); }, []);
-  if (error) return <div className="of-page of-content"><div role="alert" className="of-error">{error}</div></div>;
-  if (!benchmark) return <div className="of-page of-content"><div role="status">{es ? 'Cargando resultados…' : 'Loading results…'}</div></div>;
-  const models = Object.entries(benchmark.evaluation.models).filter(([name, score]) => name !== 'autoencoder' && score.rmse_pct_points !== undefined).sort((a, b) => (a[1].rmse_pct_points ?? Infinity) - (b[1].rmse_pct_points ?? Infinity));
-  const diagnostic = benchmark.evaluation.models.autoencoder;
-  const source = benchmark.source;
-  return <div className="of-benchmark"><PageHeading title={['Simulator-surrogate evaluation', 'Evaluación de sustitutos del simulador']} lede={['The surrogate target is the authored process simulator, not plant observations. This page keeps the split, scores, source provenance and untested transfer boundary together so each number can be interpreted on the right basis.', 'El objetivo de los modelos sustitutos es el simulador de proceso de autor, no observaciones de planta. Aquí se presentan partición, puntajes, procedencia y el límite de transferencia no probado para interpretar cada número en su contexto.']} />
-    <section className="of-benchmark-strip" aria-label={es ? 'Cobertura del cálculo' : 'Computation coverage'}><div><span>{es ? 'CASOS DE AUTOR' : 'AUTHORED CASES'}</span><strong>{benchmark.case_count}</strong></div><div><span>{es ? 'VARIANTES' : 'VARIANTS'}</span><strong>{benchmark.variant_count}</strong></div><div><span>{es ? 'PUNTOS RESERVADOS' : 'HELD-OUT POINTS'}</span><strong>{benchmark.evaluation.n_holdout}</strong></div><div><span>{es ? 'ENTRENAMIENTO NEURONAL' : 'NEURAL TRAINING'}</span><strong>{benchmark.compute.torch === 'cuda' ? 'CUDA' : benchmark.compute.torch}</strong></div></section>
-    <div className="of-benchmark-columns"><section className="of-benchmark-panel"><span className="of-kicker">01 / {es ? 'ERROR DE SUSTITUTOS' : 'SURROGATE ERROR'}</span><h2>{es ? 'Recuperación frente al simulador' : 'Recovery against the simulator'}</h2><p>{es ? 'RMSE en puntos porcentuales y R² en 48 perturbaciones paramétricas reservadas. El mejor puntaje no demuestra transferencia mineralógica o desempeño de planta.' : 'RMSE in percentage points and R² on 48 held-out parameter perturbations. Even the lowest error does not establish ore-family transfer or plant performance.'} <Cite id="sklearn" /></p><div className="of-table-wrap"><table className="of-info-table"><thead><tr><th>{es ? 'Modelo' : 'Model'}</th><th>RMSE · pp</th><th>R²</th></tr></thead><tbody>{models.map(([name, score]) => <tr key={name}><th>{name.replaceAll('_', ' ')}</th><td>{score.rmse_pct_points?.toFixed(3)}</td><td>{score.r2?.toFixed(3)}</td></tr>)}</tbody></table></div><p className="of-small-note">{benchmark.evaluation.protocol}</p></section>
-      <section className="of-benchmark-panel"><span className="of-kicker">02 / {es ? 'DIAGNÓSTICO SEPARADO' : 'SEPARATE DIAGNOSTIC'}</span><h2>{es ? 'Reconstrucción de variables' : 'Feature reconstruction'}</h2><p>{es ? 'El autoencoder no predice recuperación. Su error de reconstrucción se informa por separado y no puede compararse con el RMSE de recuperación.' : 'The autoencoder does not predict recovery. Its feature-reconstruction error is reported separately and cannot be compared with recovery RMSE.'}</p><dl className="of-benchmark-dl"><div><dt>{es ? 'Mediana MSE' : 'Median MSE'}</dt><dd>{diagnostic?.reconstruction_mse_median?.toFixed(4) ?? 'n/a'}</dd></div><div><dt>P95 MSE</dt><dd>{diagnostic?.reconstruction_mse_p95?.toFixed(4) ?? 'n/a'}</dd></div><div><dt>{es ? 'Estado' : 'Status'}</dt><dd>{es ? 'diagnóstico, no detector calibrado' : 'diagnostic, not calibrated detector'}</dd></div></dl><div className="of-benchmark-boundary">{es ? 'No existe un conjunto independiente de etiquetas metalúrgicas de planta para validar estos modelos.' : 'No independent plant-metallurgy label set exists here to validate these models.'}</div></section></div>
-    <section className="of-benchmark-panel"><span className="of-kicker">03 / {es ? 'DATOS Y TRAZABILIDAD' : 'DATA AND TRACEABILITY'}</span><h2>{es ? 'La fuente externa y el simulador no son la misma evidencia' : 'External particle data and simulator labels are different evidence'}</h2><div className="of-provenance-grid"><div><strong>{es ? 'Datos de partículas' : 'Particle data'}</strong><p>{source.dataset}. {source.rows['Train data']?.toLocaleString()} {es ? 'filas de entrenamiento' : 'training rows'}; {source.rows['Test data']?.toLocaleString()} {es ? 'filas de prueba' : 'test rows'}. {es ? 'Una sección separada entrena con clases de separación construidas; estas filas no son etiquetas de recuperación de planta.' : 'A separate experiment trains on constructed separation classes; these rows are not plant-recovery labels.'} <Cite id="hzdr" /></p><a href={source.url} target="_blank" rel="noreferrer">DOI {source.doi} ↗</a><span>{source.license}</span></div><div><strong>{es ? 'Escenarios de proceso' : 'Process scenarios'}</strong><p>{es ? 'Doce casos y seis variantes por caso se generan con el circuito declarado. Los modelos aprendidos se entrenan para reproducir su recuperación, y cada artefacto conserva parámetros y trazas.' : 'Twelve cases and six variants per case are generated by the declared circuit. Learned models are trained to reproduce its recovery; each artifact retains parameters and traces.'}</p><span>{index?.cases.length ?? 0} {es ? 'manifiestos de caso' : 'case manifests'}</span></div></div></section>
-    <section className="of-benchmark-conclusion"><h2>{es ? 'Lectura permitida' : 'Permitted interpretation'}</h2><p>{es ? 'El benchmark prueba reproducibilidad y ajuste de sustitutos a un simulador. No sustenta predicción entre minas, diseño de equipos ni recomendaciones operacionales. Para ampliar la afirmación se requieren ensayos metalúrgicos medidos, calibración y reserva completa de una familia de mineral.' : 'This benchmark tests reproducibility and surrogate fit to a simulator. It does not support cross-mine prediction, equipment design or operating recommendations. Extending the claim requires measured metallurgical tests, calibration and an ore-family holdout.'}</p><Link to="/experiments">{es ? 'Diseño experimental' : 'Experimental design'} ↗</Link></section><Refs ids={['sklearn', 'hzdr', 'onnx']} label={es ? 'Referencias' : 'References'} /></div>;
-}
+const T = {
+  title: { en: 'Benchmark', es: 'Benchmark' },
+  lede: {
+    en: 'The numbers behind OreFlow, read from the committed artifacts: the published examples the engine reproduces, what its method records found across the twelve cases, how the learned lane scores on plants it never saw, and the two lanes that use measured data, kept apart from the engine.',
+    es: 'Los números detrás de OreFlow, leídos desde los artefactos versionados: los ejemplos publicados que reproduce el motor, lo que encontraron sus registros de métodos en los doce casos, cómo puntúa la vía aprendida en plantas que nunca vio, y las dos vías que usan datos medidos, separadas del motor.',
+  },
+  sections: { en: 'Benchmark sections', es: 'Secciones del benchmark' },
+};
+
+const GROUPS = [
+  { id: 'oracles', label: { en: 'Published examples', es: 'Ejemplos publicados' }, topics: [ENGINE_BENCHMARK.ORACLES] },
+  { id: 'methods', label: { en: 'Method records', es: 'Registros de métodos' }, topics: [ENGINE_BENCHMARK.KINETICS, ENGINE_BENCHMARK.OPTIMIZATION, ENGINE_BENCHMARK.UNCERTAINTY] },
+  { id: 'learned', label: { en: 'Learned lane', es: 'Vía aprendida' }, topics: [ENGINE_BENCHMARK.LEARNED] },
+  { id: 'measured', label: { en: 'Measured lanes', es: 'Vías medidas' }, topics: [MEASURED_LANES.GEOMET, MEASURED_LANES.PARTICLES, MEASURED_LANES.INFERENCE] },
+];
 
 export default function Benchmark() {
-  return <div className="of-page of-content"><Tabset tabs={[
-    { id: 'measured', label: ['Measured LCT recovery', 'Recuperación LCT medida'], content: <GeometLab /> },
-    { id: 'simulator', label: ['Simulator surrogates', 'Sustitutos del simulador'], content: <SimulatorBenchmark /> },
-    { id: 'particles', label: ['Particle separation ML', 'ML de separación de partículas'], content: <ParticleLab /> },
-    { id: 'inference', label: ['Live particle inference', 'Inferencia de partículas'], content: <ParticleInference /> },
-  ]} /></div>;
+  const lang = useShellLang() as Lang;
+  return (
+    <DocPage title={T.title[lang]} lede={T.lede[lang]}>
+      <TopicGroups lang={lang} label={T.sections} groups={GROUPS} />
+    </DocPage>
+  );
 }

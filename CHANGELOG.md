@@ -1,5 +1,91 @@
 # Changelog
 
+## [0.05.000] - 2026-09-26
+
+The process engine is rebuilt as a closed-circuit, size-by-mineral flowsheet simulator, and the product
+around it (the browser engine, the views, the pages, the records, the gates and the documentation) is
+rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
+
+### Added
+
+- An engine that carries every stream as the mass flow of every mineral in 63 size classes plus water: a
+  Whiten crusher; an energy-specific population-balance ball mill (three mixers, Moly-Cop form) closed with
+  Plitt hydrocyclones that meets the target P80 and the design circulating load, and runs at installed power
+  with a coarser product when it cannot; density-corrected cuts per mineral; flotation banks with rates from
+  bubble surface area flux, Savassi entrainment, cleaner and recleaner recycles and regrind; a gravity unit
+  on the underflow; low-intensity magnetic drums; desliming; Bond, Rittinger and Kick energy. An independent
+  audit recomputes every unit's balance from the output streams; every variant closes within 1e-9.
+- Contract 1: one declaration of the twelve operating inputs (units, per-case bounds, steps, families, a
+  cross-field rule, bilingual messages), exported once and interpreted identically by the Python validator,
+  the API and the browser (719 recorded probe verdicts).
+- Method records for every variant: five lumped kinetic models fitted to a virtual batch test and
+  projected to the bank; a constrained optimizer (COBYLA from six starts) that maximizes recovered metal
+  under grade, power and water constraints; a seeded uncertainty record (128 Latin-hypercube samples of
+  four ore properties) with constraint probabilities; Sobol indices at the nominal state.
+- A learned lane scored by interpolation and by leave one case out on a 3072-state design: ridge, random
+  forest, histogram gradient boosting, a Gaussian process with interval coverage, a PyTorch MLP, and an
+  autoencoder guard with its false-alarm and false-accept rates; the MLP and the guard exported to ONNX
+  and run in the browser against the bake's reference.
+- A TypeScript port of the engine that reproduces all 72 baked variants within 1e-6, running in a Web
+  Worker; one- and two-input response sweeps with the constraint boundaries, on request.
+- Workbench views rebuilt on the trace (Circuit, Grinding, Separation, Response, Methods, Case) and the
+  focus route; the five content pages rebuilt with every stated number held to the records by claims tests;
+  the architecture modal with five bilingual diagrams.
+- The documentation wiki: architecture, methodologies, data contract, fifteen framework nodes with runnable
+  examples, guides, and twelve use-case pages rendered from the records and checked in CI.
+- Gates: the SDD check (every live requirement names a gate that exists), the diagram check (language pairs
+  and colour tokens), the interface-formula check, the units check, the use-case page check; the browser gate
+  measures overflow, clipping, cut equations, figure labels against boxes and against lines, the modal, the
+  Spanish number format, the document scroll, the focus stage and the drawn flowsheet against its frame in
+  every viewport, theme and language, and a phone and tablet pass;
+  `scripts/smoke` is the local release gate.
+
+### Changed
+
+- The version shown in the footer and used to key every artifact request is read from `VERSION`.
+- The Sobol record treats an output that is constant up to round-off as constant instead of ranking its
+  floating-point spread.
+- Spanish pages write authored values, equation constants and figure labels with the decimal comma.
+
+### Fixed
+
+- The document scroll of the content pages (shell known defect 1), with the gate that measures it.
+- The browser gate's App-route vertical-overflow check, which read a height the shell pins to the viewport.
+- The CI budget gate, which let an install of the GPU requirements through.
+- The smoke script, which passed an argument the bake rejects and would have written into `models/`.
+- Five figure labels crossed by curves or edges, and the energy-law figure, whose curves did not meet at the
+  reference reduction they are calibrated to.
+- The flowsheet on a large stage: past a readable cell it stopped growing, and at 2560x1440 spanned 75% of
+  its frame's width and half its height. It is now scaled as one piece to span the stage. On the focus
+  route the feed label sat under the readout column; labels now stay inside the frame the overlays leave.
+- The magnetite circuit drew the LIMS cleaner's concentrate and tail along one line, one arrow under two
+  labels; a unit's concentrate now leaves to the right and its tail downward.
+- The case catalog on the Introduction page, wider than a 1280 px page in Spanish.
+- At phone width the rail's row shrank to 61 px under its controls, which spilled over the readout and the
+  tab row; the readout cut its last readings; the flowsheet's cells shrank to 46 px under 64 px unit boxes,
+  which overlapped; and a long chart label placed left of its mark ran over the y axis. The rail keeps its
+  height and the page body scrolls, the readout scrolls sideways, the flowsheet keeps an 88 px cell and
+  scrolls sideways in its panel, and chart labels stay inside the plot.
+- From 761 px to about 1060 px in Spanish the header pushed its actions (language, theme, architecture)
+  off the screen (shell known defect 10); the route links now scroll in their row at every width.
+- The Response heatmap's ticks mixed precisions on one axis (0.00 beside 18.8, 75.0 beside 131); each axis
+  now takes one precision from its grid step.
+- The Case view printed each case record's provenance in English on Spanish pages; the catalog's phrase
+  is now rendered in the interface language, and a test holds every baked record to it.
+- The Benchmark uncertainty table needed a sideways scroll at 1280 px (135 px in Spanish); its case names
+  and named inputs wrap, and the gate fails a table that needs its scroll box at the gated sizes.
+- Spanish pages showed the citation labels as authored in English (author pairs joined with "and", two
+  descriptive labels untranslated); the labels now follow the interface language and the records stay
+  verbatim. Chemical formulas are printed with subscripts (P₂O₅, SiO₂) in the tables, charts and text.
+- The phosphate case description read "20 um" and "P2O5" (the Case view shows it in both languages), and
+  the grinding source note "6514 um"; the case catalog writes µm and P₂O₅, and the bake was re-run from
+  it: every case number and ONNX export reproduced bit for bit, and the random-forest scores within 6e-15.
+
+### Removed
+
+- The 0.04 one-pass engine and its operating-envelope Investigate view, superseded by the Response view and
+  the constrained optimizer; the unused three.js dependency; the documentation pages of the 0.04 engine.
+
 ## 0.04.000, 2026-09-24
 
 - Added a case-aware operating-envelope investigation: explicit feasible limits, declared perturbation stress, finite-grid Pareto classification, point inspection, baseline comparison, apply-to-circuit and reproducible JSON export.

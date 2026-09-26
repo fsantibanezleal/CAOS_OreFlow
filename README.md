@@ -1,57 +1,101 @@
 # CAOS OreFlow
 
-OreFlow is a visual, didactic and reproducible mineral-processing research workbench. It connects particle-size distributions, comminution energy, classification, flotation kinetics, constrained operating-point search and machine-learning surrogates in one inspectable state.
+- Live: [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/) (the site and the live API)
+- Mirror: [fsantibanezleal.github.io/CAOS_OreFlow](https://fsantibanezleal.github.io/CAOS_OreFlow/) (the site)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_OreFlow/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_OreFlow/actions)
 [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_OreFlow)](LICENSE)
-[![Live app](https://img.shields.io/badge/live-oreflow.ml.fasl--work.com-6cd5c6)](https://oreflow.ml.fasl-work.com/)
 
-The public workbench is at [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/). It provides six routes: Workbench, Introduction, Methodology, Implementation, Experiments and Benchmark. The main route opens directly on a quantitative one-pass circuit, with separate views for response curves, a grind–collector decision surface, individual methods and variant comparison. Its angle-step control rotates the decision-surface projection; it does not alter the process calculation.
+OreFlow computes how a grinding and separation circuit trades recovery, concentrate grade, energy and water,
+for twelve authored ore and plant scenarios. Every stream is carried as the mass flow of every mineral in
+63 size classes plus water; the engine crushes, grinds in a closed circuit with cyclones, and separates by
+flotation banks, a gravity bleed, magnetic drums or desliming, and closes the balance of every unit within
+1e-9. The workbench re-solves the whole circuit in your browser on every control change.
 
-## What is implemented
+It is written for a process metallurgist checking the direction and size of a trade-off, a student of
+mineral processing learning why recovery, grade and energy move together, and a data scientist asking how
+far a learned surrogate of a process can be trusted when the ore changes.
 
-- 12 authored ore-process scenarios across four distinct topology families (rougher, gravity/rougher, magnetic and deslime/rougher). They are not 12 independent plant flowsheets.
-- 6 variants per case, 21 method records per variant and a committed 1,512-cell method matrix; inapplicable and unavailable results remain explicit.
-- Explicit Contract 1 for units, ranges, physical ordering, rejection and review flags.
-- Contract 2 manifests, byte counts, schemas, lane verdicts and compact JSON artifacts.
-- Rittinger, Kick and Bond energy laws; Whiten-style crusher and cumulative size-distribution proxies (not a solved population-balance kernel); size-bin logistic classification; Plitt-style cut-size approximation; first-order, Kelsall and compressed-exponential flotation; mass balance, bounded search and seeded perturbation quantiles.
-- Ridge, random forest, gradient boosting, Gaussian process, PyTorch MLP and autoencoder diagnostic tiers.
-- HZDR RODARE particle workbook downloaded locally and processed into a committed CC BY 4.0 aggregate benchmark: 68,008 training rows, 29,147 separate test rows and four constructed separation cases. L1 logistic and PyTorch MLP models are compared with a published reference against constructed test probabilities. Browser-side ONNX inference runs on adjustable particle features. These are not plant-recovery labels.
-- A separate CC BY 4.0 GeoMet measured locked-cycle copper-recovery lane: 52 valid tests across 29 holes, a source-row exclusion ledger, whole-hole and spatial-zone holdouts, and comparable mean/ridge/random-forest/Gaussian-process out-of-fold predictions. The Benchmark page links observed/predicted recovery with sample position. These tests lack the operating controls needed to calibrate the circuit simulator.
-- A case-scoped finite operating-envelope investigation with editable recovery/grade/energy/water/collector limits, non-dominated sampled points, declared stress sensitivity, baseline deltas, direct application to circuit controls and a JSON audit export. It is not a continuous or plant-calibrated optimum.
-- Local CPU and accelerator environments, reproducible scripts, tests, model registry and an authored manuscript proposal for an uncertainty-aware digital twin study.
+## What it computes
 
-## Reproduce locally
+- **The engine** (`data-pipeline/pipeline/engine/`): a Whiten crusher; an energy-specific population
+  balance ball mill (three mixers, Moly-Cop form) in a closed circuit that meets the target P80 and the
+  design circulating load, at installed power when the target cannot be met; Plitt hydrocyclones with water
+  bypass and density-corrected cuts per mineral; flotation banks with rates from bubble surface area flux,
+  entrainment and cleaner recycles; a gravity unit on the underflow; low-intensity magnetic drums;
+  desliming; Bond, Rittinger and Kick energy; an independent audit of every balance.
+- **Method records** for every variant: five lumped kinetic models fitted to a virtual batch test and
+  projected to the bank; a constrained optimizer (COBYLA, six starts) that maximizes recovered metal under
+  grade, power and water constraints; a seeded uncertainty record over four ore properties; Sobol indices
+  at the nominal state.
+- **A learned lane**: ridge, random forest, gradient boosting, a Gaussian process and a PyTorch MLP trained
+  on 3072 engine states, scored inside the cases and on held-out cases, with an autoencoder guard; the MLP
+  and the guard run in the browser as ONNX.
+- **Two measured lanes**, kept apart from the engine: the HZDR particle dataset (RODARE 336, CC BY 4.0) and
+  52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0).
+- **Checks against published examples**: the Moly-Cop base case, the GMG Bond worked examples, the Laplante
+  gravity example and the Zandrivierspoort magnetite tests.
 
-PowerShell:
+Twelve cases, six variants each: soft and hard copper porphyry, low-grade copper at high throughput, copper
+ore with clay, copper-molybdenum bulk flotation, oxide copper by sulphidisation, zinc sulphide, nickel
+sulphide with serpentine slimes, refractory gold in sulphides, free-milling gold with gravity, fine magnetite,
+and phosphate with clay slimes ([use cases](docs/use-cases.md)).
+
+## Quick start
+
+Python 3.12, Node 20 or later (22 in CI), git:
 
 ```powershell
-./scripts/setup.ps1
-./scripts/fetch-data.ps1
-./scripts/precompute.ps1
-./.venv/Scripts/python.exe -m pytest
-./.venv/Scripts/python.exe scripts/check_artifacts.py
-cd frontend
-npm ci
-npm run build
+./scripts/setup.ps1                 # .venv and .venv-gpu, never a global interpreter
+cd frontend; npm ci; cd ..
+./scripts/dev.ps1                   # the workbench on http://127.0.0.1:5914
 ```
 
-The accelerator lane is `.venv-gpu`. The pipeline records the PyTorch device in `models/registry.json`; if the host has no compatible NVIDIA device, it records a CPU fallback rather than claiming GPU execution. The committed model registry records CUDA training on the local RTX 4070 Laptop GPU for the neural tiers; the public browser does not perform GPU training.
+The committed records in `data/derived/` and `models/` are all the site needs; a bake is only needed after
+changing the engine, the catalog or a method ([guide 02](docs/guides/02_bake-and-gpu.md)). The service:
 
-`precompute.ps1` runs both independent lanes. The particle lane needs the CC BY 4.0 workbook fetched by `fetch-data.ps1`; to rerun it alone use `./.venv-gpu/Scripts/python.exe data-pipeline/run_particles.py`. Its compact scores, calibration bins and threshold curves are committed in `data/derived/source/hzdr_particle_benchmark.json`, while the executable small ONNX model is `models/particle_mlp.onnx`. The large raw workbook and training checkpoint stay local/ignored. See [data contract](docs/data-contract.md) for leakage and missingness rules.
+```powershell
+.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8146
+```
 
-To run the measured-assay path independently, use `./.venv/Scripts/python.exe data-pipeline/run_geomet.py --fit-checkpoint`. A local CSV with the five named ppm assay columns can then be scored with `./scripts/predict-geomet.ps1 data/examples/geomet-assays.csv build/geomet-example-predictions.csv` (or the `.sh` equivalent). The committed example input is illustrative; the script emits three full-data-model recovery estimates and missing/out-of-reference-range flags. No plant set-point is inferred.
+Every shell script has a bash twin (`scripts/*.sh`).
 
-To bring new data, use the schema and policies in [docs/data-contract.md](docs/data-contract.md). To run the API locally, install `requirements-api.txt` and use `uvicorn app.main:app --reload`.
+## Tests
 
-## Evidence boundary
+```powershell
+./scripts/smoke.ps1                 # guards, ruff, 341 Python tests, 165 frontend tests, the build
+cd frontend; npm run build; npm run preview   # then, in another terminal:
+node gate.mjs                       # the browser gate (OF_MATRIX=full for every viewport, theme and language)
+```
 
-The authored cases are engineering scenarios for reproducible comparison. They are not measured mine campaigns. Circuit surrogates approximate the declared simulator and are evaluated on held-out parametric perturbations. Separately, the HZDR particle experiment trains on published constructed A/B classes; its test sheet has probabilities but no realized A/B labels. Neither lane is a production control system or a transfer guarantee. The next scientifically valid step is calibration against a licensed metallurgical campaign with a mine-family holdout.
+## How it is built
 
-## Research sources
+A canonical Python engine and an offline bake that writes versioned JSON records; a line-by-line
+TypeScript port that reproduces every baked variant within 1e-6 and runs in a Web Worker; a React and Vite
+interface on the shared CAOS app shell, with uPlot charts and KaTeX equations; a FastAPI service that runs
+the Python engine behind the same operating contract. See [architecture](docs/architecture.md).
 
-The research dossier and source ledger are in [docs/research-review.md](docs/research-review.md). Core references include the [NPTEL mineral-processing course](https://onlinecourses-archive.nptel.ac.in/noc18_ce14/preview), [Bond's comminution theory](https://onemine.org/documents/the-third-theory-of-comminution), population-balance literature, [Plitt classification research](https://doi.org/10.1016/j.minpro.2009.02.004), flotation kinetics literature, the [HZDR dataset](https://doi.org/10.14278/rodare.336), [scikit-learn leakage guidance](https://scikit-learn.org/stable/common_pitfalls.html), [PyTorch CUDA](https://docs.pytorch.org/docs/cuda.html) and [ONNX Runtime Web](https://onnxruntime.ai/docs/tutorials/web/).
+## Documentation
+
+| Section | Contents |
+|---|---|
+| [Architecture](docs/architecture.md) | the system, the bake, the browser engine, the web app, release and deployment |
+| [Methodologies](docs/methodologies.md) | every unit model and method, with its equations, parameters, sources and tests |
+| [Data contract](docs/data-contract.md) | the operating contract, the trace, the artifacts and the measured lanes |
+| [Frameworks](docs/frameworks.md) | each library, how OreFlow uses it, with runnable examples |
+| [Guides](docs/guides.md) | running it locally, baking, using it on other data, adding a case, reading the workbench |
+| [Use cases](docs/use-cases.md) | the twelve cases, rendered from the committed records |
+| [Design](docs/design/SDD.md) | the software design document and the requirements with their gates |
+
+## What the results are, and are not
+
+The cases are authored scenarios inside published ranges, not calibrated plants; the directions of the
+effects are the engine's physics, their sizes depend on the authored parameters. The optimizer has no
+prices. The learned lane approximates this engine, and its held-out-case scores bound how it transfers to
+another authored plant, not to a real one. The measured lanes are separate evidence and calibrate nothing in
+the engine.
 
 ## License
 
-Apache-2.0 for code and authored content. External data remains under its source license and is not redistributed in raw form.
+MIT for code and authored content ([LICENSE](LICENSE)). External data stays under its source licence and
+is not redistributed in raw form. Developed by Felipe Santibáñez-Leal.

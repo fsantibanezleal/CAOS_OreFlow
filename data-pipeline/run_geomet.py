@@ -134,6 +134,42 @@ def evaluate(frame: pd.DataFrame, protocol: str) -> dict:
     return {"folds": folds, "scores": {name: scores(y, values) for name, values in predictions.items()}, "rows": rows}
 
 
+BOOTSTRAP_SAMPLES = 2000   # resamples of complete holes
+BOOTSTRAP_SEED = 42
+
+
+def paired_bootstrap(rows: list[dict], samples: int = BOOTSTRAP_SAMPLES, seed: int = BOOTSTRAP_SEED) -> dict:
+    """Paired bootstrap over complete holes of the out-of-fold predictions.
+
+    Every resample draws holes with replacement and scores every model on the same rows, so the
+    difference between two models' RMSE carries their shared sampling noise only once. With 52 tests
+    in 29 holes a ranking is meaningful only where the 95% interval of the difference excludes zero.
+    """
+    holes = sorted({row["hole_id"] for row in rows})
+    by_hole = {hole: [row for row in rows if row["hole_id"] == hole] for hole in holes}
+    models = list(rows[0]["predictions_pct"])
+    rng = np.random.default_rng(seed)
+    rmse = {name: np.empty(samples) for name in models}
+    for b in range(samples):
+        picked = [row for i in rng.integers(0, len(holes), size=len(holes)) for row in by_hole[holes[i]]]
+        observed = np.array([row["observed_lct_pct"] for row in picked])
+        for name in models:
+            predicted = np.array([row["predictions_pct"][name] for row in picked])
+            rmse[name][b] = math.sqrt(float(np.mean((predicted - observed) ** 2)))
+    differences = {}
+    for i, first in enumerate(models):
+        for second in models[i + 1:]:
+            delta = rmse[first] - rmse[second]
+            low, high = np.quantile(delta, [0.025, 0.975])
+            differences[f"{first}-{second}"] = {"mean_pp": round(float(delta.mean()), 4),
+                                               "interval_95_pp": [round(float(low), 4), round(float(high), 4)],
+                                               "share_first_better": round(float(np.mean(delta < 0.0)), 4),
+                                               "excludes_zero": bool(high < 0.0 or low > 0.0)}
+    return {"samples": samples, "seed": seed, "unit": "complete hole", "holes": len(holes),
+            "rmse_interval_95_pp": {name: [round(float(v), 4) for v in np.quantile(rmse[name], [0.025, 0.975])] for name in models},
+            "rmse_differences": differences}
+
+
 def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
     data = source_bytes(source_path)
     frame, exclusions = load_rows(source_path)
@@ -158,6 +194,8 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
                      "boundary": "one deposit, sparse locked-cycle tests; no grind/reagent/residence controls; not a plant operating-point model"},
         "protocols": {name: evaluate(frame, name) for name in ("hole", "zone")},
     }
+    for protocol in artifact["protocols"].values():
+        protocol["paired_bootstrap"] = paired_bootstrap(protocol["rows"])
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(artifact, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
     return artifact

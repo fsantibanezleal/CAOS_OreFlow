@@ -1,0 +1,16 @@
+{
+  "schema": "oreflow.atomic-weights/v1",
+  "source": "IUPAC Commission on Isotopic Abundances and Atomic Weights, abridged standard atomic weights (https://www.ciaaw.org/atomic-weights.htm).",
+  "unit": "g/mol",
+  "weights": {
+    "H": 1.008, "C": 12.011, "O": 15.999, "F": 18.998, "Na": 22.990, "Mg": 24.305,
+    "Al": 26.982, "Si": 28.085, "P": 30.974, "S": 32.06, "K": 39.098, "Ca": 40.078,
+    "Fe": 55.845, "Ni": 58.693, "Cu": 63.546, "Zn": 65.38, "As": 74.922, "Mo": 95.95,
+    "Ag": 107.87, "Au": 196.97
+  },
+  "oxides": {
+    "P2O5": {"element": "P", "formula": "P2O5"},
+    "MgO": {"element": "Mg", "formula": "MgO"},
+    "SiO2": {"element": "Si", "formula": "SiO2"}
+  }
+}

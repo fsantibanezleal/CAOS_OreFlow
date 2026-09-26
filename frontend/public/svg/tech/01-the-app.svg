@@ -1,0 +1,146 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 440" width="880" class="arch-svg" role="img" aria-label="OreFlow: what it computes and how it was built">
+  <style>
+    /* the page's tokens inside the app; CSS system colours where the file is shown as an image */
+    .arch-svg { color-scheme: light dark; }
+    .arch-svg text { font-family: var(--font-sans, Inter, "Segoe UI", system-ui, sans-serif); }
+    .arch-svg .mono { font-family: var(--font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace); }
+    .arch-svg .bx { fill: var(--color-surface-2, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1.2; }
+    .arch-svg .bx-hi { stroke: var(--color-accent, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-good { stroke: var(--color-good, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-warn { stroke: var(--color-warn, GrayText); stroke-width: 1.6; }
+    .arch-svg .band { fill: none; stroke: var(--color-border, GrayText); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .arch-svg .bt { fill: var(--color-fg-subtle, GrayText); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .arch-svg .h1 { fill: var(--color-fg, CanvasText); font-size: 15px; font-weight: 700; }
+    .arch-svg .sub { fill: var(--color-fg-subtle, GrayText); font-size: 10.5px; }
+    .arch-svg .ttl { fill: var(--color-fg, CanvasText); font-size: 12.5px; font-weight: 600; }
+    .arch-svg .it { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .cd { fill: var(--color-accent, LinkText); font-size: 10px; }
+    .arch-svg .eq { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .mu { fill: var(--color-fg-subtle, GrayText); font-size: 10px; font-style: italic; }
+    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint, GrayText); stroke-width: 1.5; }
+    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent, LinkText); stroke-width: 1.5; }
+    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn, GrayText); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arch-svg .lbl { fill: var(--color-fg-subtle, GrayText); font-size: 9.5px; }
+    .arch-svg .chip { fill: var(--color-surface, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1; }
+    /* Standalone default: English. Inside the modal the shell's [data-arch-lang] rules decide. */
+    svg .l-es { display: none; }
+  </style>
+  <defs>
+    <marker id="of-arch-1" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint, GrayText)"/>
+    </marker>
+  </defs>
+  <text class="h1 l-en" x="20" y="28">OreFlow: how a grinding and separation circuit trades recovery, grade, energy and water</text>
+  <text class="h1 l-es" x="20" y="28">OreFlow: cómo un circuito de molienda y separación intercambia recuperación, ley, energía y agua</text>
+  <text class="sub l-en" x="20" y="46">a steady-state mass balance by size class and mineral, solved in closed circuit, for twelve authored ores and plants</text>
+  <text class="sub l-es" x="20" y="46">un balance de masa estacionario por clase de tamaño y mineral, resuelto en circuito cerrado, para doce minerales y plantas de autor</text>
+  <rect class="band" x="12" y="60" width="856" height="150" rx="10"/>
+  <text class="bt l-en" x="24" y="77">WHAT IT COMPUTES</text>
+  <text class="bt l-es" x="24" y="77">QUÉ CALCULA</text>
+  <rect class="bx bx-hi" x="28" y="88" width="250" height="104" rx="8"/>
+  <text class="ttl l-en" x="40" y="107">Inputs</text>
+  <text class="ttl l-es" x="40" y="107">Entradas</text>
+  <text class="it l-en" x="40" y="123">ore: minerals, head grades, Wi</text>
+  <text class="it l-es" x="40" y="123">mineral: minerales, leyes, Wi</text>
+  <text class="it l-en" x="40" y="137">liberation sizes, floatabilities</text>
+  <text class="it l-es" x="40" y="137">tamaños de liberación, flotabilidades</text>
+  <text class="it l-en" x="40" y="151">plant: mill power, cyclones, cells</text>
+  <text class="it l-es" x="40" y="151">planta: potencia, ciclones, celdas</text>
+  <text class="it l-en" x="40" y="165">12 operating inputs, one contract</text>
+  <text class="it l-es" x="40" y="165">12 entradas de operación, un contrato</text>
+  <text class="cd mono l-neutral" x="40" y="179">io/contract.py · engine/model.py</text>
+  <rect class="bx" x="315" y="88" width="250" height="104" rx="8"/>
+  <text class="ttl l-en" x="327" y="107">The engine</text>
+  <text class="ttl l-es" x="327" y="107">El motor</text>
+  <text class="it l-en" x="327" y="123">crusher, ball mill, hydrocyclones</text>
+  <text class="it l-es" x="327" y="123">chancador, molino, hidrociclones</text>
+  <text class="it l-en" x="327" y="137">flotation, gravity bleed, LIMS</text>
+  <text class="it l-es" x="327" y="137">flotación, purga gravimétrica, LIMS</text>
+  <text class="it l-en" x="327" y="151">desliming, energy, water</text>
+  <text class="it l-es" x="327" y="151">deslamado, energía, agua</text>
+  <text class="it l-en" x="327" y="165">every unit closes within 1e-9</text>
+  <text class="it l-es" x="327" y="165">cada unidad cierra dentro de 1e-9</text>
+  <text class="cd mono l-neutral" x="327" y="179">engine/circuit.py · balance.py</text>
+  <rect class="bx bx-good" x="602" y="88" width="250" height="104" rx="8"/>
+  <text class="ttl l-en" x="614" y="107">What every state reports</text>
+  <text class="ttl l-es" x="614" y="107">Lo que informa cada estado</text>
+  <text class="it l-en" x="614" y="123">recovery, grade, recovered metal</text>
+  <text class="it l-es" x="614" y="123">recuperación, ley, metal recuperado</text>
+  <text class="it l-en" x="614" y="137">specific energy, P80, mill power</text>
+  <text class="it l-es" x="614" y="137">energía específica, P80, potencia</text>
+  <text class="it l-en" x="614" y="151">water per tonne, unit balances</text>
+  <text class="it l-es" x="614" y="151">agua por tonelada, balances</text>
+  <text class="it l-en" x="614" y="165">flags: power-limited, pressure</text>
+  <text class="it l-es" x="614" y="165">avisos: potencia, presión</text>
+  <text class="cd mono l-neutral" x="614" y="179">engine/trace.py · oreflow.trace/v2</text>
+  <path class="flow" d="M 278 140 L 313 140" marker-end="url(#of-arch-1)"/>
+  <text class="lbl l-en" x="296" y="134" text-anchor="middle">state</text>
+  <text class="lbl l-es" x="296" y="134" text-anchor="middle">estado</text>
+  <path class="flow" d="M 565 140 L 600 140" marker-end="url(#of-arch-1)"/>
+  <text class="lbl l-en" x="583" y="134" text-anchor="middle">trace</text>
+  <text class="lbl l-es" x="583" y="134" text-anchor="middle">traza</text>
+  <rect class="band" x="12" y="226" width="856" height="200" rx="10"/>
+  <text class="bt l-en" x="24" y="243">HOW IT WAS DESIGNED AND BUILT</text>
+  <text class="bt l-es" x="24" y="243">CÓMO SE DISEÑÓ Y CONSTRUYÓ</text>
+  <rect class="bx" x="28" y="254" width="240" height="78" rx="8"/>
+  <text class="ttl l-en" x="40" y="273">1 Research</text>
+  <text class="ttl l-es" x="40" y="273">1 Investigación</text>
+  <text class="it l-en" x="40" y="289">primary sources, DOIs checked</text>
+  <text class="it l-es" x="40" y="289">fuentes primarias, DOI verificados</text>
+  <text class="it l-en" x="40" y="303">unconfirmed facts flagged</text>
+  <text class="it l-es" x="40" y="303">hechos no confirmados marcados</text>
+  <text class="cd mono l-neutral" x="40" y="317">dossier 2026-09-26</text>
+  <rect class="bx" x="320" y="254" width="240" height="78" rx="8"/>
+  <text class="ttl l-en" x="332" y="273">2 Design</text>
+  <text class="ttl l-es" x="332" y="273">2 Diseño</text>
+  <text class="it l-en" x="332" y="289">EARS requirements</text>
+  <text class="it l-es" x="332" y="289">requisitos EARS</text>
+  <text class="it l-en" x="332" y="303">each names its failing test</text>
+  <text class="it l-es" x="332" y="303">cada uno nombra su prueba</text>
+  <text class="cd mono l-neutral" x="332" y="317">requirements.md · design.md</text>
+  <rect class="bx bx-hi" x="612" y="254" width="240" height="78" rx="8"/>
+  <text class="ttl l-en" x="624" y="273">3 Engine and port</text>
+  <text class="ttl l-es" x="624" y="273">3 Motor y traducción</text>
+  <text class="it l-en" x="624" y="289">Python engine, canonical</text>
+  <text class="it l-es" x="624" y="289">motor en Python, canónico</text>
+  <text class="it l-en" x="624" y="303">TypeScript port, line by line</text>
+  <text class="it l-es" x="624" y="303">traducción TypeScript, línea a línea</text>
+  <text class="cd mono l-neutral" x="624" y="317">pipeline/engine · src/engine</text>
+  <rect class="bx" x="612" y="338" width="240" height="78" rx="8"/>
+  <text class="ttl l-en" x="624" y="357">4 Bake</text>
+  <text class="ttl l-es" x="624" y="357">4 Horneado</text>
+  <text class="it l-en" x="624" y="373">72 variants with method records</text>
+  <text class="it l-es" x="624" y="373">72 variantes con registros</text>
+  <text class="it l-en" x="624" y="387">learned lane, ONNX export</text>
+  <text class="it l-es" x="624" y="387">vía aprendida, exportación ONNX</text>
+  <text class="cd mono l-neutral" x="624" y="401">data-pipeline/run.py</text>
+  <rect class="bx bx-warn" x="320" y="338" width="240" height="78" rx="8"/>
+  <text class="ttl l-en" x="332" y="357">5 Gates</text>
+  <text class="ttl l-es" x="332" y="357">5 Controles</text>
+  <text class="it l-en" x="332" y="373">tests, artifact checker</text>
+  <text class="it l-es" x="332" y="373">pruebas, verificador de artefactos</text>
+  <text class="it l-en" x="332" y="387">browser gate, screenshots read</text>
+  <text class="it l-es" x="332" y="387">control en navegador, capturas</text>
+  <text class="cd mono l-neutral" x="332" y="401">check_artifacts.py · gate.mjs</text>
+  <rect class="bx bx-good" x="28" y="338" width="240" height="78" rx="8"/>
+  <text class="ttl l-en" x="40" y="357">6 Site</text>
+  <text class="ttl l-es" x="40" y="357">6 Sitio</text>
+  <text class="it l-en" x="40" y="373">GitHub Pages and the VPS</text>
+  <text class="it l-es" x="40" y="373">GitHub Pages y el VPS</text>
+  <text class="it l-en" x="40" y="387">checked from outside</text>
+  <text class="it l-es" x="40" y="387">verificado desde fuera</text>
+  <text class="cd mono l-neutral" x="40" y="401">deploy-pages.yml · deploy/</text>
+  <path class="flow" d="M 268 293 L 318 293" marker-end="url(#of-arch-1)"/>
+  <text class="lbl l-en" x="293" y="287" text-anchor="middle">sources</text>
+  <text class="lbl l-es" x="293" y="287" text-anchor="middle">fuentes</text>
+  <path class="flow" d="M 560 293 L 610 293" marker-end="url(#of-arch-1)"/>
+  <text class="lbl l-en" x="585" y="287" text-anchor="middle">specs</text>
+  <text class="lbl l-es" x="585" y="287" text-anchor="middle">requisitos</text>
+  <path class="flow" d="M 732 332 L 732 336" marker-end="url(#of-arch-1)"/>
+  <path class="flow" d="M 610 377 L 562 377" marker-end="url(#of-arch-1)"/>
+  <text class="lbl l-en" x="586" y="371" text-anchor="middle">artifacts</text>
+  <text class="lbl l-es" x="586" y="371" text-anchor="middle">artefactos</text>
+  <path class="flow" d="M 318 377 L 270 377" marker-end="url(#of-arch-1)"/>
+  <text class="lbl l-en" x="294" y="371" text-anchor="middle">release</text>
+  <text class="lbl l-es" x="294" y="371" text-anchor="middle">versión</text>
+</svg>

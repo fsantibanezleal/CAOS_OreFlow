@@ -1,7 +1,20 @@
 # Derived artifacts
 
-This directory contains the committed, reproducible evidence used by the public workbench. The canonical bake writes case traces, manifests, the feature matrix, the benchmark summary and the validation certificate here.
+The committed, reproducible evidence the public workbench and the API serve.
 
-The HZDR workbook is intentionally not committed because it is a large raw input. `data/derived/source/hzdr_summary.json` records its DOI, license, SHA256 and processed row counts. Recreate the raw input with `scripts/fetch-data.ps1`, then run `scripts/precompute.ps1`.
+| Path | Written by | Content |
+|---|---|---|
+| `contract/operating_contract.json`, `contract/contract_probes.json` | bake, stage `contract` | Contract 1 and the probe verdicts every validator replays |
+| `cases/<case>.json` | bake, stage `cases` | Contract 2: definition, six variants with traces and method records |
+| `manifests/<case>.json`, `manifests/index.json` | bake, stage `manifests` | byte counts, SHA-256, headline metrics, KPI checks, the index |
+| `learning.json` | bake, stage `learning` | the learned lane record (the ONNX models are in `models/`) |
+| `benchmark.json` | bake, stage `benchmark` | the cross-case summary, oracles, method outcomes |
+| `validation.json` | bake, stage `validation` | the in-process artifact checks |
+| `source/hzdr_summary.json`, `source/hzdr_particle_benchmark.json` | `data-pipeline/run_particles.py` | the HZDR particle lane |
+| `source/geomet_lct_benchmark.json` | `data-pipeline/run_geomet.py` | the GeoMet locked-cycle lane with paired bootstrap intervals |
 
-Every artifact is derived from the declared simulator and seeded design matrix. It is not a claim of plant-scale performance or transfer across mines.
+Every process artifact is derived from the declared engine and seeded designs; the cases are
+authored scenarios inside published ranges, not plant measurements, and nothing here is a claim of
+plant accuracy or of transfer across mines. The raw inputs of the measured lanes are not committed:
+recreate them with `scripts/fetch-data.ps1`, then run the lanes. The schemas are documented in
+`docs/data-contract/`.

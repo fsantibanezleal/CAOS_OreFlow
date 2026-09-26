@@ -1,82 +1,161 @@
-"""Explicit OreFlow pipeline: ingest -> dataset -> features -> train -> infer -> evaluate -> export -> validate."""
+"""OreFlow bake: contract, cases, learning, benchmark, manifests and validation (design section 11a).
+
+The index and the benchmark are built from this run's records only, never from files already on
+disk, so a partial bake cannot ship as complete; the bake ends by running the artifact checks and
+fails if any fails.
+"""
 from __future__ import annotations
 
 import argparse
+import faulthandler
+import hashlib
+import importlib.util
+import json
+import multiprocessing
+import os
 import time
+import warnings
+from concurrent.futures import ProcessPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any
 
-from . import registry
-from .core.manifest import build_index
-from .core.trace import build_trace
-from .io.formats import write_json
-from .model.process import METHODS, variant_params
-from .stages import evaluate, export, feature_extraction, infer, preprocess, train, validate
+from . import __version__
+from .cases.catalog import CASES
+from .io.contract import export_contract
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
-RAW = REPO_ROOT / "data" / "raw"
 DERIVED = REPO_ROOT / "data" / "derived"
-MANIFESTS = DERIVED / "manifests"
 MODELS = REPO_ROOT / "models"
-STAGES = ("preprocess", "dataset", "feature_extraction", "train", "infer", "evaluate", "export", "validate")
+STAGES = ("contract", "cases", "learning", "benchmark", "manifests", "validation")
+HEADLINE = ("recovery_pct", "concentrate_grade", "specific_energy_total_kwh_t", "p80_um", "mill_power_kw")
 
 
-def _params_dict(p) -> dict:
-    return {name: getattr(p, name) for name in ("feed_tph", "feed_grade_pct", "feed_p80_um", "hardness_kwh_t", "density_t_m3", "grind_p80_um", "classifier_cut_um", "flotation_time_min", "air_rate_m3_min", "reagent_gpt", "water_m3_t")}
+def _log(message: str) -> None:
+    print(f"[{time.strftime('%H:%M:%S')}] {message}", flush=True)
 
 
-def _variant_payload(case, variant, bundle):
-    p = variant_params(case.params, variant["overrides"], f"{case.id}:{variant['id']}")
-    if p.grind_p80_um >= p.feed_p80_um:
-        p = variant_params(p, {"grind_p80_um": p.feed_p80_um * 0.25}, p.case_id)
-    result = infer.run(p, bundle)
-    return {"id": variant["id"], "label": variant["label"], "params": _params_dict(p), "trace": build_trace(result), "metrics": result.metrics, "method_outputs": result.method_outputs}
+def write_json(path: Path, document: Any) -> tuple[int, str]:
+    data = json.dumps(document, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_bytes(data)
+    return len(data), hashlib.sha256(data).hexdigest()
 
 
-def run_all(seed: int = 42, output_root: str | Path | None = None) -> list[dict]:
-    derived = Path(output_root).resolve() if output_root else DERIVED
-    manifests = derived / "manifests"
-    models = (derived / "models") if output_root else MODELS
-    raw = (REPO_ROOT / "data" / "raw")
-    source = preprocess.run(raw, derived)
-    dataset = feature_extraction.run(seed=seed, samples=720)
-    write_json(derived / "features.json", dataset)
-    bundle = train.run(dataset, models, seed=seed)
-    evaluation = evaluate.run(bundle, seed=seed)
+def _bake(args: tuple[str, dict[str, Any], str]) -> dict[str, Any]:
+    from .stages.cases import bake_case
+
+    return bake_case(*args)
+
+
+def _checker():
+    spec = importlib.util.spec_from_file_location("check_artifacts", REPO_ROOT / "scripts" / "check_artifacts.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None) -> dict[str, Any]:
+    from .methods import learning, oracles
+    from .stages import benchmark
+
+    derived = Path(output) if output else DERIVED
+    models_dir = Path(models) if models else MODELS
+    timings: dict[str, float] = {}
+
+    t = time.perf_counter()
+    contract = export_contract(derived / "contract" / "operating_contract.json", derived / "contract" / "contract_probes.json")
+    digest = contract["digest"]
+    timings["contract"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    ids = [case.id for case in CASES]
+    workers = workers or min(len(ids), max(1, (os.cpu_count() or 2) // 2))
+    for variable in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "OMP_NUM_THREADS"):
+        os.environ.setdefault(variable, "1")   # small dense solves: one thread per worker process
+    jobs = [(case_id, contract, __version__) for case_id in ids]
+    _log(f"cases: {len(jobs)} cases on {workers} worker(s)")
+    by_id: dict[str, dict[str, Any]] = {}
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn")) as pool:
+            futures = {pool.submit(_bake, job): job[0] for job in jobs}
+            for future in as_completed(futures):
+                by_id[futures[future]] = future.result()
+                _log(f"  case {futures[future]} baked ({len(by_id)}/{len(jobs)}, {time.perf_counter() - t:.0f}s)")
+    else:
+        for job in jobs:
+            by_id[job[0]] = _bake(job)
+            _log(f"  case {job[0]} baked ({len(by_id)}/{len(jobs)}, {time.perf_counter() - t:.0f}s)")
+    artifacts = [by_id[case_id] for case_id in ids]     # catalog order, whatever the completion order
+    timings["cases"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    _log("learning: design, protocols and exports")
+    record = learning.run(contract, models_dir)
+    record["engine_version"], record["contract_digest"] = __version__, digest
+    write_json(derived / "learning.json", record)
+    timings["learning"] = time.perf_counter() - t
+
+    _log(f"learning done ({time.perf_counter() - t:.0f}s)")
+    t = time.perf_counter()
+    bench = benchmark.build(artifacts, oracles.all_oracles(), record, derived, __version__, digest)
+    write_json(derived / "benchmark.json", bench)
+    timings["benchmark"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    # every catalog case is rewritten below; a case the catalog no longer has must not ship from an older bake
+    produced = {artifact["case_id"] for artifact in artifacts}
+    for folder in ("cases", "manifests"):
+        for stale in sorted((derived / folder).glob("*.json")):
+            if stale.stem not in produced and stale.name != "index.json":
+                _log(f"  removing stale {folder}/{stale.name}")
+                stale.unlink()
     entries = []
-    matrix_rows = []
-    started = time.perf_counter()
-    for case in registry.list_cases():
-        variant_payloads = [_variant_payload(case, variant, bundle) for variant in case.variants]
-        for payload in variant_payloads:
-            for method in payload["method_outputs"]:
-                matrix_rows.append({"case_id": case.id, "category": case.category, "variant_id": payload["id"], "method_id": method["id"], "tier": method["tier"], "value": method["value"], "unit": method["unit"], "status": method["status"]})
-        export.run_case(case=case, variants=variant_payloads, seed=seed, run_ms=(time.perf_counter() - started) * 1000.0,
-                        metrics={"nominal": variant_payloads[0]["metrics"], "evaluation": evaluation}, derived_dir=derived, manifests_dir=manifests)
-        entries.append({"case_id": case.id, "category": case.category, "title": case.title, "manifest_path": f"manifests/{case.id}.json", "artifact_path": f"cases/{case.id}.json", "variants": len(variant_payloads), "methods": len(METHODS)})
-    write_json(manifests / "index.json", build_index(entries))
-    write_json(derived / "metrics" / "matrix.json", {"schema": "oreflow.metrics/v1", "rows": matrix_rows, "methods": list(METHODS), "evaluation": evaluation})
-    benchmark = {"schema": "oreflow.benchmark/v1", "protocol": f"{len(entries)} cases x 6 variants x {len(METHODS)} method records; truth is the declared process simulator; test set is disjoint parameter perturbations",
-                 "case_count": len(entries), "variant_count": sum(e["variants"] for e in entries), "method_count": len(METHODS),
-                 "source": source, "evaluation": evaluation, "method_matrix_path": "metrics/matrix.json", "compute": bundle["registry"]["compute"]}
-    write_json(derived / "benchmark.json", benchmark)
-    validate.run(derived)
-    return entries
+    for artifact in artifacts:
+        rel = f"cases/{artifact['case_id']}.json"
+        size, sha = write_json(derived / rel, artifact)
+        nominal = artifact["variants"][0]["trace"]["metrics"]
+        manifest = {
+            "schema": "oreflow.manifest/v2", "case_id": artifact["case_id"], "category": artifact["category"],
+            "family": artifact["family"], "title": artifact["title"], "engine_version": __version__, "contract_digest": digest,
+            "artifact": {"path": rel, "bytes": size, "sha256": sha, "schema": artifact["schema"]},
+            "variants": [v["id"] for v in artifact["variants"]],
+            "nominal": {key: nominal[key] for key in HEADLINE},
+            "kpis": {key: {"value": nominal[key], "range": list(r), "within": bool(r[0] <= nominal[key] <= r[1])}
+                     for key, r in artifact["kpi_ranges"].items()},
+        }
+        write_json(derived / "manifests" / f"{artifact['case_id']}.json", manifest)
+        entries.append({"case_id": artifact["case_id"], "category": artifact["category"], "family": artifact["family"],
+                        "title": artifact["title"], "manifest_path": f"manifests/{artifact['case_id']}.json",
+                        "artifact_path": rel, "variants": len(artifact["variants"])})
+    index = {"schema": "oreflow.index/v2", "engine_version": __version__, "contract_digest": digest,
+             "n_cases": len(entries), "n_variants": sum(e["variants"] for e in entries), "cases": entries}
+    write_json(derived / "manifests" / "index.json", index)
+    timings["manifests"] = time.perf_counter() - t
 
-
-def precompute(case_id: str, seed: int = 42, output_root: str | Path | None = None) -> dict:
-    # A single-case invocation still trains from the same complete design split,
-    # ensuring its learned result is never fitted on that case's baked output.
-    all_entries = run_all(seed=seed, output_root=output_root)
-    return next(e for e in all_entries if e["case_id"] == case_id)
+    t = time.perf_counter()
+    _log("validation: artifact checks")
+    errors = _checker().run(derived, models_dir)
+    timings["validation"] = time.perf_counter() - t
+    validation = {"schema": "oreflow.validation/v2", "engine_version": __version__, "contract_digest": digest,
+                  "passed": not errors, "errors": errors, "stages": list(STAGES), "workers": workers,
+                  "seconds": timings}
+    write_json(derived / "validation.json", validation)
+    if errors:
+        raise SystemExit("bake failed validation:\n" + "\n".join(f"  - {e}" for e in errors[:50]))
+    return validation
 
 
 def main() -> None:
-    ap = argparse.ArgumentParser(prog="oreflow.pipeline")
-    ap.add_argument("case", nargs="?", default="all", help="case id, or all")
-    ap.add_argument("--seed", type=int, default=42)
-    ap.add_argument("--output", type=Path, help="sandbox output root")
-    args = ap.parse_args()
-    entries = run_all(seed=args.seed, output_root=args.output) if args.case == "all" else [precompute(args.case, args.seed, args.output)]
-    print(f"oreflow pipeline: {len(entries)} case(s), stages={' -> '.join(STAGES)}")
-    for e in entries:
-        print(f"  {e['case_id']:24s} {e['variants']} variants x {e['methods']} methods")
+    parser = argparse.ArgumentParser(prog="oreflow.pipeline", description="Bake every OreFlow artifact.")
+    parser.add_argument("--output", type=Path, help="sandbox derived directory (default data/derived)")
+    parser.add_argument("--models", type=Path, help="sandbox models directory (default models)")
+    parser.add_argument("--workers", type=int, help="case worker processes (default half the cores, at most 12)")
+    args = parser.parse_args()
+    # joblib probes physical cores with a Windows tool that may be absent and falls back to logical cores
+    warnings.filterwarnings("ignore", message="Could not find the number of physical cores", category=UserWarning)
+    # a bake that is still running after 45 minutes prints every thread's stack once, so a stall shows its place
+    faulthandler.dump_traceback_later(45 * 60, exit=False)
+    result = run_all(args.output, args.models, args.workers)
+    faulthandler.cancel_dump_traceback_later()
+    print(f"oreflow bake {__version__}: stages {' -> '.join(STAGES)}; "
+          + ", ".join(f"{k} {v:.0f}s" for k, v in result["seconds"].items()) + "; validation passed")

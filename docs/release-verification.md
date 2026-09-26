@@ -1,8 +1,30 @@
 # Release verification record
 
-This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment.
+This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
-## Local scientific gate
+## 0.05.000, 2026-09-26
+
+### Local gate
+
+- The committed bake of 2026-09-26: contract, cases (374.9 s on 12 workers), learning (1688.0 s, CUDA, RTX 4070 Laptop GPU), benchmark, manifests and validation; `validation.json` records `passed: true`. It is the re-run of the day's first bake after a catalog text correction (µm and P₂O₅), made into a sandbox and compared file by file before it was adopted whole: every case number is identical, the ONNX exports and the surrogate record are bit-identical, and the only numeric differences are 81 random-forest scores in `learning.json` and 9 in `benchmark.json`, at most 5.8e-15 relative. `scripts/check_artifacts.py` recomputes every unit balance of the 72 variants from the stored streams (within 1e-9), the contract digest, the byte counts and hashes of every artifact, and the method, learning, particle and GeoMet records.
+- `scripts/smoke.ps1` passed in 89 s: the eight guards (template residue, content standards over 402 tracked files, CI budget, units, interface formulas, diagram languages and colours, SDD with 49 live requirements, artifacts), the use-case page check (13 pages), ruff, 341 Python tests, the typecheck, 165 frontend tests (the parity of all 72 variants within 1e-6 among them) and the production build.
+- Browser gate on the served build of the release: the full matrix, 684 checks (1280x800, 1600x900 and 2560x1440; dark and light; English and Spanish), covering every view and sub-tab of the App route, the modal's five tabs, the focus route and its round trip, and every tab and sub-tab of the five content pages; the phone and tablet pass, 28 checks (both themes and both languages at 390x844 and 768x1024); and the App and focus routes of the gold, magnetite and phosphate circuits at 1280x800 and 2560x1440, 40 checks each. The screenshots were read: every Benchmark tab in all twelve combinations (as contact sheets); the Circuit view and the Case context in all four theme and language pairings at 1600x900, and the Circuit view at 390x844 and 768x1024 in light English and dark Spanish; every Methods record and the Response sweep in dark English and light Spanish at 1600x900; and further captures of every view at the other sizes while the defects above were found and fixed.
+- The convergence verdict (`docs/design/features/process-engine-v2/tasks.md`, T23) runs the gate each of the 49 live requirements names: all 49 met.
+- The full matrix and the checks added while it ran found, and this release fixes:
+  - the case catalog, 1338 px wide at 1280x800 in Spanish;
+  - the flowsheet, which stopped growing past a readable cell: at 2560x1440 it spanned 74.5% of its frame's width, and 73.4% on the focus route, while the gate's check of the svg's own box passed at 86.7%. It now scales as one piece, to 97.5%, and the gate measures the drawing against its frame;
+  - with the drawing measured, the feed label under the readout column on the focus route at 1280x800, and the LIMS cleaner's concentrate and tail drawn along one line;
+  - at phone width, the gate clause of PE-37 the desktop matrix did not cover: the rail's row shrunk to 61 px under its controls, flowsheet boxes overlapping (10 pairs in the copper circuit), a chart label over its axis; at 768 px in Spanish, the header's actions off the screen (shell known defect 10);
+  - citation labels in English on Spanish pages (shell known defect 9), formulas without subscripts, "20 um" in the phosphate description, and the case provenance printed in English on the Spanish Case view (a scan of every view and page in Spanish for English words found nothing else);
+  - the Benchmark uncertainty table, which needed 135 px of sideways scroll at 1280 px in Spanish, the Implementation gates table, widened past the page by its own new row, and the Response heatmap's ticks, which mixed precisions on one axis.
+
+### Remote gate
+
+To be recorded after the promotion to `main`: the commit, the CI and Pages runs, the VPS deployment and the external checks of architecture 05.
+
+## 0.04.000 and earlier
+
+### Local scientific gate (0.04.000)
 
 - Contract 1 validation: passed.
 - Contract 2 artifact/index validation: passed.
@@ -11,16 +33,16 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 - Data: HZDR RODARE workbook fetched, SHA256 recorded, and processed to an independent four-case particle benchmark; raw input remains ignored. The test sheet has constructed oracle probabilities but no realized test classes; case 4 has 663 rows excluded from the common finite comparison.
 - Compute: PyTorch 2.12.0+cu126 executed a tensor operation and trained the circuit MLP, autoencoder and independent HZDR particle MLP on the local RTX 4070 Laptop GPU. `models/registry.json` records the simulator lane; the particle artifact independently records `device: cuda`. The particle ONNX export was tested against its local PyTorch checkpoint over 32 vectors (absolute/relative tolerance 0.000001) and exercised in a browser with changed feature inputs. This is local training evidence, not VPS GPU evidence.
 
-## Local product gate
+### Local product gate (0.03.004 and 0.04.000)
 
-### 0.04.000 investigation and measured-data lane (2026-09-24)
+#### 0.04.000 investigation and measured-data lane (2026-09-24)
 
 - Local verification: all Python and frontend tests passed; Vite production build and Contract 2 artifact check passed. The GeoMet artifact is pinned to SHA256 `e7968c250c1ccc17b63da6d9624473dd92b32a7ba8d8772e70070a0115e42eda` and holds 52 eligible measured LCT rows, 29 holes, five whole-hole folds, three spatial-zone folds and four complete prediction matrices.
 - Rendered interaction verification: EN/light and ES/dark at 390, 628, 1280 and 1600 px for the operating envelope, with no document overflow or JavaScript errors; constraint-empty state, reset, point selection, JSON download, apply-to-circuit, family switch and angular projection exercised. Measured Benchmark inspected at 390 and 1280 px with 52 rendered points, model/holdout switch and no document overflow/errors. Screenshots and JSON report are local ignored QA output.
 - Local full-data GeoMet checkpoint and example five-assay CSV prediction smoke passed. Predictions are descriptive within this sparse source and are not plant set-points. The circuit simulator is still uncalibrated, and the four topology families remain a limitation.
 - Remote CI, Pages, VPS HTTPS and live-browser verification are recorded below. Engineering verification does not establish user design acceptance or plant validity.
 
-### 0.03.004 focus and flowsheet correction (2026-09-24)
+#### 0.03.004 focus and flowsheet correction (2026-09-24)
 
 - Shared focus layout was added to `@fasl-work/caos-app-shell` and the OreFlow route uses it outside the document shell. The normal workbench retains its scientific routes and tabs; the flowsheet is again the primary circuit visual with explicit stream values.
 - Click-through QA in the local browser: App focus entry opened the selected copper-molybdenum case; feed rate changed 640 to 800 t/h and updated readouts; Return restored the same case and 800 t/h. The focus case picker changed to free-milling gold and displayed a distinct gravity/rougher branch. Phone width 390 px, both themes and Spanish labels were inspected. This is local browser evidence, not production or user design acceptance.
@@ -34,11 +56,11 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 - Rendered checks before promotion: workbench circuit topology for rougher and magnetite, five-stage magnetic replay advancing and stopping, 390 px single-row shell header/footer, and browser ONNX inference with changed input vector inspected. Full six-route EN/ES/light/dark and production checks remain release gates, not inferred from these local checks.
 - API smoke: health, catalog, benchmark and validated simulation returned successful responses.
 
-## Remote gate
+### Remote gate (0.04.000)
 
 The remote gate is complete only after the public GitHub repository, GitHub Pages project site and `oreflow.ml.fasl-work.com` VPS service have each been checked from outside the local workspace. The deploy script performs health and catalog checks, while the operator record must include the final commit, workflow run and live URLs.
 
-### 0.04.000, 2026-09-24
+#### 0.04.000, 2026-09-24
 
 - Feature PR #28 and content-standard correction #29 merged into `develop`; CI run `36006829137` passed scientific, contracts and frontend jobs. Promotion PR #30 merged into `main` at `f30f40406dfcb9a96b82c44ab294d80a882c51a7`; CI `36006937653` and Pages `36006937745` passed.
 - A live health readback exposed a stale hard-coded API version. Corrective PR #31 merged into `develop` with CI `36007403877` passing; promotion PR #32 merged into final `main` commit `4c35fbc231602a40c2fc494dd070305c0d0c9099`. CI `36007515696` and Pages `36007515772` passed for that exact SHA.

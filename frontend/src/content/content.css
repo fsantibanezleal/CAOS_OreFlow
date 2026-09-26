@@ -1,0 +1,86 @@
+/*
+ * The content pages (ADR-0016 sections 5 to 7): inside the shell's wide page body, centred and filled
+ * with figure-and-text rows, never a narrow column; long text blocks keep a reading measure. Colours
+ * are shell tokens; figures use the shell's diagram classes.
+ */
+
+/* Shell known defect 1 (open in 0.6.11): html, body and #root at height 100% with overflow-x hidden make
+ * <body> a viewport-sized scroll container, so the document itself never scrolls: scrollTo and anchors
+ * do nothing, the document height reads as the viewport's, and a full-page capture is one screen. The
+ * document takes its content's height again. The App route is unaffected: .app-shell.fixed sizes itself
+ * with 100dvh, and .app-shell with 100vh, neither through this percentage chain. */
+html, body, #root { height: auto; min-height: 100%; }
+
+/* Shell known defect 10 (open in 0.6.11): the route links scroll inside the header only below 760 px;
+ * above that the nav cannot shrink, so from 761 px to about 1060 px in Spanish it pushed the header's
+ * actions (architecture, source, about, language, theme) past the right edge of the screen. The nav
+ * shrinks and scrolls in its row at every width; a wide screen shows it whole, as before. */
+.main-nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; white-space: nowrap; scrollbar-width: none; }
+.main-nav::-webkit-scrollbar { display: none; }
+.main-nav .nav-link { flex: none; }
+.brand, .header-actions { flex: none; white-space: nowrap; }
+
+.of-doc { min-width: 0; }
+.of-doc-head { margin-bottom: 1.2rem; }
+.of-doc-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -0.01em; }
+.of-doc-head p { margin: 0; color: var(--color-fg-subtle); line-height: 1.6; }
+
+.of-topic h2 { margin-top: 0; }
+.of-topic-body { display: block; }
+.of-topic-body.with-figure { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
+.of-topic-text p { max-width: 78ch; line-height: 1.65; }
+.of-topic-text .katex-display { overflow-x: auto; overflow-y: hidden; }
+.of-topic-side { min-width: 0; }
+.of-topic-side .of-topic-figure .figure { margin-top: 0; }
+.of-topic-figure.wide { position: static; margin: 0.4rem auto 1.2rem; max-width: 900px; }
+.of-topic-equations .katex-display { overflow-x: auto; overflow-y: hidden; }
+/* a wide figure spans its row; a narrow one keeps the shell's figure measure (560 px), centred in its column */
+.of-topic-figure.wide .fig-svg { max-width: 100%; }
+@media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } }
+
+.of-doc-table { width: 100%; max-width: 980px; margin: 1rem 0; border-collapse: collapse; font-size: 0.86rem; }
+.of-doc-table th, .of-doc-table td { padding: 6px 10px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: top; }
+.of-doc-table thead th { color: var(--color-fg-subtle); font-weight: 600; }
+.of-doc-table tbody th { font-weight: 600; white-space: nowrap; }
+.of-doc .callout ul { margin: 0.2rem 0 0; padding-left: 1.2rem; }
+.of-doc .callout li + li { margin-top: 0.3rem; }
+
+/* figure frames and optional units (dashed), small labels for dense schematics */
+.of-dg-frame { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.dg-box.of-dg-optional { stroke-dasharray: 5 3; }
+.of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
+
+/* artifact-bound tables and charts under a topic */
+.of-topic-data { margin: 1.2rem 0; min-width: 0; }
+.of-doc-table-data { max-width: none; font-variant-numeric: tabular-nums; }
+.of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-faint); font-style: italic; }
+.of-doc-table td { white-space: nowrap; }
+.of-doc-table td.of-doc-wrap { white-space: normal; min-width: 14rem; }
+/* a name that may break over two lines where the table is short of width (the case catalog) */
+.of-doc-table .of-doc-soft { white-space: normal; min-width: 8rem; }
+.of-doc-state { padding: 0.8rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-fg-subtle); }
+
+/* an interactive panel on a content page: a control, a sized chart, its cursor reading, then its table */
+.of-doc-panel { display: grid; gap: 0.6rem; min-width: 0; }
+.of-doc-control { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.86rem; color: var(--color-fg-subtle); }
+.of-doc-control select { font: inherit; color: var(--color-fg); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; }
+.of-doc-chart { height: 360px; min-width: 0; }
+.of-doc-chart .of-plot { height: 100%; }
+.of-doc-reading { margin: 0; min-height: 1.4em; font-size: 0.84rem; color: var(--color-fg-subtle); font-variant-numeric: tabular-nums; }
+.of-doc-scroll { overflow-x: auto; min-width: 0; }
+.of-doc-table td.of-up { color: var(--color-good); }
+.of-doc-table td.of-down { color: var(--color-warn); }
+.of-doc-table tr.of-doc-group > * { border-top: 1px solid var(--color-fg-faint); }
+
+/* controls in a row, two charts side by side, the in-browser inference panel */
+.of-doc-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; }
+.of-doc-charts-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; min-width: 0; }
+.of-doc-chart-narrow { height: 300px; }
+.of-topic-side .of-doc-chart { height: 300px; }
+.of-doc-inference { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; gap: 1.2rem; }
+.of-doc-inputs { display: grid; gap: 0.7rem; }
+.of-doc-slider { display: grid; gap: 0.25rem; }
+.of-doc-slider input { width: 100%; }
+.of-doc-run { justify-self: start; font: inherit; font-weight: 600; padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent); cursor: pointer; }
+.of-doc-run:disabled { opacity: 0.6; cursor: progress; }
+@media (max-width: 1000px) { .of-doc-charts-2, .of-doc-inference { grid-template-columns: minmax(0, 1fr); } }
