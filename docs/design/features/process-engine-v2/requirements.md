@@ -19,7 +19,7 @@ it is violated. Test files are under `tests/` (Python) and `frontend/src/test/` 
 | PE-05 | WHEN the target P80 is reachable within installed power, THE grinding solver SHALL return a steady state whose overflow P80 and circulating load match the target and design values within 0.5%. | `tests/test_grinding.py::test_target_and_circulating_load_met` |
 | PE-06 | THE closed grinding circuit SHALL deliver all new-feed solids of each mineral to the overflow at steady state. | `tests/test_grinding.py::test_overflow_equals_new_feed_by_mineral` |
 | PE-07 | IF the required mill power exceeds the installed power, THEN THE solver SHALL run at installed power, report `power_limited = true` and return the coarser achieved P80. | `tests/test_grinding.py::test_power_limited_mode` |
-| PE-08 | WHERE the Moly-Cop default breakage parameters are used, THE closed-circuit solver SHALL reproduce the BallSim_Direct base case net specific energy within 20% at its feed, F80, P80 and circulating load. | `tests/test_oracles.py::test_molycop_base_case` |
+| PE-08 | WHERE the Moly-Cop default breakage parameters are used, THE closed-circuit solver SHALL reproduce the BallSim_Direct base-case specific energy (8.56 kWh/t) within 20% at its feed, F80, P80 and circulating load. | `tests/test_oracles.py::test_molycop_base_case` |
 | PE-09 | THE energy report SHALL give the Bond operating work index `E / (10/sqrt(P80) - 10/sqrt(F80))` and SHALL reproduce the GMG worked example. | `tests/test_energy.py::test_gmg_worked_example` |
 | PE-10 | THE Rittinger and Kick records SHALL be calibrated to Bond at the declared reference reduction, SHALL diverge from Bond away from it, and SHALL NOT enter the reported specific energy. | `tests/test_energy.py::test_laws_calibrated_and_not_summed` |
 
@@ -39,17 +39,18 @@ it is violated. Test files are under `tests/` (Python) and `frontend/src/test/` 
 | PE-15 | THE degree of entrainment SHALL follow Savassi et al. (1998) and SHALL equal 0.2 at the entrainment parameter when the drainage parameter is 1. | `tests/test_flotation.py::test_savassi_entrainment` |
 | PE-16 | THE cleaner tails SHALL recycle to the rougher feed and the recycle SHALL converge to a residual below 1e-10 t/h. | `tests/test_flotation.py::test_cleaner_recycle_converges` |
 | PE-17 | THE stage recoveries SHALL be computed on each stage's own feed, and `flotation_recovery_pct` SHALL differ from overall recovery whenever an upstream loss exists. | `tests/test_flotation.py::test_stage_and_overall_recovery_are_distinct` |
-| PE-18 | THE gold circuit SHALL treat a bleed of the cyclone underflow with a gravity unit; gold circulating load SHALL exceed ore circulating load; gravity recovery SHALL rise with bleed with diminishing returns. | `tests/test_gravity.py::test_bleed_response_and_gold_circulating_load`; `tests/test_oracles.py::test_laplante_trend` |
-| PE-19 | THE magnetite circuit SHALL recover more than 90% of liberated magnetite, and concentrate Fe grade SHALL rise when the target P80 falls from 75 to 45 um. | `tests/test_magnetic.py::test_grade_rises_with_finer_grind`; `tests/test_oracles.py::test_zandrivierspoort_trend` |
-| PE-20 | THE phosphate circuit SHALL send desliming overflow to tailings, report the P2O5 lost to slimes, and a coarser desliming cut SHALL raise that loss. | `tests/test_deslime.py::test_deslime_cut_tradeoff` |
+| PE-18 | THE gold circuit SHALL treat a bleed of the cyclone underflow with a gravity unit; gold circulating load SHALL exceed ore circulating load; gravity recovery SHALL rise with bleed with diminishing returns. | `tests/test_separation.py::test_bleed_response_and_gold_circulating_load`; `tests/test_oracles.py::test_laplante_trend` |
+| PE-19 | THE magnetite circuit SHALL recover more than 90% of liberated magnetite, and concentrate Fe grade SHALL rise when the target P80 falls from 75 to 45 um. | `tests/test_separation.py::test_grade_rises_with_finer_grind`; `tests/test_oracles.py::test_zandrivierspoort_trend` |
+| PE-20 | THE phosphate circuit SHALL send desliming overflow to tailings, report the P2O5 lost to slimes, and a coarser desliming cut SHALL raise that loss. | `tests/test_separation.py::test_deslime_cut_tradeoff` |
 
 ## Physical directions
 
 | ID | Requirement | Named gate |
 | --- | --- | --- |
 | PE-21 | WHEN collector dose rises, THE primary recovery SHALL NOT fall, and beyond the valuable-mineral saturation dose THE final concentrate grade SHALL fall, in every flotation case. | `tests/test_directions.py::test_collector_trades_grade_for_recovery` |
-| PE-22 | WHEN ore hardness rises at fixed target and throughput, THE required specific energy SHALL rise; WHILE power-limited, THE achieved P80 SHALL coarsen and recovery SHALL NOT rise. | `tests/test_directions.py::test_hardness_effects` |
-| PE-23 | WHEN throughput rises, THE flotation residence time SHALL fall and recovery SHALL NOT rise. | `tests/test_directions.py::test_throughput_effects` |
+| PE-22 | WHEN ore hardness rises at fixed target and throughput, THE required specific energy SHALL rise; WHILE power-limited, THE achieved P80 SHALL coarsen, and WHERE the circuit has no slimes rejection, recovery SHALL NOT rise. | `tests/test_directions.py::test_hardness_effects` |
+| PE-22b | WHERE the circuit rejects slimes, WHEN the product coarsens, THE slimes loss SHALL fall (the reason not to overgrind a desliming feed). | `tests/test_directions.py::test_desliming_coarser_product_reduces_slimes_loss` |
+| PE-23 | WHEN throughput rises, THE flotation residence time SHALL fall and, WHERE the circuit has no slimes rejection, recovery SHALL NOT rise. | `tests/test_directions.py::test_throughput_effects` |
 | PE-24 | WHEN gas velocity rises, THE rougher water recovery and entrained gangue SHALL rise. | `tests/test_directions.py::test_aeration_raises_entrainment` |
 | PE-25 | WHEN the target P80 becomes finer, THE required energy SHALL rise and the valuable liberation SHALL rise. | `tests/test_directions.py::test_grind_energy_and_liberation` |
 
