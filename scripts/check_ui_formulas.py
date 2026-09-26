@@ -14,8 +14,7 @@ interface draws what the engine's trace says. Three rules, checked on the interf
    named ``compute``, and ``compute`` is referenced only as a click handler, never from an effect or a
    slider's change handler.
 
-Files of the pre-0.05 interface that the content rewrite removes are listed in LEGACY and skipped;
-the list must be empty for release. Standard library only; exit 1 on any finding.
+Every interface file is checked; nothing is exempt. Standard library only; exit 1 on any finding.
 """
 from __future__ import annotations
 
@@ -26,10 +25,6 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "frontend" / "src"
 ENGINE = SRC / "engine"
-LEGACY = {
-    "live/engine.ts", "components/Charts.tsx", "components/MethodFigures.tsx", "components/EvidenceFigure.tsx",
-    "content/Research.tsx", "api/artifacts.ts", "lib/locale.ts", "lib/contract.types.ts",
-}
 ALLOWED_ENGINE = {"client", "contract", "model", "trace", "sweep", "circuit", "constants", "ore"}
 FORMULA = re.compile(r"Math\.exp\(|Math\.pow\(|\*\*")
 ENGINE_IMPORT = re.compile(r"""from\s+['"]((?:\.\./)+|\./)engine(?:/([\w-]+))?['"]""")
@@ -40,8 +35,6 @@ def interface_files() -> list[Path]:
     out = []
     for path in sorted(SRC.rglob("*")):
         if path.suffix not in {".ts", ".tsx"} or ENGINE in path.parents or "test" in path.relative_to(SRC).parts:
-            continue
-        if path.relative_to(SRC).as_posix() in LEGACY:
             continue
         out.append(path)
     return out
@@ -92,14 +85,12 @@ def check(path: Path) -> list[str]:
 
 def main() -> int:
     findings = [f for path in interface_files() for f in check(path)]
-    legacy_present = sorted(p for p in LEGACY if (SRC / p).exists())
     if findings:
         print("UI FORMULA CHECK FAILED:")
         for finding in findings:
             print("  " + finding)
         return 1
-    note = f"; {len(legacy_present)} legacy file(s) pending removal: {', '.join(legacy_present)}" if legacy_present else ""
-    print(f"check_ui_formulas: OK, {len(interface_files())} interface files{note}")
+    print(f"check_ui_formulas: OK, {len(interface_files())} interface files")
     return 0
 
 

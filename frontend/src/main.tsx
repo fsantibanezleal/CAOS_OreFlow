@@ -9,8 +9,6 @@ import {
   type ShellConfig,
 } from "@fasl-work/caos-app-shell";
 import "@fasl-work/caos-app-shell/styles.css";
-import "./oreflow.css";
-import "./rebuild.css";
 import "./workbench/workbench.css";
 import "./content/content.css";
 import { ARCHITECTURE } from "./content/architecture";
@@ -65,7 +63,7 @@ function Boundary({ children }: { children: React.ReactNode }) {
   return (
     <React.Suspense
       fallback={
-        <div className="of-page" role="status">
+        <div className="page-body" role="status">
           Loading / Cargando...
         </div>
       }

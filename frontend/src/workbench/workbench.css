@@ -5,6 +5,9 @@
  * known defect or ADR they answer.
  */
 
+/* the shell resets buttons; inputs and selects inherit the interface font too */
+input, select, textarea { font: inherit; }
+
 /* ---- the App route: rail | readout, views, instrument ---- */
 .page-body.wide.of-bench {
   display: grid;
