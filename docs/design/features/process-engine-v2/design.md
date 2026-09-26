@@ -129,8 +129,11 @@ grinding.
   grind target alone for magnetite); maximize recovered primary element subject to final grade at or
   above the case specification, required power at or below installed power and process water per
   tonne at or below the plant's capacity; the optimum is re-simulated to report its slacks.
-- Uncertainty: 128 seeded samples over work index, head grade, liberation size and floatability;
-  quantiles and constraint probabilities; Saltelli-Sobol indices for nominal variants (SALib).
+- Uncertainty: 128 seeded scrambled Latin-hypercube samples over work index, head grade,
+  liberation size and floatability (authored uniform spreads); P05, P50, P95 of recovery, grade,
+  grinding energy and recovered metal, and the probabilities of meeting the grade, power and water
+  constraints; Saltelli-Sobol first and total indices with bootstrap intervals for nominal
+  variants (SALib, N = 256).
 - Learning: see requirements PE-29; features are physical properties and controls, never the case
   identity, so leave-one-case-out measures transfer.
 

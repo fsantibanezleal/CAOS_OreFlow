@@ -426,6 +426,50 @@
       "value": 0.001,
       "unit": "1 (relative to each constraint limit)",
       "source": "Design: a constraint whose relative slack at the optimum is below this is reported as active."
+    },
+    "uncertainty.half_widths": {
+      "value": {
+        "work_index": 0.2,
+        "head_grade": 0.2,
+        "liberation_size": 0.25,
+        "floatability": 0.25
+      },
+      "unit": "fraction of the variant value (uniform on 1 - h to 1 + h)",
+      "source": "Authored: ore-property spreads for the uncertainty and sensitivity records; not fitted to a deposit, stated as such on the Methodology page."
+    },
+    "uncertainty.samples": {
+      "value": 128,
+      "unit": "1",
+      "source": "Design: Monte Carlo sample size of the uncertainty record (PE-28)."
+    },
+    "uncertainty.seed": {
+      "value": 20260926,
+      "unit": "1",
+      "source": "Design: seed of the scrambled Latin hypercube, so every record is reproducible."
+    },
+    "uncertainty.quantiles": {
+      "value": [
+        0.05,
+        0.5,
+        0.95
+      ],
+      "unit": "probability",
+      "source": "Design: P05, P50 and P95 of each output (PE-28)."
+    },
+    "sensitivity.base_samples": {
+      "value": 256,
+      "unit": "1",
+      "source": "Design: Saltelli base sample N (a power of two); first- and total-order indices need N (D + 2) circuit evaluations."
+    },
+    "sensitivity.resamples": {
+      "value": 200,
+      "unit": "1",
+      "source": "Design: bootstrap resamples for the 95% confidence intervals of the Sobol indices (SALib)."
+    },
+    "sensitivity.confidence": {
+      "value": 0.95,
+      "unit": "probability",
+      "source": "Design: confidence level of the Sobol index intervals."
     }
   }
 }
