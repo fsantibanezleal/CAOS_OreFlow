@@ -238,11 +238,13 @@ export function Heatmap({ title, xs, ys, z, xLabel, yLabel, zLabel, summary, con
         <span className="of-heatmap-zlabel">{zLabel}</span>
       </div>
       <figcaption className="of-sr-only">{summary}</figcaption>
-      <table className="of-sr-only">
-        <caption>{summary}</caption>
-        <thead><tr><th scope="col">{`${yLabel} / ${xLabel}`}</th>{xs.map((x, i) => <th scope="col" key={i}>{format(x, 'x')}</th>)}</tr></thead>
-        <tbody>{ys.map((y, j) => <tr key={j}><th scope="row">{format(y, 'y')}</th>{xs.map((_, i) => <td key={i}>{format(z[j]?.[i] ?? null, 'z')}</td>)}</tr>)}</tbody>
-      </table>
+      <div className="of-sr-only">
+        <table>
+          <caption>{summary}</caption>
+          <thead><tr><th scope="col">{`${yLabel} / ${xLabel}`}</th>{xs.map((x, i) => <th scope="col" key={i}>{format(x, 'x')}</th>)}</tr></thead>
+          <tbody>{ys.map((y, j) => <tr key={j}><th scope="row">{format(y, 'y')}</th>{xs.map((_, i) => <td key={i}>{format(z[j]?.[i] ?? null, 'z')}</td>)}</tr>)}</tbody>
+        </table>
+      </div>
     </figure>
   );
 }

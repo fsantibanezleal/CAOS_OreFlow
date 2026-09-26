@@ -216,6 +216,12 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
       for (let k = 0; k < count; k += 1) {
         if (await subTabs.count()) await subTabs.nth(k).click();
         await page.waitForFunction(() => !document.querySelector('.of-doc-state[role=status]'), null, { timeout: 60000 });
+        // a page that runs a network in the browser on request is exercised: the result must be drawn
+        const run = page.locator('.page-body .tabpanel:not([hidden]) .of-doc-run');
+        if (await run.count() && await run.first().isVisible()) {
+          await run.first().click();
+          await page.waitForSelector('.of-doc-inference canvas', { timeout: 60000 });
+        }
         await page.waitForTimeout(200);
         const outside = await page.evaluate(OVERFLOW_PROBE);
         const figures = await page.evaluate(FIGURE_PROBE);

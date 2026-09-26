@@ -56,7 +56,12 @@ export type GeometRow = { source_row: number; hole_id: string; x: number; y: num
 export type GeometProtocol = {
   folds: Array<{ id: number; train_rows: number; test_rows: number; train_holes: number; test_holes: number; test_source_rows: number[] }>;
   scores: Record<string, { mae_pp: number; rmse_pp: number; bias_pp: number; r2: number }>;
-  bootstrap?: Record<string, unknown>;
+  /** Paired bootstrap over complete holes of the out-of-fold predictions. */
+  paired_bootstrap: {
+    samples: number; seed: number; unit: string; holes: number;
+    rmse_interval_95_pp: Record<string, [number, number]>;
+    rmse_differences: Record<string, { mean_pp: number; interval_95_pp: [number, number]; share_first_better: number; excludes_zero: boolean }>;
+  };
   rows: GeometRow[];
 };
 export type GeometBenchmark = {

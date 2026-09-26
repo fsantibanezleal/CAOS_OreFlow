@@ -326,15 +326,19 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       )}
       <div className="of-plot-area" ref={hostRef} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
       {zoomed && <button type="button" className="of-plot-reset" onClick={reset}>{t(UI.resetZoom, lang)}</button>}
-      <table className="of-sr-only">
-        <caption>{summary}</caption>
-        <thead><tr><th scope="col">{xLabel}</th>{series.map(s => <th scope="col" key={s.label}>{s.label}</th>)}</tr></thead>
-        <tbody>
-          {xs.map((x, i) => (
-            <tr key={i}><th scope="row">{fmt(x, 'x')}</th>{series.map((s, k) => <td key={s.label}>{fmt((data[k + 1] as (number | null)[])[i] ?? null, 'y')}</td>)}</tr>
-          ))}
-        </tbody>
-      </table>
+      {/* a table ignores the 1 px width of the hidden class and would widen the page's scroll area, so a
+          block holds it */}
+      <div className="of-sr-only">
+        <table>
+          <caption>{summary}</caption>
+          <thead><tr><th scope="col">{xLabel}</th>{series.map(s => <th scope="col" key={s.label}>{s.label}</th>)}</tr></thead>
+          <tbody>
+            {xs.map((x, i) => (
+              <tr key={i}><th scope="row">{fmt(x, 'x')}</th>{series.map((s, k) => <td key={s.label}>{fmt((data[k + 1] as (number | null)[])[i] ?? null, 'y')}</td>)}</tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </figure>
   );
 }

@@ -52,3 +52,16 @@
 .of-doc-table td.of-up { color: var(--color-good); }
 .of-doc-table td.of-down { color: var(--color-warn); }
 .of-doc-table tr.of-doc-group > * { border-top: 1px solid var(--color-fg-faint); }
+
+/* controls in a row, two charts side by side, the in-browser inference panel */
+.of-doc-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; }
+.of-doc-charts-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; min-width: 0; }
+.of-doc-chart-narrow { height: 300px; }
+.of-topic-side .of-doc-chart { height: 300px; }
+.of-doc-inference { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; gap: 1.2rem; }
+.of-doc-inputs { display: grid; gap: 0.7rem; }
+.of-doc-slider { display: grid; gap: 0.25rem; }
+.of-doc-slider input { width: 100%; }
+.of-doc-run { justify-self: start; font: inherit; font-weight: 600; padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent); cursor: pointer; }
+.of-doc-run:disabled { opacity: 0.6; cursor: progress; }
+@media (max-width: 1000px) { .of-doc-charts-2, .of-doc-inference { grid-template-columns: minmax(0, 1fr); } }
