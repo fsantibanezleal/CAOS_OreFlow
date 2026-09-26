@@ -438,8 +438,8 @@ const RELEASE: Topic = {
       es: 'Una versión va de una rama de tarea a develop y a main. El sitio se compila dos veces desde las mismas fuentes: GitHub Pages bajo la ruta del proyecto, con un archivo de ruta para cada página y un respaldo para enlaces profundos, y el servicio en un VPS tras nginx y TLS en oreflow.ml.fasl-work.com. Una versión se verifica desde fuera: la ruta de salud, las páginas, el catálogo, el benchmark y una simulación validada.' },
   ],
   equations: [
-    { tex: r`A_{inst} \ge 0.5\,A_{view},\qquad A_{stage} \ge 0.8\,A_{view}`, caption: { en: 'The instrument\'s share of the viewport on the workbench, and the stage\'s on the focus route.', es: 'La fracción de la pantalla del instrumento en el laboratorio, y la del escenario en la ruta de foco.' } },
-    { tex: r`x_{right}(e) \le W\qquad \forall\, e`, caption: { en: 'No element\'s box ends past the viewport width W, unless a scroll area inside the page owns it.', es: 'Ninguna caja de elemento termina más allá del ancho W de la pantalla, salvo que la contenga un área con desplazamiento propio.' } },
+    { tex: r`A_I \ge 0.5\,A_V,\qquad A_S \ge 0.8\,A_V`, caption: { en: 'The share of the viewport V taken by the instrument I on the workbench and by the stage S on the focus route.', es: 'La fracción de la pantalla V que ocupa el instrumento I en el laboratorio y el escenario S en la ruta de foco.' } },
+    { tex: r`x^{+}(e) \le W\qquad \forall\, e`, caption: { en: 'No element\'s right edge x+ passes the viewport width W, unless a scroll area inside the page owns it.', es: 'El borde derecho x+ de ningún elemento pasa el ancho W de la pantalla, salvo que lo contenga un área con desplazamiento propio.' } },
   ],
   table: {
     head: [{ en: 'What is held', es: 'Qué se sostiene' }, { en: 'How', es: 'Cómo' }, { en: 'Where it runs', es: 'Dónde corre' }],

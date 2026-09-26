@@ -273,7 +273,7 @@ const WHAT: Topic = {
   equations: [
     { tex: r`R = 100\,\frac{C\,c}{F\,f}`, caption: { en: 'Recovery of the primary payable: concentrate flow C at grade c over feed flow F at head grade f.', es: 'Recuperación del pagable principal: flujo de concentrado C con ley c sobre el flujo de alimentación F con ley de cabeza f.' } },
     { tex: r`c_S = \frac{\sum_k w_{S,k}\,M_k}{\sum_k M_k}`, caption: { en: 'Grade of species S in a stream, from the flow M of each mineral k and its content w of S; no grade is stored.', es: 'Ley de la especie S en una corriente, desde el flujo M de cada mineral k y su contenido w de S; ninguna ley se guarda.' } },
-    { tex: r`E = E_{crush} + \frac{P_{mill}}{F},\qquad \omega = \frac{W_{fresh}}{F}`, caption: { en: 'Specific energy of crushing and grinding (kWh/t) and water intensity (m3 of fresh water per tonne of ore).', es: 'Energía específica de chancado y molienda (kWh/t) e intensidad de agua (m3 de agua fresca por tonelada de mineral).' } },
+    { tex: r`E = E_c + \frac{P_m}{F} + E_r,\qquad \omega = \frac{W}{F}`, caption: { en: 'Specific energy (kWh per tonne of ore): crushing E_c, grinding at mill power P_m and, where the circuit has one, regrind E_r; and water intensity: fresh water W per tonne of ore (m3/t).', es: 'Energía específica (kWh por tonelada de mineral): chancado E_c, molienda con potencia del molino P_m y, donde el circuito la tiene, remolienda E_r; e intensidad de agua: agua fresca W por tonelada de mineral (m3/t).' } },
   ],
   limits: [
     { en: 'The ores and plants are authored scenarios inside published ranges, not calibrated plants.', es: 'Los minerales y las plantas son escenarios de autor dentro de rangos publicados, no plantas calibradas.' },

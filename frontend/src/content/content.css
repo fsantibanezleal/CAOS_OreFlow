@@ -40,3 +40,15 @@
 .of-doc-table td { white-space: nowrap; }
 .of-doc-table td.of-doc-wrap { white-space: normal; min-width: 14rem; }
 .of-doc-state { padding: 0.8rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-fg-subtle); }
+
+/* an interactive panel on a content page: a control, a sized chart, its cursor reading, then its table */
+.of-doc-panel { display: grid; gap: 0.6rem; min-width: 0; }
+.of-doc-control { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.86rem; color: var(--color-fg-subtle); }
+.of-doc-control select { font: inherit; color: var(--color-fg); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; }
+.of-doc-chart { height: 360px; min-width: 0; }
+.of-doc-chart .of-plot { height: 100%; }
+.of-doc-reading { margin: 0; min-height: 1.4em; font-size: 0.84rem; color: var(--color-fg-subtle); font-variant-numeric: tabular-nums; }
+.of-doc-scroll { overflow-x: auto; min-width: 0; }
+.of-doc-table td.of-up { color: var(--color-good); }
+.of-doc-table td.of-down { color: var(--color-warn); }
+.of-doc-table tr.of-doc-group > * { border-top: 1px solid var(--color-fg-faint); }

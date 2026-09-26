@@ -98,6 +98,8 @@ const FIGURE_PROBE = () => {
 async function measure(page, stageSelector) {
   const outside = await page.evaluate(OVERFLOW_PROBE);
   const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
+  // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
+  const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
     const de = document.documentElement;
     const area = el => { if (!el) return 0; const r = el.getBoundingClientRect(); return r.width * r.height; };
@@ -116,7 +118,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, overX: m.overX || outside.length > 0 || clipped.length > 0 };
+  return { ...m, outside, clipped, cut, fits: outside.length === 0 && clipped.length === 0 && cut === 0 };
 }
 
 async function settleCharts(page, minimum = 1) {
@@ -150,7 +152,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         if (k === 0) await page.waitForSelector('.of-context .katex', { timeout: 60000 });
         else await settleCharts(page, 2);
         const m = await measure(page);
-        const ok = !m.overX && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+        const ok = !m.overX && m.fits && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
         record(`${tag} case/${name}`, ok, m);
         await page.screenshot({ path: join(OUT, `case-${k + 1}-${tag}.png`) });
       }
@@ -170,7 +172,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           await settleCharts(page, 1);
         }
         const m = await measure(page);
-        const ok = !m.overX && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+        const ok = !m.overX && m.fits && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
         record(`${tag} methods/${name}`, ok, m);
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }
@@ -178,7 +180,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     }
     await settleCharts(page, 1);
     const m = await measure(page);
-    const ok = !m.overX && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+    const ok = !m.overX && m.fits && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
     record(`${tag} ${view}`, ok, m);
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
@@ -191,7 +193,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForFunction(() => document.querySelectorAll('.caos-focus-stage canvas, .caos-focus-stage svg.of-flowmap').length > 0, null, { timeout: 60000 });
   await page.waitForTimeout(300);
   const focus = await measure(page, '.caos-focus-stage');
-  record(`${tag} focus`, focus.stage >= 0.8 && focus.largestViz >= 0.8 && !focus.overX && !focus.overY && focus.lang === lang, focus);
+  record(`${tag} focus`, focus.stage >= 0.8 && focus.largestViz >= 0.8 && !focus.overX && focus.fits && !focus.overY && focus.lang === lang, focus);
   await page.screenshot({ path: join(OUT, `focus-${tag}.png`) });
   await page.locator('.caos-focus-actions button').last().click();
   await page.waitForSelector('.of-bench .of-readout-item strong', { timeout: 60000 });
