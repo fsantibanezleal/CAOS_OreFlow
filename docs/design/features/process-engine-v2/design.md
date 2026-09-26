@@ -149,16 +149,126 @@ grinding.
 - Contract 2: case artifact with the ore and plant definitions (everything the engine needs), six
   variants each with operating point, metrics, streams, curves, method records and flags.
 
+## 11a. Pipeline
+
+`data-pipeline/run.py [--output DIR] [--models DIR] [--workers N]` bakes every case and runs the stages in
+order:
+
+1. **contract**: export `operating_contract.json` and `contract_probes.json`.
+2. **cases**, in parallel over cases (every record is seeded, so the result does not depend on the
+   worker count): per variant the trace (point, metrics, streams, topology, curves, kinetics,
+   balance, flags), the optimization record and the uncertainty record; for the nominal variant also
+   the Sobol record. `data/derived/cases/<id>.json`, schema `oreflow.case/v2`, embeds the ore and
+   plant definitions, the bilingual texts, the KPI ranges and the source notes.
+3. **learning**: the learned lane (CUDA when available) writes `data/derived/learning.json` and
+   `models/process_surrogate.onnx`, `models/process_guard.onnx`, `models/process_surrogate.json`.
+4. **benchmark**: `data/derived/benchmark.json` assembled from this run's case records, the
+   published-example oracles recomputed by the engine, the learning summary and the two measured
+   lanes (HZDR particles, GeoMet locked-cycle tests with paired bootstrap intervals over holes).
+5. **manifests**: one per case (artifact path, bytes, SHA-256, schema, engine version, contract
+   digest) and `index.json`, built from this run's results only, never from files already on disk,
+   so a partial bake cannot ship as complete.
+6. **validation**: the checks of `scripts/check_artifacts.py` run in process and again in CI:
+   coverage (12 cases, 72 variants), byte and hash integrity, a balance recheck of every unit from
+   the stored stream records along the stored topology, the contract digest, the kinetic, optimizer,
+   uncertainty and learning record schemas. A failing check fails the bake.
+
 ## 12. Browser
 
 - `frontend/src/engine/` mirrors the Python modules; `frontend/src/engine/worker.ts` runs sweeps.
 - Controls, ranges and help come from the contract JSON; the validator (a port of `validate()`)
   runs before the engine and rejects the same states with the same codes as the API, showing the
   contract's message in the interface language with locale-formatted limits.
-- Views: Investigate, Circuit, Response, Methods, Compare, Controls (phone). Numbers through one
-  locale formatter; document language through the shell override.
+
+### 12.1 The App route (workbench)
+
+The layout follows ADR-0071 and the shell (`@fasl-work/caos-app-shell`), with no hand-rolled chrome.
+
+- **Rail (left, sized, never scrolls).** The case as a shell `CaseSelector` in `select` mode (one
+  optgroup per category), the variant as a select, the case question, and the contract controls of
+  the case's family split into three sections shown one at a time: *Feed and grind* (throughput,
+  work index, head grade, crusher setting), *Classification* (target P80, circulating load, overflow
+  water), *Separation* (collector, gas velocity, rougher cells, gravity bleed or desliming cut, as
+  the family has them). Each control shows its unit and help from the contract; a changed control
+  marks the state as modified from the variant, with a reset. The entry to the focus view sits here
+  (ADR-0070 rule 8).
+- **Readout row (top of the main area).** Recovery, concentrate grade, specific energy, P80, mill
+  power and the active flags, formatted in the interface language; it is one row and never wraps.
+- **Views (one tab row, six views, ADR-0071 rules 4 and 5).**
+  1. *Circuit*: the flowsheet drawn from the trace topology, every stream with its solids and water
+     flow and its payable grade, the recycle edges (cyclone underflow to the mill, cleaner tails to
+     the rougher, recleaner tails to the cleaner, the gravity bleed) drawn and labelled (PE-37);
+     selecting a unit shows its input and output records and its closure.
+  2. *Grinding*: cumulative size distributions of the circuit streams, the cyclone partition with the
+     cut and the bypass marked, the liberation curve with the liberation size and the target P80
+     marked, the host-limited composite scale where it departs from 1.
+  3. *Separation*: flotation recovery by size for the payable and the host gangue with its entrained
+     share, the grade-recovery profile down the rougher bank, and the kinetic record (the batch curve,
+     the five fits, their bank projections against the exact bank); for magnetite the LIMS capture
+     curves; for phosphate the desliming partition and the slimes loss.
+  4. *Response*: a one-input sweep (any metric against any contract input over its bounds) and a
+     two-input decision surface (a viridis heatmap with the grade-specification and installed-power
+     boundaries drawn), both computed in the Web Worker on an explicit request (PE-38), with the baked
+     optimum of the variant marked.
+  5. *Methods*: the method records of the variant, one at a time as the shell's `SubTabs`: the
+     optimizer (where every start ended against the base and the optimum; decisions, outcomes,
+     slacks and active constraints), the uncertainty record (the histogram of one output with P05,
+     P50, P95 and the base marked, that output against one uncertain factor, the quantiles of every
+     output and the constraint probabilities), the Sobol indices baked at the nominal state (paired
+     S1 and ST bars with bootstrap half widths), and the learned lane: the ONNX surrogate and guard
+     run in the browser (PE-39) for the current state beside the engine, and on request a sweep of
+     one input by the engine in the worker with the surrogate asked for the same states and the
+     guard's error against its threshold; the protocol results of the bake (interpolation R²,
+     leave-one-case-out median R² and RMSE, guard rates) say how far to trust it.
+  6. *Compare*: the chosen metric for the six variants of the case as bars against the nominal,
+     with a table of every variant's change and headline metrics, and the twelve cases at their
+     nominal states on one map of recovery against total specific energy (from `benchmark.json`,
+     whose variant metrics the artifact checks hold equal to the case artifacts).
+- **Charts.** Every analytical chart is a uPlot host that follows the shell theme tokens, sizes itself
+  from its box, draws what the engine computed as labelled marks, reports the cursor into the readout
+  row, supports brush zoom with a reset, and carries a text summary and a data table for screen
+  readers (the interactive-visualization rubric; shell defect 3). Heatmaps are canvas images with a
+  perceptually uniform colour map.
+- **Numbers.** One formatter, `lib/format.ts`, formats every number with `Intl.NumberFormat` in the
+  interface language (decimal comma in Spanish), at a precision chosen per unit.
+- **Language.** A `DocumentLanguage` component inside `AppShell` writes the interface language to
+  `<html lang>` (shell defect 4); the focus route sets it itself, since it renders outside the shell.
+
+### 12.2 The focus route
+
+`/focus/<case>` renders the shell's `FocusShell` (ADR-0070): the stage holds one instrument, chosen
+in the rail: the flowsheet, any single chart of the grinding or separation views (the views build
+their charts with `grindingCharts` and `separationCharts`, so the focus route reuses them), or the
+response sweep. The instrument's canvas is full-bleed; an `OverlayInset` context gives the plot room
+under the shell's label, HUD and actions, so nothing drawn sits under an overlay. The rail holds the
+variant and the controls with a basic set (throughput, target P80 and the separation lever the family
+has) and an advanced set (every contract input); the headline metrics are the HUD, and the stage is
+labelled in place with the state the circuit is in (power-limited, grade below the specification,
+water above capacity, or within every constraint, plus any other engine flag). A chart's cursor
+reading shows in a corner of the stage. The state travels in the URL (with the chosen instrument), so
+entering and leaving keeps the case, the variant, the view and every changed control; the entry and
+the return are visible controls, verified by clicking. The shell's rail column (at least 300 px)
+leaves the stage 76.5% of a 1280x800 viewport; the product narrows its lower bound to 248 px, which
+keeps the stage above 80% at every gated viewport (recorded as a shell known defect).
+
+### 12.3 Gates
+
+`locale.test.ts` (PE-35: document language and number format), `trace-curves.test.ts` (PE-36: every
+value the grinding and separation charts plot is a trace number, copied, reversed or in a display
+unit; checked on every baked variant, and shown to fail when a chart invents a value) and
+`scripts/check_ui_formulas.py` (PE-36 and PE-38: no exponential, power or `**` outside the engine
+unless the line says why it is not an engine quantity, interface files import only the engine's
+interface, and a sweep starts only from a `compute` function referenced only as a click handler),
+`worker-sweeps.test.ts` (PE-38: the worker streams cells and stops a sweep between cells on a newer
+sweep or a cancel), `surrogate.test.ts` (PE-39), and the browser gate at 1280x800,
+1600x900 and 2560x1440 in both themes and both languages: no document scroll on the App route, the
+rail shows its own controls, one tab row, the instrument at least 50% of the viewport (80% on the
+focus route), `<html lang>` equal to the interface language, the focus round trip by clicking, and a
+screenshot of every view (PE-37).
 
 ## 13. Performance budget
 
 One circuit evaluation: under 50 ms in Python, under 30 ms in the browser. The full bake of 72
-variants with uncertainty, optimization, Sobol and the design matrix: about one hour locally.
+variants with uncertainty, optimization, Sobol and the design matrix: about 35 minutes locally
+(measured 2026-09-26 on 12 case workers with CUDA: cases 297 s, learning 1789 s, every other stage
+under a second).

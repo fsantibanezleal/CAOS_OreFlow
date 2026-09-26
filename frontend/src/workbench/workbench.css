@@ -1,0 +1,333 @@
+/*
+ * The workbench and focus routes (design §12). Every colour is a shell token, so both themes follow the
+ * shell; every container is sized by the grid or flex it sits in (ADR-0071: no document scroll, the
+ * rail fits, one tab row, the instrument takes the surface). Overrides of shell rules name the shell
+ * known defect or ADR they answer.
+ */
+
+/* ---- the App route: rail | readout, views, instrument ---- */
+.page-body.wide.of-bench {
+  display: grid;
+  grid-template-columns: clamp(250px, 20vw, 320px) minmax(0, 1fr);
+  gap: 12px;
+  min-width: 0;
+  min-height: 0;
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+.of-bench > .of-hint, .of-bench > .of-failure { grid-column: 1 / -1; }
+
+.of-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-surface);
+}
+.of-rail .cs-select { max-width: none; }
+.of-rail-question { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--color-fg-subtle); }
+.of-rail-question strong { color: var(--color-fg); font-weight: 600; }
+.of-rail-sections { display: flex; gap: 4px; }
+.of-rail-sections button {
+  flex: 1 1 0;
+  min-width: 0;
+  padding: 5px 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--color-fg-subtle);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.15;
+  white-space: normal;
+  cursor: pointer;
+}
+.of-rail-sections button:hover { color: var(--color-fg); }
+.of-rail-sections button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
+.of-rail-sections button.invalid { border-color: var(--color-bad); }
+.of-rail-controls { display: grid; gap: 10px; min-height: 0; }
+
+.of-knob { display: grid; gap: 2px; }
+.of-knob label { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
+.of-knob label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
+.of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
+.of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
+.of-knob-base { font-size: 0.68rem; color: var(--color-fg-faint); }
+.of-knob-error, .of-rail > .of-knob-error { margin: 0; font-size: 0.72rem; line-height: 1.35; color: var(--color-bad); }
+
+.of-focus-open {
+  margin-top: auto;
+  padding: 7px 10px;
+  border: 1px solid color-mix(in oklab, var(--color-accent) 45%, transparent);
+  border-radius: 6px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+  font-weight: 650;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.of-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+
+.of-readout {
+  flex: none;
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  min-width: 0;
+  padding: 6px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  font-size: 0.8rem;
+}
+.of-readout-item { display: inline-flex; align-items: baseline; gap: 6px; flex: none; }
+.of-readout-label { color: var(--color-fg-subtle); font-size: 0.72rem; }
+.of-readout-item strong { font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-fg); }
+.of-readout-flags { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--color-good); font-size: 0.74rem; }
+.of-readout-flags.warn { color: var(--color-warn); }
+.of-readout-busy { flex: none; color: var(--color-accent); font-size: 0.72rem; }
+.of-readout-cursor { flex: 0 1 auto; max-width: 48%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg); }
+
+/* the shell's tab row keeps its look; its 1.5rem bottom margin is prose spacing, not instrument spacing */
+.of-bench .tablist.of-viewbar { flex: none; margin-bottom: 0; padding-bottom: 0.35rem; }
+.of-bench .tablist.of-viewbar .tab { padding: 0.35rem 0.85rem; font-size: 0.86rem; }
+
+.of-view-host { flex: 1 1 auto; display: flex; min-width: 0; min-height: 0; }
+.of-view { flex: 1 1 auto; min-width: 0; min-height: 0; }
+
+/* ---- view layouts ---- */
+.of-grid-2x2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.of-grid-1x2 { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; }
+.of-view-circuit { display: flex; }
+.of-view-circuit > .of-stage { flex: 1 1 auto; position: relative; padding: 0; }
+.of-view-response, .of-view-compare { display: flex; flex-direction: column; gap: 8px; }
+.of-view-methods { display: flex; flex-direction: column; }
+
+.of-stage {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  padding: 6px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+.of-view-response > .of-stage { flex: 1 1 auto; }
+.of-side, .of-panel, .of-aside {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+  overflow: auto;
+  padding: 10px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+  font-size: 0.8rem;
+}
+.of-side h3 { margin: 0; font-size: 0.95rem; }
+.of-stage-hint { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: 0.74rem; color: var(--color-fg-faint); pointer-events: none; }
+.of-unit-card {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: min(430px, 46%);
+  max-height: calc(100% - 20px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--color-surface) 94%, transparent);
+  box-shadow: 0 8px 28px color-mix(in oklab, var(--color-shadow, #000) 35%, transparent);
+  font-size: 0.8rem;
+}
+.of-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.of-unit-card-head h3 { margin: 0; font-size: 0.95rem; }
+.of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
+.of-stack { display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; min-height: 0; }
+.of-stack.of-stack-2-1 { grid-template-rows: minmax(0, 2fr) minmax(0, 1fr); }
+.of-compare-charts { flex: 1 1 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+
+.of-controls, .of-response-controls, .of-fields { display: flex; flex-wrap: nowrap; gap: 10px; align-items: end; min-width: 0; overflow-x: auto; flex: none; }
+.of-aside .of-fields { flex-wrap: wrap; overflow: visible; }
+.of-field { display: grid; gap: 3px; min-width: 0; font-size: 0.74rem; color: var(--color-fg-subtle); }
+.of-field select {
+  min-width: 0;
+  max-width: 100%;
+  padding: 5px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  color: var(--color-fg);
+  font-size: 0.84rem;
+}
+
+/* the Methods sub-tabs fill the view (shell defect 2: a hidden panel must not take layout) */
+.of-view-methods > .subtabs { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; margin: 0; }
+.of-view-methods .subtablist { flex: none; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 8px; }
+.of-view-methods .subtabpanels { flex: 1 1 auto; display: flex; min-height: 0; }
+.of-view-methods .subtabpanel { flex: 1 1 auto; display: flex; min-width: 0; min-height: 0; }
+.of-view-methods .subtabpanel[hidden] { display: none; }
+
+/* ---- instruments ---- */
+.of-plot, .of-heatmap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  margin: 0;
+  padding: 6px 6px 2px;
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-surface);
+}
+.of-stage > .of-plot, .of-stage > .of-heatmap, .of-split > .of-plot, .of-stack > .of-plot { flex: 1 1 auto; }
+.of-plot-head { flex: none; display: flex; align-items: baseline; gap: 10px; min-width: 0; padding: 0 4px 4px; }
+.of-plot-title { flex: none; font-size: 0.78rem; font-weight: 650; color: var(--color-fg); white-space: nowrap; }
+.of-legend { display: flex; flex-wrap: wrap; gap: 2px 10px; min-width: 0; }
+.of-legend button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 1px 2px;
+  border: 0;
+  background: transparent;
+  color: var(--color-fg-subtle);
+  font-size: 0.72rem;
+  line-height: 1.3;
+  cursor: pointer;
+}
+.of-legend button:hover { color: var(--color-fg); }
+.of-legend button.off { opacity: 0.45; text-decoration: line-through; }
+.of-swatch { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--swatch); }
+.of-swatch.dash { border-top-style: dashed; }
+.of-swatch.dot { width: 7px; height: 7px; border: 0; border-radius: 50%; background: var(--swatch); }
+.of-swatch.bar { width: 9px; height: 9px; border: 0; border-radius: 2px; background: var(--swatch); opacity: 0.8; }
+.of-plot-area, .of-heatmap-plot { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; border-radius: 4px; }
+.of-plot-area:focus-visible, .of-heatmap-plot:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.of-plot-reset {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  padding: 3px 8px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-surface-2);
+  color: var(--color-fg);
+  font-size: 0.72rem;
+  cursor: pointer;
+}
+.of-heatmap-scale { flex: none; display: flex; align-items: center; gap: 8px; padding: 4px 6px 2px; font-size: 0.72rem; color: var(--color-fg-subtle); font-family: var(--font-mono); }
+.of-heatmap-ramp { display: inline-block; width: 160px; height: 10px; border-radius: 3px; }
+.of-heatmap-zlabel { font-family: var(--font-sans); }
+
+.of-flowmap-host { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+.of-flowmap { display: block; position: absolute; inset: 0; }
+.of-flow-edge polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
+.of-flow-edge.recycle polyline { stroke: var(--color-warn); stroke-dasharray: 6 4; }
+.of-flow-edge.product polyline { stroke: var(--color-good); }
+.of-flow-arrow { fill: var(--color-fg-subtle); }
+.of-flow-arrow.recycle { fill: var(--color-warn); }
+.of-flow-arrow.product { fill: var(--color-good); }
+.of-flow-label { fill: var(--color-fg-subtle); font: 10.5px var(--font-mono); paint-order: stroke; stroke: var(--color-surface); stroke-width: 3px; stroke-linejoin: round; }
+.of-flow-unit { cursor: pointer; outline: none; }
+.of-flow-unit rect { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
+.of-flow-unit text { fill: var(--color-fg); font: 600 11px var(--font-sans); pointer-events: none; }
+.of-flow-unit:hover rect, .of-flow-unit:focus-visible rect { stroke: var(--color-accent); }
+.of-flow-unit.selected rect { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
+
+/* ---- tables, facts and text ---- */
+.of-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+.of-table caption { text-align: left; padding-bottom: 4px; font-size: 0.74rem; color: var(--color-fg-subtle); }
+.of-table th, .of-table td { padding: 3px 6px; border-bottom: 1px solid var(--color-border); text-align: right; white-space: nowrap; }
+.of-table th:first-child, .of-table td:first-child { text-align: left; }
+.of-table thead th { color: var(--color-fg-subtle); font-weight: 600; }
+.of-table tbody th { font-weight: 500; color: var(--color-fg); white-space: normal; }
+.of-table tr.of-table-group > * { border-top: 1px solid var(--color-fg-faint); }
+.of-table tr.is-selected > * { background: var(--color-accent-soft); }
+.of-table.of-table-wide { flex: none; }
+.of-compare-table tbody th { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-compare-charts { min-height: 55%; }
+.of-muted { color: var(--color-fg-faint); font-weight: 400; font-size: 0.72rem; }
+.of-tag { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: color-mix(in oklab, var(--color-warn) 18%, transparent); color: var(--color-warn); font-size: 0.66rem; font-weight: 600; }
+
+.of-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 14px; margin: 0; font-size: 0.78rem; }
+.of-facts > div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--color-border); }
+.of-facts dt { color: var(--color-fg-subtle); }
+.of-facts dd { margin: 0; font-family: var(--font-mono); color: var(--color-fg); white-space: nowrap; }
+.of-facts.of-grid-facts { align-content: start; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); overflow: hidden; }
+.of-facts-title { margin: 4px 0 0; font-size: 0.74rem; font-weight: 600; color: var(--color-fg-subtle); }
+
+.of-hint { margin: auto; max-width: 60ch; text-align: center; font-size: 0.86rem; color: var(--color-fg-subtle); }
+.of-note { margin: 0; font-size: 0.74rem; color: var(--color-warn); }
+.of-status-line { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--color-good); }
+.of-status-line.warn { color: var(--color-warn); }
+.of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-faint); }
+.of-progress { font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg-subtle); white-space: nowrap; }
+.of-failure { margin: 1rem; padding: 12px; border: 1px solid var(--color-bad); border-radius: 8px; color: var(--color-bad); }
+
+.of-cta, .of-run {
+  flex: none;
+  padding: 6px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: var(--color-accent);
+  color: var(--color-accent-fg);
+  font-weight: 650;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+.of-cta:disabled, .of-run:disabled { opacity: 0.5; cursor: not-allowed; }
+.of-revert { flex: none; padding: 5px 10px; border: 1px solid var(--color-border); border-radius: 6px; background: transparent; color: var(--color-fg); font-size: 0.8rem; cursor: pointer; }
+
+.of-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* ---- the focus route ---- */
+/* The shell's rail column, clamp(300px, 20vw, 340px), leaves the stage 76.5% of a 1280x800 viewport,
+   under the ADR-0070 80% floor; a narrower lower bound keeps the floor at every gated viewport
+   (80.6% at 1280x800, 81% at 1600x900, 86.7% at 2560x1440). Recorded in shell-known-defects.md. */
+@media (min-width: 861px) {
+  .caos-focus-shell { grid-template-columns: minmax(0, 1fr) clamp(248px, 19vw, 340px); }
+}
+.of-focus-body { position: absolute; inset: 0; display: flex; min-width: 0; min-height: 0; }
+.of-focus-body > .of-plot, .of-focus-body > .of-heatmap, .of-focus-body > .of-view, .of-focus-body > .of-flowmap-host { flex: 1 1 auto; border: 0; border-radius: 0; }
+.of-focus-body > .of-view > .of-stage { border: 0; }
+.of-focus-cursor {
+  position: absolute;
+  right: 12px;
+  bottom: 12px;
+  max-width: min(60ch, 70%);
+  margin: 0;
+  padding: 5px 9px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--color-surface) 88%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--color-fg);
+  pointer-events: none;
+}
+.of-focus-rail { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+
+/* ---- narrow screens: the rail stacks above the instrument, and the page body is the one scroller ---- */
+@media (max-width: 860px) {
+  .page-body.wide.of-bench { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-content: start; }
+  .of-rail { overflow: visible; }
+  .of-main { min-height: 78dvh; }
+  .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-1x2 { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
+  .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }
+}

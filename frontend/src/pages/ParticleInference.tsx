@@ -36,7 +36,7 @@ export default function ParticleInference() {
       const outputs = await session.current.run({ features: new ort.Tensor('float32', Float32Array.from(normalized), [1, 4]) });
       const logits = Array.from(outputs.logits.data as Float32Array);
       if (logits.length !== 4 || logits.some(value => !Number.isFinite(value))) throw new Error('Invalid ONNX output');
-      setPrediction(logits.map(value => 1 / (1 + Math.exp(-value))));
+      setPrediction(logits.map(value => 1 / (1 + Math.exp(-value)))); // not-engine: the particle classifier's logistic link
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
       session.current = null;

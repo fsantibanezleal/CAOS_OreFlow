@@ -11,17 +11,21 @@ import {
 import "@fasl-work/caos-app-shell/styles.css";
 import "./oreflow.css";
 import "./rebuild.css";
+import "./workbench/workbench.css";
 import { ARCHITECTURE } from "./content/architecture";
 import { CONTENT_CITATIONS } from "./content/citations";
 import Workbench from "./workbench/Workbench";
-import FocusWorkbench from "./workbench/FocusWorkbench";
-import Introduction from "./pages/Introduction";
-import Methodology from "./pages/Methodology";
-import Implementation from "./pages/Implementation";
-import Experiments from "./pages/Experiments";
-import Benchmark from "./pages/Benchmark";
 import { Pickaxe } from "lucide-react";
 import { APP_VERSION } from "./lib/version";
+import { DocumentLanguage } from "./lib/DocumentLanguage";
+
+// the workbench is the landing route; the focus route and the content pages load when first opened
+const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
+const Introduction = React.lazy(() => import("./pages/Introduction"));
+const Methodology = React.lazy(() => import("./pages/Methodology"));
+const Implementation = React.lazy(() => import("./pages/Implementation"));
+const Experiments = React.lazy(() => import("./pages/Experiments"));
+const Benchmark = React.lazy(() => import("./pages/Benchmark"));
 
 applyTheme(readTheme());
 const config: ShellConfig = {
@@ -43,7 +47,7 @@ const config: ShellConfig = {
       en: "Developed by Felipe Santibáñez-Leal",
       es: "Desarrollado por Felipe Santibáñez-Leal",
     },
-    license: { en: "Apache-2.0", es: "Apache-2.0" },
+    license: { en: "MIT", es: "MIT" },
     provenance: {
       en: "Particle reference: HZDR RODARE 336 (CC BY 4.0); authored circuits",
       es: "Referencia de partículas: HZDR RODARE 336 (CC BY 4.0); circuitos de autor",
@@ -70,8 +74,9 @@ function Boundary({ children }: { children: React.ReactNode }) {
 }
 function AppRoutes() {
   const { pathname } = useLocation();
-  if (pathname.startsWith('/focus/')) return <Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes>;
+  if (pathname.startsWith('/focus/')) return <><DocumentLanguage /><Boundary><Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes></Boundary></>;
   return <AppShell config={config}>
+        <DocumentLanguage />
         <Boundary>
           <Routes>
             <Route path="/" element={<Workbench />} />

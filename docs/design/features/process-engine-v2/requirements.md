@@ -80,5 +80,6 @@ it is violated. Test files are under `tests/` (Python) and `frontend/src/test/` 
 | --- | --- | --- |
 | PE-35 | THE document language SHALL follow the interface language on every route including `/focus`, and every number SHALL be formatted with the active locale. | `frontend/src/test/locale.test.ts`; browser gate `lang` check in both languages |
 | PE-36 | No UI component SHALL re-implement an engine formula; every plotted curve SHALL come from the trace. | `scripts/check_ui_formulas.py`; `frontend/src/test/trace-curves.test.ts` |
-| PE-37 | THE circuit view SHALL draw the recycle streams (cyclone underflow to mill, cleaner tails to rougher, gravity bleed) with tonnages from the trace. | Browser screenshot QA in both themes and languages at phone, tablet and desktop |
-| PE-38 | Sweeps SHALL run in a Web Worker on request and SHALL NOT recompute on every slider event. | `frontend/src/test/worker-sweeps.test.ts` |
+| PE-37 | THE circuit view SHALL draw the recycle streams (cyclone underflow to mill, cleaner tails to rougher, gravity bleed) with tonnages from the trace. | `frontend/src/test/flowsheet.test.ts` on every baked variant; browser screenshot QA in both themes and languages at phone, tablet and desktop |
+| PE-38 | Sweeps SHALL run in a Web Worker on request and SHALL NOT recompute on every slider event. | `frontend/src/test/worker-sweeps.test.ts`; `scripts/check_ui_formulas.py` rule 3 |
+| PE-39 | THE browser SHALL compute the learned lane's features exactly as the bake does (1e-12 relative) and SHALL reproduce the exported surrogate's predictions and the guard's verdict at every case's nominal state from the reference the bake writes into `models/process_surrogate.json`. | `frontend/src/test/surrogate.test.ts` |

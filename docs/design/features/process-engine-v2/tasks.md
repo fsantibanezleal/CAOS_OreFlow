@@ -31,7 +31,11 @@ card for any library it introduces) in the same commit before the next one start
   kinetic fits' step counts are diagnostics and are not compared. The worker test drives the real
   worker module; that sweeps start only from an explicit request is checked by
   `scripts/check_ui_formulas.py`, which lands with T18.
-- [ ] T18 Workbench, circuit, response, methods, compare and focus views on the new trace; locale formatter and document language (PE-35, PE-36, PE-37).
+- [x] T18 Workbench, circuit, response, methods, compare and focus views on the new trace; locale formatter and document language (PE-35, PE-36, PE-37).
+  The old workbench, its components and its tests are removed. The learned lane runs in the browser
+  (PE-39). Gates: `trace-curves.test.ts`, `flowsheet.test.ts`, `locale.test.ts`, `surrogate.test.ts`,
+  `scripts/check_ui_formulas.py` and `frontend/gate.mjs` (smoke run at 1280x800 dark English and
+  1600x900 light Spanish: 24 checks pass, every screenshot read). The full matrix is T21.
 - [ ] T19 Methodology, Introduction, Implementation, Experiments, Benchmark content, citations and architecture modal from the dossier.
 - [ ] T20 `docs/` wiki tree, README, STRUCTURE, CHANGELOG, manuscript rewrite.
 - [ ] T21 Canonical bake with the GPU lane; full test suite; guards; build; visual QA in both themes and languages at three viewports.
