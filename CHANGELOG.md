@@ -35,8 +35,11 @@ draws its end bars whole, and a failed build reports its own error.
     Benchmark page, "Error del guardia" under the learned lane). The chart now draws its y title itself,
     wrapped to the plot's height in up to two lines;
   - a level's label sat on a data point ("nominal" in the Case view, "sin cambio" on the Experiments
-    page, "óptimo" on the Optimizer). It now takes the first end of its line, above or below, that
-    covers no point.
+    page, "óptimo" on the Optimizer). It now takes the place nearest the right end of its line, above
+    or below, that covers no point.
+- On a phone a chart's legend stood in a narrow column beside its title: six series took six lines and
+  left the size-distribution plot about 50 px tall, too short for its title. Below 860 px the legend
+  runs under the title, across the chart.
 
   Each chart declares on its host what it could not fit (`data-ticks-cut`, `data-title-cut`,
   `data-labels-over`), and the gate fails any, and any visible chart that declared nothing

@@ -13,8 +13,8 @@
  *   sized host would clip. Arrow keys move the cursor sample by sample when the chart has focus.
  * - Marks label what the engine computed (a cut, a target, a liberation size) at their x value, and
  *   level marks a limit (a specification, a threshold, the base case) at their y value; labels that
- *   would overprint are stacked, and a level's label takes the first end of its line, above or below,
- *   that covers no data point.
+ *   would overprint are stacked, and a level's label takes the place nearest the right end of its line,
+ *   above or below, that covers no data point.
  * - The y title is drawn by the chart, wrapped to the plot's height in up to two lines.
  * - What the chart could not fit on its canvas, which no page check can read, is declared on the host
  *   for the browser gate: `data-ticks-cut`, `data-title-cut` and `data-labels-over`.
@@ -214,9 +214,13 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         ctx.stroke();
         if (!level.label) continue;
         const w = ctx.measureText(level.label).width;
-        // baselines: the right end above the line, below it, then the left end above and below
-        const spots: Array<[number, number]> = [[left + width - w - 4 * ratio, y - 4 * ratio], [left + width - w - 4 * ratio, y + 13 * ratio],
-          [left + 4 * ratio, y - 4 * ratio], [left + 4 * ratio, y + 13 * ratio]];
+        // baselines from the right end of the line leftwards, above it and below: where points sit on the line
+        // at both ends (the six optimizer starts on the optimum), the label takes the nearest gap between them,
+        // and where the gaps are narrower than the label (a phone), it stands a few pixels clear of the line
+        const spots: Array<[number, number]> = [];
+        for (const [above, below] of [[4, 13], [8, 17]]) {
+          for (let x = left + width - w - 4 * ratio; x >= left + 4 * ratio; x -= 8 * ratio) spots.push([x, y - above * ratio], [x, y + below * ratio]);
+        }
         const boxOf = ([x, b]: [number, number]): Box => ({ x0: x - 2 * ratio, y0: b - 10 * ratio, x1: x + w + 2 * ratio, y1: b + 3 * ratio });
         const free = spots.find(s => { const b = boxOf(s); return b.y0 >= top && b.y1 <= top + height && !dots.some(d => overlaps(d, b)) && !placed.some(p => overlaps(p, b)); });
         if (!free) over += 1;

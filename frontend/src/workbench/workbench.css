@@ -405,4 +405,7 @@ input, select, textarea { font: inherit; }
   .of-main { min-height: 78dvh; }
   .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }
+  /* the legend under the title, across the chart: beside it, six series took six lines and left the
+     size-distribution plot about 50 px on a phone */
+  .of-plot-head { flex-wrap: wrap; row-gap: 2px; }
 }
