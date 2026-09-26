@@ -12,6 +12,7 @@ import "@fasl-work/caos-app-shell/styles.css";
 import "./oreflow.css";
 import "./rebuild.css";
 import "./workbench/workbench.css";
+import "./content/content.css";
 import { ARCHITECTURE } from "./content/architecture";
 import { CONTENT_CITATIONS } from "./content/citations";
 import Workbench from "./workbench/Workbench";
@@ -31,7 +32,8 @@ applyTheme(readTheme());
 const config: ShellConfig = {
   product: { name: "OreFlow", mark: <Pickaxe size={18} /> },
   version: APP_VERSION,
-  fixed: true,
+  // only the workbench is a viewport-sized surface; the content pages keep the document scroll (ADR-0071)
+  fixedRoutes: ["/"],
   architecture: ARCHITECTURE,
   routes: [
     { path: "/", en: "Workbench", es: "Laboratorio" },

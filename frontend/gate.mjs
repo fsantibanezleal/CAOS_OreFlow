@@ -25,6 +25,7 @@ const COMBOS = FULL
   ? VIEWPORTS.flatMap(v => ['dark', 'light'].flatMap(theme => ['en', 'es'].map(lang => ({ v, theme, lang }))))
   : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
 const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case'];
+const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -135,6 +136,37 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   const after = new URL(page.url()).searchParams;
   const same = ['case', 'variant', 'set'].every(key => (before.get(key) ?? '') === (after.get(key) ?? ''));
   record(`${tag} focus round trip`, same, { before: before.toString(), after: after.toString() });
+
+  // the content pages keep the document scroll (ADR-0071 rule 1 binds the App route); they must not
+  // scroll sideways, must carry the interface language, and every Methodology topic is screenshotted
+  for (const route of PAGES) {
+    await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle', timeout: 90000 });
+    await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
+    await page.waitForTimeout(300);
+    const shots = [];
+    const topTabs = page.locator('.page-body .tablist [role=tab]');
+    const groups = route === 'methodology' ? await topTabs.count() : 0;
+    if (groups === 0) shots.push(route);
+    for (let g = 0; g < groups; g += 1) {
+      await topTabs.nth(g).click();
+      const subTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
+      const count = Math.max(1, await subTabs.count());
+      for (let k = 0; k < count; k += 1) {
+        if (await subTabs.count()) await subTabs.nth(k).click();
+        await page.waitForTimeout(150);
+        const doc = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1, lang: document.documentElement.lang,
+          katexErrors: document.querySelectorAll('.katex-error').length }));
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && doc.lang === lang && doc.katexErrors === 0, doc);
+        await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`) });
+      }
+    }
+    for (const shot of shots) {
+      const doc = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1, lang: document.documentElement.lang,
+        katexErrors: document.querySelectorAll('.katex-error').length }));
+      record(`${tag} ${shot}`, !doc.overX && doc.lang === lang && doc.katexErrors === 0, doc);
+      await page.screenshot({ path: join(OUT, `${shot}-${tag}.png`), fullPage: true });
+    }
+  }
 
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();

@@ -1,0 +1,27 @@
+/*
+ * The content pages (ADR-0016 sections 5 to 7): inside the shell's wide page body, centred and filled
+ * with figure-and-text rows, never a narrow column; long text blocks keep a reading measure. Colours
+ * are shell tokens; figures use the shell's diagram classes.
+ */
+.of-doc { min-width: 0; }
+.of-doc-head { margin-bottom: 1.2rem; }
+.of-doc-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -0.01em; }
+.of-doc-head p { margin: 0; color: var(--color-fg-subtle); line-height: 1.6; }
+
+.of-topic h2 { margin-top: 0; }
+.of-topic-body { display: block; }
+.of-topic-body.with-figure { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
+.of-topic-text p { max-width: 78ch; line-height: 1.65; }
+.of-topic-text .katex-display { overflow-x: auto; overflow-y: hidden; }
+.of-topic-figure { position: sticky; top: 1rem; }
+.of-topic-figure.wide { position: static; margin: 0.4rem auto 1.2rem; max-width: 900px; }
+.of-topic-equations .katex-display { overflow-x: auto; overflow-y: hidden; }
+.of-topic-figure .fig-svg { max-width: 100%; }
+@media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } .of-topic-figure { position: static; } }
+
+.of-doc-table { width: 100%; max-width: 980px; margin: 1rem 0; border-collapse: collapse; font-size: 0.86rem; }
+.of-doc-table th, .of-doc-table td { padding: 6px 10px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: top; }
+.of-doc-table thead th { color: var(--color-fg-subtle); font-weight: 600; }
+.of-doc-table tbody th { font-weight: 600; white-space: nowrap; }
+.of-doc .callout ul { margin: 0.2rem 0 0; padding-left: 1.2rem; }
+.of-doc .callout li + li { margin-top: 0.3rem; }
