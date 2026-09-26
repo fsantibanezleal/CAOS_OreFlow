@@ -1,0 +1,143 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 562" width="880" class="arch-svg" role="img" aria-label="The science: from the size grid to the method records">
+  <style>
+    .arch-svg text { font-family: var(--font-sans, Inter, "Segoe UI", system-ui, sans-serif); }
+    .arch-svg .mono { font-family: var(--font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace); }
+    .arch-svg .bx { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
+    .arch-svg .bx-hi { stroke: var(--color-accent); stroke-width: 1.6; }
+    .arch-svg .bx-good { stroke: var(--color-good); stroke-width: 1.6; }
+    .arch-svg .bx-warn { stroke: var(--color-warn); stroke-width: 1.6; }
+    .arch-svg .band { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .arch-svg .bt { fill: var(--color-fg-subtle); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .arch-svg .h1 { fill: var(--color-fg); font-size: 15px; font-weight: 700; }
+    .arch-svg .sub { fill: var(--color-fg-subtle); font-size: 10.5px; }
+    .arch-svg .ttl { fill: var(--color-fg); font-size: 12.5px; font-weight: 600; }
+    .arch-svg .it { fill: var(--color-fg); font-size: 10.5px; }
+    .arch-svg .cd { fill: var(--color-accent); font-size: 10px; }
+    .arch-svg .eq { fill: var(--color-fg); font-size: 10.5px; }
+    .arch-svg .mu { fill: var(--color-fg-subtle); font-size: 10px; font-style: italic; }
+    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint); stroke-width: 1.5; }
+    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent); stroke-width: 1.5; }
+    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arch-svg .lbl { fill: var(--color-fg-subtle); font-size: 9.5px; }
+    .arch-svg .chip { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 1; }
+    /* Standalone default: English. Inside the modal the shell's [data-arch-lang] rules decide. */
+    svg .l-es { display: none; }
+  </style>
+  <defs>
+    <marker id="of-arch-4" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint)"/>
+    </marker>
+  </defs>
+  <text class="h1 l-en" x="20" y="28">The science: a mass balance by size and mineral, solved in closed circuit</text>
+  <text class="h1 l-es" x="20" y="28">La ciencia: un balance de masa por tamaño y mineral, resuelto en circuito cerrado</text>
+  <text class="sub l-en" x="20" y="46">each box names the form the engine solves; the Methodology page gives every equation with its source and limits</text>
+  <text class="sub l-es" x="20" y="46">cada caja nombra la forma que resuelve el motor; la página de Metodología da cada ecuación con su fuente y límites</text>
+  <rect class="bx" x="20" y="62" width="196" height="76" rx="8"/>
+  <text class="ttl l-en" x="32" y="81">Size grid and ore</text>
+  <text class="ttl l-es" x="32" y="81">Malla y mineral</text>
+  <text class="it l-neutral" x="32" y="97">xᵢ = 150000 · 2^(−i/4) µm</text>
+  <text class="it l-en" x="32" y="111">63 classes, minerals, water</text>
+  <text class="it l-es" x="32" y="111">63 clases, minerales, agua</text>
+  <text class="cd mono l-neutral" x="32" y="125">engine/grid.py · ore.py</text>
+  <rect class="bx" x="234" y="62" width="196" height="76" rx="8"/>
+  <text class="ttl l-en" x="246" y="81">Crusher</text>
+  <text class="ttl l-es" x="246" y="81">Chancador</text>
+  <text class="it l-neutral" x="246" y="97">p = (I − C)(I − BC)⁻¹ f</text>
+  <text class="it l-en" x="246" y="111">Whiten classification</text>
+  <text class="it l-es" x="246" y="111">clasificación de Whiten</text>
+  <text class="cd mono l-neutral" x="246" y="125">engine/comminution.py</text>
+  <rect class="bx" x="448" y="62" width="196" height="76" rx="8"/>
+  <text class="ttl l-en" x="460" y="81">Ball mill</text>
+  <text class="ttl l-es" x="460" y="81">Molino de bolas</text>
+  <text class="it l-neutral" x="460" y="97">T⁻¹ = I + eD + c₂e²D² + c₃e³D³</text>
+  <text class="it l-en" x="460" y="111">three mixers, energy-specific</text>
+  <text class="it l-es" x="460" y="111">tres mezcladores, por energía</text>
+  <text class="cd mono l-neutral" x="460" y="125">engine/grinding.py</text>
+  <rect class="bx" x="662" y="62" width="198" height="76" rx="8"/>
+  <text class="ttl l-en" x="674" y="81">Hydrocyclones</text>
+  <text class="ttl l-es" x="674" y="81">Hidrociclones</text>
+  <text class="it l-neutral" x="674" y="97">y = Rf + (1−Rf)(1 − 2^−(d/d50c)^m)</text>
+  <text class="it l-en" x="674" y="111">density-corrected cut, Plitt</text>
+  <text class="it l-es" x="674" y="111">corte por densidad, Plitt</text>
+  <text class="cd mono l-neutral" x="674" y="125">engine/cyclone.py</text>
+  <path class="flow" d="M 216 100 L 232 100" marker-end="url(#of-arch-4)"/>
+  <path class="flow" d="M 430 100 L 446 100" marker-end="url(#of-arch-4)"/>
+  <path class="flow" d="M 644 100 L 660 100" marker-end="url(#of-arch-4)"/>
+  <rect class="bx bx-hi" x="20" y="156" width="840" height="76" rx="8"/>
+  <text class="ttl l-en" x="32" y="175">Closed circuit, solved</text>
+  <text class="ttl l-es" x="32" y="175">Circuito cerrado, resuelto</text>
+  <text class="it l-en" x="32" y="191">Illinois root finders on ln e and ln d50c give the target P80 and the design circulating load</text>
+  <text class="it l-es" x="32" y="191">buscadores de Illinois sobre ln e y ln d50c dan el P80 objetivo y la carga circulante de diseño</text>
+  <text class="it l-en" x="32" y="205">installed power caps e, and the product then coarsens: the power-limited state</text>
+  <text class="it l-es" x="32" y="205">la potencia instalada limita e y el producto engruesa: el estado limitado por potencia</text>
+  <text class="cd mono l-neutral" x="32" y="219">engine/roots.py · grinding.py</text>
+  <path class="flow" d="M 440 232 L 440 250" marker-end="url(#of-arch-4)"/>
+  <text class="lbl l-en" x="448" y="245">overflow at the target P80</text>
+  <text class="lbl l-es" x="448" y="245">rebose al P80 objetivo</text>
+  <rect class="bx bx-good" x="20" y="252" width="404" height="90" rx="8"/>
+  <text class="ttl l-en" x="32" y="271">Flotation, rougher and cleaner</text>
+  <text class="ttl l-es" x="32" y="271">Flotación, rougher y cleaner</text>
+  <text class="it l-neutral" x="32" y="287">k = 60 P Sb fd(d) fD(D),  Sb = 6 Jg / D32</text>
+  <text class="it l-neutral" x="32" y="301">r = (kτ + ENT·w) / (1 + kτ + ENT·w),  R_N = 1 − (1 − r)^N</text>
+  <text class="it l-en" x="32" y="315">cleaner tails recycled to 1e-10 t/h</text>
+  <text class="it l-es" x="32" y="315">colas del cleaner recirculadas a 1e-10 t/h</text>
+  <text class="cd mono l-neutral" x="32" y="329">engine/flotation.py</text>
+  <rect class="bx" x="440" y="252" width="204" height="76" rx="8"/>
+  <text class="ttl l-en" x="452" y="271">Gravity bleed (gold)</text>
+  <text class="ttl l-es" x="452" y="271">Purga gravimétrica (oro)</text>
+  <text class="it l-neutral" x="452" y="287">E_g = E_max (1 − e^(−(d/x_g)²))</text>
+  <text class="it l-en" x="452" y="301">gold circulates above ore</text>
+  <text class="it l-es" x="452" y="301">el oro circula sobre el mineral</text>
+  <text class="cd mono l-neutral" x="452" y="315">engine/separation.py</text>
+  <rect class="bx" x="656" y="252" width="204" height="76" rx="8"/>
+  <text class="ttl l-en" x="668" y="271">LIMS and desliming</text>
+  <text class="ttl l-es" x="668" y="271">LIMS y deslamado</text>
+  <text class="it l-neutral" x="668" y="287">p = p_max (1 − e^(−d/d_f))</text>
+  <text class="it l-en" x="668" y="301">slimes leave before flotation</text>
+  <text class="it l-es" x="668" y="301">las lamas salen antes</text>
+  <text class="cd mono l-neutral" x="668" y="315">engine/separation.py</text>
+  <path class="flow" d="M 222 342 L 222 352" marker-end="url(#of-arch-4)"/>
+  <rect class="bx bx-warn" x="20" y="354" width="840" height="76" rx="8"/>
+  <text class="ttl l-en" x="32" y="373">Audit and trace</text>
+  <text class="ttl l-es" x="32" y="373">Auditoría y traza</text>
+  <text class="it l-en" x="32" y="389">every unit rebalanced from its named streams: every mineral, element and the water within 1e-9</text>
+  <text class="it l-es" x="32" y="389">cada unidad rebalanceada desde sus corrientes: cada mineral, elemento y el agua dentro de 1e-9</text>
+  <text class="it l-en" x="32" y="403">grades from mineral masses and element contents from IUPAC atomic weights</text>
+  <text class="it l-es" x="32" y="403">leyes desde masas de minerales y contenidos desde pesos atómicos IUPAC</text>
+  <text class="cd mono l-neutral" x="32" y="417">engine/balance.py · chemistry.py · trace.py</text>
+  <path class="flow" d="M 440 430 L 440 446" marker-end="url(#of-arch-4)"/>
+  <text class="lbl l-en" x="448" y="441">the same engine, re-run by every record</text>
+  <text class="lbl l-es" x="448" y="441">el mismo motor, reejecutado por cada registro</text>
+  <rect class="bx" x="20" y="448" width="204" height="76" rx="8"/>
+  <text class="ttl l-en" x="32" y="467">Kinetic fits</text>
+  <text class="ttl l-es" x="32" y="467">Ajustes cinéticos</text>
+  <text class="it l-neutral" x="32" y="483">ε = R̂_N − R_N</text>
+  <text class="it l-en" x="32" y="497">5 lumped models, LM</text>
+  <text class="it l-es" x="32" y="497">5 modelos agrupados, LM</text>
+  <text class="cd mono l-neutral" x="32" y="511">engine/kinetics.py</text>
+  <rect class="bx" x="234" y="448" width="204" height="76" rx="8"/>
+  <text class="ttl l-en" x="246" y="467">Constrained optimum</text>
+  <text class="ttl l-es" x="246" y="467">Óptimo con restricciones</text>
+  <text class="it l-en" x="246" y="483">max ṁ  s.t. grade, power, water</text>
+  <text class="it l-es" x="246" y="483">max ṁ  s.a. ley, potencia, agua</text>
+  <text class="it l-en" x="246" y="497">COBYLA from 6 starts</text>
+  <text class="it l-es" x="246" y="497">COBYLA desde 6 inicios</text>
+  <text class="cd mono l-neutral" x="246" y="511">methods/optimization.py</text>
+  <rect class="bx" x="448" y="448" width="204" height="76" rx="8"/>
+  <text class="ttl l-en" x="460" y="467">Uncertainty and Sobol</text>
+  <text class="ttl l-es" x="460" y="467">Incertidumbre y Sobol</text>
+  <text class="it l-neutral" x="460" y="483">S_i = V[E(Y|X_i)] / V(Y)</text>
+  <text class="it l-en" x="460" y="497">128 LHS draws, N = 256</text>
+  <text class="it l-es" x="460" y="497">128 sorteos LHS, N = 256</text>
+  <text class="cd mono l-neutral" x="460" y="511">methods/uncertainty.py</text>
+  <rect class="bx bx-hi" x="662" y="448" width="198" height="76" rx="8"/>
+  <text class="ttl l-en" x="674" y="467">Learned lane</text>
+  <text class="ttl l-es" x="674" y="467">Vía aprendida</text>
+  <text class="it l-en" x="674" y="483">R², RMSE on unseen plants</text>
+  <text class="it l-es" x="674" y="483">R², RMSE en plantas no vistas</text>
+  <text class="it l-en" x="674" y="497">5 models, guard, ONNX</text>
+  <text class="it l-es" x="674" y="497">5 modelos, guardia, ONNX</text>
+  <text class="cd mono l-neutral" x="674" y="511">methods/learning.py</text>
+  <text class="mu l-en" x="440" y="548" text-anchor="middle">the lumped models, the optimizer and the surrogate are comparisons fitted to this engine, not alternative engines</text>
+  <text class="mu l-es" x="440" y="548" text-anchor="middle">los modelos agrupados, el optimizador y el sustituto son comparaciones ajustadas a este motor, no motores alternativos</text>
+</svg>

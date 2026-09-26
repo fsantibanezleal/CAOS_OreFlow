@@ -1,0 +1,134 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 540" width="880" class="arch-svg" role="img" aria-label="The data contracts: the operating contract, the trace and the artifacts">
+  <style>
+    .arch-svg text { font-family: var(--font-sans, Inter, "Segoe UI", system-ui, sans-serif); }
+    .arch-svg .mono { font-family: var(--font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace); }
+    .arch-svg .bx { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
+    .arch-svg .bx-hi { stroke: var(--color-accent); stroke-width: 1.6; }
+    .arch-svg .bx-good { stroke: var(--color-good); stroke-width: 1.6; }
+    .arch-svg .bx-warn { stroke: var(--color-warn); stroke-width: 1.6; }
+    .arch-svg .band { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .arch-svg .bt { fill: var(--color-fg-subtle); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .arch-svg .h1 { fill: var(--color-fg); font-size: 15px; font-weight: 700; }
+    .arch-svg .sub { fill: var(--color-fg-subtle); font-size: 10.5px; }
+    .arch-svg .ttl { fill: var(--color-fg); font-size: 12.5px; font-weight: 600; }
+    .arch-svg .it { fill: var(--color-fg); font-size: 10.5px; }
+    .arch-svg .cd { fill: var(--color-accent); font-size: 10px; }
+    .arch-svg .eq { fill: var(--color-fg); font-size: 10.5px; }
+    .arch-svg .mu { fill: var(--color-fg-subtle); font-size: 10px; font-style: italic; }
+    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint); stroke-width: 1.5; }
+    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent); stroke-width: 1.5; }
+    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arch-svg .lbl { fill: var(--color-fg-subtle); font-size: 9.5px; }
+    .arch-svg .chip { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 1; }
+    /* Standalone default: English. Inside the modal the shell's [data-arch-lang] rules decide. */
+    svg .l-es { display: none; }
+  </style>
+  <defs>
+    <marker id="of-arch-5" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint)"/>
+    </marker>
+  </defs>
+  <text class="h1 l-en" x="20" y="28">The data contracts: one operating contract in, one trace per state, versioned artifacts out</text>
+  <text class="h1 l-es" x="20" y="28">Los contratos de datos: un contrato de entrada, una traza por estado, artefactos de salida</text>
+  <text class="sub l-en" x="20" y="46">a state the contract accepts is solved with closed balances; an artifact the checker cannot re-balance cannot ship</text>
+  <text class="sub l-es" x="20" y="46">un estado que acepta el contrato se resuelve con balances cerrados; un artefacto que el verificador no puede rebalancear no se publica</text>
+  <rect class="bx bx-hi" x="20" y="62" width="260" height="104" rx="8"/>
+  <text class="ttl l-en" x="32" y="81">Contract 1: the operating contract</text>
+  <text class="ttl l-es" x="32" y="81">Contrato 1: contrato de operación</text>
+  <text class="it l-en" x="32" y="97">12 inputs with unit, bounds and step</text>
+  <text class="it l-es" x="32" y="97">12 entradas con unidad, límites y paso</text>
+  <text class="it l-en" x="32" y="111">bounds: nominal factors or absolute</text>
+  <text class="it l-es" x="32" y="111">límites: factor del nominal o absoluto</text>
+  <text class="it l-en" x="32" y="125">rule: d_des ≤ 0.5 P80*</text>
+  <text class="it l-es" x="32" y="125">regla: d_des ≤ 0,5 P80*</text>
+  <text class="it l-en" x="32" y="139">grid, quadrature, SHA-256 digest</text>
+  <text class="it l-es" x="32" y="139">malla, cuadratura, huella SHA-256</text>
+  <text class="cd mono l-neutral" x="32" y="153">operating_contract.json</text>
+  <rect class="bx bx-warn" x="20" y="196" width="260" height="90" rx="8"/>
+  <text class="ttl l-en" x="32" y="215">validate(): the same verdicts</text>
+  <text class="ttl l-es" x="32" y="215">validate(): los mismos veredictos</text>
+  <text class="it l-en" x="32" y="231">unknown case or input, not applicable</text>
+  <text class="it l-es" x="32" y="231">caso o entrada desconocidos, no aplica</text>
+  <text class="it l-en" x="32" y="245">not a number, not finite, not integer</text>
+  <text class="it l-es" x="32" y="245">no es número, no finito, no entero</text>
+  <text class="it l-en" x="32" y="259">out of range with both limits; the rule</text>
+  <text class="it l-es" x="32" y="259">fuera de rango con sus límites; la regla</text>
+  <text class="cd mono l-neutral" x="32" y="273">contract.py · contract.ts · API</text>
+  <rect class="bx" x="20" y="316" width="260" height="76" rx="8"/>
+  <text class="ttl l-en" x="32" y="335">Probes and the envelope</text>
+  <text class="ttl l-es" x="32" y="335">Sondas y la envolvente</text>
+  <text class="it l-en" x="32" y="351">every bound, just outside, NaN, strings</text>
+  <text class="it l-es" x="32" y="351">cada límite, justo fuera, NaN, textos</text>
+  <text class="it l-en" x="32" y="365">corners and seeded states all solve</text>
+  <text class="it l-es" x="32" y="365">esquinas y estados sembrados resuelven</text>
+  <text class="cd mono l-neutral" x="32" y="379">contract_probes.json</text>
+  <path class="flow" d="M 280 130 L 328 130" marker-end="url(#of-arch-5)"/>
+  <text class="lbl l-en" x="304" y="124" text-anchor="middle">accepted</text>
+  <text class="lbl l-es" x="304" y="124" text-anchor="middle">aceptado</text>
+  <rect class="bx bx-good" x="330" y="62" width="240" height="104" rx="8"/>
+  <text class="ttl l-en" x="342" y="81">The trace, one per state</text>
+  <text class="ttl l-es" x="342" y="81">La traza, una por estado</text>
+  <text class="it l-en" x="342" y="97">point, metrics with units</text>
+  <text class="it l-es" x="342" y="97">punto, métricas con unidades</text>
+  <text class="it l-en" x="342" y="111">topology: units and their streams</text>
+  <text class="it l-es" x="342" y="111">topología: unidades y sus corrientes</text>
+  <text class="it l-en" x="342" y="125">streams: t/h by mineral, water</text>
+  <text class="it l-es" x="342" y="125">corrientes: t/h por mineral, agua</text>
+  <text class="it l-en" x="342" y="139">curves, balance, kinetics, flags</text>
+  <text class="it l-es" x="342" y="139">curvas, balance, cinética, avisos</text>
+  <text class="cd mono l-neutral" x="342" y="153">engine/trace.py · trace/v2</text>
+  <rect class="bx" x="330" y="196" width="240" height="76" rx="8"/>
+  <text class="ttl l-en" x="342" y="215">Parity of the two engines</text>
+  <text class="ttl l-es" x="342" y="215">Paridad de los dos motores</text>
+  <text class="it l-en" x="342" y="231">72 variants re-simulated in TS</text>
+  <text class="it l-es" x="342" y="231">72 variantes resimuladas en TS</text>
+  <text class="it l-en" x="342" y="245">every number within 1e-6</text>
+  <text class="it l-es" x="342" y="245">cada número dentro de 1e-6</text>
+  <text class="cd mono l-neutral" x="342" y="259">src/test/parity.test.ts</text>
+  <path class="flow" d="M 570 130 L 618 130" marker-end="url(#of-arch-5)"/>
+  <text class="lbl l-en" x="594" y="124" text-anchor="middle">baked</text>
+  <text class="lbl l-es" x="594" y="124" text-anchor="middle">horneada</text>
+  <rect class="bx bx-hi" x="620" y="62" width="240" height="90" rx="8"/>
+  <text class="ttl l-en" x="632" y="81">Contract 2: the case artifact</text>
+  <text class="ttl l-es" x="632" y="81">Contrato 2: artefacto de caso</text>
+  <text class="it l-en" x="632" y="97">ore and plant definitions</text>
+  <text class="it l-es" x="632" y="97">definiciones de mineral y planta</text>
+  <text class="it l-en" x="632" y="111">6 variants: point, trace, records</text>
+  <text class="it l-es" x="632" y="111">6 variantes: punto, traza, registros</text>
+  <text class="it l-en" x="632" y="125">texts, KPI ranges, sources</text>
+  <text class="it l-es" x="632" y="125">textos, rangos KPI, fuentes</text>
+  <text class="cd mono l-neutral" x="632" y="139">cases/&lt;case&gt;.json · case/v2</text>
+  <rect class="bx" x="620" y="180" width="240" height="76" rx="8"/>
+  <text class="ttl l-en" x="632" y="199">Manifest and index</text>
+  <text class="ttl l-es" x="632" y="199">Manifiesto e índice</text>
+  <text class="it l-en" x="632" y="215">bytes, SHA-256, schema, KPIs</text>
+  <text class="it l-es" x="632" y="215">bytes, SHA-256, esquema, KPI</text>
+  <text class="it l-en" x="632" y="229">from this run: 12 cases, 72 variants</text>
+  <text class="it l-es" x="632" y="229">esta corrida: 12 casos, 72 variantes</text>
+  <text class="cd mono l-neutral" x="632" y="243">manifest/v2 · index/v2</text>
+  <rect class="bx" x="620" y="278" width="240" height="76" rx="8"/>
+  <text class="ttl l-en" x="632" y="297">Learning and benchmark</text>
+  <text class="ttl l-es" x="632" y="297">Aprendizaje y benchmark</text>
+  <text class="it l-en" x="632" y="313">ONNX with scalers and reference</text>
+  <text class="it l-es" x="632" y="313">ONNX con escaladores y referencia</text>
+  <text class="it l-en" x="632" y="327">oracles, records, stage timings</text>
+  <text class="it l-es" x="632" y="327">oráculos, registros, tiempos</text>
+  <text class="cd mono l-neutral" x="632" y="341">learning.json · benchmark.json</text>
+  <path class="flow" d="M 740 162 L 740 178" marker-end="url(#of-arch-5)"/>
+  <path class="flow" d="M 740 260 L 740 276" marker-end="url(#of-arch-5)"/>
+  <rect class="bx bx-warn" x="20" y="420" width="840" height="104" rx="8"/>
+  <text class="ttl l-en" x="32" y="439">Every file carries the engine version and the contract digest; the checker recomputes instead of trusting</text>
+  <text class="ttl l-es" x="32" y="439">Cada archivo lleva la versión del motor y la huella del contrato; el verificador recalcula en vez de confiar</text>
+  <text class="it l-en" x="32" y="455">the balance of every unit of every variant, from the stored streams</text>
+  <text class="it l-es" x="32" y="455">el balance de cada unidad de cada variante, desde las corrientes guardadas</text>
+  <text class="it l-en" x="32" y="469">hashes and byte counts · stray files the index does not list · record schemas</text>
+  <text class="it l-es" x="32" y="469">hashes y bytes · archivos que el índice no lista · esquemas de registro</text>
+  <text class="it l-en" x="32" y="483">the 12 cases: liberation L1-L3, classification C1-C3, flotation F1-F3, integration I1-I3, in 4 circuit families</text>
+  <text class="it l-es" x="32" y="483">los 12 casos: liberación L1-L3, clasificación C1-C3, flotación F1-F3, integración I1-I3, en 4 familias de circuito</text>
+  <text class="cd mono l-neutral" x="32" y="497">scripts/check_artifacts.py</text>
+  <text class="mu l-en" x="32" y="511">standard library only; runs in the bake and again in CI</text>
+  <text class="mu l-es" x="32" y="511">solo biblioteca estándar; corre en el horneado y otra vez en CI</text>
+  <path class="flow" d="M 740 360 L 740 418" marker-end="url(#of-arch-5)"/>
+  <text class="lbl l-en" x="748" y="392">checked</text>
+  <text class="lbl l-es" x="748" y="392">verificado</text>
+</svg>

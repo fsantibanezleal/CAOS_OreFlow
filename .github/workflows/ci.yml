@@ -31,6 +31,8 @@ jobs:
         run: python scripts/check_units.py
       - name: No engine arithmetic in the interface; sweeps only on request (PE-36, PE-38)
         run: python scripts/check_ui_formulas.py
+      - name: Every architecture diagram carries both languages (ADR-0058)
+        run: python scripts/check_arch_i18n.py
       - run: python scripts/check_artifacts.py
   frontend:
     runs-on: ubuntu-latest

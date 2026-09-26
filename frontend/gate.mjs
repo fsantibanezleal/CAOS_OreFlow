@@ -95,6 +95,49 @@ const FIGURE_PROBE = () => {
   return out;
 };
 
+// The architecture modal (ADR-0058): each tab must inline its diagram, show exactly the interface
+// language's text (a gate that measured English twice once reported a clean bilingual pass), keep every
+// text inside the diagram, and let no text touch a box it does not fit inside.
+const ARCH_PROBE = () => {
+  const svg = document.querySelector('.caos-architecture-diagram svg');
+  if (!svg) return { svg: false };
+  const fr = svg.getBoundingClientRect();
+  const visible = t => { const b = t.getBoundingClientRect(); return b.width > 0 && b.height > 0; };
+  const texts = [...svg.querySelectorAll('text')].filter(visible);
+  const boxes = [...svg.querySelectorAll('rect.bx')].map(r => r.getBoundingClientRect());
+  const out = [];
+  for (const t of texts) {
+    const b = t.getBoundingClientRect();
+    const name = (t.textContent || '').slice(0, 50);
+    if (b.left < fr.left - 1 || b.right > fr.right + 1 || b.top < fr.top - 1 || b.bottom > fr.bottom + 1) out.push(`outside the diagram: ${name}`);
+    const inside = r => b.left >= r.left - 1 && b.right <= r.right + 1 && b.top >= r.top - 1 && b.bottom <= r.bottom + 1;
+    const touches = r => Math.min(b.right, r.right) - Math.max(b.left, r.left) > 1 && Math.min(b.bottom, r.bottom) - Math.max(b.top, r.top) > 1;
+    if (boxes.some(r => touches(r) && !inside(r))) out.push(`crosses a box: ${name}`);
+    if (out.length >= 6) break;
+  }
+  return { svg: true, en: texts.filter(t => t.classList.contains('l-en')).length, es: texts.filter(t => t.classList.contains('l-es')).length,
+    neutral: texts.filter(t => t.classList.contains('l-neutral')).length, untagged: texts.filter(t => !/\bl-(en|es|neutral)\b/.test(t.getAttribute('class') || '')).length, out };
+};
+
+async function checkArchitecture(page, tag, lang) {
+  await page.locator('header button[aria-label^="Architecture"], header button[aria-label^="Arquitectura"]').first().click();
+  await page.waitForSelector('[role=dialog] [role=tab]', { timeout: 30000 });
+  const tabs = page.locator('[role=dialog] [role=tab]');
+  const count = await tabs.count();
+  record(`${tag} architecture tabs`, count >= 5, { count });
+  for (let k = 0; k < count; k += 1) {
+    await tabs.nth(k).click();
+    await page.waitForFunction(() => document.querySelector('.caos-architecture-diagram svg'), null, { timeout: 30000 });
+    await page.waitForTimeout(250);
+    const a = await page.evaluate(ARCH_PROBE);
+    const own = lang === 'es' ? a.es : a.en, other = lang === 'es' ? a.en : a.es;
+    record(`${tag} architecture ${k + 1}`, a.svg && own > 5 && other === 0 && a.untagged === 0 && a.out.length === 0, a);
+    await page.screenshot({ path: join(OUT, `architecture-${k + 1}-${tag}.png`) });
+  }
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => !document.querySelector('[role=dialog]'), null, { timeout: 10000 });
+}
+
 async function measure(page, stageSelector) {
   const outside = await page.evaluate(OVERFLOW_PROBE);
   const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
@@ -184,6 +227,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     record(`${tag} ${view}`, ok, m);
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
+
+  await checkArchitecture(page, tag, lang);
 
   // the focus round trip, by clicking; the state (case, variant and changed controls) must survive it
   await page.locator('.of-viewbar [role=tab]').nth(0).click();
