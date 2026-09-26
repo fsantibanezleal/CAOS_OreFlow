@@ -1,0 +1,155 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 582" width="880" class="arch-svg" role="img" aria-label="What runs where: offline, committed, live and the service">
+  <style>
+    /* the page's tokens inside the app; CSS system colours where the file is shown as an image */
+    .arch-svg { color-scheme: light dark; }
+    .arch-svg text { font-family: var(--font-sans, Inter, "Segoe UI", system-ui, sans-serif); }
+    .arch-svg .mono { font-family: var(--font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace); }
+    .arch-svg .bx { fill: var(--color-surface-2, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1.2; }
+    .arch-svg .bx-hi { stroke: var(--color-accent, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-good { stroke: var(--color-good, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-warn { stroke: var(--color-warn, GrayText); stroke-width: 1.6; }
+    .arch-svg .band { fill: none; stroke: var(--color-border, GrayText); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .arch-svg .bt { fill: var(--color-fg-subtle, GrayText); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .arch-svg .h1 { fill: var(--color-fg, CanvasText); font-size: 15px; font-weight: 700; }
+    .arch-svg .sub { fill: var(--color-fg-subtle, GrayText); font-size: 10.5px; }
+    .arch-svg .ttl { fill: var(--color-fg, CanvasText); font-size: 12.5px; font-weight: 600; }
+    .arch-svg .it { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .cd { fill: var(--color-accent, LinkText); font-size: 10px; }
+    .arch-svg .eq { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .mu { fill: var(--color-fg-subtle, GrayText); font-size: 10px; font-style: italic; }
+    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint, GrayText); stroke-width: 1.5; }
+    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent, LinkText); stroke-width: 1.5; }
+    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn, GrayText); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arch-svg .lbl { fill: var(--color-fg-subtle, GrayText); font-size: 9.5px; }
+    .arch-svg .chip { fill: var(--color-surface, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1; }
+    /* Standalone default: English. Inside the modal the shell's [data-arch-lang] rules decide. */
+    svg .l-es { display: none; }
+  </style>
+  <defs>
+    <marker id="of-arch-2" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint, GrayText)"/>
+    </marker>
+  </defs>
+  <text class="h1 l-en" x="20" y="28">What runs where: the offline bake, the committed artifacts, the live browser and the service</text>
+  <text class="h1 l-es" x="20" y="28">Qué corre dónde: horneado fuera de línea, artefactos versionados, navegador vivo y servicio</text>
+  <text class="sub l-en" x="20" y="46">the heavy records are computed once and read; every state a control reaches is recomputed live by the same engine</text>
+  <text class="sub l-es" x="20" y="46">los registros pesados se calculan una vez y se leen; cada estado que alcanza un control se recalcula en vivo con el mismo motor</text>
+  <rect class="band" x="12" y="60" width="276" height="430" rx="10"/>
+  <text class="bt l-en" x="24" y="77">OFFLINE BAKE (WORKSTATION)</text>
+  <text class="bt l-es" x="24" y="77">HORNEADO (ESTACIÓN DE TRABAJO)</text>
+  <rect class="bx bx-hi" x="24" y="88" width="252" height="90" rx="8"/>
+  <text class="ttl l-en" x="36" y="107">Case stage</text>
+  <text class="ttl l-es" x="36" y="107">Etapa de casos</text>
+  <text class="it l-en" x="36" y="123">12 workers, every record seeded</text>
+  <text class="it l-es" x="36" y="123">12 procesos, todo sembrado</text>
+  <text class="it l-en" x="36" y="137">traces, optimizer, uncertainty</text>
+  <text class="it l-es" x="36" y="137">trazas, optimizador, incertidumbre</text>
+  <text class="it l-en" x="36" y="151">Sobol at the nominal state</text>
+  <text class="it l-es" x="36" y="151">Sobol en el estado nominal</text>
+  <text class="cd mono l-neutral" x="36" y="165">stages/cases.py</text>
+  <rect class="bx" x="24" y="188" width="252" height="76" rx="8"/>
+  <text class="ttl l-en" x="36" y="207">Learning stage</text>
+  <text class="ttl l-es" x="36" y="207">Etapa de aprendizaje</text>
+  <text class="it l-en" x="36" y="223">3072 states, CUDA when present</text>
+  <text class="it l-es" x="36" y="223">3072 estados, CUDA si existe</text>
+  <text class="it l-en" x="36" y="237">5 models, guard, ONNX export</text>
+  <text class="it l-es" x="36" y="237">5 modelos, guardia, ONNX</text>
+  <text class="cd mono l-neutral" x="36" y="251">methods/learning.py</text>
+  <rect class="bx" x="24" y="274" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="293">Benchmark and oracles</text>
+  <text class="ttl l-es" x="36" y="293">Benchmark y oráculos</text>
+  <text class="it l-en" x="36" y="309">published examples re-solved</text>
+  <text class="it l-es" x="36" y="309">ejemplos publicados resueltos</text>
+  <text class="cd mono l-neutral" x="36" y="323">stages/benchmark.py · oracles.py</text>
+  <rect class="bx" x="24" y="346" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="365">Measured lanes</text>
+  <text class="ttl l-es" x="36" y="365">Vías medidas</text>
+  <text class="it l-en" x="36" y="381">GeoMet tests, HZDR particles</text>
+  <text class="it l-es" x="36" y="381">ensayos GeoMet, partículas HZDR</text>
+  <text class="cd mono l-neutral" x="36" y="395">run_geomet.py · run_particles.py</text>
+  <rect class="bx bx-warn" x="24" y="418" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="437">Validation</text>
+  <text class="ttl l-es" x="36" y="437">Validación</text>
+  <text class="it l-en" x="36" y="453">a failing check fails the bake</text>
+  <text class="it l-es" x="36" y="453">una falla hace fallar el horneado</text>
+  <text class="cd mono l-neutral" x="36" y="467">scripts/check_artifacts.py</text>
+  <rect class="band" x="302" y="60" width="276" height="430" rx="10"/>
+  <text class="bt l-en" x="314" y="77">COMMITTED ARTIFACTS</text>
+  <text class="bt l-es" x="314" y="77">ARTEFACTOS VERSIONADOS</text>
+  <rect class="bx" x="314" y="88" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="326" y="107">Operating contract</text>
+  <text class="ttl l-es" x="326" y="107">Contrato de operación</text>
+  <text class="it l-en" x="326" y="123">bounds, rules, messages, digest</text>
+  <text class="it l-es" x="326" y="123">límites, reglas, mensajes, huella</text>
+  <text class="cd mono l-neutral" x="326" y="137">contract/operating_contract.json</text>
+  <rect class="bx bx-hi" x="314" y="160" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="326" y="179">12 case artifacts</text>
+  <text class="ttl l-es" x="326" y="179">12 artefactos de caso</text>
+  <text class="it l-en" x="326" y="195">definition, 6 variants, records</text>
+  <text class="it l-es" x="326" y="195">definición, 6 variantes, registros</text>
+  <text class="cd mono l-neutral" x="326" y="209">cases/&lt;case&gt;.json · case/v2</text>
+  <rect class="bx" x="314" y="232" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="326" y="251">Manifests and index</text>
+  <text class="ttl l-es" x="326" y="251">Manifiestos e índice</text>
+  <text class="it l-en" x="326" y="267">bytes, SHA-256, KPI checks</text>
+  <text class="it l-es" x="326" y="267">bytes, SHA-256, verificaciones</text>
+  <text class="cd mono l-neutral" x="326" y="281">manifests/index.json</text>
+  <rect class="bx" x="314" y="304" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="326" y="323">Learning record, networks</text>
+  <text class="ttl l-es" x="326" y="323">Registro de aprendizaje, redes</text>
+  <text class="it l-en" x="326" y="339">scalers and a reference block</text>
+  <text class="it l-es" x="326" y="339">escaladores y bloque de referencia</text>
+  <text class="cd mono l-neutral" x="326" y="353">learning.json · models/*.onnx</text>
+  <rect class="bx" x="314" y="376" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="326" y="395">Benchmark, lanes, validation</text>
+  <text class="ttl l-es" x="326" y="395">Benchmark, vías, validación</text>
+  <text class="it l-en" x="326" y="411">oracles, records, timings</text>
+  <text class="it l-es" x="326" y="411">oráculos, registros, tiempos</text>
+  <text class="cd mono l-neutral" x="326" y="425">benchmark.json · source/</text>
+  <rect class="band" x="592" y="60" width="276" height="430" rx="10"/>
+  <text class="bt l-en" x="604" y="77">LIVE, IN THE BROWSER</text>
+  <text class="bt l-es" x="604" y="77">EN VIVO, EN EL NAVEGADOR</text>
+  <rect class="bx" x="604" y="88" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="616" y="107">Contract validator</text>
+  <text class="ttl l-es" x="616" y="107">Validador del contrato</text>
+  <text class="it l-en" x="616" y="123">same codes as the service</text>
+  <text class="it l-es" x="616" y="123">mismos códigos del servicio</text>
+  <text class="cd mono l-neutral" x="616" y="137">engine/contract.ts</text>
+  <rect class="bx bx-good" x="604" y="160" width="252" height="76" rx="8"/>
+  <text class="ttl l-en" x="616" y="179">Engine port in a worker</text>
+  <text class="ttl l-es" x="616" y="179">Motor traducido en un worker</text>
+  <text class="it l-en" x="616" y="195">a trace per control change</text>
+  <text class="it l-es" x="616" y="195">una traza por cambio de control</text>
+  <text class="it l-en" x="616" y="209">within 1e-6 of Python</text>
+  <text class="it l-es" x="616" y="209">dentro de 1e-6 del de Python</text>
+  <text class="cd mono l-neutral" x="616" y="223">engine/worker.ts · circuit.ts</text>
+  <rect class="bx" x="604" y="246" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="616" y="265">Sweeps on request</text>
+  <text class="ttl l-es" x="616" y="265">Barridos a pedido</text>
+  <text class="it l-en" x="616" y="281">cell by cell, cancellable</text>
+  <text class="it l-es" x="616" y="281">celda a celda, cancelables</text>
+  <text class="cd mono l-neutral" x="616" y="295">engine/sweep.ts</text>
+  <rect class="bx" x="604" y="318" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="616" y="337">Surrogate and guard</text>
+  <text class="ttl l-es" x="616" y="337">Sustituto y guardia</text>
+  <text class="it l-en" x="616" y="353">onnxruntime-web, one thread</text>
+  <text class="it l-es" x="616" y="353">onnxruntime-web, un hilo</text>
+  <text class="cd mono l-neutral" x="616" y="367">learning/surrogate.ts</text>
+  <rect class="bx" x="604" y="390" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="616" y="409">Views draw the trace</text>
+  <text class="ttl l-es" x="616" y="409">Las vistas dibujan la traza</text>
+  <text class="it l-en" x="616" y="425">no engine formula in the UI</text>
+  <text class="it l-es" x="616" y="425">sin fórmulas del motor en la UI</text>
+  <text class="cd mono l-neutral" x="616" y="439">workbench/views/*.tsx</text>
+  <path class="flow" d="M 288 270 L 300 270" marker-end="url(#of-arch-2)"/>
+  <text class="lbl l-en" x="294" y="508" text-anchor="middle">writes, then validates</text>
+  <text class="lbl l-es" x="294" y="508" text-anchor="middle">escribe y luego valida</text>
+  <path class="flow" d="M 578 270 L 590 270" marker-end="url(#of-arch-2)"/>
+  <text class="lbl l-en" x="585" y="508" text-anchor="middle">copied into the site at build</text>
+  <text class="lbl l-es" x="585" y="508" text-anchor="middle">copiados al sitio al compilar</text>
+  <rect class="bx bx-hi" x="12" y="522" width="856" height="48" rx="8"/>
+  <text class="ttl l-en" x="24" y="541">Service on the VPS: the Python engine behind the same contract</text>
+  <text class="ttl l-es" x="24" y="541">Servicio en el VPS: el motor en Python tras el mismo contrato</text>
+  <text class="it l-en" x="24" y="557">POST /api/simulate validates, then returns the trace with the contract digest; serves the site; never trains or rewrites</text>
+  <text class="it l-es" x="24" y="557">POST /api/simulate valida y devuelve la traza con la huella del contrato; sirve el sitio; nunca entrena ni reescribe</text>
+</svg>

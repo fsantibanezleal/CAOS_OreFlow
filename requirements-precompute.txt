@@ -5,3 +5,4 @@ pandas==2.2.3
 openpyxl==3.1.5
 scikit-learn==1.5.2
 joblib==1.4.2
+SALib==1.6.0

@@ -1,6 +1,9 @@
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+# joblib probes physical cores with a Windows tool that is absent on this machine and falls back to
+# logical cores; the fallback is correct, so only that message is silenced
+filterwarnings = ["ignore:Could not find the number of physical cores:UserWarning"]
 
 [tool.ruff]
 line-length = 130

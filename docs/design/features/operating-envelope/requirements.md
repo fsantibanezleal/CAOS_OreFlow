@@ -1,5 +1,7 @@
 # Operating-envelope investigation requirements
 
+Status: superseded by process-engine-v2 (0.05.000). The Investigate view was replaced by the Response view (one- and two-input sweeps and a decision surface with the grade-specification and installed-power boundaries, run in a Web Worker on request, PE-38) and by the constrained optimizer (PE-27); its tests were removed with the view. The rows below are the record of 0.04.000, not a live specification.
+
 | ID | Requirement | Named gate |
 | --- | --- | --- |
 | OE-01 | WHEN a case is selected, THE workbench SHALL calculate a bounded, deterministic candidate set using that case's applicable controls and the same live engine as the circuit view. | `frontend/src/test/operating-envelope.test.ts`: family axes, repeatability; browser case-switch check. |

@@ -13,7 +13,8 @@ class Settings:
     app_env: str = os.getenv("APP_ENV", "dev")
     app_host: str = os.getenv("APP_HOST", "127.0.0.1")
     app_port: int = int(os.getenv("APP_PORT", "8146"))
-    dev_origins: str = os.getenv("DEV_ORIGINS", "http://localhost:5914")
+    # the Vite dev server binds 127.0.0.1:5914; a browser may also reach it as localhost
+    dev_origins: str = os.getenv("DEV_ORIGINS", "http://127.0.0.1:5914,http://localhost:5914")
     prod_origins: str = os.getenv("PROD_ORIGINS", "https://oreflow.ml.fasl-work.com")
     data_dir: str = os.getenv("DATA_DIR", "data/derived")
 

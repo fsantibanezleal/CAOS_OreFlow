@@ -1,27 +1,16 @@
 # Data contract
 
-OreFlow has two boundaries. Contract 1 is `pipeline/io/contract.py`: it validates an operating point before the numerical engine receives it. Contract 2 is the JSON artifact and manifest emitted by `stages/export.py` and consumed by the web replay lane.
+OreFlow has two process boundaries and two measured-data lanes. Every page states the expected
+fields and units, what is rejected, what is flagged, and how missing or out-of-range data is handled.
 
-The input schema is intentionally narrow enough for a browser request and rich enough to couple throughput, size, hardness, density, water, air, reagent and residence time. Rejection is used for missing or physically impossible values. Review flags are used for plausible but unusual intensities, including very high throughput, reagent dose, water use and very low head grade.
+| Page | Boundary | Where it lives |
+|---|---|---|
+| [01 Operating contract](data-contract/01_operating-contract.md) | Contract 1: the operating envelope every state must satisfy before the engine runs | `data-pipeline/pipeline/io/contract.py`, exported to `data/derived/contract/operating_contract.json` |
+| [02 Trace and live API](data-contract/02_trace-and-live-api.md) | The trace of one circuit evaluation and the HTTP routes that serve it | `data-pipeline/pipeline/engine/trace.py`, `app/routers/content.py` |
+| [03 Case artifacts](data-contract/03_case-artifacts.md) | Contract 2: the baked case artifacts, their manifests and the index, the learning record, the benchmark and the validation record | `data-pipeline/pipeline/stages/cases.py` (each case), `data-pipeline/pipeline/pipeline.py` (manifests, index, learning, validation), `data-pipeline/pipeline/stages/benchmark.py` |
+| [04 Particle lane](data-contract/04_particle-lane.md) | HZDR RODARE particle-separation workbook and its learned models | `data-pipeline/run_particles.py` |
+| [05 GeoMet lane](data-contract/05_geomet-lane.md) | GeoMet v4 locked-cycle-test recoveries and assay predictors | `data-pipeline/run_geomet.py` |
 
-The optional `process_family` field is restricted to `rougher`, `gravity_rougher`, `magnetic` or `deslime_rougher` and is preserved through validation. The live API infers the family from a known authored case ID when omitted; an unknown case ID defaults to the generic rougher. This keeps live calculations consistent with the selected case topology while rejecting unsupported family names.
-
-The output case schema is `oreflow.case/v1`. A case artifact contains six variants and an explicit `process_family`. Each variant stores the complete size grid, feed, crushed, ground and overflow cumulative passing curves, a kinetic curve (zero for the magnetic circuit), metric dictionary and all 21 method records. Records distinguish `precomputed`, `not-applicable`, and `unavailable`. The manifest points to the artifact, records its byte count, engine version, seed, lane and evaluation summary. `frontend/src/lib/contract.types.ts` mirrors the shape.
-
-This design makes the repo applicable to new operating-point data while preserving an honest boundary between exact offline evidence and the browser's bounded live response.
-
-## Independent particle-learning lane
-
-`data-pipeline/run_particles.py` reads the local, ignored HZDR RODARE workbook (DOI 10.14278/rodare.336; CC BY 4.0), preserving its original Train data and Test data sheets. The training sheet has 68,008 rows with A/B classes for four *constructed* separation cases; 15% of those rows is reserved for MLP early stopping. The test sheet has 29,147 rows with constructed oracle probabilities and published reference predictions, but **no observed A/B classes**. Consequently, this lane reports probability RMSE/MAE/bias and expected-selection curves, not classification accuracy, observed recovery, or a plant benchmark.
-
-The input vector is exactly `Aspect Ratio`, `Solidity`, `ECD` and `Mineral 1 surface`. All probability and prediction columns, labels for other cases, duplicated particle descriptors and other mineral fields are excluded. The standardizer is fitted only on training-fit rows. A seeded L1 logistic fit is made per case, while a shared 4–32–32–4 PyTorch MLP uses local CUDA when available and exports a small ONNX model for on-demand browser inference. The published predictions are a reference from the workbook, not a model refitted by OreFlow. Case 4 has missing oracle/reference values; comparisons for all three model sources use the same 28,484 finite test rows (663 excluded). The other cases use all 29,147 test rows. This missingness is recorded per case in the artifact.
-
-`data/derived/source/hzdr_particle_benchmark.json` (`oreflow.particle-benchmark/v1`) holds source SHA256 and license, split/device/feature metadata, held-out metrics, 20-bin calibration and 101-point threshold curves per case and model. `models/particle_mlp.onnx` is the executable inference artifact. `scripts/check_artifacts.py` validates both lanes without retraining in CI. The raw workbook and PyTorch checkpoint are local-only, reproducible from the source and scripts.
-
-## Measured GeoMet LCT lane
-
-`scripts/fetch-data.ps1` / `.sh` also fetch the latest GeoMet v4 CSVs from Zenodo record 7051975 (CC BY 4.0) and verify pinned MD5 values. The flotation input has 53 rows and columns `HOLEID`, local `X/Y/Z`, `LCT` (fraction), and assays. One row with missing LCT is excluded and listed in the artifact; 52 rows from 29 holes remain. `LCT` is a measured *locked-cycle test* recovery, not a time-stamped operating-plant KPI. The other downloaded comminution/drillhole files remain locally available for research and are not silently joined to LCT rows.
-
-`data-pipeline/run_geomet.py` uses exactly `Cu ppm`, `Fe ppm`, `S ppm`, `Si ppm` and `Al ppm` as predictors. Hole ID and coordinates define nonleaking groups and display only; `fr`, `xr` and target columns do not enter features. `log1p` is a deterministic transformation; median imputation and scaling are fitted inside each training fold. Five GroupKFold folds hold complete holes out; a separate three-fold protocol groups complete holes by X-position zone. The `oreflow.geomet-lct/v1` artifact records source hash/license, row exclusions, source-row IDs, fold assignments, observed values, four out-of-fold predictions and metrics for both protocols. No result is a cross-mine test or a calibration of OreFlow's grind/collector controls.
-
-After cross-validation, `scripts/precompute` also fits a local full-data checkpoint at `models/geomet_lct.joblib` (ignored). For private new assays, run `scripts/predict-geomet.ps1 INPUT.csv OUTPUT.csv` or the shell counterpart. The CSV needs at least one row and the five exactly named ppm columns above; additional identifiers pass through. Values must be numeric and within 0–1,000,000 ppm, with at least one observed assay per row. Missing assay counts and out-of-reference-range flags accompany ridge, random-forest and Gaussian-process LCT predictions in percent. The checkpoint is a local Python joblib pickle; load only one generated by this repository on a trusted machine. The flagged predictions are not plant-recovery or transfer-validated estimates.
+The rule shared by every boundary: a value that is missing, non-numeric, non-finite or physically
+impossible is rejected with a named code; nothing is coerced silently. A value that is plausible but
+outside the region a model was built for is accepted with a flag that travels with the result.

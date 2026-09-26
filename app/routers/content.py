@@ -1,12 +1,15 @@
-"""Read-only catalog and bounded live simulation routes."""
+"""Read-only catalog, the operating contract and the bounded live simulation."""
 from __future__ import annotations
 
 import sys
+from functools import lru_cache
 from pathlib import Path
+from typing import Any
 
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 
-from ..models.schemas import SimRequest
+from ..models.schemas import SimulationRequest
 from ..services import content
 
 PIPELINE_ROOT = Path(__file__).resolve().parents[2] / "data-pipeline"
@@ -14,6 +17,16 @@ if str(PIPELINE_ROOT) not in sys.path:
     sys.path.insert(0, str(PIPELINE_ROOT))
 
 router = APIRouter(prefix="/api")
+CONTRACT_FILE = "contract/operating_contract.json"
+
+
+@lru_cache(maxsize=1)
+def operating_contract() -> dict[str, Any]:
+    """The exported Contract 1 document, the same file the static build serves to the browser."""
+    document = content.load_json(CONTRACT_FILE)
+    if document is None:
+        raise RuntimeError(f"{CONTRACT_FILE} is missing from the derived artifacts")
+    return document
 
 
 @router.get("/cases")
@@ -24,6 +37,11 @@ def list_cases() -> dict:
 @router.get("/benchmark")
 def benchmark() -> dict:
     return content.load_json("benchmark.json") or {}
+
+
+@router.get("/contract")
+def contract() -> dict:
+    return operating_contract()
 
 
 @router.get("/cases/{case_id}")
@@ -42,18 +60,33 @@ def get_manifest(case_id: str) -> dict:
     return data
 
 
-@router.post("/simulate")
-def simulate(request: SimRequest) -> dict:
-    from pipeline.cases.catalog import CASES
-    from pipeline.io.contract import validate_rows
-    from pipeline.model.process import simulate as run_model
+def _message(document: dict[str, Any], code: str) -> str:
+    if code in document["messages"]:
+        return document["messages"][code]["en"]
+    rule = next(r for r in document["rules"] if r["id"] == code)
+    return rule["message"]["en"]
 
-    raw = request.model_dump()
-    if raw["process_family"] is None:
-        known_case = next((case for case in CASES if case.id == request.case_id.split(":", 1)[0]), None)
-        raw["process_family"] = known_case.params.process_family if known_case else "rougher"
-    report = validate_rows([raw])
-    if not report.accepted:
-        raise HTTPException(status_code=422, detail={"rejected": report.rejected, "flagged": report.flagged})
-    result = run_model(report.accepted[0])
-    return {"schema": "oreflow.live/v1", "lane": "live-api", "flags": report.flagged, "trace": {"schema": "oreflow.trace/v1", "case_id": result.case_id, "size_um": result.size_um, "feed_psd": result.feed_psd, "crushed_psd": result.crushed_psd, "ground_psd": result.ground_psd, "overflow_psd": result.overflow_psd, "flotation_recovery": result.flotation_recovery, "metrics": result.metrics}}
+
+@router.post("/simulate")
+def simulate(request: SimulationRequest) -> Any:
+    from pipeline.cases.catalog import CASE_BY_ID
+    from pipeline.engine.circuit import simulate as run_circuit
+    from pipeline.engine.model import operating_from_dict
+    from pipeline.engine.trace import trace
+    from pipeline.io.contract import validate
+
+    document = operating_contract()
+    result = validate(document, request.case_id, request.point)
+    if not result["accepted"]:
+        errors = [{**error, "message": _message(document, error["code"])} for error in result["errors"]]
+        return JSONResponse(status_code=422, content={"schema": "oreflow.rejection/v1", "contract_digest": document["digest"],
+                                                      "case_id": request.case_id, "errors": errors})
+    case = CASE_BY_ID[request.case_id]
+    point = operating_from_dict(result["point"])
+    try:
+        circuit = run_circuit(case.ore, case.plant, point)
+    except Exception as exc:  # an accepted state must solve; report the failure instead of hiding it
+        return JSONResponse(status_code=500, content={"schema": "oreflow.engine-error/v1", "case_id": request.case_id,
+                                                      "point": result["point"], "message": f"{type(exc).__name__}: {exc}"})
+    return {"schema": "oreflow.live/v2", "lane": "live-api", "contract_digest": document["digest"],
+            "case_id": request.case_id, "trace": trace(circuit, point, case.plant.family)}

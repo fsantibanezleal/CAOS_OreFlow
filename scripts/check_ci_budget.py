@@ -5,7 +5,7 @@ Fails when a workflow:
     develop/main/master;
   - has no top-level concurrency group;
   - has a job without timeout-minutes;
-  - installs the training stack (precompute lane, pipeline requirements, torch & co.);
+  - installs the training stack (precompute lane, GPU lane, pipeline requirements, torch & co.);
   - runs a training, pipeline, bake or benchmark entry point;
   - runs a test suite in a product repo (one with data-pipeline/): tests run locally.
 Stdlib only, so it runs before any install.
@@ -21,7 +21,7 @@ from pathlib import Path
 ROOT = Path(sys.argv[1]).resolve() if len(sys.argv) > 1 else Path(__file__).resolve().parents[1]
 TRUNKS = {"develop", "main", "master"}
 STACK_INSTALL = re.compile(
-    r"requirements-precompute|data-pipeline/requirements|download\.pytorch\.org|"
+    r"requirements-precompute|requirements-gpu|data-pipeline/requirements|download\.pytorch\.org|"
     r"(pip|uv)\s+(pip\s+)?install\b[^\n#]*\b(torch|torchvision|tensorflow|jax|jaxlib|transformers|lightning)\b"
 )
 PIPELINE_RUN = re.compile(

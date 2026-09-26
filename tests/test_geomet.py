@@ -82,3 +82,29 @@ def test_assay_input_contract(tmp_path):
                    "Si ppm": 185000, "Al ppm": 50000}]).to_csv(negative, index=False)
     with pytest.raises(ValueError, match="physical"):
         validate_assays(negative)
+
+
+def test_paired_bootstrap_over_holes():
+    # the ranking of four models on 52 tests needs paired uncertainty; the bootstrap is recomputed here
+    # from the stored out-of-fold predictions, so no model is refitted
+    from run_geomet import paired_bootstrap
+
+    for protocol in load()["protocols"].values():
+        stored = protocol["paired_bootstrap"]
+        assert stored == paired_bootstrap(protocol["rows"])
+        assert stored["unit"] == "complete hole" and stored["holes"] == 29 and stored["samples"] == 2000
+        for low, high in stored["rmse_interval_95_pp"].values():
+            assert low <= high
+        for difference in stored["rmse_differences"].values():
+            low, high = difference["interval_95_pp"]
+            assert low <= high and 0.0 <= difference["share_first_better"] <= 1.0
+            assert difference["excludes_zero"] == (high < 0.0 or low > 0.0)
+
+
+def test_documented_significance():
+    # docs/data-contract/05_geomet-lane.md: only ridge beats the training mean with an interval that
+    # excludes zero, and only under hole-grouped folds
+    protocols = load()["protocols"]
+    significant = {name: {pair for pair, d in p["paired_bootstrap"]["rmse_differences"].items() if d["excludes_zero"]}
+                   for name, p in protocols.items()}
+    assert significant == {"hole": {"train_mean-ridge"}, "zone": set()}

@@ -1,3 +1,5 @@
-"""OreFlow's reproducible process-mining and process-optimization engine."""
+"""OreFlow's process engine, methods and reproducible bake."""
+from pathlib import Path
 
-__version__ = "0.01.000"  # display X.XX.XXX; PEP 440 form in pyproject.toml (0.1.0)
+# One version source for the pipeline, the service and the artifacts (display X.XX.XXX).
+__version__ = (Path(__file__).resolve().parents[2] / "VERSION").read_text(encoding="utf-8").strip()

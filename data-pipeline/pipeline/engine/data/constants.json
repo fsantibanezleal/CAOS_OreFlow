@@ -1,0 +1,633 @@
+{
+  "schema": "oreflow.constants/v1",
+  "note": "Every numeric constant of the process engine, with its unit and source. Python and TypeScript engines both read this file; scripts/check_units.py rejects undeclared literals in engine modules and entries without unit or source.",
+  "constants": {
+    "grid.top_um": {
+      "value": 150000.0,
+      "unit": "um",
+      "source": "Design: upper bound of the coarsest class, above the coarsest crusher feed in the catalog."
+    },
+    "grid.classes_per_octave": {
+      "value": 4,
+      "unit": "1",
+      "source": "Design: fourth-root-of-two sieve progression."
+    },
+    "grid.n_classes": {
+      "value": 63,
+      "unit": "1",
+      "source": "Design: the pan boundary falls at 3.24 um."
+    },
+    "psd.p80_level": {
+      "value": 0.8,
+      "unit": "fraction passing",
+      "source": "Definition of P80 (GMG01-MP-2021)."
+    },
+    "bond.coefficient": {
+      "value": 10.0,
+      "unit": "kWh/t per um^-0.5 per (kWh/t)",
+      "source": "Bond (1952); GMG01-MP-2021 equation 2."
+    },
+    "bond.reference_feed_um": {
+      "value": 10000.0,
+      "unit": "um",
+      "source": "Design: reference reduction at which Rittinger and Kick are calibrated to Bond."
+    },
+    "bond.reference_product_um": {
+      "value": 150.0,
+      "unit": "um",
+      "source": "Design: reference reduction at which Rittinger and Kick are calibrated to Bond."
+    },
+    "mill.mixer_fractions": {
+      "value": [
+        0.7,
+        0.15,
+        0.15
+      ],
+      "unit": "fraction of mill holdup",
+      "source": "Austin, Klimpel and Luckie (1984): one large and two equal small perfect mixers; the fractions are this product's declared values."
+    },
+    "water.density_t_m3": {
+      "value": 1.0,
+      "unit": "t/m3",
+      "source": "Process water at plant temperature, rounded."
+    },
+    "gravity.acceleration_m_s2": {
+      "value": 9.81,
+      "unit": "m/s2",
+      "source": "Standard gravity, rounded."
+    },
+    "time.seconds_per_minute": {
+      "value": 60.0,
+      "unit": "s/min",
+      "source": "Definition."
+    },
+    "time.minutes_per_hour": {
+      "value": 60.0,
+      "unit": "min/h",
+      "source": "Definition."
+    },
+    "units.litres_per_m3": {
+      "value": 1000.0,
+      "unit": "L/m3",
+      "source": "Definition."
+    },
+    "units.um_per_mm": {
+      "value": 1000.0,
+      "unit": "um/mm",
+      "source": "Definition."
+    },
+    "units.gpt_per_pct": {
+      "value": 10000.0,
+      "unit": "(g/t)/%",
+      "source": "Definition."
+    },
+    "units.kpa_per_psi": {
+      "value": 6.894757,
+      "unit": "kPa/psi",
+      "source": "Definition."
+    },
+    "plitt.d50_coefficient": {
+      "value": 50.5,
+      "unit": "um (cm, L/min, t/m3 units)",
+      "source": "Plitt (1976) CIM Bull. 69(776):114-123, as documented in SysCAD Hydrocyclone."
+    },
+    "plitt.d50_exp_dc": {
+      "value": 0.46,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_exp_di": {
+      "value": 0.6,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_exp_do": {
+      "value": 1.21,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_cv_coefficient": {
+      "value": 0.063,
+      "unit": "1/(vol% solids)",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_exp_du": {
+      "value": 0.71,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_exp_h": {
+      "value": 0.38,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_exp_q": {
+      "value": 0.45,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.d50_exp_density": {
+      "value": 0.5,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_coefficient": {
+      "value": 1.88,
+      "unit": "kPa (cm, L/min units)",
+      "source": "Plitt (1976), SysCAD equation 8."
+    },
+    "plitt.pressure_exp_q": {
+      "value": 1.78,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_cv_coefficient": {
+      "value": 0.0055,
+      "unit": "1/(vol% solids)",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_exp_dc": {
+      "value": 0.37,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_exp_di": {
+      "value": 0.94,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_exp_h": {
+      "value": 0.28,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_exp_area": {
+      "value": 0.87,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.split_coefficient": {
+      "value": 1.9,
+      "unit": "1 (cm, m units)",
+      "source": "Plitt (1976), SysCAD equation 10."
+    },
+    "plitt.split_exp_ratio": {
+      "value": 3.31,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.split_exp_h": {
+      "value": 0.54,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.split_exp_area": {
+      "value": 0.36,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.split_cv_coefficient": {
+      "value": 0.0054,
+      "unit": "1/(vol% solids)",
+      "source": "Plitt (1976)."
+    },
+    "plitt.split_exp_head": {
+      "value": 0.24,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.split_exp_dc": {
+      "value": 1.11,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.sharpness_coefficient": {
+      "value": 1.94,
+      "unit": "1",
+      "source": "Plitt (1976), SysCAD equation 11."
+    },
+    "plitt.sharpness_rv_coefficient": {
+      "value": 1.58,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.sharpness_exp": {
+      "value": 0.15,
+      "unit": "1",
+      "source": "Plitt (1976)."
+    },
+    "plitt.pressure_window_kpa": {
+      "value": [
+        35.0,
+        200.0
+      ],
+      "unit": "kPa",
+      "source": "Flag window, authored: the Moly-Cop base case runs at 53 kPa; values outside the window are reported, not rejected."
+    },
+    "flotation.sb_factor": {
+      "value": 60.0,
+      "unit": "(1/s) per ((cm/s)/mm)",
+      "source": "Sb = 6 Jg/D32 (Gorain et al. 1997) with Jg in cm/s and D32 in mm."
+    },
+    "savassi.constant": {
+      "value": 2.292,
+      "unit": "1",
+      "source": "Savassi et al. (1998) Miner. Eng. 11(3):243-256, as typeset in Hoang et al. (2019) eq. 3."
+    },
+    "batch.times_min": {
+      "value": [
+        0.5,
+        1.0,
+        2.0,
+        3.0,
+        4.0,
+        6.0,
+        8.0,
+        12.0,
+        16.0
+      ],
+      "unit": "min",
+      "source": "Design: laboratory batch-flotation sampling schedule for the virtual test."
+    },
+    "numerics.root_max_iterations": {
+      "value": 200,
+      "unit": "1",
+      "source": "Numerics."
+    },
+    "numerics.root_rel_tolerance": {
+      "value": 1e-12,
+      "unit": "1",
+      "source": "Numerics."
+    },
+    "numerics.recycle_tolerance_tph": {
+      "value": 1e-10,
+      "unit": "t/h",
+      "source": "Numerics: PE-16 convergence threshold."
+    },
+    "numerics.recycle_rel_tolerance": {
+      "value": 1e-12,
+      "unit": "1",
+      "source": "Numerics: largest per-class relative change between recycle passes at convergence, so trace minerals close as tightly as the bulk (PE-02)."
+    },
+    "numerics.recycle_max_iterations": {
+      "value": 2000,
+      "unit": "1",
+      "source": "Numerics."
+    },
+    "numerics.composite_scale_tolerance": {
+      "value": 1e-13,
+      "unit": "1",
+      "source": "Numerics: largest per-class change of the host-limited composite scale at convergence in the grinding circuit."
+    },
+    "numerics.composite_scale_max_iterations": {
+      "value": 200,
+      "unit": "1",
+      "source": "Numerics: iteration cap of the host-limited composite fixed point."
+    },
+    "numerics.lm_max_iterations": {
+      "value": 400,
+      "unit": "1",
+      "source": "Numerics."
+    },
+    "numerics.lm_tolerance": {
+      "value": 1e-14,
+      "unit": "1",
+      "source": "Numerics."
+    },
+    "numerics.laguerre_nodes": {
+      "value": 64,
+      "unit": "1",
+      "source": "Numerics: Gauss-Laguerre order for the residence-time projection."
+    },
+    "grinding.energy_bracket_kwh_t": {
+      "value": [
+        0.001,
+        400.0
+      ],
+      "unit": "kWh per t of mill feed per pass",
+      "source": "Numerics: search bracket."
+    },
+    "grinding.cut_bracket_um": {
+      "value": [
+        0.5,
+        150000.0
+      ],
+      "unit": "um",
+      "source": "Numerics: search bracket."
+    },
+    "flotation.composite_surface_exponent": {
+      "value": 0.6666666666666666,
+      "unit": "1",
+      "source": "Declared: the exposed surface of a composite grain scales with the two-thirds power of its valuable content."
+    },
+    "numerics.negative_mass_tolerance_per_tph": {
+      "value": 1e-09,
+      "unit": "t/h per t/h of throughput",
+      "source": "Numerics: a class mass below minus this tolerance raises a negative-mass flag."
+    },
+    "numerics.curve_class_share_floor": {
+      "value": 1e-08,
+      "unit": "1",
+      "source": "Numerics: a size class holding less than this share of the rougher-feed payable is reported empty (null) in the recovery-by-size curve; below it the class composition is round-off of the cyclone split, and the float64 ratio error grows as 1e-16 over the share."
+    },
+    "numerics.cut_search_step_ratio": {
+      "value": 4.0,
+      "unit": "1",
+      "source": "Numerics: geometric step of the cut-size bracket search."
+    },
+    "numerics.energy_guess_floor_kwh_t": {
+      "value": 0.1,
+      "unit": "kWh/t",
+      "source": "Numerics: floor of the Bond-based starting guess for the energy search."
+    },
+    "kinetics.beta_bounds": {
+      "value": [
+        0.2,
+        5.0
+      ],
+      "unit": "1",
+      "source": "Declared: range of the exponent that keeps the model identifiable on a nine-point batch curve; above 1 the curve has a delayed onset (compressed), below 1 it reflects a spread of rates (stretched); dossier section 3.6, Vinnett and Waters (2025), doi:10.1016/j.mineng.2025.109246."
+    },
+    "kinetics.dense_points": {
+      "value": 65,
+      "unit": "1",
+      "source": "Design: samples of each fitted curve from 0 to the last batch time (0.25 min spacing over 16 min), for plotting from the record."
+    },
+    "numerics.lm_initial_damping": {
+      "value": 0.001,
+      "unit": "1",
+      "source": "Numerics: initial Marquardt damping (Marquardt 1963)."
+    },
+    "numerics.lm_damping_factor": {
+      "value": 10.0,
+      "unit": "1",
+      "source": "Numerics: damping decrease on an accepted step and increase on a rejected one."
+    },
+    "numerics.lm_damping_bounds": {
+      "value": [
+        1e-15,
+        1000000000000000.0
+      ],
+      "unit": "1",
+      "source": "Numerics: damping limits; reaching the upper one means no step lowers the residual in double precision."
+    },
+    "numerics.lm_diagonal_floor": {
+      "value": 1e-12,
+      "unit": "1",
+      "source": "Numerics: floor on the diagonal of the normal matrix used for Marquardt scaling."
+    },
+    "optimization.starts": {
+      "value": [
+        [
+          0.25,
+          0.25,
+          0.25
+        ],
+        [
+          0.75,
+          0.75,
+          0.75
+        ],
+        [
+          0.25,
+          0.75,
+          0.75
+        ],
+        [
+          0.75,
+          0.25,
+          0.25
+        ],
+        [
+          0.5,
+          0.5,
+          0.5
+        ]
+      ],
+      "unit": "unit cube of the decision bounds",
+      "source": "Design: five fixed starts that, with the nominal point, make the six COBYLA starts; the magnetite circuit uses the first coordinate of each."
+    },
+    "optimization.rhobeg": {
+      "value": 0.25,
+      "unit": "unit cube of the decision bounds",
+      "source": "Numerics: initial COBYLA trust-region radius (Powell 1994), a quarter of each decision range."
+    },
+    "optimization.rhoend": {
+      "value": 0.0001,
+      "unit": "unit cube of the decision bounds",
+      "source": "Numerics: final COBYLA trust-region radius (1e-4 of each decision range)."
+    },
+    "optimization.max_evaluations": {
+      "value": 200,
+      "unit": "1",
+      "source": "Numerics: cap on circuit evaluations per COBYLA start."
+    },
+    "optimization.feasibility_tolerance": {
+      "value": 1e-06,
+      "unit": "1 (relative to each constraint limit)",
+      "source": "Numerics: a point is feasible when every constraint holds within this relative tolerance."
+    },
+    "optimization.active_tolerance": {
+      "value": 0.001,
+      "unit": "1 (relative to each constraint limit)",
+      "source": "Design: a constraint whose relative slack at the optimum is below this is reported as active."
+    },
+    "uncertainty.half_widths": {
+      "value": {
+        "work_index": 0.2,
+        "head_grade": 0.2,
+        "liberation_size": 0.25,
+        "floatability": 0.25
+      },
+      "unit": "fraction of the variant value (uniform on 1 - h to 1 + h)",
+      "source": "Authored: ore-property spreads for the uncertainty and sensitivity records; not fitted to a deposit, stated as such on the Methodology page."
+    },
+    "uncertainty.samples": {
+      "value": 128,
+      "unit": "1",
+      "source": "Design: Monte Carlo sample size of the uncertainty record (PE-28)."
+    },
+    "uncertainty.seed": {
+      "value": 20260926,
+      "unit": "1",
+      "source": "Design: seed of the scrambled Latin hypercube, so every record is reproducible."
+    },
+    "uncertainty.quantiles": {
+      "value": [
+        0.05,
+        0.5,
+        0.95
+      ],
+      "unit": "probability",
+      "source": "Design: P05, P50 and P95 of each output (PE-28)."
+    },
+    "sensitivity.base_samples": {
+      "value": 256,
+      "unit": "1",
+      "source": "Design: Saltelli base sample N (a power of two); first- and total-order indices need N (D + 2) circuit evaluations."
+    },
+    "sensitivity.resamples": {
+      "value": 200,
+      "unit": "1",
+      "source": "Design: bootstrap resamples for the 95% confidence intervals of the Sobol indices (SALib)."
+    },
+    "sensitivity.confidence": {
+      "value": 0.95,
+      "unit": "probability",
+      "source": "Design: confidence level of the Sobol index intervals."
+    },
+    "sensitivity.constant_tolerance": {
+      "value": 1e-09,
+      "unit": "1",
+      "source": "Numerics: an output whose spread across the design is below this share of its magnitude is constant up to round-off (the grinding energy of a mill at installed power at every sample); Sobol indices of it would apportion floating-point noise, so it is recorded as constant."
+    },
+    "learning.design_points_per_case": {
+      "value": 256,
+      "unit": "1",
+      "source": "Design: engine states per case in the learning design (a power of two for the Sobol sequence)."
+    },
+    "learning.seed": {
+      "value": 20260927,
+      "unit": "1",
+      "source": "Design: seed of the learning design, the splits and every model."
+    },
+    "learning.test_fraction": {
+      "value": 0.2,
+      "unit": "fraction",
+      "source": "Design: share of each case's states held out by the interpolation protocol."
+    },
+    "learning.validation_fraction": {
+      "value": 0.15,
+      "unit": "fraction",
+      "source": "Design: share of the training rows held out for early stopping and for the guard threshold."
+    },
+    "learning.ridge_alpha": {
+      "value": 1.0,
+      "unit": "1",
+      "source": "Design: L2 penalty of the linear reference model on standardized features."
+    },
+    "learning.forest_trees": {
+      "value": 300,
+      "unit": "1",
+      "source": "Design: trees of the random forest (Breiman 2001)."
+    },
+    "learning.forest_min_leaf": {
+      "value": 2,
+      "unit": "1",
+      "source": "Design: minimum samples per random-forest leaf."
+    },
+    "learning.hgb_iterations": {
+      "value": 300,
+      "unit": "1",
+      "source": "Design: boosting iterations of HistGradientBoostingRegressor (fixed, no internal early stopping)."
+    },
+    "learning.hgb_learning_rate": {
+      "value": 0.05,
+      "unit": "1",
+      "source": "Design: shrinkage of the gradient-boosting surrogate."
+    },
+    "learning.gp_training_rows": {
+      "value": 500,
+      "unit": "1",
+      "source": "Design: seeded subsample the Gaussian process is fitted on (the exact GP costs O(n^3))."
+    },
+    "learning.gp_restarts": {
+      "value": 2,
+      "unit": "1",
+      "source": "Design: restarts of the GP marginal-likelihood optimizer."
+    },
+    "learning.interval_z": {
+      "value": 1.959963984540054,
+      "unit": "1",
+      "source": "Two-sided 95% quantile of the standard normal distribution, for GP interval coverage."
+    },
+    "learning.mlp_hidden": {
+      "value": [
+        64,
+        64
+      ],
+      "unit": "neurons per layer",
+      "source": "Design: hidden layers of the multi-output MLP surrogate."
+    },
+    "learning.mlp_learning_rate": {
+      "value": 0.003,
+      "unit": "1",
+      "source": "Design: Adam step size (Kingma and Ba 2015)."
+    },
+    "learning.mlp_weight_decay": {
+      "value": 0.0001,
+      "unit": "1",
+      "source": "Design: decoupled weight decay of the MLP and the autoencoder."
+    },
+    "learning.max_epochs": {
+      "value": 3000,
+      "unit": "1",
+      "source": "Design: epoch cap of the MLP and the autoencoder; training stops earlier on validation loss."
+    },
+    "learning.patience": {
+      "value": 150,
+      "unit": "1",
+      "source": "Design: epochs without a lower validation loss before training stops (the best weights are restored)."
+    },
+    "learning.autoencoder_hidden": {
+      "value": [
+        16,
+        6,
+        16
+      ],
+      "unit": "neurons per layer",
+      "source": "Design: encoder, bottleneck and decoder widths of the out-of-envelope guard."
+    },
+    "learning.guard_quantile": {
+      "value": 0.99,
+      "unit": "probability",
+      "source": "Design: the guard threshold is this quantile of the validation reconstruction error, so about 1% of in-envelope states raise a false alarm."
+    },
+    "learning.ood_shift": {
+      "value": 0.5,
+      "unit": "fraction of the training range",
+      "source": "Design: out-of-envelope probes move one feature this far beyond its training maximum."
+    },
+    "learning.permutation_repeats": {
+      "value": 10,
+      "unit": "1",
+      "source": "Design: repeats of permutation importance (Breiman 2001; scikit-learn permutation_importance)."
+    },
+    "learning.onnx_tolerance": {
+      "value": 1e-05,
+      "unit": "1 (absolute, standardized outputs)",
+      "source": "Numerics: largest difference allowed between PyTorch and ONNX Runtime outputs of an exported model."
+    },
+    "units.kw_per_mw": {
+      "value": 1000.0,
+      "unit": "kW/MW",
+      "source": "Definition."
+    },
+    "learning.gp_noise_initial": {
+      "value": 0.001,
+      "unit": "1 (normalized target variance)",
+      "source": "Design: starting noise level of the GP white-noise kernel; the marginal likelihood fits it."
+    },
+    "learning.gp_noise_bounds": {
+      "value": [
+        1e-09,
+        10.0
+      ],
+      "unit": "1 (normalized target variance)",
+      "source": "Design: white-noise bounds of the GP; the engine is deterministic, so the fitted noise is expected near the lower bound."
+    },
+    "learning.gp_length_scale_bounds": {
+      "value": [
+        0.01,
+        100000.0
+      ],
+      "unit": "standardized feature units",
+      "source": "Design: ARD length-scale bounds; a length scale at the upper bound means the feature is switched off."
+    },
+    "learning.gp_bound_margin": {
+      "value": 0.99,
+      "unit": "fraction of the upper bound",
+      "source": "Design: a fitted length scale above this share of its upper bound is reported as switched off."
+    }
+  }
+}

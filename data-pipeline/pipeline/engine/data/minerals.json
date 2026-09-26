@@ -1,0 +1,23 @@
+{
+  "schema": "oreflow.minerals/v1",
+  "note": "Densities are typical values from mindat.org mineral pages. Element contents are computed from formula and IUPAC atomic weights, except where an explicit composition is declared with its source.",
+  "minerals": {
+    "quartz": {"name": ["Quartz and silicate gangue", "Cuarzo y ganga silicatada"], "formula": "SiO2", "density": 2.65, "source": "mindat.org quartz, 2.65 t/m3."},
+    "silicate_fe": {"name": ["Iron-bearing silicate gangue", "Ganga silicatada con hierro"], "composition": {"Si": 0.40, "Fe": 0.05, "O": 0.51, "Mg": 0.04}, "density": 2.85, "source": "Declared composite silicate gangue for a magnetite ore (quartz with amphibole and minor iron silicates); composition authored."},
+    "chalcopyrite": {"name": ["Chalcopyrite", "Calcopirita"], "formula": "CuFeS2", "density": 4.19, "source": "mindat.org chalcopyrite, 4.1 to 4.3 t/m3."},
+    "molybdenite": {"name": ["Molybdenite", "Molibdenita"], "formula": "MoS2", "density": 4.7, "source": "mindat.org molybdenite, 4.62 to 4.73 t/m3 measured."},
+    "sphalerite": {"name": ["Sphalerite (iron-bearing)", "Esfalerita (con hierro)"], "formula": "Zn0.92Fe0.08S", "density": 4.05, "source": "mindat.org sphalerite, 3.9 to 4.1 t/m3; 8 mol% Fe substitution declared."},
+    "pyrite": {"name": ["Pyrite", "Pirita"], "formula": "FeS2", "density": 5.01, "source": "mindat.org pyrite, 4.95 to 5.10 t/m3."},
+    "arsenopyrite": {"name": ["Arsenopyrite", "Arsenopirita"], "formula": "FeAsS", "density": 6.07, "source": "mindat.org arsenopyrite, 5.9 to 6.2 t/m3."},
+    "pentlandite": {"name": ["Pentlandite", "Pentlandita"], "formula": "Fe4.5Ni4.5S8", "density": 4.8, "source": "mindat.org pentlandite, 4.6 to 5.0 t/m3; Fe:Ni 1:1 declared."},
+    "pyrrhotite": {"name": ["Pyrrhotite", "Pirrotita"], "formula": "Fe7S8", "density": 4.61, "source": "mindat.org pyrrhotite, 4.58 to 4.65 t/m3."},
+    "magnetite": {"name": ["Magnetite", "Magnetita"], "formula": "Fe3O4", "density": 5.18, "source": "mindat.org magnetite, 5.175 t/m3."},
+    "fluorapatite": {"name": ["Fluorapatite", "Fluorapatita"], "formula": "Ca5(PO4)3F", "density": 3.19, "source": "mindat.org fluorapatite, 3.1 to 3.25 t/m3."},
+    "malachite": {"name": ["Malachite", "Malaquita"], "formula": "Cu2CO3(OH)2", "density": 3.9, "source": "mindat.org malachite, 3.6 to 4.05 t/m3."},
+    "chrysocolla": {"name": ["Chrysocolla", "Crisocola"], "composition": {"Cu": 0.33, "Si": 0.17, "O": 0.46, "H": 0.02, "Al": 0.02}, "density": 2.2, "source": "mindat.org chrysocolla, variable (Cu,Al)2H2Si2O5(OH)4.nH2O, 1.93 to 2.4 t/m3; 33% Cu declared."},
+    "electrum": {"name": ["Native gold (electrum)", "Oro nativo (electrum)"], "composition": {"Au": 0.73, "Ag": 0.27}, "density": 15.7, "source": "Electrum at 73% Au as measured by MLA in Laplante and Staunton (AMIRA P420B); density from the Au and Ag end members."},
+    "lizardite": {"name": ["Serpentine (lizardite)", "Serpentina (lizardita)"], "formula": "Mg3Si2O5(OH)4", "density": 2.55, "source": "mindat.org lizardite, 2.55 to 2.58 t/m3."},
+    "kaolinite": {"name": ["Clay (kaolinite)", "Arcilla (caolinita)"], "formula": "Al2Si2O5(OH)4", "density": 2.6, "source": "mindat.org kaolinite, 2.61 to 2.68 t/m3."},
+    "calcite": {"name": ["Calcite", "Calcita"], "formula": "CaCO3", "density": 2.71, "source": "mindat.org calcite, 2.71 t/m3."}
+  }
+}

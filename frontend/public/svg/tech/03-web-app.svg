@@ -1,0 +1,142 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 492" width="880" class="arch-svg" role="img" aria-label="The web app: build overlay, routes, the workbench loop and the pages">
+  <style>
+    /* the page's tokens inside the app; CSS system colours where the file is shown as an image */
+    .arch-svg { color-scheme: light dark; }
+    .arch-svg text { font-family: var(--font-sans, Inter, "Segoe UI", system-ui, sans-serif); }
+    .arch-svg .mono { font-family: var(--font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace); }
+    .arch-svg .bx { fill: var(--color-surface-2, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1.2; }
+    .arch-svg .bx-hi { stroke: var(--color-accent, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-good { stroke: var(--color-good, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-warn { stroke: var(--color-warn, GrayText); stroke-width: 1.6; }
+    .arch-svg .band { fill: none; stroke: var(--color-border, GrayText); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .arch-svg .bt { fill: var(--color-fg-subtle, GrayText); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .arch-svg .h1 { fill: var(--color-fg, CanvasText); font-size: 15px; font-weight: 700; }
+    .arch-svg .sub { fill: var(--color-fg-subtle, GrayText); font-size: 10.5px; }
+    .arch-svg .ttl { fill: var(--color-fg, CanvasText); font-size: 12.5px; font-weight: 600; }
+    .arch-svg .it { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .cd { fill: var(--color-accent, LinkText); font-size: 10px; }
+    .arch-svg .eq { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .mu { fill: var(--color-fg-subtle, GrayText); font-size: 10px; font-style: italic; }
+    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint, GrayText); stroke-width: 1.5; }
+    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent, LinkText); stroke-width: 1.5; }
+    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn, GrayText); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arch-svg .lbl { fill: var(--color-fg-subtle, GrayText); font-size: 9.5px; }
+    .arch-svg .chip { fill: var(--color-surface, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1; }
+    /* Standalone default: English. Inside the modal the shell's [data-arch-lang] rules decide. */
+    svg .l-es { display: none; }
+  </style>
+  <defs>
+    <marker id="of-arch-3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint, GrayText)"/>
+    </marker>
+  </defs>
+  <text class="h1 l-en" x="20" y="28">The web app: what the build copies, the routes, the workbench loop and the content pages</text>
+  <text class="h1 l-es" x="20" y="28">La aplicación web: lo que copia la compilación, las rutas, el ciclo del laboratorio y las páginas</text>
+  <text class="sub l-en" x="20" y="46">React and Vite on the shared CAOS shell; the workbench recomputes a state live, the pages read the committed records</text>
+  <text class="sub l-es" x="20" y="46">React y Vite sobre el shell compartido de CAOS; el laboratorio recalcula un estado en vivo, las páginas leen los registros versionados</text>
+  <rect class="bx bx-hi" x="20" y="62" width="240" height="90" rx="8"/>
+  <text class="ttl l-en" x="32" y="81">Build overlay</text>
+  <text class="ttl l-es" x="32" y="81">Capa de compilación</text>
+  <text class="it l-en" x="32" y="97">data/derived to public/data</text>
+  <text class="it l-es" x="32" y="97">data/derived a public/data</text>
+  <text class="it l-en" x="32" y="111">models to public/models</text>
+  <text class="it l-es" x="32" y="111">models a public/models</text>
+  <text class="it l-en" x="32" y="125">the wasm runtime to public/ort</text>
+  <text class="it l-es" x="32" y="125">el runtime wasm a public/ort</text>
+  <text class="cd mono l-neutral" x="32" y="139">copy-data.mjs · vite build</text>
+  <rect class="bx" x="320" y="62" width="240" height="90" rx="8"/>
+  <text class="ttl l-en" x="332" y="81">Routes</text>
+  <text class="ttl l-es" x="332" y="81">Rutas</text>
+  <text class="it l-en" x="332" y="97">/ the workbench</text>
+  <text class="it l-es" x="332" y="97">/ el laboratorio</text>
+  <text class="it l-en" x="332" y="111">/focus/:case one instrument</text>
+  <text class="it l-es" x="332" y="111">/focus/:case un instrumento</text>
+  <text class="it l-en" x="332" y="125">five content pages, lazy</text>
+  <text class="it l-es" x="332" y="125">cinco páginas, diferidas</text>
+  <text class="cd mono l-neutral" x="332" y="139">main.tsx · AppShell, FocusShell</text>
+  <rect class="bx bx-good" x="620" y="62" width="240" height="90" rx="8"/>
+  <text class="ttl l-en" x="632" y="81">Static hosting</text>
+  <text class="ttl l-es" x="632" y="81">Hospedaje estático</text>
+  <text class="it l-en" x="632" y="97">a route file for every page</text>
+  <text class="it l-es" x="632" y="97">un archivo por cada ruta</text>
+  <text class="it l-en" x="632" y="111">404 fallback for deep links</text>
+  <text class="it l-es" x="632" y="111">respaldo 404 para enlaces</text>
+  <text class="it l-en" x="632" y="125">Pages path or the VPS root</text>
+  <text class="it l-es" x="632" y="125">ruta de Pages o raíz del VPS</text>
+  <text class="cd mono l-neutral" x="632" y="139">vite.config.ts · 404.html</text>
+  <path class="flow" d="M 260 104 L 318 104" marker-end="url(#of-arch-3)"/>
+  <text class="lbl l-en" x="289" y="98" text-anchor="middle">bundle</text>
+  <text class="lbl l-es" x="289" y="98" text-anchor="middle">paquete</text>
+  <path class="flow" d="M 560 104 L 618 104" marker-end="url(#of-arch-3)"/>
+  <text class="lbl l-neutral" x="589" y="98" text-anchor="middle">dist/</text>
+  <rect class="band" x="12" y="168" width="856" height="218" rx="10"/>
+  <text class="bt l-en" x="24" y="185">THE WORKBENCH LOOP</text>
+  <text class="bt l-es" x="24" y="185">EL CICLO DEL LABORATORIO</text>
+  <rect class="bx" x="28" y="196" width="176" height="76" rx="8"/>
+  <text class="ttl l-en" x="40" y="215">Rail and controls</text>
+  <text class="ttl l-es" x="40" y="215">Riel y controles</text>
+  <text class="it l-en" x="40" y="231">case, variant, 3 sections</text>
+  <text class="it l-es" x="40" y="231">caso, variante, 3 secciones</text>
+  <text class="it l-en" x="40" y="245">contract bounds and help</text>
+  <text class="it l-es" x="40" y="245">límites y ayuda del contrato</text>
+  <text class="cd mono l-neutral" x="40" y="259">Rail.tsx · Controls.tsx</text>
+  <rect class="bx" x="244" y="196" width="176" height="76" rx="8"/>
+  <text class="ttl l-en" x="256" y="215">State in the URL</text>
+  <text class="ttl l-es" x="256" y="215">Estado en la URL</text>
+  <text class="it l-en" x="256" y="231">case, variant, set inputs</text>
+  <text class="it l-es" x="256" y="231">caso, variante, entradas</text>
+  <text class="it l-en" x="256" y="245">survives the focus trip</text>
+  <text class="it l-es" x="256" y="245">sobrevive al viaje al foco</text>
+  <text class="cd mono l-neutral" x="256" y="259">workbench/state.ts</text>
+  <rect class="bx bx-warn" x="460" y="196" width="176" height="76" rx="8"/>
+  <text class="ttl l-en" x="472" y="215">Validate, then solve</text>
+  <text class="ttl l-es" x="472" y="215">Validar, luego resolver</text>
+  <text class="it l-en" x="472" y="231">the contract rejects first</text>
+  <text class="it l-es" x="472" y="231">el contrato rechaza primero</text>
+  <text class="it l-en" x="472" y="245">newest reply wins</text>
+  <text class="it l-es" x="472" y="245">gana la más nueva</text>
+  <text class="cd mono l-neutral" x="472" y="259">contract.ts · client.ts</text>
+  <rect class="bx bx-hi" x="676" y="196" width="176" height="76" rx="8"/>
+  <text class="ttl l-neutral" x="688" y="215">Worker</text>
+  <text class="it l-en" x="688" y="231">engine port</text>
+  <text class="it l-es" x="688" y="231">motor traducido</text>
+  <text class="it l-en" x="688" y="245">sweeps on request</text>
+  <text class="it l-es" x="688" y="245">barridos a pedido</text>
+  <text class="cd mono l-neutral" x="688" y="259">worker.ts · sweep.ts</text>
+  <path class="flow" d="M 204 232 L 242 232" marker-end="url(#of-arch-3)"/>
+  <text class="lbl l-en" x="223" y="226" text-anchor="middle">set</text>
+  <text class="lbl l-es" x="223" y="226" text-anchor="middle">fija</text>
+  <path class="flow" d="M 420 232 L 458 232" marker-end="url(#of-arch-3)"/>
+  <text class="lbl l-en" x="439" y="226" text-anchor="middle">point</text>
+  <text class="lbl l-es" x="439" y="226" text-anchor="middle">punto</text>
+  <path class="flow" d="M 636 232 L 674 232" marker-end="url(#of-arch-3)"/>
+  <text class="lbl l-en" x="655" y="226" text-anchor="middle">valid</text>
+  <text class="lbl l-es" x="655" y="226" text-anchor="middle">válido</text>
+  <path class="flow" d="M 764 272 L 764 296" marker-end="url(#of-arch-3)"/>
+  <text class="lbl l-en" x="772" y="288">trace</text>
+  <text class="lbl l-es" x="772" y="288">traza</text>
+  <rect class="bx bx-good" x="28" y="298" width="824" height="76" rx="8"/>
+  <text class="ttl l-en" x="40" y="317">Six views draw the trace</text>
+  <text class="ttl l-es" x="40" y="317">Seis vistas dibujan la traza</text>
+  <text class="it l-en" x="40" y="333">Circuit: flowsheet with every stream · Grinding: distributions, partition, liberation · Separation: recovery by size, bank, kinetics</text>
+  <text class="it l-es" x="40" y="333">Circuito: diagrama con cada corriente · Molienda: distribuciones, partición, liberación · Separación: recuperación, banco, cinética</text>
+  <text class="it l-en" x="40" y="347">Response: sweeps and surfaces · Methods: optimizer, uncertainty, Sobol, surrogate · Case: context, variants and cases</text>
+  <text class="it l-es" x="40" y="347">Respuesta: barridos y superficies · Métodos: optimizador, incertidumbre, Sobol, sustituto · Caso: contexto, variantes y casos</text>
+  <text class="cd mono l-neutral" x="40" y="361">workbench/views/*.tsx · components/charts/Chart.tsx (uPlot)</text>
+  <rect class="bx" x="28" y="402" width="400" height="76" rx="8"/>
+  <text class="ttl l-en" x="40" y="421">Content pages</text>
+  <text class="ttl l-es" x="40" y="421">Páginas de contenido</text>
+  <text class="it l-en" x="40" y="437">topics: prose, equations, limits, figure, refs</text>
+  <text class="it l-es" x="40" y="437">temas: prosa, ecuaciones, límites, figura, refs</text>
+  <text class="it l-en" x="40" y="451">tables and charts read the committed records</text>
+  <text class="it l-es" x="40" y="451">tablas y gráficos leen los registros versionados</text>
+  <text class="cd mono l-neutral" x="40" y="465">content/doc.tsx · data.tsx · pages/*.tsx</text>
+  <rect class="bx bx-warn" x="452" y="402" width="400" height="76" rx="8"/>
+  <text class="ttl l-en" x="464" y="421">Gates on the built site</text>
+  <text class="ttl l-es" x="464" y="421">Controles sobre el sitio compilado</text>
+  <text class="it l-en" x="464" y="437">parity on 72 variants, claims, surrogate</text>
+  <text class="it l-es" x="464" y="437">paridad en 72 variantes, afirmaciones, sustituto</text>
+  <text class="it l-en" x="464" y="451">browser gate: 3 viewports, 2 themes, 2 languages</text>
+  <text class="it l-es" x="464" y="451">control en navegador: 3 tamaños, 2 temas, 2 idiomas</text>
+  <text class="cd mono l-neutral" x="464" y="465">src/test/*.test.ts · gate.mjs</text>
+</svg>
