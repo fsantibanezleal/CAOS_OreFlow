@@ -2,8 +2,12 @@
 
 ## [0.05.001] - 2026-09-26
 
-A patch of 0.05.000. The charts get the surface that text panels left empty, the Uncertainty histogram
-draws its end bars whole, and a failed build reports its own error.
+A patch of 0.05.000:
+- the charts get the surface that text panels left empty;
+- text that did not fit now fits, and the gate checks it. Most of it was in Spanish at 1280x800: the
+  rail's values, the readout's status, and the charts' labels and titles;
+- the Uncertainty histogram draws its end bars whole;
+- a failed build reports its own error.
 
 ### Fixed
 
@@ -37,13 +41,13 @@ draws its end bars whole, and a failed build reports its own error.
   - a level's label sat on a data point ("nominal" in the Case view, "sin cambio" on the Experiments
     page, "óptimo" on the Optimizer). It now takes the place nearest the right end of its line, above
     or below, that covers no point.
-- On a phone a chart's legend stood in a narrow column beside its title: six series took six lines and
-  left the size-distribution plot about 50 px tall, too short for its title. Below 860 px the legend
-  runs under the title, across the chart.
 
   Each chart declares on its host what it could not fit (`data-ticks-cut`, `data-title-cut`,
   `data-labels-over`), and the gate fails any, and any visible chart that declared nothing
   (`CANVAS_TEXT_PROBE`).
+- On a phone a chart's legend stood in a narrow column beside its title: six series took six lines and
+  left the size-distribution plot about 50 px tall, too short for its title. Below 860 px the legend
+  runs under the title, across the chart.
 - The optimizer's headline gave the gain without its sign ("Optimum found: 0.2594 t/h recovered metal"),
   which read as the optimum's own recovered metal. It now reads "+0.2594 t/h of recovered metal".
 - A failed build reported the Pages fallback's missing `index.html` instead of its own error; the fallback

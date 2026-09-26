@@ -2,6 +2,35 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.05.001, 2026-09-26
+
+### Local gate
+
+- The committed bake of 0.05.001: contract, cases (686.7 s on 12 workers), learning (2106.0 s, CUDA, RTX 4070 Laptop GPU), benchmark, manifests and validation, run while browser checks shared the machine; `validation.json` records `passed: true`. It was made into a sandbox and compared file by file with the 0.05.000 records before it was adopted whole. Of the 38 tracked files under `data/derived` and `models`, 28 changed, and only in version, hash and byte fields (40), timings (8) and 94 random-forest scores (85 in `learning.json`, 9 in `benchmark.json`), at most 2.7e-15 relative. Every case number and ONNX export is identical, and the contract digest is unchanged.
+- `scripts/smoke.ps1` passed in 161 s on the release commit: the eight guards (406 tracked files), the use-case page check (13 pages), ruff, 341 Python tests, the typecheck, 174 frontend tests and the production build.
+- Browser gate on the served build of the release:
+  - the full matrix, 684 checks (1280x800, 1600x900 and 2560x1440; dark and light; English and Spanish);
+  - the phone and tablet pass, 28 checks;
+  - the App and focus routes of the gold, magnetite and phosphate circuits at 1280x800 and 2560x1440, 40 checks each.
+- The screenshots read:
+  - on the release build, at 1280x800 in dark Spanish: every App view and sub-tab, and the focus route;
+  - in dark English: the Grinding view and three Methods records;
+  - at 1600x900 in light Spanish: the Circuit, Separation and Response views, both Case views, the learned lane and the focus route;
+  - at 2560x1440 in dark English: the Grinding, Separation and Response views and every Methods record;
+  - the Separation view of the gold, magnetite and phosphate circuits at 1280x800 in dark English and at 2560x1440 in light Spanish;
+  - full view on a phone in Spanish: the Grinding view and the Optimizer record;
+  - on the builds before it: every capture of every view and content page in dark Spanish at 1280x800, where the faults below were found.
+- The first run of that set, on the release candidate (commit `8c17f93`), passed the matrix, the phone and tablet pass and the gold and phosphate circuits. It failed one check: the magnetite Separation facts at 1280x800, 0.29 full under the new text-panel floor. Reading that run's captures, and those of the builds after it, found faults the gate did not measure, most of them in Spanish at 1280x800. Three gate checks were added (`RAIL_PROBE`, `ELLIPSIS_PROBE`, `CANVAS_TEXT_PROBE`), and each failed the build before its fix. This release fixes:
+  - text panels beside the charts from 1800 by 1000 px. At 2560x1440 the Methods panels measured 0.19 to 0.35 full, and the Grinding facts about a fifth (an estimate from the screenshot). They are now strips under the charts, 0.53 to 0.93 full. The gate fails a text panel its content fills less than 30%;
+  - the magnetite Separation facts, 0.29 full beside the view's one chart at 1280x800. They are now a strip under it at every size, 0.71 full at 1280x800, and the chart grew from 0.31 to 0.41 of the viewport;
+  - the rail, which cut every control's value at its edge ("720 t,", "8,0 r"). Its controls column took the width of the longest row. The column now stays within the rail, and a long control name wraps. `RAIL_PROBE` failed all ten App views on the build before this fix;
+  - the readout's status, cut to "Dentro de todas las verif..." with no title. It is now "Sin avisos del motor", and a cut status or cursor reading carries its full text. `ELLIPSIS_PROBE` failed the status on all ten App views before this fix;
+  - text on the charts' canvas that did not fit. The four Sobol factor names ran into each other, y titles longer than a short plot were cut at both ends ("Ganancia en metal recuperado (%)", "Error del guardia"), and level labels sat on data points ("nominal", "óptimo", "sin cambio"). Category labels now wrap to their category, the chart draws its y title wrapped to the plot's height, and a level's label takes the free place nearest the right end of its line. Each chart declares what it could not fit, and `CANVAS_TEXT_PROBE` fails any of it, and any visible chart that declared nothing. On the build before the declarations every chart was silent (15 views failed); squeezed to 220 px, the Sobol chart declares all four labels;
+  - a phone chart's legend, which stood in a narrow column beside its title and left the size-distribution plot about 50 px tall. Below 860 px it runs under the title;
+  - the Uncertainty histogram, which ranged its x axis on the bin centres and so cut its first and last bars in half. A bar chart on a numeric axis now reaches half a bin past them. Its bars keep their share of the bin at any width, where at 2560 px they had stopped at 64 px. The binning is tested over all 288 recorded distributions (the gate does not measure bar geometry);
+  - the Optimizer headline, which gave the gain without its sign and read as the optimum's own recovered metal;
+  - a failed build, which reported the Pages fallback's missing `index.html` instead of its own error.
+
 ## 0.05.000, 2026-09-26
 
 ### Local gate
