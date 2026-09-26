@@ -47,8 +47,11 @@ volume, gas holdup and pulp flow, so a higher feed rate or a larger recycle shor
 are diluted to a declared solids fraction where a stage requires it (cleaner feed; a deslimed rougher
 feed), and the added water is audited. The regrind is the open-circuit population balance of page
 03 at a declared specific energy; its product is split into particle classes again because it is a
-product of breakage. The circuit is solved by fixed-point iteration to a residual below
-1e-10 t/h.
+product of breakage. The circuit is solved by fixed-point iteration until the largest change
+between passes is below 1e-10 t/h and the largest change of any particle class, relative to that
+class's own flow, is below 1e-12. The relative criterion matters for trace minerals: with the
+absolute one alone, gold at 1e-4 t/h stopped 1.8e-9 out of balance at the rougher junction of the
+free-milling gold case, which the operating-envelope gate caught.
 
 ## Outputs
 

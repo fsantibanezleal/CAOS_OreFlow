@@ -26,3 +26,8 @@ particle-class overflow (`species_consistency_error`), and any negative class ma
 unit of every baked variant to close within 1e-9 relative; in practice the errors are at the level
 of floating-point round-off (1e-12 to 1e-16). `scripts/check_artifacts.py` re-audits the shipped
 artifacts.
+
+The audit also covers the whole operating envelope, not only the baked variants:
+`tests/test_contract.py::test_engine_solves_the_envelope` requires the same closure, and a
+particle-class consistency within 1e-9, at the corners, the single-input bounds and seeded interior
+states of every case (data contract page 01).

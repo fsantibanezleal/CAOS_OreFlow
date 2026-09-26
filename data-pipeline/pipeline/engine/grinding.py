@@ -54,6 +54,7 @@ class GrindingResult:
     defs: list[SpeciesDef]
     overflow_species: dict[str, np.ndarray]
     species_consistency: float
+    composite_scale: np.ndarray        # host-limited composite scale per class (1 = declared content)
 
 
 class GrindingCircuit:
@@ -81,6 +82,7 @@ class GrindingCircuit:
         self.bleed = op.gravity_bleed if plant.gravity is not None else 0.0
         self.rho_host = ore.density[ore.host]
         self._cut_guess = math.log(max(op.target_p80_um, 1.0))
+        self.composite_scale = np.ones(self.g.n)   # host-limited composite scale of the last run
         for m in ore.valuable:
             host = ore.spec[m].host
             if ore.spec[m].composite_content > 0.0 and host and host != ore.host:
@@ -90,7 +92,8 @@ class GrindingCircuit:
         gp = self.plant.gravity
         return gp.max_recovery * (1.0 - np.exp(-np.power(self.g.size / gp.size_scale_um, 2.0)))
 
-    def run(self, energy_per_pass: float, cut: float) -> PassResult:
+    def _pass(self, energy_per_pass: float, cut: float, scale: np.ndarray) -> tuple[PassResult, np.ndarray]:
+        """One steady-state solve with composites scaled by ``scale`` per class (1 = declared content)."""
         ore, rf, bleed = self.ore, self.bypass, self.bleed
         sharp = self.plant.cyclone.sharpness
         y_host = reduced_partition(cut, sharp)
@@ -99,17 +102,21 @@ class GrindingCircuit:
         over: dict[str, np.ndarray] = {}
         grav: dict[str, np.ndarray] = {}
         host_source = np.zeros(self.g.n)
+        demand = np.zeros(self.g.n)
         for m in ore.valuable:
             spec = ore.spec[m]
-            lib = ore.liberation[m]
+            c = spec.composite_content
+            unliberated = 1.0 - ore.liberation[m]
+            locked_fraction = unliberated * scale if c > 0.0 else np.zeros(self.g.n)
+            free_fraction = 1.0 - locked_fraction
             y_lib = reduced_partition(corrected_cut(cut, self.rho_host, ore.density[m]), sharp)
-            y_comp = reduced_partition(corrected_cut(cut, self.rho_host, ore.composite_density(m)), sharp) if spec.composite_content > 0.0 else y_lib
+            y_comp = reduced_partition(corrected_cut(cut, self.rho_host, ore.composite_density(m)), sharp) if c > 0.0 else y_lib
             a_lib = rf + (1.0 - rf) * y_lib
             a_comp = rf + (1.0 - rf) * y_comp
-            c_under = lib * a_lib + (1.0 - lib) * a_comp
+            c_under = free_fraction * a_lib + locked_fraction * a_comp
             if bleed > 0.0 and spec.gravity:
                 gp = self.plant.gravity
-                g_frac = bleed * (self._gravity_curve() * lib * a_lib + gp.composite_recovery * (1.0 - lib) * a_comp)
+                g_frac = bleed * (self._gravity_curve() * free_fraction * a_lib + gp.composite_recovery * locked_fraction * a_comp)
             elif bleed > 0.0:
                 g_frac = bleed * self.plant.gravity.gangue_yield * c_under
             else:
@@ -118,10 +125,9 @@ class GrindingCircuit:
             p = np.linalg.solve(matrix, self.feed[m])
             product[m], under[m], grav[m] = p, c_under * p, g_frac * p
             over[m] = p - under[m]
-            c = spec.composite_content
             if c > 0.0:
-                locked = (1.0 - lib) * p * (1.0 - c) / c
-                host_source += (1.0 - rf) * locked * (y_comp - y_host)
+                demand += unliberated * p * (1.0 - c) / c
+                host_source += (1.0 - rf) * locked_fraction * p * (1.0 - c) / c * (y_comp - y_host)
         for m in ore.ids:
             if m in ore.valuable:
                 continue
@@ -135,7 +141,32 @@ class GrindingCircuit:
             product[m], under[m], grav[m] = p, u, g_yield * u
             over[m] = p - u
         total_under = float(sum(float(np.sum(u)) for u in under.values()))
-        return PassResult(product, under, over, grav, total_under / self.new_feed_tph)
+        return PassResult(product, under, over, grav, total_under / self.new_feed_tph), demand
+
+    def run(self, energy_per_pass: float, cut: float) -> PassResult:
+        """Steady state with host-limited composites, the same rule as ``species.to_species``.
+
+        Where a size class of the mill product holds less host gangue than the declared composites
+        would lock (a valuable-rich feed), the composites are scaled down to the host available and the
+        balance of the valuable reports as liberated grains. The scale is a fixed point because the
+        host flow depends on the composites; with enough host everywhere one pass is exact.
+        """
+        scale = np.ones(self.g.n)
+        tolerance = float(constant("numerics.composite_scale_tolerance"))
+        for _ in range(int(constant("numerics.composite_scale_max_iterations"))):
+            result, demand = self._pass(energy_per_pass, cut, scale)
+            host = result.product[self.ore.host]
+            limited = np.ones(self.g.n)
+            short = demand > host
+            limited[short] = np.maximum(host[short], 0.0) / demand[short]
+            if float(np.max(np.abs(limited - scale))) <= tolerance:
+                self.composite_scale = limited
+                return result
+            scale = limited
+        self.flags.add("composite_scale_not_converged",
+                       "Host-limited composites did not converge in the grinding circuit; the last pass is reported.")
+        self.composite_scale = scale
+        return result
 
     def species_underflow(self, cut: float, defs: list[SpeciesDef]) -> dict[str, np.ndarray]:
         """Underflow fraction (with bypass) of every particle class at the given host cut."""
@@ -255,4 +286,5 @@ class GrindingCircuit:
             water={"overflow_tph": self.water_over, "underflow_tph": self.water_under, "mill_discharge_tph": water_mill_discharge,
                    "mill_addition_tph": mill_addition, "sump_addition_tph": sump_addition},
             gold_circulating_load=gold_cl, defs=defs, overflow_species=overflow_species, species_consistency=consistency,
+            composite_scale=self.composite_scale.copy(),
         )

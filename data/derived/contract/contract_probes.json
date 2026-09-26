@@ -1,0 +1,9649 @@
+{
+ "schema": "oreflow.contract-probes/v1",
+ "digest": "ecc7d8badf6c49222ce7840099e737d883d8703411e17955aced4ba935d001b6",
+ "probes": [
+  {
+   "case_id": "no_such_case",
+   "values": {},
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_case",
+      ""
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": 360.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": 1080.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": 352.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": 1087.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "target_p80_um": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "target_p80_um": 300.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "target_p80_um": 72.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "target_p80_um": 302.25
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "work_index_kwh_t": 7.7
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "work_index_kwh_t": 16.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "work_index_kwh_t": 7.612
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "work_index_kwh_t": 16.588
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "head_grade": 0.37
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "head_grade": 1.11
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "head_grade": 0.3626
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "head_grade": 1.1174000000000002
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "collector_gpt": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "collector_gpt": -0.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "collector_gpt": 75.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": 255.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": 765.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": 249.9
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": 770.1
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "target_p80_um": 82.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "target_p80_um": 330.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "target_p80_um": 80.025
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "target_p80_um": 332.475
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "work_index_kwh_t": 12.95
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "work_index_kwh_t": 27.75
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "work_index_kwh_t": 12.802
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "work_index_kwh_t": 27.898
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "head_grade": 0.26
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "head_grade": 0.78
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "head_grade": 0.2548
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "head_grade": 0.7852
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "collector_gpt": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "collector_gpt": -0.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "collector_gpt": 75.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": 130.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": 390.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": 127.4
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": 392.6
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "target_p80_um": 53.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "target_p80_um": 212.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "target_p80_um": 51.41
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "target_p80_um": 213.59
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "work_index_kwh_t": 10.85
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "work_index_kwh_t": 23.25
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "work_index_kwh_t": 10.725999999999999
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "work_index_kwh_t": 23.374
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "head_grade": 1.7
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "head_grade": 5.1
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "head_grade": 1.666
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "head_grade": 5.1339999999999995
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "collector_gpt": 120.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "collector_gpt": -1.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "collector_gpt": 121.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "gravity_bleed": 0.1
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "gravity_bleed": 0.6
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "gravity_bleed": 0.095
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "gravity_bleed": 0.605
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "gravity_bleed": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": 460.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": 1380.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": 450.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": 1389.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "target_p80_um": 30.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "target_p80_um": 120.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "target_p80_um": 29.1
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "target_p80_um": 120.9
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "work_index_kwh_t": 9.45
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "work_index_kwh_t": 20.25
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "work_index_kwh_t": 9.341999999999999
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "work_index_kwh_t": 20.358
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "head_grade": 13.25
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "head_grade": 39.75
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "head_grade": 12.985
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "head_grade": 40.015
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "collector_gpt": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "collector_gpt": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "jg_cm_s": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "jg_cm_s": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "rougher_cells": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "rougher_cells": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": 215.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": 645.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": 210.7
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": 649.3
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "target_p80_um": 53.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "target_p80_um": 212.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "target_p80_um": 51.41
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "target_p80_um": 213.59
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "work_index_kwh_t": 9.8
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "work_index_kwh_t": 21.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "work_index_kwh_t": 9.688
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "work_index_kwh_t": 21.112
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "head_grade": 0.6
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "head_grade": 1.8
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "head_grade": 0.588
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "head_grade": 1.812
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "collector_gpt": 135.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "collector_gpt": -1.35
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "collector_gpt": 136.35
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": 235.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": 705.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": 230.3
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": 709.7
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": 300.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": 72.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": 302.25
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "work_index_kwh_t": 5.95
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "work_index_kwh_t": 12.75
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "work_index_kwh_t": 5.882000000000001
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "work_index_kwh_t": 12.818
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "head_grade": 5.7
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "head_grade": 17.1
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "head_grade": 5.586
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "head_grade": 17.214000000000002
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "collector_gpt": 1500.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "collector_gpt": -15.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "collector_gpt": 1515.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "deslime_cut_um": 8.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "deslime_cut_um": 45.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "deslime_cut_um": 7.63
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "deslime_cut_um": 45.37
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "deslime_cut_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": 75.0,
+    "deslime_cut_um": 45.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "deslime_cut_above_half_target",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "target_p80_um": 75.0,
+    "deslime_cut_um": 37.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": 320.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": 960.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": 313.6
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": 966.4
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "target_p80_um": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "target_p80_um": 300.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "target_p80_um": 72.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "target_p80_um": 302.25
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "work_index_kwh_t": 11.34
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "work_index_kwh_t": 24.3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "work_index_kwh_t": 11.2104
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "work_index_kwh_t": 24.4296
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "head_grade": 0.305
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "head_grade": 0.915
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "head_grade": 0.2989
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "head_grade": 0.9211
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "collector_gpt": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "collector_gpt": -0.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "collector_gpt": 75.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": 290.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": 870.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": 284.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": 875.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "target_p80_um": 70.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "target_p80_um": 280.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "target_p80_um": 67.9
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "target_p80_um": 282.1
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "work_index_kwh_t": 8.75
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "work_index_kwh_t": 18.75
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "work_index_kwh_t": 8.65
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "work_index_kwh_t": 18.85
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "head_grade": 0.525
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "head_grade": 1.575
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "head_grade": 0.5145000000000001
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "head_grade": 1.5855
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "collector_gpt": 450.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "collector_gpt": -4.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "collector_gpt": 454.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": 390.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": 1170.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": 382.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": 1177.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "target_p80_um": 53.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "target_p80_um": 212.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "target_p80_um": 51.41
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "target_p80_um": 213.59
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "work_index_kwh_t": 10.36
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "work_index_kwh_t": 22.2
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "work_index_kwh_t": 10.2416
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "work_index_kwh_t": 22.3184
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "head_grade": 2.4
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "head_grade": 7.2
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "head_grade": 2.352
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "head_grade": 7.248
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "collector_gpt": 150.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "collector_gpt": -1.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "collector_gpt": 151.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": 260.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": 780.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": 254.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": 785.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "target_p80_um": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "target_p80_um": 300.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "target_p80_um": 72.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "target_p80_um": 302.25
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "work_index_kwh_t": 9.1
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "work_index_kwh_t": 19.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "work_index_kwh_t": 8.996
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "work_index_kwh_t": 19.604
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "head_grade": 0.24
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "head_grade": 0.72
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "head_grade": 0.2352
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "head_grade": 0.7248
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "collector_gpt": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "collector_gpt": -0.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "collector_gpt": 75.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": 560.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": 1680.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": 548.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": 1691.2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "target_p80_um": 90.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "target_p80_um": 360.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "target_p80_um": 87.3
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "target_p80_um": 362.7
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "work_index_kwh_t": 10.85
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "work_index_kwh_t": 23.25
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "work_index_kwh_t": 10.725999999999999
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "work_index_kwh_t": 23.374
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "head_grade": 0.145
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "head_grade": 0.435
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "head_grade": 0.14209999999999998
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "head_grade": 0.4379
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "collector_gpt": 75.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "collector_gpt": -0.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "collector_gpt": 75.75
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {},
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "not_an_input": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "not_an_input"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": "720"
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": true
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_a_number",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "inf"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": 155.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": 465.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": 151.9
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": 468.1
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "throughput_tph": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "target_p80_um": 53.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "target_p80_um": 212.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "target_p80_um": 51.41
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "target_p80_um": 213.59
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "target_p80_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "target_p80_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "circulating_load": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "circulating_load": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "circulating_load": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "circulating_load": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "circulating_load": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "circulating_load"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "water_m3_t": 1.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "water_m3_t": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "water_m3_t": 0.97
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "water_m3_t": 4.03
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "water_m3_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "water_m3_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "crusher_css_mm": 4.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "crusher_css_mm": 16.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "crusher_css_mm": 3.88
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "crusher_css_mm": 16.12
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "crusher_css_mm": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "crusher_css_mm"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "work_index_kwh_t": 12.6
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "work_index_kwh_t": 27.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "work_index_kwh_t": 12.456
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "work_index_kwh_t": 27.144
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "work_index_kwh_t": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "work_index_kwh_t"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "head_grade": 1.1
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "head_grade": 3.3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "head_grade": 1.078
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "head_grade": 3.3219999999999996
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "head_grade": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "head_grade"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "collector_gpt": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "collector_gpt": 180.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "collector_gpt": -1.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "collector_gpt": 181.8
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "collector_gpt": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "collector_gpt"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "jg_cm_s": 0.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "jg_cm_s": 2.5
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "jg_cm_s": 0.48
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "jg_cm_s": 2.52
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "jg_cm_s": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "jg_cm_s"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "rougher_cells": 3
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "rougher_cells": 12
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "rougher_cells": 2
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "rougher_cells": 13
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "rougher_cells": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "rougher_cells": 3.5
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_integer",
+      "rougher_cells"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "gravity_bleed": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "gravity_bleed"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "gravity_bleed": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "deslime_cut_um": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_applicable",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "deslime_cut_um": 0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  }
+ ]
+}

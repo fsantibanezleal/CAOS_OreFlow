@@ -136,16 +136,21 @@ grinding.
 ## 11. Contracts
 
 - Contract 1: `pipeline/io/contract.py` declares inputs with unit, bounds, step, integer flag,
-  families and help text, plus the rule `deslime_cut_um <= 0.5 target_p80_um`. Exported to
-  `data/derived/contract/operating_contract.json` with the Gauss-Laguerre table and the grid.
+  families and help text, plus the rule `deslime_cut_um <= 0.5 target_p80_um`. Scale-dependent
+  inputs (throughput, head grade, work index, collector) are bounded by factors of the case
+  nominal, intensive inputs absolutely; the export resolves every bound per case. Exported to
+  `data/derived/contract/operating_contract.json` with the Gauss-Laguerre table, the grid and a
+  digest; `validate()` interprets only that document, and `contract_probes.json` records the
+  verdicts every validator must reproduce. Every accepted state must solve (PE-30b).
 - Contract 2: case artifact with the ore and plant definitions (everything the engine needs), six
   variants each with operating point, metrics, streams, curves, method records and flags.
 
 ## 12. Browser
 
 - `frontend/src/engine/` mirrors the Python modules; `frontend/src/engine/worker.ts` runs sweeps.
-- Controls, ranges and help come from the contract JSON; the validator runs before the engine and
-  shows the same rejection text as the API.
+- Controls, ranges and help come from the contract JSON; the validator (a port of `validate()`)
+  runs before the engine and rejects the same states with the same codes as the API, showing the
+  contract's message in the interface language with locale-formatted limits.
 - Views: Investigate, Circuit, Response, Methods, Compare, Controls (phone). Numbers through one
   locale formatter; document language through the shell override.
 

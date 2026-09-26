@@ -49,6 +49,18 @@ $\alpha_0$ by $W_{i,ref}/W_i$. Valuable minerals are solved first; the host gang
 composites classifies with the composite density, which enters the host-gangue system as a known
 source term, so every system stays linear.
 
+**Host-limited composites.** The source term assumes that the host gangue in each size class can
+supply the composites at the declared content $c$. A valuable-rich feed breaks that assumption: at
+55% magnetite against 45% host, the coarse classes (where $L_i \to 0$) would lock more host than
+they carry, and the host overflow would go negative. The circuit therefore applies the limit of the
+particle-class split (page 01): the composite share of each class is scaled by
+$s_i = \min\left(1,\ H_i \big/ \sum_V (1-L_{V,i})\, p_{V,i} (1-c_V)/c_V\right)$, with $H_i$ the host in
+the mill product, and the rest of the valuable mineral classifies as liberated grains. Because
+$H_i$ itself depends on the composites, $s$ is iterated to a fixed point (largest change below
+1e-13); with enough host in every class, as in every nominal case, one pass is exact and $s = 1$.
+Breakage rates keep the declared liberation: the limit changes how particles classify, not how fast
+they break. The scale is reported as the `composite_scale` curve.
+
 The solver meets two conditions:
 
 1. For a per-pass energy $e$, the host-gangue cut $d_{50c}$ is found (Illinois root finder on
@@ -83,6 +95,10 @@ water added at the mill and at the sump; a negative addition is flagged.
   within 0.5% on every nominal case.
 - `tests/test_grinding.py::test_overflow_equals_new_feed_by_mineral` (PE-06).
 - `tests/test_grinding.py::test_power_limited_mode` (PE-07).
+- `tests/test_grinding.py::test_host_limited_composites`: a 39.75% Fe magnetite feed at a 120 um
+  target limits the composites of the coarse classes, keeps every class mass non-negative beyond
+  round-off, and keeps the particle-class split consistent within 1e-12; the nominal case has
+  $s = 1$ in every class.
 - `tests/test_oracles.py::test_molycop_base_case` (PE-08): with the Moly-Cop defaults and base-case
   inputs (504 t/h, F80 6913 um, P80 169.4 um, 277% circulating load), the specific energy lands
   within 20% of the reported 8.56 kWh/t. The engine gives 9.13 kWh/t with the Rosin-Rammler feed

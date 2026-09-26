@@ -1,0 +1,1621 @@
+{
+ "schema": "oreflow.contract/v1",
+ "fields": [
+  "throughput_tph",
+  "target_p80_um",
+  "circulating_load",
+  "water_m3_t",
+  "crusher_css_mm",
+  "work_index_kwh_t",
+  "head_grade",
+  "collector_gpt",
+  "jg_cm_s",
+  "rougher_cells",
+  "gravity_bleed",
+  "deslime_cut_um"
+ ],
+ "families": [
+  "rougher",
+  "gravity_rougher",
+  "magnetic",
+  "deslime_rougher"
+ ],
+ "inputs": [
+  {
+   "name": "throughput_tph",
+   "unit": "t/h",
+   "bounds": "relative",
+   "low": 0.5,
+   "high": 1.5,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Ore throughput",
+    "es": "Tratamiento de mineral"
+   },
+   "help": {
+    "en": "Dry ore fed to the grinding circuit. More tonnes shorten flotation residence and, once the mill runs at installed power, coarsen the grind.",
+    "es": "Mineral seco alimentado al circuito de molienda. Más toneladas acortan la residencia en flotación y, cuando el molino llega a su potencia instalada, engruesan la molienda."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "target_p80_um",
+   "unit": "um",
+   "bounds": "relative",
+   "low": 0.5,
+   "high": 2.0,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Grind target (P80)",
+    "es": "Objetivo de molienda (P80)"
+   },
+   "help": {
+    "en": "Size that 80% of the cyclone overflow passes. The solver finds the mill energy that meets it; a finer target needs more energy and liberates more of the valuable mineral.",
+    "es": "Tamaño bajo el cual pasa el 80% del rebose del ciclón. El solver busca la energía de molienda que lo cumple; un objetivo más fino requiere más energía y libera más mineral valioso."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "circulating_load",
+   "unit": "1",
+   "bounds": "absolute",
+   "low": 1.0,
+   "high": 4.0,
+   "step": 0.05,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Circulating load",
+    "es": "Carga circulante"
+   },
+   "help": {
+    "en": "Cyclone underflow returned to the mill per tonne of new feed. The cyclone cut is solved to hold it; a higher load lowers the grinding energy for the same target, with diminishing returns.",
+    "es": "Descarga del ciclón que vuelve al molino por tonelada de alimentación fresca. El corte del ciclón se resuelve para sostenerla; una carga mayor reduce la energía de molienda para el mismo objetivo, con retornos decrecientes."
+   },
+   "display_scale": 100.0,
+   "display_unit": "%"
+  },
+  {
+   "name": "water_m3_t",
+   "unit": "m3/t",
+   "bounds": "absolute",
+   "low": 1.0,
+   "high": 4.0,
+   "step": 0.05,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Overflow water",
+    "es": "Agua en el rebose"
+   },
+   "help": {
+    "en": "Water leaving with the cyclone overflow per tonne of ore. It sets the separation feed density and the pulp volume in the cells, so more water shortens residence time.",
+    "es": "Agua que sale con el rebose del ciclón por tonelada de mineral. Fija la densidad de la alimentación a separación y el volumen de pulpa en las celdas, por lo que más agua acorta la residencia."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "crusher_css_mm",
+   "unit": "mm",
+   "bounds": "absolute",
+   "low": 4.0,
+   "high": 16.0,
+   "step": 0.5,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Crusher closed-side setting",
+    "es": "Abertura de descarga del chancador"
+   },
+   "help": {
+    "en": "Closed-side setting of the crusher ahead of the mill. A tighter setting makes a finer mill feed and moves reduction work from the mill to the crusher.",
+    "es": "Abertura de descarga del chancador antes del molino. Una abertura menor produce una alimentación más fina al molino y traslada trabajo de reducción del molino al chancador."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "work_index_kwh_t",
+   "unit": "kWh/t",
+   "bounds": "relative",
+   "low": 0.7,
+   "high": 1.5,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Bond work index",
+    "es": "Índice de trabajo de Bond"
+   },
+   "help": {
+    "en": "Ball-mill work index of the ore. Harder ore breaks more slowly per kWh, so it needs more energy for the same target, or coarsens the grind when the mill is at installed power.",
+    "es": "Índice de trabajo de molino de bolas del mineral. Un mineral más duro se fractura más lento por kWh, por lo que requiere más energía para el mismo objetivo, o engruesa la molienda con el molino a potencia instalada."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "head_grade",
+   "unit": "case",
+   "bounds": "relative",
+   "low": 0.5,
+   "high": 1.5,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Head grade",
+    "es": "Ley de cabeza"
+   },
+   "help": {
+    "en": "Grade of the primary payable in the fresh ore. It sets the valuable-mineral content through the mineral's stoichiometry; the host gangue closes the mass balance.",
+    "es": "Ley del elemento pagable principal en el mineral fresco. Fija el contenido de mineral valioso a través de su estequiometría; la ganga huésped cierra el balance de masa."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "collector_gpt",
+   "unit": "g/t",
+   "bounds": "relative",
+   "low": 0.0,
+   "high": 3.0,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Collector dose",
+    "es": "Dosis de colector"
+   },
+   "help": {
+    "en": "Collector added per tonne of ore. Valuable minerals respond at a lower dose than gangue, so more collector raises recovery at first and then lowers the concentrate grade.",
+    "es": "Colector agregado por tonelada de mineral. Los minerales valiosos responden a menor dosis que la ganga, por lo que más colector sube primero la recuperación y luego baja la ley del concentrado."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "jg_cm_s",
+   "unit": "cm/s",
+   "bounds": "absolute",
+   "low": 0.5,
+   "high": 2.5,
+   "step": 0.05,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Gas velocity (rougher)",
+    "es": "Velocidad de gas (rougher)"
+   },
+   "help": {
+    "en": "Superficial gas velocity in the rougher cells. It sets the bubble surface area flux and so the rate constants, and it raises water recovery and the entrainment of fine gangue.",
+    "es": "Velocidad superficial de gas en las celdas rougher. Fija el flujo de área superficial de burbujas y por tanto las constantes cinéticas, y aumenta la recuperación de agua y el arrastre de ganga fina."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "rougher_cells",
+   "unit": "1",
+   "bounds": "absolute",
+   "low": 3,
+   "high": 12,
+   "step": 1,
+   "integer": true,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Rougher cells",
+    "es": "Celdas rougher"
+   },
+   "help": {
+    "en": "Number of rougher cells in series. More cells add residence time and approach plug flow, so recovery rises with diminishing returns.",
+    "es": "Número de celdas rougher en serie. Más celdas agregan residencia y se acercan al flujo pistón, por lo que la recuperación sube con retornos decrecientes."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  },
+  {
+   "name": "gravity_bleed",
+   "unit": "1",
+   "bounds": "absolute",
+   "low": 0.1,
+   "high": 0.6,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "gravity_rougher"
+   ],
+   "label": {
+    "en": "Gravity bleed",
+    "es": "Purga gravimétrica"
+   },
+   "help": {
+    "en": "Fraction of the cyclone underflow sent to the gravity concentrator. Free gold circulates many times, so a modest bleed recovers much of it, with diminishing returns.",
+    "es": "Fracción de la descarga del ciclón enviada al concentrador gravimétrico. El oro libre circula muchas veces, por lo que una purga moderada recupera gran parte, con retornos decrecientes."
+   },
+   "display_scale": 100.0,
+   "display_unit": "%"
+  },
+  {
+   "name": "deslime_cut_um",
+   "unit": "um",
+   "bounds": "absolute",
+   "low": 8.0,
+   "high": 45.0,
+   "step": 0.5,
+   "integer": false,
+   "families": [
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Desliming cut",
+    "es": "Corte de deslamado"
+   },
+   "help": {
+    "en": "Cut size of the desliming cyclone. Finer particles go to tailings as slimes: a coarser cut cleans the flotation feed and loses more of the fine valuable mineral.",
+    "es": "Tamaño de corte del ciclón de deslamado. Las partículas más finas van a relaves como lamas: un corte más grueso limpia la alimentación a flotación y pierde más mineral valioso fino."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
+  }
+ ],
+ "rules": [
+  {
+   "id": "deslime_cut_above_half_target",
+   "families": [
+    "deslime_rougher"
+   ],
+   "left": "deslime_cut_um",
+   "relation": "<=",
+   "factor": 0.5,
+   "right": "target_p80_um",
+   "message": {
+    "en": "The desliming cut must be at most half the grind target; a coarser cut discards the product.",
+    "es": "El corte de deslamado debe ser a lo más la mitad del objetivo de molienda; un corte más grueso descarta el producto."
+   }
+  }
+ ],
+ "messages": {
+  "unknown_case": {
+   "en": "Unknown case.",
+   "es": "Caso desconocido."
+  },
+  "unknown_input": {
+   "en": "Unknown input.",
+   "es": "Entrada desconocida."
+  },
+  "not_applicable": {
+   "en": "This input does not apply to this circuit.",
+   "es": "Esta entrada no aplica a este circuito."
+  },
+  "not_a_number": {
+   "en": "The value must be a number.",
+   "es": "El valor debe ser un número."
+  },
+  "not_finite": {
+   "en": "The value must be finite.",
+   "es": "El valor debe ser finito."
+  },
+  "not_integer": {
+   "en": "The value must be a whole number.",
+   "es": "El valor debe ser un número entero."
+  },
+  "out_of_range": {
+   "en": "The value is outside the operating envelope.",
+   "es": "El valor está fuera de la envolvente de operación."
+  }
+ },
+ "cases": {
+  "copper_porphyry_soft": {
+   "family": "rougher",
+   "primary": {
+    "species": "Cu",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 720.0,
+    "target_p80_um": 150.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.1,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 11.0,
+    "head_grade": 0.74,
+    "collector_gpt": 25.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 360.0,
+     "max": 1080.0,
+     "step": 7.2,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 75.0,
+     "max": 300.0,
+     "step": 1.5,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 7.7,
+     "max": 16.5,
+     "step": 0.11,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.37,
+     "max": 1.11,
+     "step": 0.0074,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 75.0,
+     "step": 0.25,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "copper_porphyry_hard": {
+   "family": "rougher",
+   "primary": {
+    "species": "Cu",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 510.0,
+    "target_p80_um": 165.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.1,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 18.5,
+    "head_grade": 0.52,
+    "collector_gpt": 25.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 255.0,
+     "max": 765.0,
+     "step": 5.1,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 82.5,
+     "max": 330.0,
+     "step": 1.65,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 12.95,
+     "max": 27.75,
+     "step": 0.185,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.26,
+     "max": 0.78,
+     "step": 0.0052,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 75.0,
+     "step": 0.25,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "gold_free_milling": {
+   "family": "gravity_rougher",
+   "primary": {
+    "species": "Au",
+    "unit": "g/t"
+   },
+   "nominal": {
+    "throughput_tph": 260.0,
+    "target_p80_um": 106.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.1,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 15.5,
+    "head_grade": 3.4,
+    "collector_gpt": 40.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 7,
+    "gravity_bleed": 0.3,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 130.0,
+     "max": 390.0,
+     "step": 2.6,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 53.0,
+     "max": 212.0,
+     "step": 1.06,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 10.85,
+     "max": 23.25,
+     "step": 0.155,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 1.7,
+     "max": 5.1,
+     "step": 0.034,
+     "unit": "g/t"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 120.0,
+     "step": 0.4,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    },
+    "gravity_bleed": {
+     "min": 0.1,
+     "max": 0.6,
+     "step": 0.01,
+     "unit": "1"
+    }
+   }
+  },
+  "iron_magnetite_fine": {
+   "family": "magnetic",
+   "primary": {
+    "species": "Fe",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 920.0,
+    "target_p80_um": 60.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.4,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 13.5,
+    "head_grade": 26.5,
+    "collector_gpt": 0.0,
+    "jg_cm_s": 0.0,
+    "rougher_cells": 0,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 460.0,
+     "max": 1380.0,
+     "step": 9.2,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 30.0,
+     "max": 120.0,
+     "step": 0.6,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 9.45,
+     "max": 20.25,
+     "step": 0.135,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 13.25,
+     "max": 39.75,
+     "step": 0.265,
+     "unit": "%"
+    }
+   }
+  },
+  "nickel_sulphide": {
+   "family": "rougher",
+   "primary": {
+    "species": "Ni",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 430.0,
+    "target_p80_um": 106.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.6,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 14.0,
+    "head_grade": 1.2,
+    "collector_gpt": 45.0,
+    "jg_cm_s": 1.3,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 215.0,
+     "max": 645.0,
+     "step": 4.3,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 53.0,
+     "max": 212.0,
+     "step": 1.06,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 9.8,
+     "max": 21.0,
+     "step": 0.14,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.6,
+     "max": 1.8,
+     "step": 0.012,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 135.0,
+     "step": 0.45,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "phosphate_clay": {
+   "family": "deslime_rougher",
+   "primary": {
+    "species": "P2O5",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 470.0,
+    "target_p80_um": 150.0,
+    "circulating_load": 2.2,
+    "water_m3_t": 2.8,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 8.5,
+    "head_grade": 11.4,
+    "collector_gpt": 500.0,
+    "jg_cm_s": 1.2,
+    "rougher_cells": 7,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 20.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 235.0,
+     "max": 705.0,
+     "step": 4.7,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 75.0,
+     "max": 300.0,
+     "step": 1.5,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 5.95,
+     "max": 12.75,
+     "step": 0.085,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 5.7,
+     "max": 17.1,
+     "step": 0.114,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 1500.0,
+     "step": 5.0,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    },
+    "deslime_cut_um": {
+     "min": 8.0,
+     "max": 45.0,
+     "step": 0.5,
+     "unit": "um"
+    }
+   }
+  },
+  "copper_molybdenum": {
+   "family": "rougher",
+   "primary": {
+    "species": "Cu",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 640.0,
+    "target_p80_um": 150.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.1,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 16.2,
+    "head_grade": 0.61,
+    "collector_gpt": 25.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 320.0,
+     "max": 960.0,
+     "step": 6.4,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 75.0,
+     "max": 300.0,
+     "step": 1.5,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 11.34,
+     "max": 24.3,
+     "step": 0.162,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.305,
+     "max": 0.915,
+     "step": 0.0061,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 75.0,
+     "step": 0.25,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "copper_oxide": {
+   "family": "rougher",
+   "primary": {
+    "species": "Cu",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 580.0,
+    "target_p80_um": 140.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.2,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 12.5,
+    "head_grade": 1.05,
+    "collector_gpt": 150.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 290.0,
+     "max": 870.0,
+     "step": 5.8,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 70.0,
+     "max": 280.0,
+     "step": 1.4,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 8.75,
+     "max": 18.75,
+     "step": 0.125,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.525,
+     "max": 1.575,
+     "step": 0.0105,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 450.0,
+     "step": 1.5,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "zinc_sulfide": {
+   "family": "rougher",
+   "primary": {
+    "species": "Zn",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 780.0,
+    "target_p80_um": 106.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.2,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 14.8,
+    "head_grade": 4.8,
+    "collector_gpt": 50.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 390.0,
+     "max": 1170.0,
+     "step": 7.8,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 53.0,
+     "max": 212.0,
+     "step": 1.06,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 10.36,
+     "max": 22.2,
+     "step": 0.148,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 2.4,
+     "max": 7.2,
+     "step": 0.048,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 150.0,
+     "step": 0.5,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "mixed_ore_high_clay": {
+   "family": "rougher",
+   "primary": {
+    "species": "Cu",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 520.0,
+    "target_p80_um": 150.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.8,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 13.0,
+    "head_grade": 0.48,
+    "collector_gpt": 25.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 260.0,
+     "max": 780.0,
+     "step": 5.2,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 75.0,
+     "max": 300.0,
+     "step": 1.5,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 9.1,
+     "max": 19.5,
+     "step": 0.13,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.24,
+     "max": 0.72,
+     "step": 0.0048,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 75.0,
+     "step": 0.25,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "low_grade_copper": {
+   "family": "rougher",
+   "primary": {
+    "species": "Cu",
+    "unit": "%"
+   },
+   "nominal": {
+    "throughput_tph": 1120.0,
+    "target_p80_um": 180.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.1,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 15.5,
+    "head_grade": 0.29,
+    "collector_gpt": 25.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 560.0,
+     "max": 1680.0,
+     "step": 11.2,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 90.0,
+     "max": 360.0,
+     "step": 1.8,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 10.85,
+     "max": 23.25,
+     "step": 0.155,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 0.145,
+     "max": 0.435,
+     "step": 0.0029,
+     "unit": "%"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 75.0,
+     "step": 0.25,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  },
+  "refractory_gold": {
+   "family": "rougher",
+   "primary": {
+    "species": "Au",
+    "unit": "g/t"
+   },
+   "nominal": {
+    "throughput_tph": 310.0,
+    "target_p80_um": 106.0,
+    "circulating_load": 2.5,
+    "water_m3_t": 2.2,
+    "crusher_css_mm": 8.0,
+    "work_index_kwh_t": 18.0,
+    "head_grade": 2.2,
+    "collector_gpt": 60.0,
+    "jg_cm_s": 1.4,
+    "rougher_cells": 8,
+    "gravity_bleed": 0.0,
+    "deslime_cut_um": 0.0
+   },
+   "inputs": {
+    "throughput_tph": {
+     "min": 155.0,
+     "max": 465.0,
+     "step": 3.1,
+     "unit": "t/h"
+    },
+    "target_p80_um": {
+     "min": 53.0,
+     "max": 212.0,
+     "step": 1.06,
+     "unit": "um"
+    },
+    "circulating_load": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "1"
+    },
+    "water_m3_t": {
+     "min": 1.0,
+     "max": 4.0,
+     "step": 0.05,
+     "unit": "m3/t"
+    },
+    "crusher_css_mm": {
+     "min": 4.0,
+     "max": 16.0,
+     "step": 0.5,
+     "unit": "mm"
+    },
+    "work_index_kwh_t": {
+     "min": 12.6,
+     "max": 27.0,
+     "step": 0.18,
+     "unit": "kWh/t"
+    },
+    "head_grade": {
+     "min": 1.1,
+     "max": 3.3,
+     "step": 0.022,
+     "unit": "g/t"
+    },
+    "collector_gpt": {
+     "min": 0.0,
+     "max": 180.0,
+     "step": 0.6,
+     "unit": "g/t"
+    },
+    "jg_cm_s": {
+     "min": 0.5,
+     "max": 2.5,
+     "step": 0.05,
+     "unit": "cm/s"
+    },
+    "rougher_cells": {
+     "min": 3,
+     "max": 12,
+     "step": 1,
+     "unit": "1"
+    }
+   }
+  }
+ },
+ "grid": {
+  "upper_um": [
+   150000.0,
+   126134.46228805718,
+   106066.01717798214,
+   89190.53362520409,
+   75000.00000000001,
+   63067.23114402861,
+   53033.00858899108,
+   44595.26681260205,
+   37500.00000000001,
+   31533.615572014303,
+   26516.504294495542,
+   22297.633406301025,
+   18750.000000000007,
+   15766.807786007153,
+   13258.252147247771,
+   11148.816703150515,
+   9375.000000000005,
+   7883.403893003579,
+   6629.126073623886,
+   5574.408351575258,
+   4687.500000000003,
+   3941.70194650179,
+   3314.5630368119437,
+   2787.2041757876295,
+   2343.750000000002,
+   1970.850973250895,
+   1657.2815184059723,
+   1393.602087893815,
+   1171.8750000000011,
+   985.4254866254477,
+   828.6407592029863,
+   696.8010439469075,
+   585.9375000000007,
+   492.71274331272394,
+   414.3203796014932,
+   348.40052197345386,
+   292.96875000000034,
+   246.35637165636197,
+   207.16018980074662,
+   174.20026098672696,
+   146.4843750000002,
+   123.178185828181,
+   103.58009490037331,
+   87.1001304933635,
+   73.2421875000001,
+   61.589092914090514,
+   51.79004745018666,
+   43.550065246681754,
+   36.62109375000006,
+   30.794546457045264,
+   25.895023725093335,
+   21.775032623340877,
+   18.310546875000032,
+   15.397273228522632,
+   12.94751186254667,
+   10.88751631167044,
+   9.155273437500018,
+   7.698636614261317,
+   6.473755931273336,
+   5.443758155835221,
+   4.577636718750009,
+   3.8493183071306594,
+   3.2368779656366686
+  ],
+  "size_um": [
+   137550.6064807007,
+   115665.81190559556,
+   97262.96659882573,
+   81788.07994989434,
+   68775.30324035036,
+   57832.905952797795,
+   48631.483299412874,
+   40894.03997494717,
+   34387.65162017518,
+   28916.4529763989,
+   24315.741649706437,
+   20447.019987473588,
+   17193.825810087594,
+   14458.22648819945,
+   12157.87082485322,
+   10223.509993736796,
+   8596.912905043799,
+   7229.113244099726,
+   6078.935412426611,
+   5111.754996868398,
+   4298.456452521899,
+   3614.556622049864,
+   3039.467706213306,
+   2555.8774984341994,
+   2149.2282262609497,
+   1807.2783110249322,
+   1519.7338531066532,
+   1277.9387492171,
+   1074.614113130475,
+   903.6391555124662,
+   759.8669265533267,
+   638.9693746085501,
+   537.3070565652376,
+   451.8195777562332,
+   379.9334632766634,
+   319.4846873042751,
+   268.6535282826188,
+   225.90978887811661,
+   189.96673163833177,
+   159.74234365213758,
+   134.32676414130944,
+   112.95489443905832,
+   94.98336581916588,
+   79.87117182606879,
+   67.16338207065473,
+   56.47744721952917,
+   47.49168290958295,
+   39.9355859130344,
+   33.581691035327374,
+   28.238723609764588,
+   23.745841454791478,
+   19.967792956517204,
+   16.790845517663687,
+   14.119361804882296,
+   11.872920727395739,
+   9.983896478258604,
+   8.395422758831845,
+   7.0596809024411495,
+   5.936460363697871,
+   4.991948239129302,
+   4.197711379415923,
+   3.529840451220575,
+   2.968230181848936
+  ]
+ },
+ "laguerre": {
+  "nodes": [
+   0.022415874146706448,
+   0.11812251209676791,
+   0.29036574401803716,
+   0.5392862212279776,
+   0.8650370046481128,
+   1.2678140407752434,
+   1.7478596260594355,
+   2.3054637393075104,
+   2.940965156725251,
+   3.654752650207291,
+   4.447266343313096,
+   5.318999254496391,
+   6.270499046923653,
+   7.302370002587394,
+   8.415275239483025,
+   9.609939192796107,
+   10.887150383886373,
+   12.2477645042443,
+   13.692707845547506,
+   15.222981111524728,
+   16.83966365264874,
+   18.54391817085919,
+   20.336995948730237,
+   22.220242665950874,
+   24.195104875933254,
+   26.263137227118484,
+   28.426010527501028,
+   30.685520767525972,
+   33.04359923643783,
+   35.50232389114121,
+   38.06393216564647,
+   40.73083544445863,
+   43.50563546642153,
+   46.391142978616195,
+   49.39039902562469,
+   52.506699341346305,
+   55.74362241327838,
+   59.10506191901711,
+   62.59526440015139,
+   66.21887325124756,
+   69.98098037714684,
+   73.88718723248296,
+   77.94367743446313,
+   82.1573037783193,
+   86.53569334945652,
+   91.08737561313309,
+   95.82194001552074,
+   100.75023196951398,
+   105.88459946879995,
+   111.23920752443958,
+   116.8304450513065,
+   122.67746026853858,
+   128.80287876923768,
+   135.23378794952583,
+   142.00312148993152,
+   149.15166590004938,
+   156.73107513267115,
+   164.8086026551505,
+   173.47494683642427,
+   182.85820469143147,
+   193.15113603707292,
+   204.67202848505946,
+   218.03185193532852,
+   234.80957917132616
+  ],
+  "weights": [
+   0.05625284233926343,
+   0.11902398731216846,
+   0.15749640386211758,
+   0.1675470504157797,
+   0.1533528557792363,
+   0.1242210536093556,
+   0.09034230098649183,
+   0.059477755768364206,
+   0.035627518904037626,
+   0.019480410431167456,
+   0.00974359489938254,
+   0.004464310364166527,
+   0.0018753595813231973,
+   0.0007226469815750431,
+   0.00025548753283350994,
+   8.287143534397395e-05,
+   2.4656863967887347e-05,
+   6.726713878830065e-06,
+   1.6817853699641775e-06,
+   3.850812981546922e-07,
+   8.06872804099105e-08,
+   1.5457237067577817e-08,
+   2.7044801476176626e-09,
+   4.316775475427437e-10,
+   6.277752541761931e-11,
+   8.306317376289372e-12,
+   9.984031787220735e-13,
+   1.0883538871167375e-13,
+   1.0740174034416394e-14,
+   9.575737231575047e-16,
+   7.697028023649183e-17,
+   5.56488113745443e-18,
+   3.6097564090107047e-19,
+   2.095095369549093e-20,
+   1.0847933010976027e-21,
+   4.994699486364154e-23,
+   2.0378369745990277e-24,
+   7.33953756427892e-26,
+   2.323783082198866e-27,
+   6.438234706909275e-29,
+   1.5531210957882923e-30,
+   3.2442500920196557e-32,
+   5.832386267836268e-34,
+   8.963254833103514e-36,
+   1.168703989550801e-37,
+   1.2820559843599814e-39,
+   1.1720949374050954e-41,
+   8.835339672329785e-44,
+   5.4249555903056626e-46,
+   2.6755426666794473e-48,
+   1.0429170314114302e-50,
+   3.1529023519577127e-53,
+   7.229541910648479e-56,
+   1.2242353012299734e-58,
+   1.4821685049020455e-61,
+   1.2325193488145018e-64,
+   6.691499004571391e-68,
+   2.220465941850509e-71,
+   4.1209460947384755e-75,
+   3.7743990618967917e-79,
+   1.4141150529178096e-83,
+   1.5918330640415922e-88,
+   2.9894843488612213e-94,
+   2.089063508436509e-101
+  ]
+ },
+ "digest": "ecc7d8badf6c49222ce7840099e737d883d8703411e17955aced4ba935d001b6"
+}

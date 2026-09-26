@@ -130,6 +130,7 @@ class FlotationResult:
     dilution_cleaner_tph: float
     dilution_recleaner_tph: float
     dilution_rougher_tph: float
+    relative_change: float = 0.0     # largest per-class relative change of the last recycle pass
 
 
 def _solids(species: Species) -> float:
@@ -139,6 +140,16 @@ def _solids(species: Species) -> float:
 def _diluted(water: float, solids: float, target_solids: float) -> float:
     """Water after diluting to the target solids fraction; water is only ever added."""
     return max(water, solids * (1.0 - target_solids) / target_solids)
+
+
+def _relative_change(new: Species, old: Species) -> float:
+    """Largest change of any particle class between passes, relative to that class's total flow."""
+    worst = 0.0
+    for k, values in new.items():
+        scale = float(np.sum(np.abs(values)))
+        if scale > 0.0:
+            worst = max(worst, float(np.sum(np.abs(values - old[k]))) / scale)
+    return worst
 
 
 def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: FlotationPlant, op: OperatingPoint, flags: Flags,
@@ -197,7 +208,8 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
     water_x = feed_water
     t_rc, water_t_rc = zeros, 0.0
     tol = float(constant("numerics.recycle_tolerance_tph"))
-    iterations, residual = 0, math.inf
+    rtol = float(constant("numerics.recycle_rel_tolerance"))
+    iterations, residual, relative = 0, math.inf, math.inf
     for iterations in range(1, int(constant("numerics.recycle_max_iterations")) + 1):
         state = pass_once(x, water_x, t_rc, water_t_rc)
         x_new = {k: fo[k] + state["tail_c"][k] for k in x}
@@ -206,11 +218,15 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
         water_t_rc_new = state["water_tail_rc"]
         residual = (max(float(np.max(np.abs(x_new[k] - x[k]))) for k in x) + abs(water_x_new - water_x)
                     + max(float(np.max(np.abs(t_rc_new[k] - t_rc[k]))) for k in x) + abs(water_t_rc_new - water_t_rc))
+        # The absolute residual is set by the bulk flows; the relative change per particle class makes
+        # trace minerals (gold at 1e-4 t/h) close as tightly as the gangue (PE-02).
+        relative = max(_relative_change(x_new, x), _relative_change(t_rc_new, t_rc))
         x, water_x, t_rc, water_t_rc = x_new, water_x_new, t_rc_new, water_t_rc_new
-        if residual < tol:
+        if residual < tol and relative < rtol:
             break
-    if residual >= tol:
-        flags.add("recycle_not_converged", f"Flotation recycle residual {residual:.2e} t/h after {iterations} iterations.")
+    if residual >= tol or relative >= rtol:
+        flags.add("recycle_not_converged", f"Flotation recycle residual {residual:.2e} t/h (relative {relative:.2e}) "
+                                           f"after {iterations} iterations.")
     s = pass_once(x, water_x, t_rc, water_t_rc)
 
     def stream(species: Species, water: float) -> Stream:
@@ -238,7 +254,7 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
         })
     return FlotationResult(streams, s["final"], rougher, s["cleaner"], s["recleaner"], x, fo, defs, iterations, residual,
                            sb_r, sb_c, k_r, rougher_dilution + s["dilution_c"] + s["dilution_rc"], _solids(s["conc_r"]),
-                           s["dilution_c"], s["dilution_rc"], rougher_dilution)
+                           s["dilution_c"], s["dilution_rc"], rougher_dilution, relative)
 
 
 def final_stream_name(result: FlotationResult) -> str:

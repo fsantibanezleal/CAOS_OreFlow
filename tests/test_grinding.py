@@ -6,7 +6,7 @@ from dataclasses import replace
 import numpy as np
 import pytest
 
-from engine_helpers import run_variant
+from engine_helpers import run_point, run_variant
 from pipeline.cases.catalog import CASE_BY_ID, CASES
 from pipeline.engine.circuit import simulate
 
@@ -41,3 +41,20 @@ def test_power_limited_mode():
     assert m["mill_power_kw"] == pytest.approx(0.7 * required, rel=1e-9)
     assert m["p80_um"] > case.nominal.target_p80_um * 1.05
     assert any(flag["code"] == "power_limited" for flag in result.flags)
+
+
+def test_host_limited_composites():
+    # 39.75% Fe is 55% magnetite against 45% host: at a coarse grind the declared 50% composites would
+    # lock more host than the coarse classes carry, so the composites are limited by the host available
+    # and the balance of the magnetite reports as liberated grains (the rule of species.to_species).
+    case = CASE_BY_ID["iron_magnetite_fine"]
+    point = case.nominal.with_values(head_grade=1.5 * case.nominal.head_grade, target_p80_um=120.0)
+    result = run_point(case.id, point, unlimited_power=True)
+    scale = result.grinding.composite_scale
+    assert float(np.min(scale)) < 0.999 and float(np.max(scale)) == 1.0
+    # A fully locked class leaves a host overflow near zero; allow round-off only (1e-12 of the stream).
+    assert all(float(np.min(v)) >= -1e-12 * s.tph() for s in result.streams.values() for v in s.solids.values())
+    assert result.metrics["species_consistency_error"] < 1e-12
+    assert result.balance["max_relative_error"] < 1e-9
+    nominal = run_variant(case.id, "nominal").grinding.composite_scale
+    assert float(np.min(nominal)) == 1.0

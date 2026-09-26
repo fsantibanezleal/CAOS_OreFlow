@@ -57,6 +57,7 @@ def test_cleaner_recycle_converges(case_id):
     for variant in case.variants:
         f = run_variant(case_id, variant["id"]).flotation
         assert f.residual_tph < 1e-10, (case_id, variant["id"], f.residual_tph, f.iterations)
+        assert f.relative_change < 1e-12, (case_id, variant["id"], f.relative_change, f.iterations)
 
 
 def test_stage_and_overall_recovery_are_distinct():

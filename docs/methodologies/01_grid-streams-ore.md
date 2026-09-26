@@ -56,12 +56,16 @@ $\rho_c = 1/(c/\rho_V + (1-c)/\rho_{host})$.
 The split into particle classes (liberated, composite, free gangue) is applied only to a product of
 breakage: the mill product and the regrind product. Separations then carry the classes forward
 unchanged, because a cyclone or a flotation bank treats liberated grains and composites differently
-and the liberated share of a concentrate is not the feed's $L_i$. After a regrind, composites are
-limited by the host gangue actually present in each class,
+and the liberated share of a concentrate is not the feed's $L_i$. Wherever the split is made,
+composites are limited by the host gangue actually present in each class,
 
 $$C_i = \min\!\left(\frac{(1-L_i) V_i}{c},\ \frac{H_i}{1-c}\right),$$
 
-which conserves every mineral exactly and liberates the balance of the valuable mineral.
+which conserves every mineral exactly and liberates the balance of the valuable mineral. When several
+valuable minerals share the host, every composite demand in the class is scaled by the same factor
+$s_i = \min\left(1,\ H_i \big/ \sum_V (1-L_{V,i}) V_i (1-c_V)/c_V\right)$. A regrind product is
+limited this way directly; inside the closed grinding circuit the limit is a fixed point, because
+the host flow depends on the composites (page 03).
 
 ## Verification
 

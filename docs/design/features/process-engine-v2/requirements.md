@@ -37,7 +37,7 @@ it is violated. Test files are under `tests/` (Python) and `frontend/src/test/` 
 | PE-13 | THE flotation banks SHALL be perfectly mixed cells in series with per-cell recovery `(k tau + ENT w)/(1 + k tau + ENT w)`, and with ENT = 0 a bank SHALL equal `1 - (N/(N + k tau))^N`. | `tests/test_flotation.py::test_bank_reduces_to_tanks_in_series` |
 | PE-14 | THE rate constant SHALL be proportional to bubble surface area flux `Sb = 6 Jg / D32`. | `tests/test_flotation.py::test_rate_follows_bubble_surface_flux` |
 | PE-15 | THE degree of entrainment SHALL follow Savassi et al. (1998) and SHALL equal 0.2 at the entrainment parameter when the drainage parameter is 1. | `tests/test_flotation.py::test_savassi_entrainment` |
-| PE-16 | THE cleaner tails SHALL recycle to the rougher feed and the recycle SHALL converge to a residual below 1e-10 t/h. | `tests/test_flotation.py::test_cleaner_recycle_converges` |
+| PE-16 | THE cleaner tails SHALL recycle to the rougher feed and the recycle SHALL converge to a residual below 1e-10 t/h and a per-class relative change below 1e-12. | `tests/test_flotation.py::test_cleaner_recycle_converges` |
 | PE-17 | THE stage recoveries SHALL be computed on each stage's own feed, and `flotation_recovery_pct` SHALL differ from overall recovery whenever an upstream loss exists. | `tests/test_flotation.py::test_stage_and_overall_recovery_are_distinct` |
 | PE-18 | THE gold circuit SHALL treat a bleed of the cyclone underflow with a gravity unit; gold circulating load SHALL exceed ore circulating load; gravity recovery SHALL rise with bleed with diminishing returns. | `tests/test_separation.py::test_bleed_response_and_gold_circulating_load`; `tests/test_oracles.py::test_laplante_trend` |
 | PE-19 | THE magnetite circuit SHALL recover more than 90% of liberated magnetite, and concentrate Fe grade SHALL rise when the target P80 falls from 75 to 45 um. | `tests/test_separation.py::test_grade_rises_with_finer_grind`; `tests/test_oracles.py::test_zandrivierspoort_trend` |
@@ -68,6 +68,7 @@ it is violated. Test files are under `tests/` (Python) and `frontend/src/test/` 
 | ID | Requirement | Named gate |
 | --- | --- | --- |
 | PE-30 | ONE contract SHALL declare every input's unit, bounds, step, applicability and cross-field rules; the exported JSON, the API validator and the browser SHALL accept and reject exactly the same states. | `tests/test_contract.py::test_export_matches_validator`; `tests/test_live_api.py::test_api_and_contract_agree`; `frontend/src/test/contract.test.ts` |
+| PE-30b | Every state THE contract accepts SHALL be solved by the engine without error, with every unit closing within 1e-9 relative, a consistent particle-class split, no negative class mass and a strict-JSON trace. | `tests/test_contract.py::test_engine_solves_the_envelope` |
 | PE-31 | THE TypeScript engine SHALL reproduce every baked variant's metrics and curves within 1e-6 relative. | `frontend/src/test/parity.test.ts` |
 | PE-32 | Every variant SHALL change exactly one declared input relative to its case nominal. | `tests/test_cases.py::test_variants_are_single_factor` |
 | PE-33 | Every numeric literal in the engine modules SHALL be declared with its unit and source, or be structural. | `scripts/check_units.py` in the CI guards job |

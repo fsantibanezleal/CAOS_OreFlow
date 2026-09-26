@@ -35,6 +35,7 @@ class CircuitResult:
     curves: dict[str, object]
     flags: list[dict[str, str]]
     balance: dict[str, object]
+    topology: list[dict[str, object]]
     grinding: GrindingResult
     flotation: FlotationResult | None
     magnetic: MagneticResult | None
@@ -59,37 +60,38 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
     tails: list[str] = []
     overflow = streams["cyclone_overflow"]
     fresh_water = grinding.water["mill_addition_tph"] + grinding.water["sump_addition_tph"]
-    units: list[tuple[str, list[Stream], list[Stream], float]] = [
-        ("crusher", [crusher_feed], [streams["new_feed"]], 0.0),
-        ("mill_feed_junction", [streams["new_feed"], streams["recycle"]], [streams["mill_feed"]], grinding.water["mill_addition_tph"]),
-        ("mill", [streams["mill_feed"]], [streams["mill_discharge"]], 0.0),
-        ("sump", [streams["mill_discharge"]], [streams["cyclone_feed"]], grinding.water["sump_addition_tph"]),
-        ("cyclone", [streams["cyclone_feed"]], [streams["cyclone_underflow"], streams["cyclone_overflow"]], 0.0),
+    # Units by stream name: (unit, input streams, output streams, fresh water added in t/h).
+    units: list[tuple[str, list[str], list[str], float]] = [
+        ("crusher", ["crusher_feed"], ["new_feed"], 0.0),
+        ("mill_feed_junction", ["new_feed", "recycle"], ["mill_feed"], grinding.water["mill_addition_tph"]),
+        ("mill", ["mill_feed"], ["mill_discharge"], 0.0),
+        ("sump", ["mill_discharge"], ["cyclone_feed"], grinding.water["sump_addition_tph"]),
+        ("cyclone", ["cyclone_feed"], ["cyclone_underflow", "cyclone_overflow"], 0.0),
     ]
     if "gravity_concentrate" in streams:
-        units.append(("gravity_split", [streams["cyclone_underflow"]], [streams["recycle"], streams["gravity_concentrate"]], 0.0))
+        units.append(("gravity_split", ["cyclone_underflow"], ["recycle", "gravity_concentrate"], 0.0))
         concentrates.append("gravity_concentrate")
     else:
-        units.append(("underflow_return", [streams["cyclone_underflow"]], [streams["recycle"]], 0.0))
+        units.append(("underflow_return", ["cyclone_underflow"], ["recycle"], 0.0))
     if plant.family == "magnetic":
         magnetic = run_magnetic(grinding.overflow_species, overflow.water, r, plant.magnetic)
         streams.update(magnetic.streams)
         units += [
-            ("lims_link", [overflow], [streams["lims_feed"]], 0.0),
-            ("lims_rougher", [streams["lims_feed"]], [streams["lims_rougher_concentrate"], streams["lims_rougher_tail"]], 0.0),
-            ("lims_cleaner", [streams["lims_rougher_concentrate"]], [streams["lims_cleaner_concentrate"], streams["lims_cleaner_tail"]], 0.0),
+            ("lims_link", ["cyclone_overflow"], ["lims_feed"], 0.0),
+            ("lims_rougher", ["lims_feed"], ["lims_rougher_concentrate", "lims_rougher_tail"], 0.0),
+            ("lims_cleaner", ["lims_rougher_concentrate"], ["lims_cleaner_concentrate", "lims_cleaner_tail"], 0.0),
         ]
         concentrates.append("lims_cleaner_concentrate")
         tails += ["lims_rougher_tail", "lims_cleaner_tail"]
     else:
-        separation_feed = overflow
+        separation_feed = "cyclone_overflow"
         separation_species, separation_water = grinding.overflow_species, overflow.water
         if plant.family == "deslime_rougher":
             deslime = run_deslime(grinding.overflow_species, overflow.water, r, plant.deslime, op.deslime_cut_um)
             streams["deslime_underflow"] = deslime.underflow
             streams["slimes"] = deslime.slimes
-            units.append(("deslime", [overflow], [deslime.underflow, deslime.slimes], 0.0))
-            separation_feed = deslime.underflow
+            units.append(("deslime", ["cyclone_overflow"], ["deslime_underflow", "slimes"], 0.0))
+            separation_feed = "deslime_underflow"
             separation_species, separation_water = deslime.underflow_species, deslime.underflow_water
             tails.append("slimes")
         energy = plant.flotation.regrind_energy_kwh_t
@@ -100,28 +102,32 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
         flotation = run_flotation(separation_species, separation_water, r, plant.flotation, op, flags, regrind)
         streams.update(flotation.streams)
         fresh_water += flotation.dilution_water_tph
-        cleaner_inputs = [streams["regrind_product"] if regrind is not None else streams["rougher_concentrate"]]
+        cleaner_inputs = ["regrind_product" if regrind is not None else "rougher_concentrate"]
         if flotation.recleaner is not None:
-            cleaner_inputs.append(streams["recleaner_tail"])
+            cleaner_inputs.append("recleaner_tail")
         units += [
-            ("flotation_link", [separation_feed], [streams["flotation_feed"]], flotation.dilution_rougher_tph),
-            ("rougher_junction", [streams["flotation_feed"], streams["cleaner_tail"]], [streams["rougher_feed"]], 0.0),
-            ("rougher", [streams["rougher_feed"]], [streams["rougher_concentrate"], streams["rougher_tail"]], 0.0),
-            ("cleaner_junction", cleaner_inputs, [streams["cleaner_feed"]], flotation.dilution_cleaner_tph),
-            ("cleaner", [streams["cleaner_feed"]], [streams["cleaner_concentrate"], streams["cleaner_tail"]], 0.0),
+            ("flotation_link", [separation_feed], ["flotation_feed"], flotation.dilution_rougher_tph),
+            ("rougher_junction", ["flotation_feed", "cleaner_tail"], ["rougher_feed"], 0.0),
+            ("rougher", ["rougher_feed"], ["rougher_concentrate", "rougher_tail"], 0.0),
+            ("cleaner_junction", cleaner_inputs, ["cleaner_feed"], flotation.dilution_cleaner_tph),
+            ("cleaner", ["cleaner_feed"], ["cleaner_concentrate", "cleaner_tail"], 0.0),
         ]
         if regrind is not None:
-            units.append(("regrind", [streams["rougher_concentrate"]], [streams["regrind_product"]], 0.0))
+            units.append(("regrind", ["rougher_concentrate"], ["regrind_product"], 0.0))
         if flotation.recleaner is not None:
             units += [
-                ("recleaner_dilution", [streams["cleaner_concentrate"]], [streams["recleaner_feed"]], flotation.dilution_recleaner_tph),
-                ("recleaner", [streams["recleaner_feed"]], [streams["recleaner_concentrate"], streams["recleaner_tail"]], 0.0),
+                ("recleaner_dilution", ["cleaner_concentrate"], ["recleaner_feed"], flotation.dilution_recleaner_tph),
+                ("recleaner", ["recleaner_feed"], ["recleaner_concentrate", "recleaner_tail"], 0.0),
             ]
         concentrates.append(final_stream_name(flotation))
         tails.append("rougher_tail")
-    products = [streams[n] for n in concentrates + tails]
-    units.append(("circuit", [crusher_feed], products, fresh_water))
-    balance = audit(units, r)
+    topology: list[dict[str, object]] = [
+        {"unit": name, "inputs": list(inputs), "outputs": list(outputs), "water_added_tph": float(water)}
+        for name, inputs, outputs, water in units
+    ]
+    units.append(("circuit", ["crusher_feed"], concentrates + tails, fresh_water))
+    balance = audit([(name, [streams[n] for n in inputs], [streams[n] for n in outputs], water)
+                     for name, inputs, outputs, water in units], r)
     negative = nonnegative(streams, float(constant("numerics.negative_mass_tolerance_per_tph")) * max(1.0, op.throughput_tph))
     if negative:
         flags.add("negative_mass", f"Negative class masses in: {', '.join(negative)}.")
@@ -129,7 +135,7 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
     streams["final_tail"] = add(*[streams[n] for n in tails])
     metrics, metric_units = _metrics(r, plant, op, streams, grinding, flotation, magnetic, deslime, concentrates, fresh_water, balance)
     curves = _curves(r, op, streams, grinding, flotation, magnetic, deslime)
-    return CircuitResult(r, streams, concentrates, tails, metrics, metric_units, curves, flags.items, balance,
+    return CircuitResult(r, streams, concentrates, tails, metrics, metric_units, curves, flags.items, balance, topology,
                          grinding, flotation, magnetic, deslime)
 
 
@@ -245,6 +251,7 @@ def _curves(r: ResolvedOre, op: OperatingPoint, streams: dict[str, Stream], grin
         "psd": {name: [float(v) for v in g.passing(streams[name].total())] for name in psd_names},
         "partition": grinding.partition,
         "liberation": {m: [float(v) for v in r.liberation[m]] for m in r.valuable},
+        "composite_scale": [float(v) for v in grinding.composite_scale],
     }
     primary = r.primary
     if flotation is not None:

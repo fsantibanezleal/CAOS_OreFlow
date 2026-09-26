@@ -31,7 +31,8 @@ Non-goals, stated so they cannot be implied:
   input once: name, unit, bounds, step, the families it applies to, and the cross-field rules. It is
   exported to `data/derived/contract/operating_contract.json`; the API validator, the browser
   controls and the browser engine all read that file. A state is either valid everywhere or
-  rejected everywhere with the same reason.
+  rejected everywhere with the same error code, and every state it accepts is solved by the
+  engine with closed balances.
 - **Contract 2, the artifacts.** Per case, `data/derived/cases/<id>.json` holds six variants, each
   with its full operating point, named streams (solids, water, assays, size distribution for the
   key streams), unit curves (partition, recovery by size, bank profile, batch kinetics, energy
