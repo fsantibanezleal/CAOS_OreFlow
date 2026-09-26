@@ -36,8 +36,45 @@ const record = (name, ok, detail) => {
   console.log(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ` ${JSON.stringify(detail)}` : ''}`);
 };
 
+// The shell makes <body> the scroll container (html and body at height 100% with overflow-x hidden),
+// so the document never reports a sideways overflow: content past the right edge is clipped, not
+// scrolled. Measure the boxes instead: any visible element outside the viewport, unless it sits inside a
+// deliberate scroll area (overflow-x auto or scroll), whose own box must then fit.
+const OVERFLOW_PROBE = () => {
+  const offenders = [];
+  const scrollsX = el => { for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) { const o = getComputedStyle(a).overflowX; if (o === 'auto' || o === 'scroll') return true; } return false; };
+  for (const el of document.body.querySelectorAll('*')) {
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0 || getComputedStyle(el).visibility === 'hidden') continue;
+    if (el.closest('.sr-only, .of-sr-only, .katex-mathml')) continue;
+    if ((r.right > innerWidth + 1 || r.left < -1) && !scrollsX(el)) offenders.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]} ${Math.round(r.left)}..${Math.round(r.right)}`);
+    if (offenders.length >= 5) break;
+  }
+  return offenders;
+};
+
+// Inside a sized view, content past the view's own box is clipped out of reach unless a scroll area
+// inside the view owns it (ADR-0071 rule 1). Charts' own overlays are part of their plot box.
+const CLIP_PROBE = selector => {
+  const host = document.querySelector(selector);
+  if (!host) return [];
+  const hb = host.getBoundingClientRect();
+  const scrolls = el => { for (let a = el.parentElement; a && a !== host; a = a.parentElement) { const cs = getComputedStyle(a); if (['auto', 'scroll'].includes(cs.overflowY) || ['auto', 'scroll'].includes(cs.overflowX)) return true; } return false; };
+  const out = [];
+  for (const el of host.querySelectorAll('*')) {
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0 || getComputedStyle(el).visibility === 'hidden') continue;
+    if (el.closest('.sr-only, .of-sr-only, .katex-mathml, .u-cursor-pt, .u-cursor-x, .u-cursor-y, .u-select')) continue;
+    if ((r.bottom > hb.bottom + 1 || r.right > hb.right + 1) && !scrolls(el)) out.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]} bottom ${Math.round(r.bottom)} of ${Math.round(hb.bottom)}, right ${Math.round(r.right)} of ${Math.round(hb.right)}`);
+    if (out.length >= 5) break;
+  }
+  return out;
+};
+
 async function measure(page, stageSelector) {
-  return page.evaluate(selector => {
+  const outside = await page.evaluate(OVERFLOW_PROBE);
+  const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
+  const m = await page.evaluate(selector => {
     const de = document.documentElement;
     const area = el => { if (!el) return 0; const r = el.getBoundingClientRect(); return r.width * r.height; };
     const viewport = innerWidth * innerHeight;
@@ -46,7 +83,7 @@ async function measure(page, stageSelector) {
     const scope = selector ? document.querySelector(selector) : document;
     const viz = scope ? Math.max(0, ...[...scope.querySelectorAll('canvas, svg.of-flowmap')].map(area)) : 0;
     return {
-      overX: de.scrollWidth > innerWidth + 1, overY: de.scrollHeight > innerHeight + 2,
+      overX: de.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1, overY: de.scrollHeight > innerHeight + 2,
       railScrolls: rail ? rail.scrollHeight > rail.clientHeight + 2 : null,
       tabRows: new Set(tabs).size,
       instrument: +(area(document.querySelector('.of-view-host')) / viewport).toFixed(3),
@@ -55,6 +92,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
+  return { ...m, outside, clipped, overX: m.overX || outside.length > 0 || clipped.length > 0 };
 }
 
 async function settleCharts(page, minimum = 1) {
@@ -137,34 +175,33 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   const same = ['case', 'variant', 'set'].every(key => (before.get(key) ?? '') === (after.get(key) ?? ''));
   record(`${tag} focus round trip`, same, { before: before.toString(), after: after.toString() });
 
-  // the content pages keep the document scroll (ADR-0071 rule 1 binds the App route); they must not
-  // scroll sideways, must carry the interface language, and every Methodology topic is screenshotted
+  // the content pages keep the document scroll (ADR-0071 rule 1 binds the App route); every tab and
+  // sub-tab of every page must not scroll sideways, must carry the interface language, must render its
+  // equations, and must have loaded the baked results it reads (a failed load renders an alert)
   for (const route of PAGES) {
     await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle', timeout: 90000 });
     await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
-    await page.waitForTimeout(300);
-    const shots = [];
     const topTabs = page.locator('.page-body .tablist [role=tab]');
-    const groups = route === 'methodology' ? await topTabs.count() : 0;
-    if (groups === 0) shots.push(route);
-    for (let g = 0; g < groups; g += 1) {
-      await topTabs.nth(g).click();
+    const groups = await topTabs.count();
+    for (let g = 0; g < Math.max(1, groups); g += 1) {
+      if (groups) await topTabs.nth(g).click();
       const subTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
       const count = Math.max(1, await subTabs.count());
       for (let k = 0; k < count; k += 1) {
         if (await subTabs.count()) await subTabs.nth(k).click();
-        await page.waitForTimeout(150);
-        const doc = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1, lang: document.documentElement.lang,
-          katexErrors: document.querySelectorAll('.katex-error').length }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && doc.lang === lang && doc.katexErrors === 0, doc);
-        await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`) });
+        await page.waitForFunction(() => !document.querySelector('.of-doc-state[role=status]'), null, { timeout: 60000 });
+        await page.waitForTimeout(200);
+        const outside = await page.evaluate(OVERFLOW_PROBE);
+        const doc = await page.evaluate(() => ({ overX: document.body.scrollWidth > document.body.clientWidth + 1, lang: document.documentElement.lang,
+          katexErrors: document.querySelectorAll('.katex-error').length, loadErrors: document.querySelectorAll('.of-doc-state[role=alert]').length,
+          // an equation wider than its box can only be read by scrolling inside it
+          cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length }));
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && outside.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside });
+        // a full-page capture stops at the body's scroll box; release it for the capture only
+        const unclip = await page.addStyleTag({ content: 'html, body, #root { height: auto !important; overflow: visible !important; }' });
+        await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
+        await unclip.evaluate(el => el.remove());
       }
-    }
-    for (const shot of shots) {
-      const doc = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1, lang: document.documentElement.lang,
-        katexErrors: document.querySelectorAll('.katex-error').length }));
-      record(`${tag} ${shot}`, !doc.overX && doc.lang === lang && doc.katexErrors === 0, doc);
-      await page.screenshot({ path: join(OUT, `${shot}-${tag}.png`), fullPage: true });
     }
   }
 

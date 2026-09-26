@@ -260,8 +260,15 @@
 .of-table tr.of-table-group > * { border-top: 1px solid var(--color-fg-faint); }
 .of-table tr.is-selected > * { background: var(--color-accent-soft); }
 .of-table.of-table-wide { flex: none; }
-.of-compare-table tbody th { max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.of-compare-charts { min-height: 55%; }
+/* ten columns must fit the view host at 1280 px: headers wrap, the variant name truncates (its full text
+   is the cell title and the chart's cursor reading), and the change column wraps */
+.of-compare-table thead th { white-space: normal; vertical-align: bottom; }
+.of-compare-table tbody th { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-compare-table th:nth-child(2) { text-align: left; }
+/* the table owns its long content: if it cannot fit under the charts it scrolls in its own box (ADR-0071 rule 1) */
+.of-table-scroll { flex: 0 1 auto; min-height: 0; overflow: auto; }
+.of-table-scroll thead th { position: sticky; top: 0; background: var(--color-bg); }
+.of-compare-charts { min-height: 220px; }
 .of-muted { color: var(--color-fg-faint); font-weight: 400; font-size: 0.72rem; }
 .of-tag.ok { background: color-mix(in oklab, var(--color-good) 18%, transparent); color: var(--color-good); }
 

@@ -147,9 +147,9 @@ export const COMMINUTION: Topic[] = [
     ],
     equations: [
       { tex: r`\frac{dM_i}{dt} = -S_i M_i + \sum_{j<i} b_{ij} S_j M_j`, caption: { en: 'Batch population balance, class 1 the coarsest.', es: 'Balance poblacional batch, con la clase 1 la más gruesa.' } },
-      { tex: r`S_i^E = \alpha_0 \frac{d_i^{\alpha_1}}{1 + (d_i/d_{crit})^{\alpha_2}},\qquad S_i\,\tau = S_i^E\,\frac{P}{Q}`, caption: { en: 'Energy-specific selection function and the breakage per pass at mill power P and solids feed rate Q.', es: 'Función de selección por energía específica y la fractura por pasada con potencia P y alimentación de sólidos Q.' } },
-      { tex: r`B_{ij} = \beta_0 \left(\frac{x_i}{x_{j+1}}\right)^{\beta_1} + (1 - \beta_0)\left(\frac{x_i}{x_{j+1}}\right)^{\beta_2},\qquad b_{ij} = B_{ij} - B_{i+1,j}`, caption: { en: 'Cumulative breakage function (Austin form).', es: 'Función de fractura acumulada (forma de Austin).' } },
-      { tex: r`T^{-1}(e) = I + e\,D + c_2 e^2 D^2 + c_3 e^3 D^3,\qquad \left(T^{-1}(e) - \mathrm{diag}(C)\right) p = f`, caption: { en: 'Three perfect mixers sharing D = (I - b) diag(S^E), and the closed circuit for new feed f.', es: 'Tres mezcladores perfectos que comparten D = (I - b) diag(S^E), y el circuito cerrado para la alimentación fresca f.' } },
+      { tex: r`\begin{gathered} S_i^E = \alpha_0 \frac{d_i^{\alpha_1}}{1 + (d_i/d_{crit})^{\alpha_2}} \\ S_i\,\tau = S_i^E\,\frac{P}{Q} \end{gathered}`, caption: { en: 'Energy-specific selection function and the breakage per pass at mill power P and solids feed rate Q.', es: 'Función de selección por energía específica y la fractura por pasada con potencia P y alimentación de sólidos Q.' } },
+      { tex: r`\begin{aligned} B_{ij} &= \beta_0 \left(\frac{x_i}{x_{j+1}}\right)^{\beta_1} + (1 - \beta_0)\left(\frac{x_i}{x_{j+1}}\right)^{\beta_2} \\ b_{ij} &= B_{ij} - B_{i+1,j} \end{aligned}`, caption: { en: 'Cumulative breakage function (Austin form).', es: 'Función de fractura acumulada (forma de Austin).' } },
+      { tex: r`\begin{gathered} T^{-1}(e) = I + e\,D + c_2 e^2 D^2 + c_3 e^3 D^3 \\ \left(T^{-1}(e) - \mathrm{diag}(C)\right) p = f \end{gathered}`, caption: { en: 'Three perfect mixers sharing D = (I - b) diag(S^E), and the closed circuit for new feed f.', es: 'Tres mezcladores perfectos que comparten D = (I - b) diag(S^E), y el circuito cerrado para la alimentación fresca f.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
@@ -180,7 +180,7 @@ export const COMMINUTION: Topic[] = [
         es: 'El motor informa la energía de chancado (Bond con el índice de chancado), la de molienda (lo que necesita el balance poblacional por tonelada de alimentación fresca), la de remolienda (la energía específica declarada sobre la alimentación a remolienda, por tonelada de mineral) y su total, con el requerimiento de Bond, el índice de trabajo operacional y la razón de eficiencia de la reducción lograda.' },
     ],
     equations: [
-      { tex: r`W = W_i\left(\frac{10}{\sqrt{P_{80}}} - \frac{10}{\sqrt{F_{80}}}\right),\qquad W_{i,o} = \frac{P/T}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}}`, caption: { en: 'Bond energy (kWh/t, sizes in µm) and the operating work index.', es: 'Energía de Bond (kWh/t, tamaños en µm) y el índice de trabajo operacional.' } },
+      { tex: r`\begin{gathered} W = W_i\left(\frac{10}{\sqrt{P_{80}}} - \frac{10}{\sqrt{F_{80}}}\right) \\ W_{i,o} = \frac{P/T}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}} \end{gathered}`, caption: { en: 'Bond energy (kWh/t, sizes in µm) and the operating work index.', es: 'Energía de Bond (kWh/t, tamaños en µm) y el índice de trabajo operacional.' } },
       { tex: r`E_R = K_R\left(\frac{1}{P} - \frac{1}{F}\right),\qquad E_K = K_K \ln\frac{F}{P}`, caption: { en: 'Rittinger and Kick, calibrated to Bond at the reference reduction.', es: 'Rittinger y Kick, calibradas a Bond en la reducción de referencia.' } },
     ],
     limits: [

@@ -9,7 +9,7 @@ import { validate, type ContractError, type OperatingContract } from '../engine/
 import type { OperatingPoint } from '../engine/model';
 import type { CaseArtifact, CaseIndex } from '../lib/artifacts.types';
 import type { Lang } from '../lib/format';
-import { t, UI } from '../lib/i18n';
+import { CATEGORY, t, UI } from '../lib/i18n';
 import { contractMessage, ControlList } from './Controls';
 import { changedInputs, useWorkbench, type Section } from './state';
 
@@ -17,13 +17,6 @@ export const SECTION_INPUTS: Record<Section, Array<keyof OperatingPoint>> = {
   feed: ['throughput_tph', 'work_index_kwh_t', 'head_grade', 'crusher_css_mm'],
   classification: ['target_p80_um', 'circulating_load', 'water_m3_t'],
   separation: ['collector_gpt', 'jg_cm_s', 'rougher_cells', 'gravity_bleed', 'deslime_cut_um'],
-};
-
-const CATEGORY: Record<string, { code: string; en: string; es: string }> = {
-  liberation: { code: 'L', en: 'Liberation', es: 'Liberación' },
-  classification: { code: 'C', en: 'Classification', es: 'Clasificación' },
-  flotation: { code: 'F', en: 'Flotation', es: 'Flotación' },
-  integration: { code: 'I', en: 'Integration', es: 'Integración' },
 };
 
 /**

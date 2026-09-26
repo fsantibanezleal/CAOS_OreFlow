@@ -17,7 +17,7 @@ const TABLE = ['recovery_pct', 'concentrate_grade', 'recovered_primary_tph', 'sp
 const TEXT = {
   metric: { en: 'Metric', es: 'Métrica' },
   variant: { en: 'Variant', es: 'Variante' },
-  change: { en: 'Change from nominal', es: 'Cambio respecto del nominal' },
+  change: { en: 'Input set to', es: 'Entrada fijada en' },
   flags: { en: 'Engine flags', es: 'Avisos del motor' },
   none: { en: 'none', es: 'ninguno' },
   nominal: { en: 'nominal', es: 'nominal' },
@@ -45,10 +45,16 @@ export function CompareView({ contract, artifact, index, benchmark, variantId, l
   const nominal = variants.find(v => v.id === 'nominal')?.trace.metrics[metric];
   const unit = unitOfMetric(metric);
   const selected = variants.findIndex(v => v.id === variantId);
-  // `change` holds the factor the variant applies; the value it sets is the variant's own point
+  // `change` holds the factor the variant applies; the value it sets is the variant's own point. The
+  // variant's label names the input, so the table shows the value alone and the title the input's name.
+  const changed = (v: (typeof variants)[number]) => Object.keys(v.change)[0];
   const change = (v: (typeof variants)[number]) => {
-    const name = Object.keys(v.change)[0];
-    return name ? `${declared[name]?.label[lang] ?? name} ${formatWithUnit(v.point[name as keyof typeof v.point], unitOfInput(name), lang)}` : TEXT.nominal[lang];
+    const name = changed(v);
+    return name ? formatWithUnit(v.point[name as keyof typeof v.point], unitOfInput(name), lang) : TEXT.nominal[lang];
+  };
+  const changeTitle = (v: (typeof variants)[number]) => {
+    const name = changed(v);
+    return name ? `${declared[name]?.label[lang] ?? name} ${change(v)}` : TEXT.nominal[lang];
   };
 
   // the twelve cases, sorted by energy for the aligned x axis; this case drawn again as its own series
@@ -82,15 +88,17 @@ export function CompareView({ contract, artifact, index, benchmark, variantId, l
             onCursor={reading => onCursor(reading ? `${rows[reading.index].title}: ${formatWithUnit(rows[reading.index].recovery, '%', lang)}, ${formatWithUnit(rows[reading.index].energy, 'kWh/t', lang)}` : null)} />
         )}
       </div>
+      <div className="of-table-scroll">
       <table className="of-table of-table-wide of-compare-table">
         <thead><tr><th scope="col">#</th><th scope="col">{TEXT.variant[lang]}</th><th scope="col">{TEXT.change[lang]}</th>
           {TABLE.map(k => <th scope="col" key={k}>{`${metricLabel(k, lang)} (${unitLabel(unitOfMetric(k))})`}</th>)}<th scope="col">{TEXT.flags[lang]}</th></tr></thead>
         <tbody>{variants.map((v, i) => (
-          <tr key={v.id} className={v.id === variantId ? 'is-selected' : undefined}><td>{i + 1}</td><th scope="row" title={v.label[lang]}>{v.label[lang]}</th><td>{change(v)}</td>
+          <tr key={v.id} className={v.id === variantId ? 'is-selected' : undefined}><td>{i + 1}</td><th scope="row" title={v.label[lang]}>{v.label[lang]}</th><td title={changeTitle(v)}>{change(v)}</td>
             {TABLE.map(k => <td key={k}>{formatValue(v.trace.metrics[k], unitOfMetric(k), lang)}</td>)}
             <td title={v.trace.flags.map(f => flagText(f.code, lang)).join(' ')}>{v.trace.flags.length ? v.trace.flags.map(f => flagShort(f.code, lang)).join(', ') : TEXT.none[lang]}</td></tr>
         ))}</tbody>
       </table>
+      </div>
     </div>
   );
 }

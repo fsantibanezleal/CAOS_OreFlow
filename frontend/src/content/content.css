@@ -13,11 +13,13 @@
 .of-topic-body.with-figure { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1.6rem; align-items: start; }
 .of-topic-text p { max-width: 78ch; line-height: 1.65; }
 .of-topic-text .katex-display { overflow-x: auto; overflow-y: hidden; }
-.of-topic-figure { position: sticky; top: 1rem; }
+.of-topic-side { min-width: 0; }
+.of-topic-side .of-topic-figure .figure { margin-top: 0; }
 .of-topic-figure.wide { position: static; margin: 0.4rem auto 1.2rem; max-width: 900px; }
 .of-topic-equations .katex-display { overflow-x: auto; overflow-y: hidden; }
-.of-topic-figure .fig-svg { max-width: 100%; }
-@media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } .of-topic-figure { position: static; } }
+/* a wide figure spans its row; a narrow one keeps the shell's figure measure (560 px), centred in its column */
+.of-topic-figure.wide .fig-svg { max-width: 100%; }
+@media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } }
 
 .of-doc-table { width: 100%; max-width: 980px; margin: 1rem 0; border-collapse: collapse; font-size: 0.86rem; }
 .of-doc-table th, .of-doc-table td { padding: 6px 10px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: top; }
@@ -25,3 +27,15 @@
 .of-doc-table tbody th { font-weight: 600; white-space: nowrap; }
 .of-doc .callout ul { margin: 0.2rem 0 0; padding-left: 1.2rem; }
 .of-doc .callout li + li { margin-top: 0.3rem; }
+
+/* figure frames and optional units (dashed), small labels for dense schematics */
+.of-dg-frame { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.dg-box.of-dg-optional { stroke-dasharray: 5 3; }
+.of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
+
+/* artifact-bound tables and charts under a topic */
+.of-topic-data { margin: 1.2rem 0; min-width: 0; }
+.of-doc-table-data { max-width: none; font-variant-numeric: tabular-nums; }
+.of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-faint); font-style: italic; }
+.of-doc-table td { white-space: nowrap; }
+.of-doc-state { padding: 0.8rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-fg-subtle); }

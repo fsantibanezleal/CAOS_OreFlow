@@ -38,7 +38,7 @@ export function formatTick(value: number, spacing: number, lang: Lang, log = fal
   if (log) return formatSignificant(value, lang, 3);
   // the decimals that write the spacing exactly: 2.5 needs one, 0.05 two, 50 none
   let decimals = 0;
-  while (decimals < 8 && spacing > 0 && Math.abs(spacing * 10 ** decimals - Math.round(spacing * 10 ** decimals)) > 1e-6) decimals += 1;
+  while (decimals < 8 && spacing > 0 && Math.abs(spacing * 10 ** decimals - Math.round(spacing * 10 ** decimals)) > 1e-6) decimals += 1; // not-engine: the decimals a tick label needs
   return formatFixed(value, lang, decimals);
 }
 

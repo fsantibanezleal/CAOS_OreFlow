@@ -63,7 +63,8 @@ function FlotationFigure({ lang }: { lang: Lang }) {
       <line className="dg-edge" x1="432" y1="30" x2="458" y2="30" markerEnd="url(#of-flot-arrow)" />
       <rect className="dg-box accent" x="460" y="12" width="80" height="36" rx="6" />
       <text className="dg-box-title" x="500" y="34" textAnchor="middle">{es ? 'limpieza' : 'cleaner'}</text>
-      <path className="dg-curve-faint" d="M 500 48 L 500 178 L 110 178 L 110 122" markerEnd="url(#of-flot-arrow)" />
+      {/* the tail leaves the cleaner left of the concentrate label, so the dashed line never crosses it */}
+      <path className="dg-curve-faint" d="M 468 48 L 468 178 L 110 178 L 110 122" markerEnd="url(#of-flot-arrow)" />
       <text className="dg-edge-label" x="300" y="194" textAnchor="middle">{es ? 'relave de limpieza de vuelta al rougher' : 'cleaner tail back to the rougher'}</text>
       <path className="dg-edge" d="M 540 30 L 552 30 L 552 6" markerEnd="url(#of-flot-arrow)" />
       <text className="dg-edge-label" x="548" y="64" textAnchor="end">{es ? 'concentrado' : 'concentrate'}</text>
@@ -161,9 +162,9 @@ export const SEPARATION: Topic[] = [
         es: 'El solucionador del circuito encuentra el corte que necesita el circuito; las ecuaciones de Plitt responden luego la pregunta de equipos con la alimentación resuelta: el caudal por ciclón que da ese corte, el número de ciclones, y la presión, la partición de volumen y la nitidez con ese número. Una presión fuera de 35 a 200 kPa se avisa, no se rechaza.' },
     ],
     equations: [
-      { tex: r`y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right),\qquad d_{50c,k} = d_{50c}\sqrt{\frac{\rho_{host} - 1}{\rho_k - 1}}`, caption: { en: 'Partition to underflow with water bypass R_f, and the density-corrected cut of particle class k.', es: 'Partición a la descarga con cortocircuito de agua R_f, y el corte corregido por densidad de la clase k.' } },
+      { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_{host} - 1}{\rho_k - 1}} \end{gathered}`, caption: { en: 'Partition to underflow with water bypass R_f, and the density-corrected cut of particle class k.', es: 'Partición a la descarga con cortocircuito de agua R_f, y el corte corregido por densidad de la clase k.' } },
       { tex: r`d_{50c} = \frac{50.5\,D_c^{0.46} D_i^{0.6} D_o^{1.21} e^{0.063 C_v}}{D_u^{0.71} h^{0.38} Q^{0.45} (\rho_s - \rho_l)^{0.5}}\ \mu\mathrm{m}`, caption: { en: 'Plitt cut size (lengths in cm, Q in L/min per cyclone, C_v in percent solids by volume).', es: 'Tamaño de corte de Plitt (longitudes en cm, Q en L/min por ciclón, C_v en porcentaje de sólidos en volumen).' } },
-      { tex: r`\Delta P = \frac{1.88\,Q^{1.78} e^{0.0055 C_v}}{D_c^{0.37} D_i^{0.94} h^{0.28} (D_u^2 + D_o^2)^{0.87}}\ \mathrm{kPa},\qquad m = 1.94\,e^{-1.58 R_v}\left(\frac{D_c^2 h}{Q}\right)^{0.15}`, caption: { en: 'Plitt pressure drop and sharpness (R_v the volume split to underflow).', es: 'Caída de presión y nitidez de Plitt (R_v la partición de volumen a la descarga).' } },
+      { tex: r`\begin{gathered} \Delta P = \frac{1.88\,Q^{1.78} e^{0.0055 C_v}}{D_c^{0.37} D_i^{0.94} h^{0.28} (D_u^2 + D_o^2)^{0.87}}\ \mathrm{kPa} \\ m = 1.94\,e^{-1.58 R_v}\left(\frac{D_c^2 h}{Q}\right)^{0.15} \end{gathered}`, caption: { en: 'Plitt pressure drop and sharpness (R_v the volume split to underflow).', es: 'Caída de presión y nitidez de Plitt (R_v la partición de volumen a la descarga).' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
@@ -192,9 +193,9 @@ export const SEPARATION: Topic[] = [
         es: 'Los bancos de celdas mecánicas se comportan como mezcladores perfectos en serie. El circuito es un rougher, una remolienda opcional del concentrado rougher, una limpieza y una relimpieza opcional; el relave de limpieza vuelve a la alimentación rougher y el de relimpieza a la de limpieza. La residencia sale del volumen de celda, la retención de gas y el caudal de pulpa, por lo que más alimentación o más recirculación la acortan. El circuito se resuelve por iteración de punto fijo hasta que el mayor cambio absoluto baja de 1e-10 t/h y el mayor cambio de cualquier clase, relativo a su propio caudal, baja de 1e-12; el criterio relativo mantiene en balance el oro traza.' },
     ],
     equations: [
-      { tex: r`k_{s,i} = 60\,P_s\,S_b\,\exp\!\left(-\tfrac12\left[\ln(d_i/x_{opt})/w\right]^2\right)\left[u + (1-u)\frac{D}{D + K_s}\right],\qquad S_b = \frac{6J_g}{D_{32}},\qquad P_{comp} = P_V\,c^{2/3}`, caption: { en: 'Rate constant (1/min) of particle class s in size class i, and the floatability of a composite of valuable content c.', es: 'Constante cinética (1/min) de la clase s en el tamaño i, y la flotabilidad de un mixto de contenido valioso c.' } },
-      { tex: r`ENT_i = \frac{2}{\exp\!\left(2.292\,(d_i/\xi)^{adj}\right) + \exp\!\left(-2.292\,(d_i/\xi)^{adj}\right)},\qquad adj = 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)}`, caption: { en: 'Degree of entrainment (Savassi et al.).', es: 'Grado de arrastre (Savassi y colaboradores).' } },
-      { tex: r`r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w},\quad w = \frac{r_w}{1 - r_w},\qquad R_{bank} = 1 - (1 - r)^N`, caption: { en: 'Recovery per cell and per bank; without entrainment the tanks-in-series result, and for water (k = 0, ENT = 1) the water recovery itself.', es: 'Recuperación por celda y por banco; sin arrastre el resultado de tanques en serie, y para el agua (k = 0, ENT = 1) la propia recuperación de agua.' } },
+      { tex: r`\begin{aligned} k_{s,i} &= 60\,P_s\,S_b\,f_{size}(d_i)\,f_{dose}(D) \\ f_{size}(d) &= \exp\!\left(-\tfrac12\left[\ln(d/x_{opt})/w\right]^2\right) \\ f_{dose}(D) &= u + (1-u)\frac{D}{D + K_s} \\ S_b &= \frac{6J_g}{D_{32}},\qquad P_{comp} = P_V\,c^{2/3} \end{aligned}`, caption: { en: 'Rate constant (1/min) of particle class s in size class i: the size factor around x_opt and the dose factor of collector D; the bubble surface area flux, and the floatability of a composite of valuable content c.', es: 'Constante cinética (1/min) de la clase s en el tamaño i: el factor de tamaño en torno a x_opt y el factor de dosis de colector D; el flujo de área superficial de burbujas, y la flotabilidad de un mixto de contenido valioso c.' } },
+      { tex: r`\begin{aligned} ENT_i &= \frac{2}{e^{a_i} + e^{-a_i}},\qquad a_i = 2.292\,(d_i/\xi)^{adj} \\ adj &= 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)} \end{aligned}`, caption: { en: 'Degree of entrainment (Savassi et al.).', es: 'Grado de arrastre (Savassi y colaboradores).' } },
+      { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1 - r_w},\qquad R_{bank} = 1 - (1 - r)^N \end{gathered}`, caption: { en: 'Recovery per cell and per bank; without entrainment the tanks-in-series result, and for water (k = 0, ENT = 1) the water recovery itself.', es: 'Recuperación por celda y por banco; sin arrastre el resultado de tanques en serie, y para el agua (k = 0, ENT = 1) la propia recuperación de agua.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Typical value', es: 'Valor típico' }, { en: 'Source', es: 'Fuente' }],
@@ -222,7 +223,7 @@ export const SEPARATION: Topic[] = [
         es: 'En el motor el oro es un mineral del circuito de molienda como cualquier otro, con liberación por tamaño, una moliendabilidad lenta para los granos liberados (0,15 de la del mineral) y el corte corregido por densidad. Una fracción de la descarga pasa por una unidad gravimétrica que recupera el oro liberado por tamaño, el oro en mixtos con una recuperación fija pequeña y la ganga con un rendimiento en masa pequeño. La recirculación al molino sigue siendo lineal, por lo que la resolución del circuito cerrado conserva su forma; la recuperación total de oro es el concentrado gravimétrico más el de flotación.' },
     ],
     equations: [
-      { tex: r`E_g(d) = E_{max}\left(1 - e^{-(d/x_g)^2}\right),\qquad m_{mill} = f + (1 - b\,E_{eff})\,C\,p`, caption: { en: 'Gravity recovery of liberated gold by size on the bleed b, and the mill feed with the gravity unit in the loop.', es: 'Recuperación gravimétrica del oro liberado por tamaño en la purga b, y la alimentación al molino con la unidad gravimétrica en el circuito.' } },
+      { tex: r`\begin{gathered} E_g(d) = E_{max}\left(1 - e^{-(d/x_g)^2}\right) \\ m_{mill} = f + (1 - b\,E_{eff})\,C\,p \end{gathered}`, caption: { en: 'Gravity recovery of liberated gold by size on the bleed b, and the mill feed with the gravity unit in the loop.', es: 'Recuperación gravimétrica del oro liberado por tamaño en la purga b, y la alimentación al molino con la unidad gravimétrica en el circuito.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
@@ -250,7 +251,7 @@ export const SEPARATION: Topic[] = [
         es: 'El rebose de la molienda alimenta un tambor rougher y uno de limpieza. La magnetita liberada se captura salvo en el extremo ultrafino; los mixtos se capturan según su contenido de magnetita; la ganga libre queda atrapada a una tasa pequeña que crece en los finos y se reduce en la limpieza. La ley y la recuperación de hierro salen del balance de minerales, con la magnetita a 72,36% Fe y una ganga silicatada con hierro a un 5% Fe declarado; la recuperación se informa como hierro total y como magnetita.' },
     ],
     equations: [
-      { tex: r`p_{lib}(d) = p_{max}\left(1 - e^{-d/d_f}\right),\quad p_{comp}(d,c) = p_{max}\left(1 - e^{-c/c_0}\right)\left(1 - e^{-d/d_f}\right),\quad p_g(d) = e_0 + e_1\,e^{-d/d_e}`, caption: { en: 'Capture of liberated magnetite, of composites of magnetite content c, and entrapment of free gangue.', es: 'Captura de magnetita liberada, de mixtos con contenido de magnetita c, y atrapamiento de ganga libre.' } },
+      { tex: r`\begin{aligned} p_{lib}(d) &= p_{max}\left(1 - e^{-d/d_f}\right) \\ p_{comp}(d,c) &= p_{max}\left(1 - e^{-c/c_0}\right)\left(1 - e^{-d/d_f}\right) \\ p_g(d) &= e_0 + e_1\,e^{-d/d_e} \end{aligned}`, caption: { en: 'Capture of liberated magnetite, of composites of magnetite content c, and entrapment of free gangue.', es: 'Captura de magnetita liberada, de mixtos con contenido de magnetita c, y atrapamiento de ganga libre.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
@@ -277,7 +278,7 @@ export const SEPARATION: Topic[] = [
         es: 'Un ciclón de deslamado sobre el rebose de la molienda particiona cada clase de partícula con la forma Rosin-Rammler, una nitidez y un cortocircuito de agua declarados; su corte es un control de operación. El rebose reporta a relaves como lamas; la descarga se repulpea a una fracción de sólidos declarada antes del rougher, y el agua de dilución se audita. La apatita es más blanda que el cuarzo y la arcilla es muy blanda, por lo que los finos, y el P2O5 que llevan, salen del balance de molienda en vez de suponerse.' },
     ],
     equations: [
-      { tex: r`y_{des}(d) = R_b + (1 - R_b)\left(1 - e^{-\ln 2\,(d/d_{des})^{m}}\right),\qquad d_{des} \le \tfrac12\,P_{80}^{target}`, caption: { en: 'Desliming partition to underflow, and the contract rule that keeps the cut at most half the grind target.', es: 'Partición del deslamado a la descarga, y la regla del contrato que mantiene el corte bajo la mitad del objetivo de molienda.' } },
+      { tex: r`\begin{gathered} y_{des}(d) = R_b + (1 - R_b)\left(1 - e^{-\ln 2\,(d/d_{des})^{m}}\right) \\ d_{des} \le \tfrac12\,P_{80}^{target} \end{gathered}`, caption: { en: 'Desliming partition to underflow, and the contract rule that keeps the cut at most half the grind target.', es: 'Partición del deslamado a la descarga, y la regla del contrato que mantiene el corte bajo la mitad del objetivo de molienda.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],

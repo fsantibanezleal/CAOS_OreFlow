@@ -174,6 +174,24 @@ const CLASSES: Record<string, T> = {
 
 export const mineralName = (id: string, lang: Lang): string => MINERALS[id]?.[lang] ?? id.replace(/_/g, ' ');
 
+/** The teaching category of a case, with the letter of its catalog code (L1, C2, F3, I1, ...). */
+export const CATEGORY: Record<string, T & { code: string }> = {
+  liberation: { code: 'L', en: 'Liberation', es: 'Liberación' },
+  classification: { code: 'C', en: 'Classification', es: 'Clasificación' },
+  flotation: { code: 'F', en: 'Flotation', es: 'Flotación' },
+  integration: { code: 'I', en: 'Integration', es: 'Integración' },
+};
+export const categoryName = (id: string, lang: Lang): string => CATEGORY[id]?.[lang] ?? id;
+
+/** The circuit family of a case: which units follow the grinding circuit. */
+const FAMILIES: Record<string, T> = {
+  rougher: { en: 'Flotation, rougher and cleaner', es: 'Flotación, rougher y cleaner' },
+  gravity_rougher: { en: 'Gravity bleed and flotation', es: 'Purga gravimétrica y flotación' },
+  magnetic: { en: 'Low-intensity magnetic separation', es: 'Separación magnética de baja intensidad' },
+  deslime_rougher: { en: 'Desliming and flotation', es: 'Deslamado y flotación' },
+};
+export const familyName = (id: string, lang: Lang): string => FAMILIES[id]?.[lang] ?? id;
+
 /** A particle class of the trace (`mineral:class`), as a mineral name and its class. */
 export function speciesName(key: string, lang: Lang): string {
   const [mineral, particle] = key.split(':');

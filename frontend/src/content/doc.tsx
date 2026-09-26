@@ -15,13 +15,17 @@ export type Topic = {
   title: Bi;
   /** Substantial paragraphs, in order. */
   paragraphs: Bi[];
-  equations?: Array<{ tex: string; caption: Bi }>;
+  /** A formula with words in it (an operator name, a condition) carries its TeX in both languages. */
+  equations?: Array<{ tex: string | Bi; caption: Bi }>;
   /** Assumptions and limitations. */
   limits?: Bi[];
   /** A table of the parameters the engine uses (values are the case catalog's or the constants'). */
   table?: { head: Bi[]; rows: Array<Array<string | Bi>> };
   /** A wide figure (a flowsheet) spans the text column below the prose; a narrow one sits beside it. */
   figure?: { caption: Bi; render: (lang: Lang) => ReactNode; wide?: boolean };
+  /** Content read from the committed artifacts at run time (a results table, an interactive chart),
+   * drawn at full width after the prose, so a number on a page is the artifact's and never retyped. */
+  data?: (lang: Lang) => ReactNode;
   refs: string[];
 };
 
@@ -31,8 +35,14 @@ const T = {
 };
 
 const text = (value: string | Bi, lang: Lang) => (typeof value === 'string' ? value : value[lang]);
+const tex = (value: string | Bi) => (typeof value === 'string' ? value : value.en);
 
 export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
+  const limits = topic.limits && topic.limits.length > 0 && (
+    <Callout variant="honest" title={T.limits[lang]}>
+      <ul>{topic.limits.map((l, i) => <li key={i}>{l[lang]}</li>)}</ul>
+    </Callout>
+  );
   return (
     <article className="prose of-topic">
       <h2>{topic.title[lang]}</h2>
@@ -44,22 +54,33 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
           </div>
           <div className="of-topic-body with-figure">
             <div className="of-topic-text">{topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}</div>
-            <div className="of-topic-equations">{topic.equations?.map(eq => <Equation key={eq.tex} tex={eq.tex} caption={eq.caption[lang]} />)}</div>
+            <div className="of-topic-equations">{topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={text(eq.tex, lang)} caption={eq.caption[lang]} />)}</div>
           </div>
         </>
-      ) : (
-        <div className={topic.figure ? 'of-topic-body with-figure' : 'of-topic-body'}>
+      ) : topic.figure ? (
+        <div className="of-topic-body with-figure">
           <div className="of-topic-text">
             {topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}
-            {topic.equations?.map(eq => <Equation key={eq.tex} tex={eq.tex} caption={eq.caption[lang]} />)}
+            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={text(eq.tex, lang)} caption={eq.caption[lang]} />)}
           </div>
-          {topic.figure && (
+          {/* the figure leads the second column and the limits follow it: equations keep the wider column,
+              and wrapping text fills the narrower one */}
+          <div className="of-topic-side">
             <div className="of-topic-figure">
               <Figure caption={topic.figure.caption[lang]}>{topic.figure.render(lang)}</Figure>
             </div>
-          )}
+            {limits}
+          </div>
+        </div>
+      ) : (
+        <div className="of-topic-body">
+          <div className="of-topic-text">
+            {topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}
+            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={text(eq.tex, lang)} caption={eq.caption[lang]} />)}
+          </div>
         </div>
       )}
+      {topic.data && <div className="of-topic-data">{topic.data(lang)}</div>}
       {topic.table && (
         <table className="of-doc-table">
           <thead><tr>{topic.table.head.map((h, i) => <th scope="col" key={i}>{h[lang]}</th>)}</tr></thead>
@@ -68,11 +89,7 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
           ))}</tbody>
         </table>
       )}
-      {topic.limits && topic.limits.length > 0 && (
-        <Callout variant="honest" title={T.limits[lang]}>
-          <ul>{topic.limits.map((l, i) => <li key={i}>{l[lang]}</li>)}</ul>
-        </Callout>
-      )}
+      {!(topic.figure && !topic.figure.wide) && limits}
       {topic.refs.length > 0 && <Refs ids={topic.refs} label={T.refs[lang]} />}
     </article>
   );
