@@ -36,7 +36,15 @@ card for any library it introduces) in the same commit before the next one start
   (PE-39). Gates: `trace-curves.test.ts`, `flowsheet.test.ts`, `locale.test.ts`, `surrogate.test.ts`,
   `scripts/check_ui_formulas.py` and `frontend/gate.mjs` (smoke run at 1280x800 dark English and
   1600x900 light Spanish: 24 checks pass, every screenshot read). The full matrix is T21.
-- [ ] T19 Methodology, Introduction, Implementation, Experiments, Benchmark content, citations and architecture modal from the dossier.
+- [x] T19 Methodology, Introduction, Implementation, Experiments, Benchmark content, citations and architecture modal from the dossier.
+  Every page is topics on one layout (prose, equations, limits, a figure, references) and reads its
+  numbers from the committed artifacts; `experiments-claims.test.ts` and `benchmark-claims.test.ts` hold
+  every count, range and direction the pages state to the records (PE-40 extends to them). The gate
+  now visits every tab of every page and measures boxes (its document-width check could not fail while
+  the body is the scroll container), clipping inside views, equations wider than their box, figure text
+  that crosses a box, the in-browser particle network, and the architecture modal in both languages.
+  The pre-0.05 interface, its two stylesheets and its five diagrams are removed; `check_ui_formulas.py`
+  exempts nothing, and `check_units.py`, `check_ui_formulas.py` and `check_arch_i18n.py` run in CI.
 - [ ] T20 `docs/` wiki tree, README, STRUCTURE, CHANGELOG, manuscript rewrite.
 - [ ] T21 Canonical bake with the GPU lane; full test suite; guards; build; visual QA in both themes and languages at three viewports.
 - [ ] T22 Release 0.05.000, backfilled tags, PRs, CI, Pages, VPS deploy, live verification, CAOS_MANAGE records.
