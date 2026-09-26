@@ -71,7 +71,12 @@ card for any library it introduces) in the same commit before the next one start
   case provenance in English on the Spanish Case view; the Benchmark uncertainty table, which needed a
   sideways scroll at 1280 px (a gate check now fails that); the Implementation gates table, widened past
   a 1280 px page by its own new row; and the Response heatmap's ticks, which mixed precisions on one axis.
-- [ ] T22 Release 0.05.000, backfilled tags, PRs, CI, Pages, VPS deploy, live verification, CAOS_MANAGE records.
+- [x] T22 Release 0.05.000, backfilled tags, PRs, CI, Pages, VPS deploy, live verification, CAOS_MANAGE records.
+  Tags `v0.02.000` to `v0.04.000` backfilled; PRs #36 to #40 through `develop` and `main` with every CI and
+  Pages run green; the annotated tag `v0.05.000` and its GitHub release; the VPS updated with the steps of
+  architecture 05 (the setup script is not the update path); the six external checks passed, the browser
+  gate with 142 checks on each public host (`docs/release-verification.md`, remote gate); CAOS_MANAGE
+  carries the product, deployment, plan, registry and manuscript records, and issue #35 is closed.
 - [x] T23 Convergence verdict against every requirement.
   Every live requirement (the 42 of this feature and the 7 of `geomet-lct`) runs the gate it names on the
   release: 49 of 49 met (the table below). Not requirements, and still open: Felipe's acceptance of the
