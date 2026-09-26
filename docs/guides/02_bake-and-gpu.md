@@ -29,8 +29,8 @@ runs six stages and stops with an error if the last one, the artifact checks, fi
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
 | contract | `contract/operating_contract.json`, `contract/contract_probes.json` | under 1 s |
-| cases | `cases/<case>.json`: every variant's trace, optimization and uncertainty records, the nominal Sobol record | 374.9 s on 12 workers |
-| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json` | 1688.0 s, on CUDA |
+| cases | `cases/<case>.json`: every variant's trace, optimization and uncertainty records, the nominal Sobol record | 686.7 s on 12 workers in the committed bake, which shared the machine with browser checks (374.9 s unloaded) |
+| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json` | 2106.0 s on CUDA in the committed bake (1688.0 s unloaded) |
 | benchmark | `benchmark.json` | under 1 s |
 | manifests | `manifests/<case>.json`, `manifests/index.json` | under 1 s |
 | validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | under 1 s |

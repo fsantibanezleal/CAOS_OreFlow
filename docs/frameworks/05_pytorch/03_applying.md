@@ -40,8 +40,8 @@ standardized targets means nothing to a metallurgist.
 
 For networks of a few thousand parameters and a few thousand rows, the GPU shortens the wall time of
 the thirteen trainings of each network (the interpolation split, the twelve held-out cases) and the
-final fits; the whole learning stage, the scikit-learn models included, took 1688 s in the committed
-bake. It does not change what the models can learn, and it makes bit-level reproduction depend on the
+final fits; the whole learning stage, the scikit-learn models included, took 1688 s in an unloaded bake
+(2106 s in the committed 0.05.001 bake, which shared the machine with browser checks). It does not change what the models can learn, and it makes bit-level reproduction depend on the
 device. Record the device with every result, as the lane does, and never report a GPU run from a
 machine that fell back to the CPU.
 

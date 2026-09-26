@@ -27,7 +27,7 @@ cd frontend; npm run build; cd ..                     # optional: without a buil
 .venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8146
 ```
 
-Then `http://127.0.0.1:8146/healthz` answers `{"status": "ok", "service": "oreflow", "version": "0.05.000"}`,
+Then `http://127.0.0.1:8146/healthz` answers `{"status": "ok", "service": "oreflow", "version": "0.05.001"}`,
 the API is under `/api/`, and the built site is at the root. FastAPI's generated documentation is at
 `/docs` and the OpenAPI schema at `/openapi.json`.
 

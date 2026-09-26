@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.05.001] - 2026-09-26
+
+A patch of 0.05.000: on a large screen the charts get the surface that text panels left empty, and a failed
+build reports its own error.
+
+### Fixed
+
+- From 1800 by 1000 px a text panel beside the charts stood mostly empty (at 2560x1440 the Grinding facts
+  filled a fifth of their cell and the Methods tables a fifth to a third of their column). The Grinding
+  facts, the magnetite Separation facts and the Methods records' tables and notes now sit in a strip under
+  the charts, as tall as their content; the flotation Separation panel, which holds the kinetic table as
+  well, does so from 2200 by 1200 px. The browser gate fails a text panel beside the charts that its
+  content fills less than 30%.
+- The magnetite Separation facts are framed like the Grinding facts.
+- A failed build reported the Pages fallback's missing `index.html` instead of its own error; the fallback
+  now skips a build that emitted nothing.
+
+### Changed
+
+- The records are re-baked for the new version stamp: every case number and ONNX export reproduced the
+  0.05.000 bake bit for bit, and the random-forest scores within 3e-15.
+
 ## [0.05.000] - 2026-09-26
 
 The process engine is rebuilt as a closed-circuit, size-by-mineral flowsheet simulator, and the product
