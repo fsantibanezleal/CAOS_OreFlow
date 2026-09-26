@@ -2,18 +2,25 @@
 
 ## [0.05.001] - 2026-09-26
 
-A patch of 0.05.000: on a large screen the charts get the surface that text panels left empty, and a failed
-build reports its own error.
+A patch of 0.05.000. The charts get the surface that text panels left empty, the Uncertainty histogram
+draws its end bars whole, and a failed build reports its own error.
 
 ### Fixed
 
-- From 1800 by 1000 px a text panel beside the charts stood mostly empty (at 2560x1440 the Grinding facts
-  filled a fifth of their cell and the Methods tables a fifth to a third of their column). The Grinding
-  facts, the magnetite Separation facts and the Methods records' tables and notes now sit in a strip under
-  the charts, as tall as their content; the flotation Separation panel, which holds the kinetic table as
-  well, does so from 2200 by 1200 px. The browser gate fails a text panel beside the charts that its
-  content fills less than 30%.
-- The magnetite Separation facts are framed like the Grinding facts.
+- From 1800 by 1000 px a text panel beside the charts stood mostly empty: at 2560x1440 the Grinding facts
+  filled about a fifth of their cell, and the Methods tables a fifth to a third of their column. The
+  Grinding facts and the Methods records' tables and notes now sit in a strip under the charts, as tall as
+  their content. The flotation Separation panel, which holds the kinetic table as well, does so from 2200
+  by 1200 px. The browser gate fails a text panel beside the charts that its content fills less than 30%.
+- That floor also failed the magnetite Separation facts at 1280x800, where the six facts filled 29% of
+  their panel. The view holds one chart, so its facts now sit in a strip under it at every size, framed
+  like the Grinding facts.
+- The Uncertainty histogram cut its first and last bars in half at the plot's edges: the chart ranged its
+  x axis on the bin centres. A bar chart on a numeric axis now reaches half a bin past them. Its bars keep
+  their share of the bin at any width; at 2560 px they had stopped at 64 px and stood apart like
+  categories.
+- The optimizer's headline gave the gain without its sign ("Optimum found: 0.2594 t/h recovered metal"),
+  which read as the optimum's own recovered metal. It now reads "+0.2594 t/h of recovered metal".
 - A failed build reported the Pages fallback's missing `index.html` instead of its own error; the fallback
   now skips a build that emitted nothing.
 

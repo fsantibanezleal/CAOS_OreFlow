@@ -39,7 +39,7 @@ const TEXT = {
   atMost: { en: 'at most', es: 'como máximo' },
   optimal: { en: 'Optimum found', es: 'Óptimo encontrado' },
   noFeasible: { en: 'No start reached a state within every constraint; the least-violating end point is shown.', es: 'Ningún inicio alcanzó un estado dentro de todas las restricciones; se muestra el punto final de menor violación.' },
-  gain: { en: 'recovered metal', es: 'metal recuperado' },
+  gain: { en: 'of recovered metal', es: 'de metal recuperado' },
   evaluations: { en: 'engine evaluations', es: 'evaluaciones del motor' },
   starts: { en: 'starts', es: 'inicios' },
   baked: { en: 'Baked for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
@@ -88,7 +88,7 @@ export function Optimizer({ record, contract, caseId, modified, lang, onCursor }
   ];
   const slackUnit = { grade: gradeUnit, power: 'kW', water: 'm3/t' };
   const status = record.optimum
-    ? `${TEXT.optimal[lang]}: ${formatWithUnit(record.gain_tph ?? 0, 't/h', lang)} ${TEXT.gain[lang]}${record.gain_pct != null ? ` (${record.gain_pct >= 0 ? '+' : ''}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
+    ? `${TEXT.optimal[lang]}: ${(record.gain_tph ?? 0) >= 0 ? '+' : ''}${formatWithUnit(record.gain_tph ?? 0, 't/h', lang)} ${TEXT.gain[lang]}${record.gain_pct != null ? ` (${record.gain_pct >= 0 ? '+' : ''}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
     : TEXT.noFeasible[lang];
   const decisionText = (decisions: Record<string, number>) =>
     record.decisions.map(n => `${declared[n].label[lang]} ${formatWithUnit(decisions[n], unitOf(n), lang)}`).join(', ');

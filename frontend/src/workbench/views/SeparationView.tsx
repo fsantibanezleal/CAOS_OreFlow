@@ -132,8 +132,8 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
   const m = trace.metrics;
   if (charts.capture) {
     return (
-      // the facts, a strip under the chart on a large screen (of-grid-strip)
-      <div className="of-view of-grid-1x2 of-grid-strip">
+      // the facts, a strip under the chart (of-grid-single)
+      <div className="of-view of-grid-single">
         {charts.capture}
         <Facts trace={trace} lang={lang} framed keys={['recovery_pct', 'magnetite_recovery_pct', 'concentrate_grade', 'concentrate_SiO2', 'mass_pull_pct', 'tail_grade']} />
       </div>

@@ -116,7 +116,6 @@ input, select, textarea { font: inherit; }
 @media (min-width: 1800px) and (min-height: 1000px) {
   .of-grid-2x2.of-grid-strip { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; }
   .of-grid-2x2.of-grid-strip > :nth-child(3), .of-grid-2x2.of-grid-strip > :nth-child(4) { grid-column: 1 / -1; }
-  .of-grid-1x2.of-grid-strip { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
 }
 @media (min-width: 2200px) and (min-height: 1200px) {
   .of-grid-2x2.of-grid-strip-panel { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; }
@@ -125,7 +124,9 @@ input, select, textarea { font: inherit; }
   .of-grid-strip-panel > .of-panel > .of-table { flex: none; width: auto; }
   .of-grid-strip-panel > .of-panel > .of-facts { flex: 1 1 auto; min-width: 0; }
 }
-.of-grid-1x2 { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; }
+/* one chart over its facts strip, at every size: beside the chart, the six LIMS facts of the magnetite
+ * circuit filled 29% of their panel at 1280x800 */
+.of-grid-single { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
 .of-view-circuit { display: flex; }
 .of-view-circuit > .of-stage { flex: 1 1 auto; position: relative; padding: 0; }
 .of-view-response, .of-view-compare { display: flex; flex-direction: column; gap: 8px; }
@@ -399,6 +400,6 @@ input, select, textarea { font: inherit; }
   /* the readout stays one row and scrolls sideways rather than cutting its last readings */
   .of-readout { overflow-x: auto; scrollbar-width: none; }
   .of-main { min-height: 78dvh; }
-  .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-1x2 { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
+  .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }
 }

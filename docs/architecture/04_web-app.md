@@ -85,10 +85,12 @@ instrument reports to the same place.
 | Methods | The variant's method records as sub-tabs: the optimizer, the uncertainty record, the Sobol indices (nominal state) and the learned lane, which runs the exported surrogate and guard in the browser | PE-39 (the learned lane) |
 | Case | The case's context in a fixed order (problem, components and variables, formalization, scope and assumptions, what each variant shows, how to read the views) and the comparison of its six single-factor variants, with the twelve cases on one map of recovery against specific energy | PE-40 (the context), PE-32 (the variants) |
 
-On a large screen (from 1800 by 1000 px) a text panel beside the charts would stand mostly empty, so it
-becomes a strip under them, as tall as its content: the Grinding facts, the magnetite Separation facts
-and the Methods records' tables and notes; the flotation Separation panel, which holds the kinetic table
-as well, does so from 2200 by 1200 px. The last chart of a two-by-two grid then spans both columns.
+The magnetite Separation view holds one chart and six facts. Its facts sit in a strip under the chart at
+every size: in a panel beside the chart they filled 29% of it at 1280x800. On a large screen (from 1800
+by 1000 px) the other text panels beside the charts would stand mostly empty as well, so they become
+strips under them, as tall as their content: the Grinding facts and the Methods records' tables and
+notes. The flotation Separation panel, which holds the kinetic table as well, does so from 2200 by
+1200 px. The last chart of a two-by-two grid then spans both columns.
 
 Each view's panel is keyed by the case, so a choice that only makes sense for one case, such as an
 input or a factor, never carries over to another.

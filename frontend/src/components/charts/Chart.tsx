@@ -15,7 +15,8 @@
  *   level marks a limit (a specification, a threshold, the base case) at their y value; labels that
  *   would overprint are stacked.
  * - A categorical axis (inputs, starts, variants) places one tick per category; paired bar series sit
- *   side by side around each tick.
+ *   side by side around each tick. Bars on a numeric axis (a histogram) take their share of the bin at
+ *   any width, and the range reaches half a bin past the first and last, so the end bars are whole.
  * - Point labels name the points of the first series (a case on a map of cases); a label that would
  *   overlap one already drawn is left to the cursor reading.
  * - The plot is an image with the chart's summary as its name, and a visually hidden table carries
@@ -26,6 +27,7 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { formatTick, type Lang } from '../../lib/format';
+import { halfSpacing } from '../../lib/histogram';
 import { t, UI } from '../../lib/i18n';
 import { OverlayInset } from './inset';
 
@@ -222,9 +224,12 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       ? { ...axis(xLabel, 24, false), splits: () => categories.map((_, i) => i), values: () => categories, grid: { show: false } }
       : axis(xLabel, 24, !!logX);
     const span = (_self: uPlot, min: number, max: number): uPlot.Range.MinMax => [min, max];
+    // a bar is centred on its x value: ranged on the values alone, a histogram's end bars were cut in half
+    const half = !categories && series.some(s => s.bars) ? halfSpacing(data[0] as number[]) : 0;
+    const binned = (_self: uPlot, min: number, max: number): uPlot.Range.MinMax => [min - half, max + half];
     const xScale: uPlot.Scale = categories
       ? { time: false, range: [-0.5, categories.length - 0.5] }
-      : { time: false, distr: logX ? 3 : 1, ...(logX ? { range: span } : {}) };
+      : { time: false, distr: logX ? 3 : 1, ...(logX ? { range: span } : half > 0 ? { range: binned } : {}) };
     const yAxis = { ...axis(yLabel, 30, !!logY), size: 56 };
     const options: uPlot.Options = {
       width: Math.max(160, host.clientWidth),
@@ -238,7 +243,9 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         { label: xLabel },
         ...series.map((s): uPlot.Series => {
           const stroke = colours.resolve(s.colour);
-          const bars = s.align ? uPlot.paths.bars?.({ size: [0.36, 48], align: s.align }) : uPlot.paths.bars?.({ size: [0.8, 64] });
+          // a category's bar stops at 64 px; a histogram's keeps its share of the bin, or at 2560 px its bars
+          // stood apart like categories
+          const bars = s.align ? uPlot.paths.bars?.({ size: [0.36, 48], align: s.align }) : uPlot.paths.bars?.({ size: [0.8, categories ? 64 : Infinity] });
           return {
             label: s.label, stroke, width: s.width ?? 2, dash: s.dash, show: !hiddenRef.current.has(s.label),
             ...(s.fillTo !== undefined ? { fill: `${stroke}22` } : {}),
