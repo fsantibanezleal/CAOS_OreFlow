@@ -12,6 +12,7 @@ uses the repository's own environments, never a global interpreter.
 | `predict-geomet` | Scores a CSV of assays with the GeoMet checkpoint (`-InputCsv`, `-OutputCsv`; `run_geomet.py --predict`) |
 | `gpu_probe` | Reports the platform, the torch build, CUDA availability and version, and the device |
 | `dev` | Starts the Vite dev server on 127.0.0.1:5914 |
+| `render_use_cases.mjs` | Renders `docs/use-cases.md` and the twelve case pages from the committed records and `frontend/src/content/cases.ts`; `--check` fails when a page is stale (CI and `smoke` run it). Run with `node --experimental-strip-types` |
 
 The guards are standard-library Python, so CI runs them before any install:
 

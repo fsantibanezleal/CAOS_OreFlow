@@ -19,6 +19,7 @@ foreach ($guard in @("check_template_residue", "check_content_standards", "check
                      "check_ui_formulas", "check_arch_i18n", "check_sdd", "check_artifacts")) {
   Step $guard $vp @("scripts/$guard.py")
 }
+Step "use-case pages" "node" @("--experimental-strip-types", "scripts/render_use_cases.mjs", "--check")
 Step "ruff" $vp @("-m", "ruff", "check", "data-pipeline", "tests")
 Step "pytest" $vp @("-m", "pytest", "-q")
 Push-Location frontend

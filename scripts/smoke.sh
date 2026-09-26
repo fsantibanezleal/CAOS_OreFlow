@@ -17,6 +17,7 @@ for guard in check_template_residue check_content_standards check_ci_budget chec
              check_ui_formulas check_arch_i18n check_sdd check_artifacts; do
   step "$guard" "$VP" "scripts/$guard.py"
 done
+step "use-case pages" node --experimental-strip-types scripts/render_use_cases.mjs --check
 step ruff "$VP" -m ruff check data-pipeline tests
 step pytest "$VP" -m pytest -q
 (cd frontend && step typecheck npm run typecheck && step vitest npm run test && step build npm run build)
