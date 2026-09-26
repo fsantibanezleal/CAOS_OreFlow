@@ -119,13 +119,18 @@ const ELLIPSIS_PROBE = () => {
   return cut;
 };
 
-// Category labels are drawn on the canvas, out of every page probe's reach, so the chart declares how
-// many of them still do not fit their category once wrapped (`data-ticks-cut`); in Spanish at 1280x800
-// the four Sobol factor names ran into each other (0.05.000)
-// (how many charts declared is recorded, so a view whose categorical chart stopped declaring shows it)
-const TICKS_PROBE = () => {
-  const declared = [...document.querySelectorAll('.of-plot-area[data-ticks-cut]')].filter(e => e.getBoundingClientRect().width > 0);
-  return { declared: declared.length, cut: declared.filter(e => e.dataset.ticksCut !== '0').map(e => `${e.getAttribute('aria-label')?.slice(0, 48) ?? 'chart'}: ${e.dataset.ticksCut}`) };
+// A chart's text is drawn on its canvas, out of every page probe's reach, so each chart declares what it
+// could not fit: category labels still too wide once wrapped (`data-ticks-cut`; the four Sobol factor
+// names ran into each other in Spanish at 1280x800), a y title too long for its axis in two lines
+// (`data-title-cut`; "Error del guardia" was cut at both ends) and level labels with no free place
+// beside the data (`data-labels-over`; "nominal" sat on a point), all in 0.05.000. Every chart declares its
+// title, so a visible chart that declared nothing has not drawn, and fails.
+const CANVAS_TEXT_PROBE = () => {
+  const hosts = [...document.querySelectorAll('.of-plot-area')].filter(e => e.getBoundingClientRect().width > 0);
+  const name = e => e.getAttribute('aria-label')?.slice(0, 40) ?? 'chart';
+  const cut = hosts.flatMap(e => ['ticksCut', 'titleCut', 'labelsOver'].filter(k => (e.dataset[k] ?? '0') !== '0').map(k => `${name(e)}: ${k} ${e.dataset[k]}`));
+  const silent = hosts.filter(e => e.dataset.titleCut === undefined).map(name);
+  return { charts: hosts.length, cut, silent, ok: cut.length === 0 && silent.length === 0 };
 };
 
 // Inside a sized view, content past the view's own box is clipped out of reach unless a scroll area
@@ -268,7 +273,7 @@ async function measure(page, stageSelector) {
   const decimals = await page.evaluate(LOCALE_PROBE);
   const railCut = await page.evaluate(RAIL_PROBE);
   const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
-  const ticks = await page.evaluate(TICKS_PROBE);
+  const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
   // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
   const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
@@ -321,7 +326,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, ticks, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0 && ticks.cut.length === 0,
+  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, canvasText, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok,
     filled: (m.drawn === null || m.drawn.ok) && m.panels.every(f => f >= 0.3) };
 }
 
@@ -451,8 +456,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
             window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
-        const ticks = await page.evaluate(TICKS_PROBE);
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && ticks.cut.length === 0, { ...doc, outside, figures, decimals, ticks });
+        const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && canvasText.ok, { ...doc, outside, figures, decimals, canvasText });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
@@ -485,7 +490,7 @@ for (const tag of SMALL) {
     const outside = await page.evaluate(OVERFLOW_PROBE);
     const railCut = await page.evaluate(RAIL_PROBE);
     const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
-    const ticks = await page.evaluate(TICKS_PROBE);
+    const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
     const m = await page.evaluate(() => {
       const rail = document.querySelector('.of-rail');
       const r = rail.getBoundingClientRect();
@@ -507,7 +512,7 @@ for (const tag of SMALL) {
         lang: document.documentElement.lang, units, overlaps,
       };
     });
-    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && ticks.cut.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, ticks });
+    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText });
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
