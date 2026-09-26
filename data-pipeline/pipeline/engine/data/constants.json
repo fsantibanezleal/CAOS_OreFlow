@@ -470,6 +470,154 @@
       "value": 0.95,
       "unit": "probability",
       "source": "Design: confidence level of the Sobol index intervals."
+    },
+    "learning.design_points_per_case": {
+      "value": 256,
+      "unit": "1",
+      "source": "Design: engine states per case in the learning design (a power of two for the Sobol sequence)."
+    },
+    "learning.seed": {
+      "value": 20260927,
+      "unit": "1",
+      "source": "Design: seed of the learning design, the splits and every model."
+    },
+    "learning.test_fraction": {
+      "value": 0.2,
+      "unit": "fraction",
+      "source": "Design: share of each case's states held out by the interpolation protocol."
+    },
+    "learning.validation_fraction": {
+      "value": 0.15,
+      "unit": "fraction",
+      "source": "Design: share of the training rows held out for early stopping and for the guard threshold."
+    },
+    "learning.ridge_alpha": {
+      "value": 1.0,
+      "unit": "1",
+      "source": "Design: L2 penalty of the linear reference model on standardized features."
+    },
+    "learning.forest_trees": {
+      "value": 300,
+      "unit": "1",
+      "source": "Design: trees of the random forest (Breiman 2001)."
+    },
+    "learning.forest_min_leaf": {
+      "value": 2,
+      "unit": "1",
+      "source": "Design: minimum samples per random-forest leaf."
+    },
+    "learning.hgb_iterations": {
+      "value": 300,
+      "unit": "1",
+      "source": "Design: boosting iterations of HistGradientBoostingRegressor (fixed, no internal early stopping)."
+    },
+    "learning.hgb_learning_rate": {
+      "value": 0.05,
+      "unit": "1",
+      "source": "Design: shrinkage of the gradient-boosting surrogate."
+    },
+    "learning.gp_training_rows": {
+      "value": 500,
+      "unit": "1",
+      "source": "Design: seeded subsample the Gaussian process is fitted on (the exact GP costs O(n^3))."
+    },
+    "learning.gp_restarts": {
+      "value": 2,
+      "unit": "1",
+      "source": "Design: restarts of the GP marginal-likelihood optimizer."
+    },
+    "learning.interval_z": {
+      "value": 1.959963984540054,
+      "unit": "1",
+      "source": "Two-sided 95% quantile of the standard normal distribution, for GP interval coverage."
+    },
+    "learning.mlp_hidden": {
+      "value": [
+        64,
+        64
+      ],
+      "unit": "neurons per layer",
+      "source": "Design: hidden layers of the multi-output MLP surrogate."
+    },
+    "learning.mlp_learning_rate": {
+      "value": 0.003,
+      "unit": "1",
+      "source": "Design: Adam step size (Kingma and Ba 2015)."
+    },
+    "learning.mlp_weight_decay": {
+      "value": 0.0001,
+      "unit": "1",
+      "source": "Design: decoupled weight decay of the MLP and the autoencoder."
+    },
+    "learning.max_epochs": {
+      "value": 3000,
+      "unit": "1",
+      "source": "Design: epoch cap of the MLP and the autoencoder; training stops earlier on validation loss."
+    },
+    "learning.patience": {
+      "value": 150,
+      "unit": "1",
+      "source": "Design: epochs without a lower validation loss before training stops (the best weights are restored)."
+    },
+    "learning.autoencoder_hidden": {
+      "value": [
+        16,
+        6,
+        16
+      ],
+      "unit": "neurons per layer",
+      "source": "Design: encoder, bottleneck and decoder widths of the out-of-envelope guard."
+    },
+    "learning.guard_quantile": {
+      "value": 0.99,
+      "unit": "probability",
+      "source": "Design: the guard threshold is this quantile of the validation reconstruction error, so about 1% of in-envelope states raise a false alarm."
+    },
+    "learning.ood_shift": {
+      "value": 0.5,
+      "unit": "fraction of the training range",
+      "source": "Design: out-of-envelope probes move one feature this far beyond its training maximum."
+    },
+    "learning.permutation_repeats": {
+      "value": 10,
+      "unit": "1",
+      "source": "Design: repeats of permutation importance (Breiman 2001; scikit-learn permutation_importance)."
+    },
+    "learning.onnx_tolerance": {
+      "value": 1e-05,
+      "unit": "1 (absolute, standardized outputs)",
+      "source": "Numerics: largest difference allowed between PyTorch and ONNX Runtime outputs of an exported model."
+    },
+    "units.kw_per_mw": {
+      "value": 1000.0,
+      "unit": "kW/MW",
+      "source": "Definition."
+    },
+    "learning.gp_noise_initial": {
+      "value": 0.001,
+      "unit": "1 (normalized target variance)",
+      "source": "Design: starting noise level of the GP white-noise kernel; the marginal likelihood fits it."
+    },
+    "learning.gp_noise_bounds": {
+      "value": [
+        1e-09,
+        10.0
+      ],
+      "unit": "1 (normalized target variance)",
+      "source": "Design: white-noise bounds of the GP; the engine is deterministic, so the fitted noise is expected near the lower bound."
+    },
+    "learning.gp_length_scale_bounds": {
+      "value": [
+        0.01,
+        100000.0
+      ],
+      "unit": "standardized feature units",
+      "source": "Design: ARD length-scale bounds; a length scale at the upper bound means the feature is switched off."
+    },
+    "learning.gp_bound_margin": {
+      "value": 0.99,
+      "unit": "fraction of the upper bound",
+      "source": "Design: a fitted length scale above this share of its upper bound is reported as switched off."
     }
   }
 }

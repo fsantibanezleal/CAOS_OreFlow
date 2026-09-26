@@ -18,7 +18,8 @@ card for any library it introduces) in the same commit before the next one start
 - [x] T12 Kinetic fits and bank projection (PE-26): five lumped models, including the gamma form of the dossier.
 - [x] T13 Constrained optimization (PE-27): grade, power and process-water constraints; water capacities authored per case.
 - [x] T14 Uncertainty and Sobol (PE-28): scrambled Latin hypercube, authored spreads, SALib Saltelli indices.
-- [ ] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29).
+- [x] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29); the baked
+  results and the test that pins the page's findings land with T16.
 - [ ] T16 Pipeline stages, artifacts, manifests, benchmark, non-vacuous validation, check_artifacts (PE-02).
 - [ ] T17 TypeScript engine port, Web Worker sweeps, parity test on all variants (PE-31, PE-38).
 - [ ] T18 Workbench, circuit, response, methods, compare and focus views on the new trace; locale formatter and document language (PE-35, PE-36, PE-37).
