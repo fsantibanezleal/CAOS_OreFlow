@@ -36,7 +36,8 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - Gates: the SDD check (every live requirement names a gate that exists), the diagram check (language pairs
   and colour tokens), the interface-formula check, the units check, the use-case page check; the browser gate
   measures overflow, clipping, cut equations, figure labels against boxes and against lines, the modal, the
-  Spanish number format, the document scroll and the focus stage in every viewport, theme and language;
+  Spanish number format, the document scroll, the focus stage and the drawn flowsheet against its frame in
+  every viewport, theme and language, and a phone and tablet pass;
   `scripts/smoke` is the local release gate.
 
 ### Changed
@@ -54,6 +55,31 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - The smoke script, which passed an argument the bake rejects and would have written into `models/`.
 - Five figure labels crossed by curves or edges, and the energy-law figure, whose curves did not meet at the
   reference reduction they are calibrated to.
+- The flowsheet on a large stage: past a readable cell it stopped growing, and at 2560x1440 spanned 75% of
+  its frame's width and half its height. It is now scaled as one piece to span the stage. On the focus
+  route the feed label sat under the readout column; labels now stay inside the frame the overlays leave.
+- The magnetite circuit drew the LIMS cleaner's concentrate and tail along one line, one arrow under two
+  labels; a unit's concentrate now leaves to the right and its tail downward.
+- The case catalog on the Introduction page, wider than a 1280 px page in Spanish.
+- At phone width the rail's row shrank to 61 px under its controls, which spilled over the readout and the
+  tab row; the readout cut its last readings; the flowsheet's cells shrank to 46 px under 64 px unit boxes,
+  which overlapped; and a long chart label placed left of its mark ran over the y axis. The rail keeps its
+  height and the page body scrolls, the readout scrolls sideways, the flowsheet keeps an 88 px cell and
+  scrolls sideways in its panel, and chart labels stay inside the plot.
+- From 761 px to about 1060 px in Spanish the header pushed its actions (language, theme, architecture)
+  off the screen (shell known defect 10); the route links now scroll in their row at every width.
+- The Response heatmap's ticks mixed precisions on one axis (0.00 beside 18.8, 75.0 beside 131); each axis
+  now takes one precision from its grid step.
+- The Case view printed each case record's provenance in English on Spanish pages; the catalog's phrase
+  is now rendered in the interface language, and a test holds every baked record to it.
+- The Benchmark uncertainty table needed a sideways scroll at 1280 px (135 px in Spanish); its case names
+  and named inputs wrap, and the gate fails a table that needs its scroll box at the gated sizes.
+- Spanish pages showed the citation labels as authored in English (author pairs joined with "and", two
+  descriptive labels untranslated); the labels now follow the interface language and the records stay
+  verbatim. Chemical formulas are printed with subscripts (P₂O₅, SiO₂) in the tables, charts and text.
+- The phosphate case description read "20 um" and "P2O5" (the Case view shows it in both languages), and
+  the grinding source note "6514 um"; the case catalog writes µm and P₂O₅, and the bake was re-run from
+  it: every case number and ONNX export reproduced bit for bit, and the random-forest scores within 6e-15.
 
 ### Removed
 

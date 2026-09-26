@@ -50,7 +50,7 @@ interpreter:
 10. [**10 React**](frameworks/10_react.md): the interface, with react-router for the routes and
     zustand for the workbench state.
 11. [**11 Vite, TypeScript and Vitest**](frameworks/11_vite.md): the build and its data overlay, the
-    port's language and the 145 frontend tests.
+    port's language and the 165 frontend tests.
 12. [**12 uPlot**](frameworks/12_uplot.md): every line chart, through one themed host.
 13. [**13 KaTeX**](frameworks/13_katex.md): every equation, in both languages.
 14. [**14 Playwright**](frameworks/14_playwright.md): the browser gate.

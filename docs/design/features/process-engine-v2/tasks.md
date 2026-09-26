@@ -56,6 +56,83 @@ card for any library it introduces) in the same commit before the next one start
   unapplied and a gate check that could not fail because of it, a Sobol record that ranked round-off, a
   CI budget gap for the GPU requirements, a broken smoke script, two English words in shared formulas (a
   test), variant notes that did not hold for every circuit, and a stale service README.
-- [ ] T21 Canonical bake with the GPU lane; full test suite; guards; build; visual QA in both themes and languages at three viewports.
+- [x] T21 Canonical bake with the GPU lane; full test suite; guards; build; visual QA in both themes and languages at three viewports.
+  The bake was re-run after a catalog text correction and adopted whole: every case number and ONNX
+  export reproduced bit for bit, and the random-forest scores within 6e-15. `scripts/smoke.ps1` passes
+  (341 Python and 165 frontend tests). The browser gate passes the full matrix (684 checks), its new phone
+  and tablet pass (28, both themes and languages at each size) and the gold, magnetite and phosphate
+  circuits (40 each); the screenshots were read. Its runs found, and the release fixes: the Spanish case
+  catalog wider than a 1280 px page; a flowsheet that stopped growing past a readable cell while the gate
+  measured the svg's own box (the gate now measures the drawing against its frame); the focus route's feed
+  label under the readout column; the LIMS cleaner's two products on one line; at phone width, the rail
+  shrunk under its controls, overlapping flowsheet boxes and a chart label over its axis; the header's
+  actions off the screen at tablet widths in Spanish (shell known defect 10); citation labels in English
+  on Spanish pages (defect 9); formulas without subscripts; "20 um" in the phosphate description; the
+  case provenance in English on the Spanish Case view; the Benchmark uncertainty table, which needed a
+  sideways scroll at 1280 px (a gate check now fails that); the Implementation gates table, widened past
+  a 1280 px page by its own new row; and the Response heatmap's ticks, which mixed precisions on one axis.
 - [ ] T22 Release 0.05.000, backfilled tags, PRs, CI, Pages, VPS deploy, live verification, CAOS_MANAGE records.
-- [ ] T23 Convergence verdict against every requirement.
+- [x] T23 Convergence verdict against every requirement.
+  Every live requirement (the 42 of this feature and the 7 of `geomet-lct`) runs the gate it names on the
+  release: 49 of 49 met (the table below). Not requirements, and still open: Felipe's acceptance of the
+  design, and any plant calibration (the twelve cases are authored inside published ranges).
+
+## Convergence verdict, 0.05.000 (2026-09-26)
+
+ADR-0075 section 4: each live requirement, the gate it names, and that gate's result on the release (the
+committed bake, the smoke run, and the browser gate's records on the served build). A parametrized test
+passes when every one of its cases does.
+
+| Requirement | Named gate | Result on the release |
+|---|---|---|
+| PE-01 | `tests/test_engine_core.py::test_grid_and_stream_shapes` | `test_grid_and_stream_shapes` passed |
+| PE-02 | `tests/test_engine_balances.py::test_unit_and_circuit_closure_all_variants`; `scripts/check_artifacts.py` balance recheck of shipped artifacts | `test_unit_and_circuit_closure_all_variants` passed (72 cases); `check_artifacts.py` passed |
+| PE-03 | `tests/test_engine_core.py::test_stoichiometry_from_atomic_weights` | `test_stoichiometry_from_atomic_weights` passed |
+| PE-04 | `tests/test_crusher.py::test_whiten_form_mass_and_css_response` | `test_whiten_form_mass_and_css_response` passed |
+| PE-05 | `tests/test_grinding.py::test_target_and_circulating_load_met` | `test_target_and_circulating_load_met` passed (12 cases) |
+| PE-06 | `tests/test_grinding.py::test_overflow_equals_new_feed_by_mineral` | `test_overflow_equals_new_feed_by_mineral` passed (12 cases) |
+| PE-07 | `tests/test_grinding.py::test_power_limited_mode` | `test_power_limited_mode` passed |
+| PE-08 | `tests/test_oracles.py::test_molycop_base_case` | `test_molycop_base_case` passed |
+| PE-09 | `tests/test_energy.py::test_gmg_worked_example` | `test_gmg_worked_example` passed |
+| PE-10 | `tests/test_energy.py::test_laws_calibrated_and_not_summed` | `test_laws_calibrated_and_not_summed` passed |
+| PE-11 | `tests/test_classification.py::test_partition_bypass_and_density_correction` | `test_partition_bypass_and_density_correction` passed |
+| PE-12 | `tests/test_classification.py::test_plitt_sizing_consistency` | `test_plitt_sizing_consistency` passed (12 cases) |
+| PE-13 | `tests/test_flotation.py::test_bank_reduces_to_tanks_in_series` | `test_bank_reduces_to_tanks_in_series` passed |
+| PE-14 | `tests/test_flotation.py::test_rate_follows_bubble_surface_flux` | `test_rate_follows_bubble_surface_flux` passed |
+| PE-15 | `tests/test_flotation.py::test_savassi_entrainment` | `test_savassi_entrainment` passed |
+| PE-16 | `tests/test_flotation.py::test_cleaner_recycle_converges` | `test_cleaner_recycle_converges` passed (11 cases) |
+| PE-17 | `tests/test_flotation.py::test_stage_and_overall_recovery_are_distinct` | `test_stage_and_overall_recovery_are_distinct` passed |
+| PE-18 | `tests/test_separation.py::test_bleed_response_and_gold_circulating_load`; `tests/test_oracles.py::test_laplante_trend` | `test_bleed_response_and_gold_circulating_load` passed; `test_laplante_trend` passed |
+| PE-19 | `tests/test_separation.py::test_grade_rises_with_finer_grind`; `tests/test_oracles.py::test_zandrivierspoort_trend` | `test_grade_rises_with_finer_grind` passed; `test_zandrivierspoort_trend` passed |
+| PE-20 | `tests/test_separation.py::test_deslime_cut_tradeoff` | `test_deslime_cut_tradeoff` passed |
+| PE-21 | `tests/test_directions.py::test_collector_trades_grade_for_recovery` | `test_collector_trades_grade_for_recovery` passed (11 cases) |
+| PE-22 | `tests/test_directions.py::test_hardness_effects` | `test_hardness_effects` passed (11 cases) |
+| PE-22b | `tests/test_directions.py::test_desliming_coarser_product_reduces_slimes_loss` | `test_desliming_coarser_product_reduces_slimes_loss` passed |
+| PE-23 | `tests/test_directions.py::test_throughput_effects` | `test_throughput_effects` passed (10 cases) |
+| PE-24 | `tests/test_directions.py::test_aeration_raises_entrainment` | `test_aeration_raises_entrainment` passed (9 cases) |
+| PE-25 | `tests/test_directions.py::test_grind_energy_and_liberation` | `test_grind_energy_and_liberation` passed (4 cases) |
+| PE-26 | `tests/test_kinetics.py::test_fits_and_bank_projection` | `test_fits_and_bank_projection` passed (11 cases) |
+| PE-27 | `tests/test_optimization.py::test_constraints_respected` | `test_constraints_respected` passed (4 cases) |
+| PE-28 | `tests/test_uncertainty.py::test_seeded_quantiles_and_sobol` | `test_seeded_quantiles_and_sobol` passed |
+| PE-29 | `tests/test_learning.py::test_protocols_and_model_identity` (sandbox design); `scripts/check_artifacts.py` benchmark schema | `test_protocols_and_model_identity` passed; `check_artifacts.py` passed |
+| PE-30 | `tests/test_contract.py::test_export_matches_validator`; `tests/test_live_api.py::test_api_and_contract_agree`; `frontend/src/test/contract.test.ts` | `test_export_matches_validator` passed; `test_api_and_contract_agree` passed; `contract.test.ts` 2 tests passed |
+| PE-30b | `tests/test_contract.py::test_engine_solves_the_envelope` | `test_engine_solves_the_envelope` passed (12 cases) |
+| PE-31 | `frontend/src/test/parity.test.ts` | `parity.test.ts` 72 tests passed |
+| PE-32 | `tests/test_cases.py::test_variants_are_single_factor` | `test_variants_are_single_factor` passed (12 cases) |
+| PE-33 | `scripts/check_units.py` in the CI guards job | `check_units.py` passed |
+| PE-34 | `tests/test_cases.py::test_parameters_carry_units_and_sources` | `test_parameters_carry_units_and_sources` passed (12 cases) |
+| PE-35 | `frontend/src/test/locale.test.ts`; browser gate `lang` check in both languages | `locale.test.ts` 9 tests passed; browser gate: 832 checks passed (en, es) |
+| PE-36 | `scripts/check_ui_formulas.py`; `frontend/src/test/trace-curves.test.ts` | `check_ui_formulas.py` passed; `trace-curves.test.ts` 12 tests passed |
+| PE-37 | `frontend/src/test/flowsheet.test.ts` on every baked variant; browser screenshot QA in both themes and languages at phone, tablet and desktop | `flowsheet.test.ts` 24 tests passed; browser gate: 832 checks passed (en, es); the Circuit view read in all four theme and language pairings at 1600x900, and in light English and dark Spanish at 390x844 and 768x1024 |
+| PE-38 | `frontend/src/test/worker-sweeps.test.ts`; `scripts/check_ui_formulas.py` rule 3 | `worker-sweeps.test.ts` 4 tests passed; `check_ui_formulas.py` passed |
+| PE-39 | `frontend/src/test/surrogate.test.ts` | `surrogate.test.ts` 13 tests passed |
+| PE-40 | `frontend/src/test/case-claims.test.ts`; browser gate case/Context screenshots | `case-claims.test.ts` 10 tests passed; browser gate: 832 checks passed (en, es); the Case context read in all four theme and language pairings at 1600x900 |
+| GM-01 | `tests/test_geomet.py::test_source_hash`; fetch script checksum check. | `test_source_hash` passed; the source was not re-fetched in this release; its pinned SHA256 is checked by `test_source_hash` and by `check_artifacts.py` |
+| GM-02 | `tests/test_geomet.py::test_contract_and_missingness`. | `test_contract_and_missingness` passed |
+| GM-03 | `tests/test_geomet.py::test_group_splits`; artifact fold auditor. | `test_group_splits` passed; `check_artifacts.py` holds the committed artifact to 5 hole folds and 3 zone folds over the 52 rows; hole disjointness is `test_group_splits` |
+| GM-04 | `tests/test_geomet.py::test_benchmark_matrix`; artifact coverage guard. | `test_benchmark_matrix` passed; `check_artifacts.py` holds the four-model matrix and every prediction complete under both protocols |
+| GM-05 | `frontend/gate.mjs`: every tab of the Benchmark page, the measured-lane tables loaded, in both themes and languages; every screenshot read. | browser gate: 96 Benchmark tab checks in 12 viewport, theme and language combinations passed; all 96 Benchmark captures read, as contact sheets |
+| GM-06 | Copy audit, `tests/test_geomet.py::test_evidence_boundary`. | `test_evidence_boundary` passed; copy audit: the Benchmark page statements are held to the records by `benchmark-claims.test.ts` (6 tests passed), and the SDD sentence on the GeoMet result was corrected in this release |
+| GM-07 | `tests/test_geomet.py::test_assay_input_contract`; local batch smoke with a source-free input file. | `test_assay_input_contract` passed; local batch smoke: `run_geomet.py --predict data/examples/geomet-assays.csv` wrote three model predictions and the evidence boundary for 1 row, 0 outside the reference range |
+
+49 live requirements; 49 met; unmet: none.

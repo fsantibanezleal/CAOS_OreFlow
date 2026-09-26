@@ -63,7 +63,7 @@ Every shell script has a bash twin (`scripts/*.sh`).
 ## Tests
 
 ```powershell
-./scripts/smoke.ps1                 # guards, ruff, 341 Python tests, 150 frontend tests, the build
+./scripts/smoke.ps1                 # guards, ruff, 341 Python tests, 165 frontend tests, the build
 cd frontend; npm run build; npm run preview   # then, in another terminal:
 node gate.mjs                       # the browser gate (OF_MATRIX=full for every viewport, theme and language)
 ```

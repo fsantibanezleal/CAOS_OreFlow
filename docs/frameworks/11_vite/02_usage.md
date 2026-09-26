@@ -80,11 +80,12 @@ first paint.
 | `parity.test.ts` | 72 | PE-31: every baked variant re-simulated by the port matches within 1e-6 relative |
 | `surrogate.test.ts` | 13 | PE-39: features, predictions and the guard's verdict against the bake's reference |
 | `trace-curves.test.ts` | 12 | PE-36: every plotted value of the grinding and separation charts is a trace number |
-| `flowsheet.test.ts` | 12 | PE-37: per case, on every variant, each unit of the trace in its own cell, each product a terminal, each recycle the circuit has drawn as a recycle edge, and a record behind every labelled stream |
+| `flowsheet.test.ts` | 24 | PE-37: per case, on every variant, each unit of the trace in its own cell, each product a terminal, each recycle the circuit has drawn as a recycle edge, a record behind every labelled stream, and no two streams along a shared stretch of line; and ADR-0071: on seven stages from a phone to 4K, with and without the focus overlay inset, the drawing spans its frame on the limiting axis, stays inside it and centred, and never shrinks its text (with the scale pinned to 1 all twelve cases fail: the copper circuits span 76.3% of the 2560 stage's width, the gold and magnetite circuits 97.7% of a 1300 by 700 one) |
 | `case-claims.test.ts` | 10 | the case contexts' stated numbers against the artifacts |
 | `experiments-claims.test.ts` | 8 | the Experiments page's statements against the records |
 | `benchmark-claims.test.ts` | 6 | the Benchmark page's statements against the records |
-| `locale.test.ts` | 6 | PE-35: number formatting and the authored-value and TeX localization |
+| `locale.test.ts` | 9 | PE-35: number formatting, the authored-value and TeX localization, chemical formulas with subscripts, the citations' Spanish labels with every record kept verbatim, and the provenance of every case record in Spanish |
+| `tex-language.test.ts` | 3 | every formula of the pages and the Case view: one written once carries no word, one written twice differs between the languages |
 | `worker-sweeps.test.ts` | 4 | PE-38: sweeps stream, cancel and supersede in the worker module |
 | `sweep.test.ts` | 2 | the sweep grid validates every state and never simulates a rejected one |
 | `contract.test.ts` | 2 | PE-30: the browser validator replays all 719 probe verdicts |
