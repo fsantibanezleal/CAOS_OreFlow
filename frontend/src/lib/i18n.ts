@@ -239,7 +239,7 @@ export const UI = {
   cancel: { en: 'Cancel', es: 'Cancelar' },
   resetZoom: { en: 'Reset zoom', es: 'Restablecer zoom' },
   legend: { en: 'Series: click to hide or show', es: 'Series: clic para ocultar o mostrar' },
-  noFlags: { en: 'Within every engine check', es: 'Dentro de todas las verificaciones del motor' },
+  noFlags: { en: 'Within every engine check', es: 'Sin avisos del motor' },
   loading: { en: 'Loading', es: 'Cargando' },
   basic: { en: 'Basic', es: 'Básico' },
   advanced: { en: 'Advanced', es: 'Avanzado' },

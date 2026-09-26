@@ -11,6 +11,7 @@ import { useMemo, useState } from 'react';
 import type uPlot from 'uplot';
 import type { UncertaintyRecord } from '../../../lib/artifacts.types';
 import { formatFraction, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
+import { histogram as binned } from '../../../lib/histogram';
 import { flagShort, metricLabel } from '../../../lib/i18n';
 import { Chart } from '../../../components/charts/Chart';
 
@@ -46,7 +47,7 @@ const TEXT = {
   seed: { en: 'seed', es: 'semilla' },
   baked: { en: 'Baked for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
 };
-/** Equal-width bins for the histogram; a count, not a model (16 bins over the sampled range). */
+/** Equal-width bins for the histogram over the sampled range. */
 const BINS = 16;
 
 export function outputUnit(output: string, gradeUnit: string): string {
@@ -63,15 +64,7 @@ export function Uncertainty({ record, gradeUnit, modified, lang, onCursor }: {
   const dist = record.outputs[output];
   const unit = outputUnit(output, gradeUnit);
 
-  const histogram = useMemo(() => {
-    const lo = Math.min(...dist.values);
-    const hi = Math.max(...dist.values);
-    const width = hi > lo ? (hi - lo) / BINS : 1.0;
-    const bins = hi > lo ? BINS : 1;
-    const counts = new Array<number>(bins).fill(0);
-    for (const v of dist.values) counts[Math.min(bins - 1, Math.floor((v - lo) / width))] += 1;
-    return { centres: counts.map((_, i) => lo + (i + 0.5) * width), counts, width };
-  }, [dist]);
+  const histogram = useMemo(() => binned(dist.values, BINS), [dist]);
 
   const scatter = useMemo(() => {
     const k = factors.indexOf(factor);

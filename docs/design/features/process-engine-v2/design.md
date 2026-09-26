@@ -275,7 +275,8 @@ interface, and a sweep starts only from a `compute` function referenced only as 
 sweep or a cancel), `surrogate.test.ts` (PE-39), and the browser gate at 1280x800,
 1600x900 and 2560x1440 in both themes and both languages: no document scroll on the App route, the
 rail shows its own controls, one tab row, the instrument at least 50% of the viewport (80% on the
-focus route), the drawn flowsheet (its units, streams and labels) across at least 90% of its frame on
+focus route), every text panel beside the charts at least 30% filled by its content, the drawn flowsheet
+(its units, streams and labels) across at least 90% of its frame on
 the limiting axis, `<html lang>` equal to the interface language, the focus round trip by clicking,
 and a screenshot of every view (PE-37). `flowsheet.test.ts` holds the same fill for the layout on
 every baked variant, from a phone stage to a 4K one, with and without the focus overlay inset. At
@@ -287,5 +288,6 @@ over another.
 
 One circuit evaluation: under 50 ms in Python, under 30 ms in the browser. The full bake of 72
 variants with uncertainty, optimization, Sobol and the design matrix: about 35 minutes locally
-(the committed bake of 2026-09-26 on 12 case workers with CUDA: cases 375 s, learning 1688 s, every
-other stage under a second; the validation record carries the timings of the bake it belongs to).
+(an unloaded bake of 2026-09-26 on 12 case workers with CUDA: cases 375 s, learning 1688 s; the committed
+0.05.001 bake, which shared the machine with browser checks: 687 s and 2106 s; every other stage under a
+second; the validation record carries the timings of the bake it belongs to).

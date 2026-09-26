@@ -1,5 +1,63 @@
 # Changelog
 
+## [0.05.001] - 2026-09-26
+
+A patch of 0.05.000:
+- the charts get the surface that text panels left empty;
+- text that did not fit now fits, and the gate checks it. Most of it was in Spanish at 1280x800: the
+  rail's values, the readout's status, and the charts' labels and titles;
+- the Uncertainty histogram draws its end bars whole;
+- a failed build reports its own error.
+
+### Fixed
+
+- From 1800 by 1000 px a text panel beside the charts stood mostly empty: at 2560x1440 the Grinding facts
+  filled about a fifth of their cell, and the Methods tables a fifth to a third of their column. The
+  Grinding facts and the Methods records' tables and notes now sit in a strip under the charts, as tall as
+  their content. The flotation Separation panel, which holds the kinetic table as well, does so from 2200
+  by 1200 px. The browser gate fails a text panel beside the charts that its content fills less than 30%.
+- That floor also failed the magnetite Separation facts at 1280x800, where the six facts filled 29% of
+  their panel. The view holds one chart, so its facts now sit in a strip under it at every size, framed
+  like the Grinding facts.
+- The Uncertainty histogram cut its first and last bars in half at the plot's edges: the chart ranged its
+  x axis on the bin centres. A bar chart on a numeric axis now reaches half a bin past them. Its bars keep
+  their share of the bin at any width; at 2560 px they had stopped at 64 px and stood apart like
+  categories.
+- In Spanish at 1280x800 the rail cut every control's value at its edge ("720 t,", "8,0 r"). Its controls
+  column took the width of the longest row (the crusher setting and its value), wider than the rail. The
+  column now stays within the rail, and a long control name wraps beside its value. The gate measures
+  the rails' content against their box (`RAIL_PROBE`). On the build before this fix, whose rail was the
+  0.05.000 one, the check fails all ten App views.
+- The readout's status was cut in Spanish at 1280x800 ("Dentro de todas las verif..."), with no title to
+  read it by. It is now "Sin avisos del motor", the Case view's word for the engine's flags, and a cut
+  status or cursor reading is named in full on hover. The gate requires every text an ellipsis cuts to
+  carry its full text (`ELLIPSIS_PROBE`).
+- Text on the charts' canvas that did not fit, all in Spanish at 1280x800 and all out of the gate's reach:
+  - the four Sobol factor names ran into each other. A category label now wraps at its spaces to its
+    category's width, and the axis grows for a third line;
+  - y titles longer than a short plot were cut at both ends ("Ganancia en metal recuperado (%)" on the
+    Benchmark page, "Error del guardia" under the learned lane). The chart now draws its y title itself,
+    wrapped to the plot's height in up to two lines;
+  - a level's label sat on a data point ("nominal" in the Case view, "sin cambio" on the Experiments
+    page, "óptimo" on the Optimizer). It now takes the place nearest the right end of its line, above
+    or below, that covers no point.
+
+  Each chart declares on its host what it could not fit (`data-ticks-cut`, `data-title-cut`,
+  `data-labels-over`), and the gate fails any, and any visible chart that declared nothing
+  (`CANVAS_TEXT_PROBE`).
+- On a phone a chart's legend stood in a narrow column beside its title: six series took six lines and
+  left the size-distribution plot about 50 px tall, too short for its title. Below 860 px the legend
+  runs under the title, across the chart.
+- The optimizer's headline gave the gain without its sign ("Optimum found: 0.2594 t/h recovered metal"),
+  which read as the optimum's own recovered metal. It now reads "+0.2594 t/h of recovered metal".
+- A failed build reported the Pages fallback's missing `index.html` instead of its own error; the fallback
+  now skips a build that emitted nothing.
+
+### Changed
+
+- The records are re-baked for the new version stamp: every case number and ONNX export reproduced the
+  0.05.000 bake bit for bit, and the random-forest scores within 3e-15.
+
 ## [0.05.000] - 2026-09-26
 
 The process engine is rebuilt as a closed-circuit, size-by-mineral flowsheet simulator, and the product

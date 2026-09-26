@@ -17,7 +17,8 @@
  *   view) at least half the viewport, and `<html lang>` equal to the interface language; where the
  *   flowsheet is on the stage, what it drew (units, streams and labels) must span at least 90% of its
  *   frame on the limiting axis and stay inside it, since the svg element always fills its host and its
- *   own box says nothing about the drawing;
+ *   own box says nothing about the drawing; and every text panel beside the charts filled at least 30%
+ *   by its content;
  * - opens the architecture modal and checks every tab (ADR-0058): the diagram inlined, only the
  *   interface language's text shown, every text inside the diagram and inside any box it touches;
  * - enters the focus route by clicking, measures the stage and its largest chart (at least 80%) and the
@@ -81,6 +82,55 @@ const OVERFLOW_PROBE = () => {
     if (offenders.length >= 5) break;
   }
   return offenders;
+};
+
+// A rail's content inside the rail's content box: in Spanish at 1280x800 the longest control row
+// ("Abertura de descarga del chancador" and its value) widened the whole controls column, and the rail's
+// overflow cut every value at its edge ("720 t,", "8,0 r") while every other check passed (0.05.000)
+const RAIL_PROBE = () => {
+  const cut = [];
+  for (const rail of document.querySelectorAll('.of-rail, .of-focus-rail')) {
+    const b = rail.getBoundingClientRect();
+    if (b.width === 0) continue;
+    const s = getComputedStyle(rail);
+    const x0 = b.left + rail.clientLeft + parseFloat(s.paddingLeft) - 1;
+    const x1 = b.left + rail.clientLeft + rail.clientWidth - parseFloat(s.paddingRight) + 1;
+    for (const el of rail.querySelectorAll('*')) {
+      if (el.closest('.of-sr-only')) continue;
+      const r = el.getBoundingClientRect();
+      if (r.width > 0 && r.height > 0 && (r.left < x0 || r.right > x1)) cut.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]} ${Math.round(r.left)}..${Math.round(r.right)} of ${Math.round(x0)}..${Math.round(x1)}`);
+      if (cut.length >= 5) return cut;
+    }
+  }
+  return cut;
+};
+
+// Text an ellipsis cuts must be named in full in its title: in Spanish at 1280x800 the readout's status
+// ("Dentro de todas las verificaciones del motor") was cut with nothing to read it by (0.05.000)
+const ELLIPSIS_PROBE = () => {
+  const cut = [];
+  for (const el of document.body.querySelectorAll('*')) {
+    if (el.closest('.sr-only, .of-sr-only, .katex-mathml')) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0 || getComputedStyle(el).textOverflow !== 'ellipsis' || el.scrollWidth <= el.clientWidth + 1) continue;
+    if (!(el.getAttribute('title') ?? '').trim()) cut.push(`${el.tagName.toLowerCase()}.${String(el.className).split(' ')[0]}: ${(el.textContent ?? '').slice(0, 48)}`);
+    if (cut.length >= 5) break;
+  }
+  return cut;
+};
+
+// A chart's text is drawn on its canvas, out of every page probe's reach, so each chart declares what it
+// could not fit: category labels still too wide once wrapped (`data-ticks-cut`; the four Sobol factor
+// names ran into each other in Spanish at 1280x800), a y title too long for its axis in two lines
+// (`data-title-cut`; "Error del guardia" was cut at both ends) and level labels with no free place
+// beside the data (`data-labels-over`; "nominal" sat on a point), all in 0.05.000. Every chart declares its
+// title, so a visible chart that declared nothing has not drawn, and fails.
+const CANVAS_TEXT_PROBE = () => {
+  const hosts = [...document.querySelectorAll('.of-plot-area')].filter(e => e.getBoundingClientRect().width > 0);
+  const name = e => e.getAttribute('aria-label')?.slice(0, 40) ?? 'chart';
+  const cut = hosts.flatMap(e => ['ticksCut', 'titleCut', 'labelsOver'].filter(k => (e.dataset[k] ?? '0') !== '0').map(k => `${name(e)}: ${k} ${e.dataset[k]}`));
+  const silent = hosts.filter(e => e.dataset.titleCut === undefined).map(name);
+  return { charts: hosts.length, cut, silent, ok: cut.length === 0 && silent.length === 0 };
 };
 
 // Inside a sized view, content past the view's own box is clipped out of reach unless a scroll area
@@ -221,6 +271,9 @@ async function measure(page, stageSelector) {
   const outside = await page.evaluate(OVERFLOW_PROBE);
   const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
   const decimals = await page.evaluate(LOCALE_PROBE);
+  const railCut = await page.evaluate(RAIL_PROBE);
+  const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
+  const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
   // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
   const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
@@ -248,6 +301,16 @@ async function measure(page, stageSelector) {
       const insetOk = l + r <= 0.25 * s.width && t + b <= 0.25 * s.height;
       drawn = { fill: +fill.toFixed(3), width: +((x1 - x0) / fw).toFixed(3), height: +((y1 - y0) / fh).toFixed(3), inside, inset: [t, r, b, l], zoom: +(flow.dataset.zoom ?? 1), ok: fill >= 0.9 && inside && insetOk };
     }
+    // a text panel beside the charts must not stand mostly empty: its children's extent against its own
+    // height (at 2560x1440 the Grinding facts filled a fifth of their cell, the Sobol table a fifth of
+    // its column); a panel whose content is taller scrolls inside and reads above 1
+    const panels = [...document.querySelectorAll('.of-view-host .of-panel, .of-view-host .of-aside, .of-view-host .of-grid-facts')]
+      .filter(p => p.getBoundingClientRect().height > 0)
+      .map(p => {
+        const box = p.getBoundingClientRect();
+        const kids = [...p.children].map(c => c.getBoundingClientRect()).filter(q => q.height > 0);
+        return kids.length ? +((Math.max(...kids.map(q => q.bottom)) - Math.min(...kids.map(q => q.top))) / box.height).toFixed(2) : 0;
+      });
     return {
       // shell known defect 1 pins documentElement.scrollHeight to the viewport, so the height is read
       // through <body> as well: either one taller than the viewport is a document scroll
@@ -259,11 +322,12 @@ async function measure(page, stageSelector) {
       stage: selector ? +(area(document.querySelector(selector)) / viewport).toFixed(3) : null,
       largestViz: +(viz / viewport).toFixed(3),
       drawn,
+      panels,
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, decimals, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0,
-    filled: m.drawn === null || m.drawn.ok };
+  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, canvasText, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok,
+    filled: (m.drawn === null || m.drawn.ok) && m.panels.every(f => f >= 0.3) };
 }
 
 // what every workbench view must hold (ADR-0071), in the interface language
@@ -392,7 +456,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
             window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0, { ...doc, outside, figures, decimals });
+        const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && canvasText.ok, { ...doc, outside, figures, decimals, canvasText });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
@@ -423,6 +488,9 @@ for (const tag of SMALL) {
     await page.locator('.of-viewbar [role=tab]').nth(index).click();
     await page.waitForTimeout(500);
     const outside = await page.evaluate(OVERFLOW_PROBE);
+    const railCut = await page.evaluate(RAIL_PROBE);
+    const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
+    const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
     const m = await page.evaluate(() => {
       const rail = document.querySelector('.of-rail');
       const r = rail.getBoundingClientRect();
@@ -444,7 +512,7 @@ for (const tag of SMALL) {
         lang: document.documentElement.lang, units, overlaps,
       };
     });
-    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside });
+    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText });
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
