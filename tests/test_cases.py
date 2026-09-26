@@ -42,3 +42,11 @@ def test_nominal_kpis_within_literature_ranges(case):
     metrics = run_variant(case.id, "nominal").metrics
     for key, (lo, hi) in case.kpi_ranges.items():
         assert lo <= metrics[key] <= hi, (case.id, key, metrics[key], (lo, hi))
+
+
+@pytest.mark.parametrize("case", CASES, ids=[c.id for c in CASES])
+def test_water_capacity_is_five_percent_above_nominal(case):
+    # SOURCES["water"]: the process-water capacity is authored 5% above the nominal requirement
+    nominal = run_variant(case.id, "nominal").metrics["water_intensity_m3_t"]
+    assert "water" in case.sources
+    assert 1.04 <= case.plant.water_limit_m3_t / nominal <= 1.06, (case.plant.water_limit_m3_t, nominal)

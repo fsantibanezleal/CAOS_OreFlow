@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""PE-33 units guard: every numeric constant of the process engine is declared.
+"""PE-33 units guard: every numeric constant of the process engine and its methods is declared.
 
-Fails when an engine module (Python or TypeScript) contains a numeric literal that is neither
-structural (0, 1, 2, 0.5, 100, integers) nor read from engine/data/constants.json, and when a
-declared constant lacks a unit or a source. Standard library only (ADR-0074).
+Fails when an engine or method module (Python or TypeScript) contains a numeric literal that is
+neither structural (0, 1, 2, 0.5, 100, integers) nor read from engine/data/constants.json, and when
+a declared constant lacks a unit or a source. Standard library only (ADR-0074).
 """
 from __future__ import annotations
 
@@ -15,6 +15,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 ENGINE_PY = ROOT / "data-pipeline" / "pipeline" / "engine"
+METHODS_PY = ROOT / "data-pipeline" / "pipeline" / "methods"
 ENGINE_TS = ROOT / "frontend" / "src" / "engine"
 CONSTANTS = ENGINE_PY / "data" / "constants.json"
 STRUCTURAL = {0.0, 1.0, 2.0, 0.5, 100.0, -1.0, 0.25}
@@ -23,7 +24,7 @@ TS_NUMBER = re.compile(r"(?<![\w.])(\d+\.\d+(?:e[-+]?\d+)?|\d+e[-+]?\d+)(?![\w.]
 
 def python_violations() -> list[str]:
     out = []
-    for path in sorted(ENGINE_PY.glob("*.py")):
+    for path in sorted(ENGINE_PY.glob("*.py")) + sorted(METHODS_PY.glob("*.py")):
         tree = ast.parse(path.read_text(encoding="utf-8"))
         for node in ast.walk(tree):
             if isinstance(node, ast.Constant) and isinstance(node.value, float) and node.value not in STRUCTURAL:

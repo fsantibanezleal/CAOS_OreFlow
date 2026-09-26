@@ -370,6 +370,62 @@
       "value": 1e-12,
       "unit": "1",
       "source": "Numerics: floor on the diagonal of the normal matrix used for Marquardt scaling."
+    },
+    "optimization.starts": {
+      "value": [
+        [
+          0.25,
+          0.25,
+          0.25
+        ],
+        [
+          0.75,
+          0.75,
+          0.75
+        ],
+        [
+          0.25,
+          0.75,
+          0.75
+        ],
+        [
+          0.75,
+          0.25,
+          0.25
+        ],
+        [
+          0.5,
+          0.5,
+          0.5
+        ]
+      ],
+      "unit": "unit cube of the decision bounds",
+      "source": "Design: five fixed starts that, with the nominal point, make the six COBYLA starts; the magnetite circuit uses the first coordinate of each."
+    },
+    "optimization.rhobeg": {
+      "value": 0.25,
+      "unit": "unit cube of the decision bounds",
+      "source": "Numerics: initial COBYLA trust-region radius (Powell 1994), a quarter of each decision range."
+    },
+    "optimization.rhoend": {
+      "value": 0.0001,
+      "unit": "unit cube of the decision bounds",
+      "source": "Numerics: final COBYLA trust-region radius (1e-4 of each decision range)."
+    },
+    "optimization.max_evaluations": {
+      "value": 200,
+      "unit": "1",
+      "source": "Numerics: cap on circuit evaluations per COBYLA start."
+    },
+    "optimization.feasibility_tolerance": {
+      "value": 1e-06,
+      "unit": "1 (relative to each constraint limit)",
+      "source": "Numerics: a point is feasible when every constraint holds within this relative tolerance."
+    },
+    "optimization.active_tolerance": {
+      "value": 0.001,
+      "unit": "1 (relative to each constraint limit)",
+      "source": "Design: a constraint whose relative slack at the optimum is below this is reported as active."
     }
   }
 }

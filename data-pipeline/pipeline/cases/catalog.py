@@ -22,6 +22,7 @@ SOURCES = {
     "gravity": "Gravity bleed of cyclone underflow and gold circulating load (Laplante and Staunton, AMIRA P420B); dossier section 4.",
     "magnetic": "LIMS magnetite recovery above 98% and grade rising with finer grind (Muthaphuli 2014); dossier section 5.",
     "phosphate": "Desliming below about 20 um and fatty-acid flotation to about 35% P2O5; dossier section 6 (secondary source).",
+    "water": "Process-water capacity per tonne of ore (pumping and thickener capacity), authored 5% above each case's nominal requirement; it is the water constraint of the operating-point optimizer.",
     "kpi": "Nominal KPI ranges are typical practice ranges from the dossier section 3.7 and the cited sources; they are plausibility gates, not predictions.",
 }
 
@@ -128,7 +129,7 @@ def _copper(cid: str, category: str, title: tuple[str, str], description: tuple[
             recleaner_m3: float, cyclone_cm: float, liberation_um: float, composite: float, floatability: float,
             collector: float = 25.0, pyrite: float = 0.025, regrind: float = 6.0, extra_minerals: tuple[MineralSpec, ...] = (),
             extra_payables: tuple[Payable, ...] = (), xi_um: float = 30.0, kpi: dict[str, tuple[float, float]] | None = None,
-            water: float = 2.1, quality: tuple[str, ...] = ()) -> CaseDef:
+            water: float = 2.1, quality: tuple[str, ...] = (), water_limit: float) -> CaseDef:
     ore = Ore(
         minerals=(MineralSpec(id="chalcopyrite", grindability=1.1, liberation_size_um=liberation_um, liberation_slope=1.5,
                               composite_content=composite, host="quartz", flotation=_sulphide(floatability)),
@@ -139,12 +140,12 @@ def _copper(cid: str, category: str, title: tuple[str, str], description: tuple[
         work_index_kwh_t=wi, crushing_work_index_kwh_t=wi * 1.1, quality_species=quality)
     plant = Plant(family="rougher", crusher=_crusher(), mill=_mill(power_kw), cyclone=_cyclone(cyclone_cm),
                   flotation=_flotation(rougher_m3, cleaner_m3, recleaner_m3, regrind, xi_um=xi_um),
-                  grade_spec=GradeSpec("Cu", 24.0))
+                  grade_spec=GradeSpec("Cu", 24.0), water_limit_m3_t=water_limit)
     nominal = OperatingPoint(throughput_tph=tph, target_p80_um=p80, circulating_load=2.5, water_m3_t=water, crusher_css_mm=8.0,
                              work_index_kwh_t=wi, head_grade=grade, collector_gpt=collector, jg_cm_s=1.4, rougher_cells=8)
     return CaseDef(cid, category, title, description, question, ore, plant, nominal, _flotation_variants(),
                    kpi or {"recovery_pct": (84.0, 94.0), "concentrate_grade": (24.0, 32.0)},
-                   ("breakage", "crusher", "cyclone", "flotation", "collector", "kpi"))
+                   ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi"))
 
 
 def _cases() -> tuple[CaseDef, ...]:
@@ -155,14 +156,14 @@ def _cases() -> tuple[CaseDef, ...]:
          "Un pórfido blando con calcopirita diseminada en ganga de cuarzo y sericita, y pirita deprimida con cal; la energía de molienda compra liberación a bajo costo."),
         ("How far is it worth grinding when energy is cheap per micron?", "¿Hasta dónde conviene moler cuando cada micrón cuesta poca energía?"),
         grade=0.74, wi=11.0, tph=720.0, p80=150.0, power_kw=7300.0, rougher_m3=130.0, cleaner_m3=20.0, recleaner_m3=10.0,
-        cyclone_cm=50.8, liberation_um=110.0, composite=0.35, floatability=2.8e-4))
+        cyclone_cm=50.8, liberation_um=110.0, composite=0.35, floatability=2.8e-4, water_limit=2.29))
     cases.append(_copper(
         "copper_porphyry_hard", "liberation", ("Hard copper porphyry", "Pórfido de cobre duro"),
         ("A competent porphyry at a high work index; the installed ball-mill power binds and harder ore coarsens the grind.",
          "Un pórfido competente de alto índice de trabajo; la potencia instalada del molino limita y un mineral más duro engruesa la molienda."),
         ("What happens to recovery when the mill runs out of power?", "¿Qué le pasa a la recuperación cuando el molino se queda sin potencia?"),
         grade=0.52, wi=18.5, tph=510.0, p80=165.0, power_kw=7400.0, rougher_m3=100.0, cleaner_m3=14.0, recleaner_m3=8.0,
-        cyclone_cm=50.8, liberation_um=100.0, composite=0.35, floatability=3.2e-4,
+        cyclone_cm=50.8, liberation_um=100.0, composite=0.35, floatability=3.2e-4, water_limit=2.26,
         kpi={"recovery_pct": (82.0, 93.0), "concentrate_grade": (22.0, 32.0)}))
     cases.append(CaseDef(
         "gold_free_milling", "classification", ("Free-milling gold with gravity", "Oro de molienda libre con gravimetría"),
@@ -177,12 +178,12 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Au", "g/t", (Carrier("electrum", 0.45), Carrier("pyrite", 0.55, "trace")), 3.4),),
             work_index_kwh_t=15.5, crushing_work_index_kwh_t=17.0),
         Plant(family="gravity_rougher", crusher=_crusher(), mill=_mill(4600.0), cyclone=_cyclone(25.4),
-              flotation=_flotation(45.0, 6.0, None, 0.0), grade_spec=GradeSpec("Au", 40.0),
+              flotation=_flotation(45.0, 6.0, None, 0.0), grade_spec=GradeSpec("Au", 40.0), water_limit_m3_t=2.21,
               gravity=GravityPlant(max_recovery=0.8, size_scale_um=30.0, composite_recovery=0.03, gangue_yield=0.001)),
         OperatingPoint(throughput_tph=260.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.1, crusher_css_mm=8.0,
                        work_index_kwh_t=15.5, head_grade=3.4, collector_gpt=40.0, jg_cm_s=1.4, rougher_cells=7, gravity_bleed=0.3),
         _gravity_variants(), {"recovery_pct": (85.0, 97.0), "gravity_recovery_pct": (25.0, 70.0)},
-        ("breakage", "crusher", "cyclone", "gravity", "flotation", "kpi")))
+        ("breakage", "crusher", "cyclone", "gravity", "flotation", "water", "kpi")))
     cases.append(CaseDef(
         "iron_magnetite_fine", "liberation", ("Fine magnetite concentration", "Concentración de magnetita fina"),
         ("A magnetite ore ground in closed circuit and upgraded by low-intensity magnetic drums; magnetite is recovered even in composites, so concentrate iron grade follows liberation and therefore the grind.",
@@ -196,11 +197,11 @@ def _cases() -> tuple[CaseDef, ...]:
         Plant(family="magnetic", crusher=_crusher(), mill=_mill(20300.0), cyclone=_cyclone(25.4),
               magnetic=MagneticPlant(max_capture=0.995, fine_scale_um=1.5, composite_threshold=0.1, entrapment_base=0.02,
                                      entrapment_fines=0.12, entrapment_scale_um=12.0, cleaner_factor=0.4, concentrate_solids=0.6),
-              grade_spec=GradeSpec("Fe", 65.0)),
+              grade_spec=GradeSpec("Fe", 65.0), water_limit_m3_t=2.52),
         OperatingPoint(throughput_tph=920.0, target_p80_um=60.0, circulating_load=2.5, water_m3_t=2.4, crusher_css_mm=8.0,
                        work_index_kwh_t=13.5, head_grade=26.5),
         _magnetic_variants(), {"recovery_pct": (70.0, 92.0), "concentrate_grade": (63.0, 70.0), "magnetite_recovery_pct": (90.0, 99.5)},
-        ("breakage", "crusher", "cyclone", "magnetic", "kpi")))
+        ("breakage", "crusher", "cyclone", "magnetic", "water", "kpi")))
     cases.append(CaseDef(
         "nickel_sulphide", "classification", ("Nickel sulphide with serpentine slimes", "Sulfuro de níquel con lamas de serpentina"),
         ("Pentlandite in a serpentinised ultramafic host; soft serpentine grinds to slimes that entrain into the froth and carry MgO, the penalty element for the smelter.",
@@ -214,11 +215,11 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Ni", "%", (Carrier("pentlandite", 1.0),), 1.2),),
             work_index_kwh_t=14.0, crushing_work_index_kwh_t=15.5, quality_species=("MgO",)),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(3600.0), cyclone=_cyclone(38.1),
-              flotation=_flotation(80.0, 12.0, 6.0, 4.0, xi_um=40.0), grade_spec=GradeSpec("Ni", 12.0)),
+              flotation=_flotation(80.0, 12.0, 6.0, 4.0, xi_um=40.0), grade_spec=GradeSpec("Ni", 12.0), water_limit_m3_t=3.22),
         OperatingPoint(throughput_tph=430.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.6, crusher_css_mm=8.0,
                        work_index_kwh_t=14.0, head_grade=1.2, collector_gpt=45.0, jg_cm_s=1.3, rougher_cells=8),
         _flotation_variants(), {"recovery_pct": (65.0, 88.0), "concentrate_grade": (11.0, 22.0)},
-        ("breakage", "crusher", "cyclone", "flotation", "collector", "kpi")))
+        ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi")))
     cases.append(CaseDef(
         "phosphate_clay", "classification", ("Phosphate with clay slimes", "Fosfato con lamas arcillosas"),
         ("An igneous phosphate with clay: the grinding overflow is deslimed below about 20 um before fatty-acid flotation of apatite, so the desliming cut trades lost P2O5 against a cleaner flotation feed.",
@@ -233,18 +234,18 @@ def _cases() -> tuple[CaseDef, ...]:
             work_index_kwh_t=8.5, crushing_work_index_kwh_t=9.5),
         Plant(family="deslime_rougher", crusher=_crusher(), mill=_mill(3100.0), cyclone=_cyclone(91.4),
               flotation=_flotation(110.0, 30.0, 20.0, 0.0, xi_um=35.0, rougher_solids=0.33, cleaner_solids=0.3, recleaner_solids=0.3), deslime=DeslimePlant(sharpness=2.5, bypass=0.12),
-              grade_spec=GradeSpec("P2O5", 32.0)),
+              grade_spec=GradeSpec("P2O5", 32.0), water_limit_m3_t=4.98),
         OperatingPoint(throughput_tph=470.0, target_p80_um=150.0, circulating_load=2.2, water_m3_t=2.8, crusher_css_mm=8.0,
                        work_index_kwh_t=8.5, head_grade=11.4, collector_gpt=500.0, jg_cm_s=1.2, rougher_cells=7, deslime_cut_um=20.0),
         _deslime_variants(), {"recovery_pct": (50.0, 82.0), "concentrate_grade": (29.0, 37.0), "flotation_recovery_pct": (78.0, 95.0), "slimes_loss_pct": (5.0, 25.0)},
-        ("breakage", "crusher", "cyclone", "phosphate", "flotation", "kpi")))
+        ("breakage", "crusher", "cyclone", "phosphate", "flotation", "water", "kpi")))
     cases.append(_copper(
         "copper_molybdenum", "flotation", ("Copper-molybdenum bulk flotation", "Flotación colectiva cobre-molibdeno"),
         ("A porphyry floated as a bulk Cu-Mo concentrate; molybdenite is naturally hydrophobic but platy and fine, so it recovers a few points below copper.",
          "Un pórfido flotado como concentrado colectivo Cu-Mo; la molibdenita es hidrófoba natural pero laminar y fina, por lo que se recupera unos puntos bajo el cobre."),
         ("Why does molybdenite trail copper in the same froth?", "¿Por qué la molibdenita queda detrás del cobre en la misma espuma?"),
         grade=0.61, wi=16.2, tph=640.0, p80=150.0, power_kw=9500.0, rougher_m3=120.0, cleaner_m3=18.0, recleaner_m3=9.0,
-        cyclone_cm=50.8, liberation_um=100.0, composite=0.35, floatability=2.7e-4,
+        cyclone_cm=50.8, liberation_um=100.0, composite=0.35, floatability=2.7e-4, water_limit=2.27,
         extra_minerals=(MineralSpec(id="molybdenite", grindability=1.2, liberation_size_um=60.0, liberation_slope=1.5, composite_content=0.3,
                                     host="quartz", flotation=Flotability(floatability=2.6e-4, optimum_size_um=35.0, fine_width=1.5, coarse_width=0.7,
                                                                         half_dose_gpt=12.0, unresponsive_fraction=0.6)),),
@@ -263,11 +264,11 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Cu", "%", (Carrier("malachite", 0.8), Carrier("chrysocolla", 0.2)), 1.05),),
             work_index_kwh_t=12.5, crushing_work_index_kwh_t=13.5),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(6100.0), cyclone=_cyclone(50.8),
-              flotation=_flotation(110.0, 16.0, 8.0, 4.0, xi_um=60.0, cleaner_wash=0.6, recleaner_wash=0.45), grade_spec=GradeSpec("Cu", 20.0)),
+              flotation=_flotation(110.0, 16.0, 8.0, 4.0, xi_um=60.0, cleaner_wash=0.6, recleaner_wash=0.45), grade_spec=GradeSpec("Cu", 20.0), water_limit_m3_t=2.51),
         OperatingPoint(throughput_tph=580.0, target_p80_um=140.0, circulating_load=2.5, water_m3_t=2.2, crusher_css_mm=8.0,
                        work_index_kwh_t=12.5, head_grade=1.05, collector_gpt=150.0, jg_cm_s=1.4, rougher_cells=8),
         _flotation_variants(), {"recovery_pct": (60.0, 82.0), "concentrate_grade": (18.0, 32.0)},
-        ("breakage", "crusher", "cyclone", "flotation", "collector", "kpi")))
+        ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi")))
     cases.append(CaseDef(
         "zinc_sulfide", "flotation", ("Zinc sulphide", "Sulfuro de zinc"),
         ("An iron-bearing sphalerite activated with copper sulphate and floated away from lime-depressed pyrite; the high head grade makes the grade-recovery separation explicit.",
@@ -280,18 +281,18 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Zn", "%", (Carrier("sphalerite", 1.0),), 4.8),),
             work_index_kwh_t=14.8, crushing_work_index_kwh_t=16.0),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(13200.0), cyclone=_cyclone(38.1),
-              flotation=_flotation(140.0, 30.0, 15.0, 4.0), grade_spec=GradeSpec("Zn", 50.0)),
+              flotation=_flotation(140.0, 30.0, 15.0, 4.0), grade_spec=GradeSpec("Zn", 50.0), water_limit_m3_t=2.97),
         OperatingPoint(throughput_tph=780.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.2, crusher_css_mm=8.0,
                        work_index_kwh_t=14.8, head_grade=4.8, collector_gpt=50.0, jg_cm_s=1.4, rougher_cells=8),
         _flotation_variants(), {"recovery_pct": (82.0, 93.0), "concentrate_grade": (46.0, 58.0)},
-        ("breakage", "crusher", "cyclone", "flotation", "collector", "kpi")))
+        ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi")))
     cases.append(_copper(
         "mixed_ore_high_clay", "integration", ("Copper ore with clay", "Mineral de cobre con arcilla"),
         ("A copper ore with a clay fraction that grinds to slimes; entrained clay dilutes the concentrate, so froth washing and air carry more weight than in a clean ore.",
          "Un mineral de cobre con una fracción arcillosa que se muele a lamas; la arcilla arrastrada diluye el concentrado, por lo que el lavado de espuma y el aire pesan más que en un mineral limpio."),
         ("How much grade does clay entrainment take?", "¿Cuánta ley se lleva el arrastre de arcilla?"),
         grade=0.48, wi=13.0, tph=520.0, p80=150.0, power_kw=5000.0, rougher_m3=110.0, cleaner_m3=16.0, recleaner_m3=8.0,
-        cyclone_cm=66.0, liberation_um=100.0, composite=0.35, floatability=2.4e-4, xi_um=60.0, water=2.8,
+        cyclone_cm=66.0, liberation_um=100.0, composite=0.35, floatability=2.4e-4, xi_um=60.0, water=2.8, water_limit=2.98,
         extra_minerals=(MineralSpec(id="kaolinite", fraction=0.2, grindability=4.0,
                                     flotation=Flotability(floatability=2.0e-6, optimum_size_um=15.0, fine_width=1.2, coarse_width=0.8, half_dose_gpt=1500.0)),),
         kpi={"recovery_pct": (78.0, 92.0), "concentrate_grade": (18.0, 30.0)}))
@@ -301,7 +302,7 @@ def _cases() -> tuple[CaseDef, ...]:
          "Una planta de pórfido grande y de baja ley donde el tratamiento paga las cuentas; un mineral más duro o más alimentación se nota primero en la potencia del molino y luego en la recuperación."),
         ("Is it better to push tonnes or to hold the grind?", "¿Conviene empujar toneladas o sostener la molienda?"),
         grade=0.29, wi=15.5, tph=1120.0, p80=180.0, power_kw=14200.0, rougher_m3=200.0, cleaner_m3=22.0, recleaner_m3=11.0,
-        cyclone_cm=66.0, liberation_um=110.0, composite=0.35, floatability=3.2e-4,
+        cyclone_cm=66.0, liberation_um=110.0, composite=0.35, floatability=3.2e-4, water_limit=2.23,
         kpi={"recovery_pct": (80.0, 92.0), "concentrate_grade": (22.0, 32.0)}))
     cases.append(CaseDef(
         "refractory_gold", "integration", ("Refractory gold in sulphides", "Oro refractario en sulfuros"),
@@ -316,11 +317,11 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Au", "g/t", (Carrier("pyrite", 0.55, "trace"), Carrier("arsenopyrite", 0.45, "trace")), 2.2),),
             work_index_kwh_t=18.0, crushing_work_index_kwh_t=19.5, quality_species=("S", "As")),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(6300.0), cyclone=_cyclone(30.5),
-              flotation=_flotation(70.0, 10.0, None, 0.0), grade_spec=GradeSpec("Au", 15.0)),
+              flotation=_flotation(70.0, 10.0, None, 0.0), grade_spec=GradeSpec("Au", 15.0), water_limit_m3_t=2.37),
         OperatingPoint(throughput_tph=310.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.2, crusher_css_mm=8.0,
                        work_index_kwh_t=18.0, head_grade=2.2, collector_gpt=60.0, jg_cm_s=1.4, rougher_cells=8),
         _flotation_variants(), {"recovery_pct": (80.0, 95.0), "concentrate_grade": (12.0, 60.0)},
-        ("breakage", "crusher", "cyclone", "flotation", "collector", "kpi")))
+        ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi")))
     return tuple(cases)
 
 

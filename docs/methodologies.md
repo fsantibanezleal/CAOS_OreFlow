@@ -29,6 +29,7 @@ results, and each measures its own error against the engine it approximates.
 | Page | Method | Module |
 |---|---|---|
 | [11 Kinetic fits and bank projection](methodologies/11_kinetic-fits.md) | five lumped batch models, Levenberg-Marquardt, tanks-in-series projection, lumping error | `kinetics.py` |
+| [12 Constrained optimization](methodologies/12_optimization.md) | recovered metal under grade, power and water constraints, COBYLA from six starts | `methods/optimization.py` |
 
 What the whole engine is not: it is not calibrated to any plant, it is not dynamic, and its numbers
 are consequences of authored parameters inside published ranges. Its tests establish that the

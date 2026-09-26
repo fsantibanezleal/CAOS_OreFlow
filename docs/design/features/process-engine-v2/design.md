@@ -125,9 +125,10 @@ grinding.
   tanks-in-series residence distribution (closed forms for the first three, Gauss-Laguerre
   quadrature with an exported node table for the fourth) and compared with the engine's distributed
   bank recovery.
-- Optimization: COBYLA from six fixed starts over target P80, collector dose and gas velocity;
-  maximize recovered primary element subject to final grade at or above the case specification and
-  required power at or below installed power.
+- Optimization: COBYLA from six fixed starts over target P80, collector dose and gas velocity (the
+  grind target alone for magnetite); maximize recovered primary element subject to final grade at or
+  above the case specification, required power at or below installed power and process water per
+  tonne at or below the plant's capacity; the optimum is re-simulated to report its slacks.
 - Uncertainty: 128 seeded samples over work index, head grade, liberation size and floatability;
   quantiles and constraint probabilities; Saltelli-Sobol indices for nominal variants (SALib).
 - Learning: see requirements PE-29; features are physical properties and controls, never the case
