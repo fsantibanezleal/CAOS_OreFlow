@@ -7,7 +7,9 @@ Read order: [01 Installation](01_installation.md), **you are on 02**, then [03 A
 | Variable | Default | Meaning |
 |---|---|---|
 | `OF_BASE` | `http://127.0.0.1:4914` | the site under test; a public URL checks a deployment |
-| `OF_MATRIX` | smoke | `full` runs 1280x800, 1600x900 and 2560x1440, each in dark and light, English and Spanish (12 combinations); the smoke run is 1280x800 dark English and 1600x900 light Spanish |
+| `OF_MATRIX` | smoke | `full` runs 1280x800, 1600x900 and 2560x1440, each in dark and light, English and Spanish (12 combinations); the smoke run is 1280x800 dark English and 1600x900 light Spanish; `none` runs the phone and tablet pass alone |
+| `OF_ONLY` | none | combinations of the full matrix to re-check after a fix (`1280x800-dark-es,2560x1440-light-en`); a name outside the matrix stops the run, and the phone and tablet pass is off unless `OF_SMALL` names combinations |
+| `OF_SMALL` | `390x844-light-en,390x844-dark-es,768x1024-light-en,768x1024-dark-es` | the phone and tablet pass after the matrix, both themes and languages at each size; empty for none |
 | `OF_CASE` | `copper_porphyry_soft` | the case the workbench opens on |
 | `OF_PAGES` | all five | the content pages to walk; empty for none |
 | `OF_QA` | `qa-output` | where the screenshots and `gate.json` go |
@@ -44,6 +46,7 @@ against a state with the defect and seen to fail, then against the fixed state a
 | document scroll | a content page taller than the viewport must move on `scrollTo` | the shell's defect re-imposed: 0 px moved, the document height pinned to the viewport |
 | document height | the larger of `<html>`'s and `<body>`'s scroll height against the viewport | an App-route check that read the pinned height and could never fail |
 | view list | the gate's list of views against the app's tab bar | (structural: a new view added to the app would otherwise never be measured) |
+| scroll tables | on a content page at the gated desktop sizes, any table whose scroll box needs a sideways scroll | the uncertainty table, 135 px wider than its box at 1280x800 in Spanish |
 | flowsheet drawing | the union of the drawn units, streams and labels against the svg's frame (its box less the overlay inset the diagram declares, at most a quarter of each axis): at least 90% on the limiting axis, and inside the frame | at 2560x1440 the circuit spanned 74.5% of its frame's width and half its height, and the focus view 73.4%, while the svg element's own box passed the 80% check at 86.7% |
 
 The App route additionally requires one row of tabs, a rail that fits without scrolling, the active view
@@ -51,8 +54,8 @@ at least half the viewport, `<html lang>` equal to the interface language; the f
 stage and its largest chart to cover at least 80% of the viewport. Both require the flowsheet drawing
 check wherever the flowsheet is on the stage.
 
-A phone and tablet pass follows the matrix (`OF_SMALL`, default `390x844-light-en,768x1024-dark-es`,
-empty for none). Below 860 px the rail stacks above the instrument and the page body scrolls, so the
+A phone and tablet pass follows the matrix (`OF_SMALL`: both themes and both languages at 390x844 and
+768x1024 by default, empty for none). Below 860 px the rail stacks above the instrument and the page body scrolls, so the
 fixed-surface measures do not apply; every view must instead keep the rail whole and clear of the
 readout, keep the document from scrolling sideways, keep every element inside the viewport unless it
 sits in its own scroll box (the readout, the tab row and a phone's flowsheet scroll sideways), and draw

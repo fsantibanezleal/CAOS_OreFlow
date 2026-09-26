@@ -4,6 +4,7 @@
  *   npm run build && npm run preview        (serves on 127.0.0.1:4914)
  *   node gate.mjs                           (smoke: two viewport, theme and language combinations)
  *   OF_MATRIX=full node gate.mjs            (three viewports, both themes, both languages)
+ *   OF_MATRIX=none node gate.mjs            (the phone and tablet pass alone)
  *
  * OF_BASE points it at another host (a public deployment), OF_ONLY names combinations of the full matrix
  * (1280x800-dark-es,...) to re-check after a fix, OF_CASE picks the case, OF_PAGES the content
@@ -22,9 +23,10 @@
  * - enters the focus route by clicking, measures the stage and its largest chart (at least 80%) and the
  *   drawn flowsheet as above, and returns by clicking to the same case, variant and changed controls;
  * - opens every tab and sub-tab of every content page: no sideways overflow, the interface language,
- *   no KaTeX error, no cut equation, no failed record load, no figure text outside its box or across a
- *   box it does not fit, and the in-browser network run where a page offers it;
- * - at 390x844 and 768x1024 (OF_SMALL), where the rail stacks and the page body scrolls, visits every
+ *   no KaTeX error, no cut equation, no table that needs its scroll box, no failed record load, no
+ *   figure text outside its box or across a box it does not fit, and the in-browser network run where a
+ *   page offers it;
+ * - at 390x844 and 768x1024 in both themes and languages (OF_SMALL), where the rail stacks and the page body scrolls, visits every
  *   view: the rail whole and clear of the readout, no sideways document scroll, and no flowsheet unit
  *   box over another;
  * - fails on any console error.
@@ -46,11 +48,13 @@ const tagOf = ({ v: [w, h], theme, lang }) => `${w}x${h}-${theme}-${lang}`;
 // OF_ONLY names combinations of the full matrix (1280x800-dark-es,...), to re-check one after a fix
 const ONLY = (process.env.OF_ONLY ?? '').split(',').map(s => s.trim()).filter(Boolean);
 const COMBOS = ONLY.length ? ALL.filter(c => ONLY.includes(tagOf(c)))
-  : FULL ? ALL : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
+  : FULL ? ALL : process.env.OF_MATRIX === 'none' ? []
+  : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
 if (ONLY.length && COMBOS.length !== ONLY.length) throw new Error(`OF_ONLY names a combination outside the matrix: ${ONLY.join(', ')}`);
 const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case'];
 // the phone and tablet pass (after the matrix); OF_SMALL names its combinations, empty for none
-const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
+// (both themes and both languages at each size: PE-37 names phone, tablet and desktop in both)
+const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,390x844-dark-es,768x1024-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
 mkdirSync(OUT, { recursive: true });
 
@@ -378,11 +382,14 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           katexErrors: document.querySelectorAll('.katex-error').length, loadErrors: document.querySelectorAll('.of-doc-state[role=alert]').length,
           // an equation wider than its box can only be read by scrolling inside it
           cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
+          // a table's scroll box is for narrower screens: at the gated desktop sizes every table fits its page
+          // (the uncertainty table once needed 135 px of sideways scroll at 1280 px in Spanish)
+          scrollTables: [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-doc-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
           // the page taller than the viewport must scroll the document (shell known defect 1: under the
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
             window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside, figures, decimals });
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0, { ...doc, outside, figures, decimals });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }

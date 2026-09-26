@@ -428,17 +428,18 @@ function UncertaintyTable({ lang }: { lang: Lang }) {
           <div className="of-doc-scroll">
             <table className="of-doc-table of-doc-table-data">
               <caption>{TEXT.uncCaption[lang]}</caption>
-              <thead><tr>{[TEXT.case, TEXT.recShort, TEXT.gradeShort, TEXT.probGrade, TEXT.probPower, TEXT.probWater, TEXT.probAll, TEXT.domRec, TEXT.domGrade].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+              {/* the case names and the two named inputs wrap, so the nine columns fit a 1280 px page in both languages */}
+              <thead><tr>{[TEXT.case, TEXT.recShort, TEXT.gradeShort, TEXT.probGrade, TEXT.probPower, TEXT.probWater, TEXT.probAll, TEXT.domRec, TEXT.domGrade].map((h, i) => <th scope="col" key={h.en} className={i === 0 || i >= 7 ? 'of-doc-soft' : undefined}>{h[lang]}</th>)}</tr></thead>
               <tbody>{benchmark.value!.cases.map(c => {
                 const r0 = u[c.case_id], unit = contract.value!.cases[c.case_id].primary.unit;
                 return (
                   <tr key={c.case_id}>
-                    <th scope="row">{index.value!.cases.find(e => e.case_id === c.case_id)?.title[lang]}</th>
+                    <th scope="row" className="of-doc-soft">{index.value!.cases.find(e => e.case_id === c.case_id)?.title[lang]}</th>
                     <td>{three(r0.recovery_pct, '%')}</td>
                     <td>{`${three(r0.concentrate_grade, unit)} ${unitLabel(unit)}`}</td>
                     {['grade_meets_spec', 'power_within_installed', 'water_within_capacity', 'all_constraints'].map(k => <td key={k}>{formatFraction(r0.probabilities[k], lang, 0)}</td>)}
-                    <td>{INPUT[r0.dominant_input.recovery_pct]?.[lang] ?? r0.dominant_input.recovery_pct}</td>
-                    <td>{INPUT[r0.dominant_input.concentrate_grade]?.[lang] ?? r0.dominant_input.concentrate_grade}</td>
+                    <td className="of-doc-soft">{INPUT[r0.dominant_input.recovery_pct]?.[lang] ?? r0.dominant_input.recovery_pct}</td>
+                    <td className="of-doc-soft">{INPUT[r0.dominant_input.concentrate_grade]?.[lang] ?? r0.dominant_input.concentrate_grade}</td>
                   </tr>
                 );
               })}</tbody>

@@ -279,7 +279,7 @@ focus route), the drawn flowsheet (its units, streams and labels) across at leas
 the limiting axis, `<html lang>` equal to the interface language, the focus round trip by clicking,
 and a screenshot of every view (PE-37). `flowsheet.test.ts` holds the same fill for the layout on
 every baked variant, from a phone stage to a 4K one, with and without the focus overlay inset. At
-390x844 and 768x1024 the gate visits every view: the rail whole and clear of the readout, no sideways
+390x844 and 768x1024, in both themes and languages, the gate visits every view: the rail whole and clear of the readout, no sideways
 document scroll, no element outside the viewport except in its own scroll box, and no flowsheet unit box
 over another.
 

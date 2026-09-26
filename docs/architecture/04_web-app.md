@@ -171,11 +171,13 @@ both languages) it:
   overlay inset the diagram declares, bounded to a quarter of each axis), and returns by clicking to
   the same case, variant and changed controls;
 - opens every tab and sub-tab of every content page and requires no sideways overflow, the interface
-  language, no KaTeX error, no cut equation, no failed record load and no figure text outside its box
-  or across a box it does not fit, running the in-browser network where a page offers it;
-- at 390x844 and 768x1024, where the rail stacks above the instrument and the page body scrolls, visits
-  every view and requires the rail whole and clear of the readout, no sideways document scroll, no
-  element outside the viewport except inside its own scroll box, and no flowsheet unit box over another;
+  language, no KaTeX error, no cut equation, no table that needs its scroll box at these sizes, no failed
+  record load and no figure text outside its box or across a box it does not fit, running the in-browser
+  network where a page offers it;
+- at 390x844 and 768x1024 in both themes and languages, where the rail stacks above the instrument and
+  the page body scrolls, visits every view and requires the rail whole and clear of the readout, no
+  sideways document scroll, no element outside the viewport except inside its own scroll box, and no
+  flowsheet unit box over another;
 - fails on any console error, and writes a screenshot of every state and the measurements
   (`gate.json`) to `qa-output/`, which git ignores.
 
