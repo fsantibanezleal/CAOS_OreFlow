@@ -6,7 +6,7 @@
 import type { TopologyUnit } from '../../engine/circuit';
 import type { Trace } from '../../engine/trace';
 import { formatSignificant, formatWithUnit, type Lang } from '../../lib/format';
-import { metricLabel, streamName } from '../../lib/i18n';
+import { formulaText, metricLabel, streamName } from '../../lib/i18n';
 import { FlowsheetDiagram, unitName } from '../FlowsheetDiagram';
 
 type StreamRecord = { solids_tph: number; water_tph: number; solids_pct: number; grades: Record<string, number> };
@@ -57,7 +57,7 @@ export function CircuitView({ trace, primary, lang, selected, onSelect }: {
               <button type="button" className="of-revert" onClick={() => onSelect(null)}>{TEXT.close[lang]}</button>
             </div>
             <table className="of-table">
-              <thead><tr><th scope="col">{TEXT.stream[lang]}</th><th scope="col">{TEXT.solids[lang]}</th><th scope="col">{TEXT.water[lang]}</th><th scope="col">{TEXT.solidsPct[lang]}</th><th scope="col">{`${TEXT.grade[lang]} ${primary.species}`}</th></tr></thead>
+              <thead><tr><th scope="col">{TEXT.stream[lang]}</th><th scope="col">{TEXT.solids[lang]}</th><th scope="col">{TEXT.water[lang]}</th><th scope="col">{TEXT.solidsPct[lang]}</th><th scope="col">{`${TEXT.grade[lang]} ${formulaText(primary.species)}`}</th></tr></thead>
               <tbody>
                 <tr className="of-table-group"><td colSpan={5}>{TEXT.inputs[lang]}</td></tr>
                 {unit.inputs.map(row)}

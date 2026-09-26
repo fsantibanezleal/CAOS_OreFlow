@@ -7,12 +7,13 @@ import {
   CitationsProvider,
   readTheme,
   type ShellConfig,
+  useShellLang,
 } from "@fasl-work/caos-app-shell";
 import "@fasl-work/caos-app-shell/styles.css";
 import "./workbench/workbench.css";
 import "./content/content.css";
 import { ARCHITECTURE } from "./content/architecture";
-import { CONTENT_CITATIONS } from "./content/citations";
+import { CONTENT_CITATIONS, localizeCitations } from "./content/citations";
 import Workbench from "./workbench/Workbench";
 import { Pickaxe } from "lucide-react";
 import { APP_VERSION } from "./lib/version";
@@ -72,6 +73,13 @@ function Boundary({ children }: { children: React.ReactNode }) {
     </React.Suspense>
   );
 }
+/** The citation list in the interface language: the short labels follow it, the records stay verbatim. */
+function Citations({ children }: { children: React.ReactNode }) {
+  const lang = useShellLang();
+  const items = React.useMemo(() => localizeCitations(CONTENT_CITATIONS, lang), [lang]);
+  return <CitationsProvider items={items}>{children}</CitationsProvider>;
+}
+
 function AppRoutes() {
   const { pathname } = useLocation();
   if (pathname.startsWith('/focus/')) return <><DocumentLanguage /><Boundary><Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes></Boundary></>;
@@ -92,8 +100,8 @@ function AppRoutes() {
 }
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
-    <CitationsProvider items={CONTENT_CITATIONS}>
+    <Citations>
       <AppRoutes />
-    </CitationsProvider>
+    </Citations>
   </BrowserRouter>,
 );

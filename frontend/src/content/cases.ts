@@ -144,8 +144,8 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     problem: [
       { en: 'Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.',
         es: 'Las lamas de arcilla consumen colector de ácidos grasos y se arrastran a la espuma, por eso las plantas deslaman; el fosfato de las clases finas se va con las lamas.' },
-      { en: 'Plants target about 35% P2O5 (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
-        es: 'Las plantas apuntan a unos 35% P2O5 (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso da una alimentación más limpia a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
+      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
+        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso da una alimentación más limpia a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
     ],
     scope: [
       { en: 'The desliming cyclone uses the Rosin-Rammler partition with a declared sharpness and water bypass; its cut is an operating control bounded by half the grind target.', es: 'El ciclón de deslamado usa la partición Rosin-Rammler con nitidez y cortocircuito de agua declarados; su corte es un control de operación acotado por la mitad del objetivo de molienda.' },

@@ -17,7 +17,8 @@ const config: ShellConfig = {
 ```
 
 `applyTheme(readTheme())` runs before the first render, so the page paints in the stored theme, and
-`CitationsProvider` supplies the reference list the `Refs` blocks cite from.
+`CitationsProvider` supplies the reference list the `Refs` blocks cite from. A `Citation`'s `label` is one
+string, so OreFlow localizes the list before handing it over (`Citations` in `main.tsx`).
 
 ## The components used
 

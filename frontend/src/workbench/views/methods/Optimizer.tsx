@@ -9,7 +9,7 @@ import type uPlot from 'uplot';
 import type { OperatingContract } from '../../../engine/contract';
 import type { OptimizationRecord, OptimumSummary } from '../../../lib/artifacts.types';
 import { formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
-import { metricLabel } from '../../../lib/i18n';
+import { formulaText, metricLabel } from '../../../lib/i18n';
 import { Chart } from '../../../components/charts/Chart';
 
 const TEXT = {
@@ -82,7 +82,7 @@ export function Optimizer({ record, contract, caseId, modified, lang, onCursor }
     return summary[key] as number;
   };
   const constraints: Array<{ id: 'grade' | 'power' | 'water'; label: string; limit: string }> = [
-    { id: 'grade', label: `${TEXT.grade[lang]} ${record.constraints.grade.species}`, limit: `${TEXT.atLeast[lang]} ${formatWithUnit(record.constraints.grade.minimum, gradeUnit, lang)}` },
+    { id: 'grade', label: `${TEXT.grade[lang]} ${formulaText(record.constraints.grade.species)}`, limit: `${TEXT.atLeast[lang]} ${formatWithUnit(record.constraints.grade.minimum, gradeUnit, lang)}` },
     { id: 'power', label: TEXT.power[lang], limit: `${TEXT.atMost[lang]} ${formatWithUnit(record.constraints.power.maximum_kw, 'kW', lang)}` },
     ...(record.constraints.water ? [{ id: 'water' as const, label: TEXT.water[lang], limit: `${TEXT.atMost[lang]} ${formatWithUnit(record.constraints.water.maximum_m3_t, 'm3/t', lang)}` }] : []),
   ];

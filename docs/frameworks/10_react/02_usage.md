@@ -10,7 +10,7 @@ const Introduction = React.lazy(() => import("./pages/Introduction"));
 ...
 createRoot(document.getElementById("root")!).render(
   <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
-    <CitationsProvider items={CONTENT_CITATIONS}><AppRoutes /></CitationsProvider>
+    <Citations><AppRoutes /></Citations>
   </BrowserRouter>,
 );
 ```
@@ -21,6 +21,9 @@ createRoot(document.getElementById("root")!).render(
 - The router takes the Pages base only when the build was made for Pages.
 - `/focus/:caseId` renders outside the `AppShell` (the focus layout has no site header); every other
   route renders inside it, and `DocumentLanguage` keeps `<html lang>` in step on both.
+- `Citations` wraps the shell's `CitationsProvider` and hands it the list in the interface language
+  (`localizeCitations` in `content/citations.ts`): in Spanish an author pair is joined with *y* and a
+  descriptive label is translated, while each bibliographic record stays verbatim.
 - An unknown path renders the workbench instead of an error page.
 
 ## The workbench loop in hooks (`frontend/src/workbench/Workbench.tsx`)

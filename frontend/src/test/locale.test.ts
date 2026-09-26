@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatFixed, formatFraction, formatSignificant, formatValue, formatWithUnit, localizeAuthored, localizeTex, unitLabel } from '../lib/format';
+import { formulaText, metricLabel } from '../lib/i18n';
+import { CONTENT_CITATIONS, localizeCitations } from '../content/citations';
 
 // PE-35: every number is formatted with the active locale (the document-language half of PE-35 is
 // checked by the browser gate on every route in both languages).
@@ -52,5 +54,28 @@ describe('locale formatting', () => {
     expect(localizeTex('m = 0.71 + 1.21\\,x', 'es')).toBe('m = 0{,}71 + 1{,}21\\,x');
     expect(localizeTex('m = 0.71', 'en')).toBe('m = 0.71');
     expect(localizeTex('10^{-9}', 'es')).toBe('10^{-9}');
+  });
+
+  it('prints chemical formulas with subscripts and leaves element symbols alone', () => {
+    expect(formulaText('P2O5')).toBe('P₂O₅');
+    expect(formulaText('SiO2')).toBe('SiO₂');
+    expect(formulaText('Ca5(PO4)3F')).toBe('Ca₅(PO₄)₃F');
+    expect(formulaText('Cu')).toBe('Cu');
+    expect(metricLabel('head_SiO2', 'es')).toBe('SiO₂ en cabeza');
+    expect(metricLabel('recovery_P2O5_pct', 'en')).toBe('P₂O₅ recovery');
+  });
+
+  it('gives the citations Spanish short labels and keeps every record verbatim', () => {
+    expect(localizeCitations(CONTENT_CITATIONS, 'en')).toBe(CONTENT_CITATIONS);
+    const es = localizeCitations(CONTENT_CITATIONS, 'es');
+    for (const [k, c] of es.entries()) {
+      expect(c.label, c.id).not.toMatch(/and|practice|review/i);
+      expect({ ...c, label: CONTENT_CITATIONS[k].label }, c.id).toEqual(CONTENT_CITATIONS[k]);
+    }
+    expect(es.find(c => c.id === 'laplante2005')?.label).toBe('Laplante y Gray 2005');
+    const pair = (label: string) => localizeCitations([{ id: 'x', label, citation: '' }], 'es')[0].label;
+    expect(pair('Smith and Ibáñez 2020')).toBe('Smith e Ibáñez 2020');
+    expect(pair('Smith and Hidalgo 2020')).toBe('Smith e Hidalgo 2020');
+    expect(pair('Smith and Hierro 2020')).toBe('Smith y Hierro 2020');
   });
 });

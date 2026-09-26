@@ -13,7 +13,7 @@ import { CASE_CONTEXT, VARIANT_NOTES } from '../../content/cases';
 import { familyFormulas } from '../../content/equations';
 import type { Benchmark, CaseArtifact, CaseIndex } from '../../lib/artifacts.types';
 import { formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
-import { flagShort, metricLabel, mineralName } from '../../lib/i18n';
+import { flagShort, formulaText, metricLabel, mineralName } from '../../lib/i18n';
 import { CompareView } from './CompareView';
 
 const TEXT = {
@@ -100,7 +100,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
     for (const payable of ore.payables) {
       for (const c of payable.carriers) {
         if (c.mineral !== id) continue;
-        parts.push(`${c.mode === 'trace' ? TEXT.traceCarrier[lang] : TEXT.carrier[lang]} ${payable.species} (${formatWithUnit(100 * c.share, '%', lang)})`);
+        parts.push(`${c.mode === 'trace' ? TEXT.traceCarrier[lang] : TEXT.carrier[lang]} ${formulaText(payable.species)} (${formatWithUnit(100 * c.share, '%', lang)})`);
       }
     }
     if (parts.length === 0) parts.push(ore.minerals.some(x => x.host === id) ? TEXT.host[lang] : TEXT.gangue[lang]);
@@ -125,7 +125,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
   if (plant.gravity) plantRows.push([TEXT.gravityUnit[lang], formatWithUnit(100 * plant.gravity.max_recovery, '%', lang)]);
   if (plant.magnetic) plantRows.push([TEXT.magneticUnit[lang], formatWithUnit(100 * plant.magnetic.max_capture, '%', lang)]);
   if (plant.deslime) plantRows.push([TEXT.deslimeUnit[lang], `${formatSignificant(plant.deslime.sharpness, lang, 2)} · ${formatWithUnit(100 * plant.deslime.bypass, '%', lang)}`]);
-  if (plant.grade_spec) plantRows.push([TEXT.gradeSpec[lang], `${plant.grade_spec.species} ≥ ${formatWithUnit(plant.grade_spec.minimum, entry.primary.unit, lang)}`]);
+  if (plant.grade_spec) plantRows.push([TEXT.gradeSpec[lang], `${formulaText(plant.grade_spec.species)} ≥ ${formatWithUnit(plant.grade_spec.minimum, entry.primary.unit, lang)}`]);
   if (plant.water_limit_m3_t > 0) plantRows.push([TEXT.water[lang], formatWithUnit(plant.water_limit_m3_t, 'm3/t', lang)]);
 
   const shown = (name: string, value: number) => {
@@ -193,7 +193,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
                 <td>{`${formatSignificant(mineralTable[x.id]?.density, lang, 3)} t/m³`}</td></tr>
             ))}</tbody>
           </table>
-          <p className="of-footnote">{ore.payables.map(p => `${TEXT.head[lang]} ${p.species} ${formatWithUnit(p.head_grade, p.unit, lang)}`).join('; ')}</p>
+          <p className="of-footnote">{ore.payables.map(p => `${TEXT.head[lang]} ${formulaText(p.species)} ${formatWithUnit(p.head_grade, p.unit, lang)}`).join('; ')}</p>
           <table className="of-table">
             <thead><tr><th scope="col">{TEXT.unit[lang]}</th><th scope="col">{TEXT.parameter[lang]}</th></tr></thead>
             <tbody>{plantRows.map(([name, value]) => <tr key={name}><th scope="row">{name}</th><td>{value}</td></tr>)}</tbody>

@@ -9,7 +9,7 @@ import type { ReactNode } from 'react';
 import type uPlot from 'uplot';
 import type { Trace } from '../../engine/trace';
 import { formatSignificant, formatWithUnit, type Lang } from '../../lib/format';
-import { metricLabel, speciesName } from '../../lib/i18n';
+import { formulaText, metricLabel, speciesName } from '../../lib/i18n';
 import { Chart, type CursorReading, type Series } from '../../components/charts/Chart';
 
 type KineticModel = { id: string; parameters: Record<string, number>; parameter_units: Record<string, string>; rmse_pct: number; converged: boolean;
@@ -100,12 +100,12 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
   return {
     recovery_by_size: (
       <Chart key="recovery_by_size" title={SEPARATION_CHARTS.recovery_by_size[lang]} data={ascending(size, bySize.primary, bySize.host_gangue, bySize.host_gangue_entrained_share)} logX xLabel={TEXT.size[lang]} yLabel={TEXT.recovery[lang]} yRange={[0, 1]}
-        series={[{ label: `${TEXT.payable[lang]} ${primary.species}`, colour: 'good' }, { label: TEXT.host[lang], colour: 'bad' }, { label: TEXT.entrained[lang], colour: 'warn', dash: [5, 4] }]}
+        series={[{ label: `${TEXT.payable[lang]} ${formulaText(primary.species)}`, colour: 'good' }, { label: TEXT.host[lang], colour: 'bad' }, { label: TEXT.entrained[lang], colour: 'warn', dash: [5, 4] }]}
         summary={TEXT.sizeSummary[lang]} format={fmtSize} onCursor={report('um', [TEXT.payable[lang], TEXT.host[lang], TEXT.entrained[lang]])} />
     ),
     bank_profile: (
       <Chart key="bank_profile" title={SEPARATION_CHARTS.bank_profile[lang]} data={[profile.map(p => 100.0 * p.recovery), profile.map(p => p.grade * gradeScale)] as uPlot.AlignedData}
-        xLabel={TEXT.cumRecovery[lang]} yLabel={`${TEXT.grade[lang]} ${primary.species} (${gradeUnit})`}
+        xLabel={TEXT.cumRecovery[lang]} yLabel={`${TEXT.grade[lang]} ${formulaText(primary.species)} (${gradeUnit})`}
         series={[{ label: TEXT.grade[lang], colour: 'accent', points: true }]} summary={TEXT.profileSummary[lang]}
         format={v => formatSignificant(v, lang, 3)} onCursor={report('%', [TEXT.grade[lang]])} />
     ),

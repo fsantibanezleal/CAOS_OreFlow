@@ -16,7 +16,7 @@ Open it in the workbench: [https://oreflow.ml.fasl-work.com/?case=phosphate_clay
 
 Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.
 
-Plants target about 35% P2O5 (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.
+Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.
 
 ## The ore
 

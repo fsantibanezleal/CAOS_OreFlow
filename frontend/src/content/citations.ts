@@ -6,6 +6,7 @@
  * documentation that reproduces its equations.
  */
 import type { Citation } from '@fasl-work/caos-app-shell';
+import type { Lang } from '../lib/format';
 
 export const CONTENT_CITATIONS: Citation[] = [
   // comminution
@@ -62,3 +63,23 @@ export const CONTENT_CITATIONS: Citation[] = [
   { id: 'geomet', label: 'GeoMet v4', citation: 'Hoffimann, J. et al. GeoMet dataset, version 4: copper locked-cycle test recovery and assays by drill hole (CC BY 4.0). Zenodo 7051975.', doi: '10.5281/zenodo.7051975', url: 'https://zenodo.org/records/7051975' },
   { id: 'geomet-paper', label: 'Hoffimann et al. 2022', citation: 'Hoffimann, J., Augusto, J., Resende, L., Mathias, M., Mazzinghy, D., Bianchetti, M. et al. (2022). Modeling geospatial uncertainty of geometallurgical variables with Bayesian models and Hilbert-Kriging. Mathematical Geosciences 54(7):1227-1253.', doi: '10.1007/s11004-022-10013-1', url: 'https://doi.org/10.1007/s11004-022-10013-1' },
 ];
+
+/** Spanish short labels where the English one is a description rather than a name. */
+const LABEL_ES: Record<string, string> = {
+  'porphyry-practice': 'Práctica de flotación de pórfidos',
+  collector2022: 'Revisión calcopirita/pirita 2022',
+};
+
+/**
+ * The citations in the interface language. The short label is interface text: in Spanish an author
+ * pair is joined with y (e before a word that starts with the sound i) and a descriptive label is
+ * translated. The bibliographic record, with its titles and venues, stays verbatim.
+ */
+export function localizeCitations(items: Citation[], lang: Lang): Citation[] {
+  if (lang !== 'es') return items;
+  return items.map(c => ({
+    ...c,
+    label: LABEL_ES[c.id] ?? c.label.replace(/ and (?=\S)/g, (match: string, at: number, whole: string) =>
+      (/^(?:[IiÍí]|[Hh][IiÍí])(?![aeiouáéíóú])/.test(whole.slice(at + match.length)) ? ' e ' : ' y ')),
+  }));
+}

@@ -68,14 +68,19 @@ const METRICS: Record<string, T> = {
   species_consistency_error: { en: 'Particle-class consistency', es: 'Consistencia de clases de partícula' },
 };
 
+const SUBSCRIPT = '₀₁₂₃₄₅₆₇₈₉';
+/** A chemical formula as it is printed (P2O5 as P₂O₅): the digits after an element or a bracket are subscripts. */
+export const formulaText = (formula: string): string =>
+  formula.replace(/(?<=[A-Za-z)\]])\d+/g, digits => [...digits].map(d => SUBSCRIPT[Number(d)]).join(''));
+
 export function metricLabel(key: string, lang: Lang): string {
   if (key in METRICS) return METRICS[key][lang];
   let m = /^concentrate_(.+)$/.exec(key);
-  if (m) return lang === 'es' ? `${m[1]} en concentrado` : `Concentrate ${m[1]}`;
+  if (m) return lang === 'es' ? `${formulaText(m[1])} en concentrado` : `Concentrate ${formulaText(m[1])}`;
   m = /^head_(.+)$/.exec(key);
-  if (m) return lang === 'es' ? `${m[1]} en cabeza` : `Head ${m[1]}`;
+  if (m) return lang === 'es' ? `${formulaText(m[1])} en cabeza` : `Head ${formulaText(m[1])}`;
   m = /^recovery_(.+)_pct$/.exec(key);
-  if (m) return lang === 'es' ? `Recuperación de ${m[1]}` : `${m[1]} recovery`;
+  if (m) return lang === 'es' ? `Recuperación de ${formulaText(m[1])}` : `${formulaText(m[1])} recovery`;
   return key;
 }
 
