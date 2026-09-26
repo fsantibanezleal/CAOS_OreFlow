@@ -14,8 +14,9 @@
  * - Marks label what the engine computed (a cut, a target, a liberation size) at their x value, and
  *   level marks a limit (a specification, a threshold, the base case) at their y value; labels that
  *   would overprint are stacked.
- * - A categorical axis (inputs, starts, variants) places one tick per category; paired bar series sit
- *   side by side around each tick. Bars on a numeric axis (a histogram) take their share of the bin at
+ * - A categorical axis (inputs, starts, variants) places one tick per category, its label wrapped to the
+ *   category's width, and the host declares in `data-ticks-cut` how many labels still do not fit, for
+ *   the browser gate (the canvas is out of its reach); paired bar series sit side by side around each tick. Bars on a numeric axis (a histogram) take their share of the bin at
  *   any width, and the range reaches half a bin past the first and last, so the end bars are whole.
  * - Point labels name the points of the first series (a case on a map of cases); a label that would
  *   overlap one already drawn is left to the cursor reading.
@@ -30,6 +31,7 @@ import { formatTick, type Lang } from '../../lib/format';
 import { halfSpacing } from '../../lib/histogram';
 import { t, UI } from '../../lib/i18n';
 import { OverlayInset } from './inset';
+import { categoryTicks, tickLines } from './ticks';
 
 export type Colour = 'accent' | 'accent-2' | 'good' | 'warn' | 'bad' | 'magenta' | 'subtle';
 
@@ -220,8 +222,21 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       label, labelSize: size, stroke: colours.axis, grid: { stroke: colours.grid, width: 1 }, ticks: { stroke: colours.grid },
       font: `11px ${colours.font}`, labelFont: `600 11px ${colours.font}`, values: ticks(log),
     });
+    // tick labels are measured in the axis font, in CSS pixels
+    const measure = document.createElement('canvas').getContext('2d');
+    if (measure) measure.font = `11px ${colours.font}`;
+    const textWidth = (s: string) => measure?.measureText(s).width ?? 6 * s.length;
+    const categoryValues = (self: uPlot) => {
+      const plot = self.bbox?.width ? self.bbox.width / uPlot.pxRatio : host.clientWidth - 72;
+      const { values, cut } = categoryTicks(categories ?? [], plot / Math.max(1, categories?.length ?? 1) - 8, textWidth);
+      host.dataset.ticksCut = String(cut);
+      return values;
+    };
+    // uPlot's x axis is 50 px; a wrapped label takes 16.5 px a line more, and a few px keep its last line
+    // off the axis title
+    const categorySize = (_self: uPlot, values: string[] | null) => Math.max(50, 38 + 16.5 * (tickLines(values) - 1));
     const xAxis: uPlot.Axis = categories
-      ? { ...axis(xLabel, 24, false), splits: () => categories.map((_, i) => i), values: () => categories, grid: { show: false } }
+      ? { ...axis(xLabel, 24, false), splits: () => categories.map((_, i) => i), values: categoryValues, size: categorySize, grid: { show: false } }
       : axis(xLabel, 24, !!logX);
     const span = (_self: uPlot, min: number, max: number): uPlot.Range.MinMax => [min, max];
     // a bar is centred on its x value: ranged on the values alone, a histogram's end bars were cut in half

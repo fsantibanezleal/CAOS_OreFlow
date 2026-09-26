@@ -28,6 +28,11 @@ draws its end bars whole, and a failed build reports its own error.
   read it by. It is now "Sin avisos del motor", the Case view's word for the engine's flags, and a cut
   status or cursor reading is named in full on hover. The gate requires every text an ellipsis cuts to
   carry its full text (`ELLIPSIS_PROBE`).
+- A categorical chart's labels ran into each other where they were wider than their category: the four
+  Sobol factor names in Spanish at 1280x800. A label now wraps at its spaces to its category's width, and
+  the axis grows for a third line. uPlot draws the labels on its canvas, out of the gate's reach, so the
+  chart declares how many labels still do not fit (`data-ticks-cut`), and the gate fails any that does
+  (`TICKS_PROBE`).
 - The optimizer's headline gave the gain without its sign ("Optimum found: 0.2594 t/h recovered metal"),
   which read as the optimum's own recovered metal. It now reads "+0.2594 t/h of recovered metal".
 - A failed build reported the Pages fallback's missing `index.html` instead of its own error; the fallback

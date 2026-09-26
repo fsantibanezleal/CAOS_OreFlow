@@ -119,6 +119,15 @@ const ELLIPSIS_PROBE = () => {
   return cut;
 };
 
+// Category labels are drawn on the canvas, out of every page probe's reach, so the chart declares how
+// many of them still do not fit their category once wrapped (`data-ticks-cut`); in Spanish at 1280x800
+// the four Sobol factor names ran into each other (0.05.000)
+// (how many charts declared is recorded, so a view whose categorical chart stopped declaring shows it)
+const TICKS_PROBE = () => {
+  const declared = [...document.querySelectorAll('.of-plot-area[data-ticks-cut]')].filter(e => e.getBoundingClientRect().width > 0);
+  return { declared: declared.length, cut: declared.filter(e => e.dataset.ticksCut !== '0').map(e => `${e.getAttribute('aria-label')?.slice(0, 48) ?? 'chart'}: ${e.dataset.ticksCut}`) };
+};
+
 // Inside a sized view, content past the view's own box is clipped out of reach unless a scroll area
 // inside the view owns it (ADR-0071 rule 1). Charts' own overlays are part of their plot box.
 const CLIP_PROBE = selector => {
@@ -259,6 +268,7 @@ async function measure(page, stageSelector) {
   const decimals = await page.evaluate(LOCALE_PROBE);
   const railCut = await page.evaluate(RAIL_PROBE);
   const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
+  const ticks = await page.evaluate(TICKS_PROBE);
   // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
   const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
@@ -311,7 +321,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0,
+  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, ticks, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0 && ticks.cut.length === 0,
     filled: (m.drawn === null || m.drawn.ok) && m.panels.every(f => f >= 0.3) };
 }
 
@@ -441,7 +451,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
             window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0, { ...doc, outside, figures, decimals });
+        const ticks = await page.evaluate(TICKS_PROBE);
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && ticks.cut.length === 0, { ...doc, outside, figures, decimals, ticks });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
@@ -474,6 +485,7 @@ for (const tag of SMALL) {
     const outside = await page.evaluate(OVERFLOW_PROBE);
     const railCut = await page.evaluate(RAIL_PROBE);
     const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
+    const ticks = await page.evaluate(TICKS_PROBE);
     const m = await page.evaluate(() => {
       const rail = document.querySelector('.of-rail');
       const r = rail.getBoundingClientRect();
@@ -495,7 +507,7 @@ for (const tag of SMALL) {
         lang: document.documentElement.lang, units, overlaps,
       };
     });
-    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis });
+    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && ticks.cut.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, ticks });
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
