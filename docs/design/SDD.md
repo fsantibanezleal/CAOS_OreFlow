@@ -2,7 +2,7 @@
 
 Version: 0.05.000 design, 2026-09-26. Supersedes the 0.04.000 document, which described a one-pass
 engine. The evidence base for every equation and parameter range is the verified research dossier
-of 2026-09-26 (mirrored into `docs/frameworks/`); the defects that motivated the rebuild are listed
+of 2026-09-26 (transcribed into `docs/methodologies/`); the defects that motivated the rebuild are listed
 in GitHub issue #35. Feature-level requirements with named gates live in
 `docs/design/features/process-engine-v2/`.
 

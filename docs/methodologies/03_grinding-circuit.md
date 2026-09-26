@@ -85,8 +85,9 @@ water added at the mill and at the sump; a negative addition is flagged.
 - `tests/test_grinding.py::test_power_limited_mode` (PE-07).
 - `tests/test_oracles.py::test_molycop_base_case` (PE-08): with the Moly-Cop defaults and base-case
   inputs (504 t/h, F80 6913 um, P80 169.4 um, 277% circulating load), the specific energy lands
-  within 20% of the reported 8.56 kWh/t (the engine gives about 8.9 to 9.3 kWh/t depending on the
-  feed shape, which the published example does not state).
+  within 20% of the reported 8.56 kWh/t. The engine gives 9.13 kWh/t with the Rosin-Rammler feed
+  slope of 0.9 used by the test, and 8.86 to 9.30 kWh/t for slopes 0.7 to 1.1; the published example
+  does not state its feed shape.
 
 ## What it is not
 

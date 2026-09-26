@@ -7,7 +7,7 @@ recovered with ``r = (k tau + ENT w)/(1 + k tau + ENT w)``; a bank of N equal ce
 ``k = 60 P Sb f_size f_dose`` with ``Sb = 6 Jg/D32`` (Gorain et al. 1997); ENT after Savassi et al.
 (1998). Cleaner tails return to the rougher feed and recleaner tails to the cleaner feed; the
 regrind (open-circuit population balance) changes sizes, and so liberation, before cleaning.
-Sources and assumptions: docs/frameworks/flotation.
+Sources and assumptions: docs/methodologies/05_flotation.md.
 """
 from __future__ import annotations
 

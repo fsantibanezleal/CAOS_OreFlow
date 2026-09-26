@@ -3,7 +3,7 @@
 Bond: ``W = Wi (10/sqrt(P80) - 10/sqrt(F80))``, operating work index
 ``Wi_o = W / (10/sqrt(P80) - 10/sqrt(F80))`` (GMG01-MP-2021). Rittinger ``K_R (1/P - 1/F)`` and
 Kick ``K_K ln(F/P)`` are calibrated so that both equal Bond at the declared reference reduction;
-they are comparison laws and never enter the reported energy. docs/frameworks/energy.
+they are comparison laws and never enter the reported energy. docs/methodologies/09_energy.md.
 """
 from __future__ import annotations
 

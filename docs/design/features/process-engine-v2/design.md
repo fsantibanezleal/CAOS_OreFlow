@@ -1,8 +1,8 @@
 # Process engine v2 design
 
 Sources for every equation and range: the verified research dossier of 2026-09-26, transcribed into
-`docs/frameworks/`. Units are SI-derived and stated at each symbol; sizes are in um, flows in t/h,
-energy in kWh/t, power in kW.
+`docs/methodologies/` (libraries get one card each in `docs/frameworks/`). Units are SI-derived and
+stated at each symbol; sizes are in um, flows in t/h, energy in kWh/t, power in kW.
 
 ## 1. Architecture
 

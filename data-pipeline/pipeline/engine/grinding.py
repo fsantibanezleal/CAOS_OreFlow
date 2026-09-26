@@ -4,7 +4,7 @@ For each mineral the steady state satisfies ``(T^-1(e) - diag(r)) p = f + s``: `
 product, ``f`` the new feed, ``r`` the fraction of each class that returns to the mill (underflow
 minus the gravity bleed recovery) and ``s`` a source that carries host gangue locked in composites.
 Valuable minerals are solved first because their composites define that source. The solver meets
-the target overflow P80 at the design circulating load (docs/frameworks/grinding).
+the target overflow P80 at the design circulating load (docs/methodologies/03_grinding-circuit.md).
 """
 from __future__ import annotations
 

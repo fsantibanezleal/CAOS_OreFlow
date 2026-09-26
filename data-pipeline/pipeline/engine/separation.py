@@ -5,7 +5,7 @@ that rises with their magnetite content, ``p_max (1 - exp(-c/c0)) (1 - exp(-d/d_
 reports by entrapment ``e0 + e1 exp(-d/d_e)``, scaled down in the cleaner drum. Concentrate Fe
 grade therefore follows liberation, and so the grind (Muthaphuli 2014, JSAIMM 114(7)).
 Desliming: a cyclone at a fine cut sends slimes to tailings with a water bypass to the underflow.
-Sources: docs/frameworks/magnetic-separation and docs/frameworks/desliming.
+Sources: docs/methodologies/07_magnetic-separation.md and 08_desliming.md.
 """
 from __future__ import annotations
 

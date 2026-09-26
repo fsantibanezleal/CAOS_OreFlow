@@ -1,18 +1,18 @@
 # Process engine v2 tasks
 
-Each unit is finished with code, tests and its `docs/frameworks/` page in the same commit before the
-next one starts.
+Each unit is finished with code, tests and its `docs/methodologies/` page (plus a `docs/frameworks/`
+card for any library it introduces) in the same commit before the next one starts.
 
-- [ ] T01 Units registry, size grid, atomic weights, minerals, streams and balance auditor (PE-01, PE-02, PE-03, PE-33).
-- [ ] T02 Whiten matrix crusher and crushing energy (PE-04).
-- [ ] T03 Energy-specific PBM, mixers in series, Rosin-Rammler cyclone with bypass and density correction, water balance, target and power-limited solves (PE-05, PE-06, PE-07, PE-11, PE-22, PE-25).
-- [ ] T04 Plitt cyclone sizing (PE-12) and the Moly-Cop oracle (PE-08).
-- [ ] T05 Bond, operating work index, calibrated Rittinger and Kick, GMG oracle (PE-09, PE-10).
-- [ ] T06 Flotation banks, Sb kinetics, Savassi entrainment, water, cleaner recycle, stage recoveries, bank profile (PE-13 to PE-17, PE-21, PE-23, PE-24).
-- [ ] T07 Gravity gold in the grinding loop and the Laplante oracle (PE-18).
-- [ ] T08 LIMS magnetite and the Zandrivierspoort oracle (PE-19).
-- [ ] T09 Desliming (PE-20).
-- [ ] T10 Case catalog re-authored with sources; single-factor variants (PE-32, PE-34).
+- [x] T01 Units registry, size grid, atomic weights, minerals, streams and balance auditor (PE-01, PE-02, PE-03, PE-33). Engine commit 8c62512; the shipped-artifact balance recheck of PE-02 lands with T16.
+- [x] T02 Whiten matrix crusher and crushing energy (PE-04).
+- [x] T03 Energy-specific PBM, mixers in series, Rosin-Rammler cyclone with bypass and density correction, water balance, target and power-limited solves (PE-05, PE-06, PE-07, PE-11, PE-22, PE-25).
+- [x] T04 Plitt cyclone sizing (PE-12) and the Moly-Cop oracle (PE-08).
+- [x] T05 Bond, operating work index, calibrated Rittinger and Kick, GMG oracle (PE-09, PE-10).
+- [x] T06 Flotation banks, Sb kinetics, Savassi entrainment, water, cleaner recycle, stage recoveries, bank profile (PE-13 to PE-17, PE-21, PE-23, PE-24).
+- [x] T07 Gravity gold in the grinding loop and the Laplante oracle (PE-18).
+- [x] T08 LIMS magnetite and the Zandrivierspoort oracle (PE-19).
+- [x] T09 Desliming (PE-20).
+- [x] T10 Case catalog re-authored with sources; single-factor variants (PE-32, PE-34). Engine commit 8c62512.
 - [ ] T11 Contract 1 export, API validation, live API tests (PE-30).
 - [ ] T12 Kinetic fits and bank projection (PE-26).
 - [ ] T13 Constrained optimization (PE-27).

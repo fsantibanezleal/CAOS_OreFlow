@@ -1,7 +1,7 @@
 """OreFlow's twelve authored cases and their single-factor variants.
 
 Every case is an authored scenario: its ore, plant and operating values are chosen inside the ranges
-recorded in the 2026-09-26 research dossier (docs/frameworks), each with a source note, and none is a
+recorded in the 2026-09-26 research dossier (transcribed into docs/methodologies/), each with a source note, and none is a
 plant measurement or a calibrated plant model. Each variant changes exactly one declared input of the
 operating point relative to the case nominal (requirement PE-32).
 """
