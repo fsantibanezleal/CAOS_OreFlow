@@ -165,7 +165,10 @@ async function measure(page, stageSelector) {
     const scope = selector ? document.querySelector(selector) : document;
     const viz = scope ? Math.max(0, ...[...scope.querySelectorAll('canvas, svg.of-flowmap')].map(area)) : 0;
     return {
-      overX: de.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1, overY: de.scrollHeight > innerHeight + 2,
+      // shell known defect 1 pins documentElement.scrollHeight to the viewport, so the height is read
+      // through <body> as well: either one taller than the viewport is a document scroll
+      overX: de.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+      overY: Math.max(de.scrollHeight, document.body.scrollHeight) > innerHeight + 2,
       railScrolls: rail ? rail.scrollHeight > rail.clientHeight + 2 : null,
       tabRows: new Set(tabs).size,
       instrument: +(area(document.querySelector('.of-view-host')) / viewport).toFixed(3),
@@ -283,15 +286,17 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         await page.waitForTimeout(200);
         const outside = await page.evaluate(OVERFLOW_PROBE);
         const figures = await page.evaluate(FIGURE_PROBE);
-        const doc = await page.evaluate(() => ({ overX: document.body.scrollWidth > document.body.clientWidth + 1, lang: document.documentElement.lang,
+        const doc = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+          lang: document.documentElement.lang,
           katexErrors: document.querySelectorAll('.katex-error').length, loadErrors: document.querySelectorAll('.of-doc-state[role=alert]').length,
           // an equation wider than its box can only be read by scrolling inside it
-          cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && outside.length === 0 && figures.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside, figures });
-        // a full-page capture stops at the body's scroll box; release it for the capture only
-        const unclip = await page.addStyleTag({ content: 'html, body, #root { height: auto !important; overflow: visible !important; }' });
+          cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
+          // the page taller than the viewport must scroll the document (shell known defect 1: under the
+          // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
+          ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
+            window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside, figures });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
-        await unclip.evaluate(el => el.remove());
       }
     }
   }
