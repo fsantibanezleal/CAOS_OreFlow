@@ -33,6 +33,8 @@ export default defineConfig({
     closeBundle() {
       const root = join(here, 'dist');
       const index = join(root, 'index.html');
+      // a failed build emits no index.html; copying then would replace the build's own error with this one
+      if (!existsSync(index)) return;
       copyFileSync(index, join(root, '404.html'));
       const routes = ['introduction', 'methodology', 'implementation', 'experiments', 'benchmark', ...caseIds().map(id => `focus/${id}`)];
       for (const route of routes) {

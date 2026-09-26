@@ -23,7 +23,8 @@ card for any library it introduces) in the same commit before the next one start
 - [x] T16 Pipeline stages, artifacts, manifests, benchmark, non-vacuous validation, check_artifacts (PE-02).
   Canonical bake of 2026-09-26: 12 cases and 72 variants, validation passed (cases 375 s on twelve
   workers, learning 1688 s with CUDA; re-run after T21's catalog text correction, it reproduced every
-  case number and ONNX export bit for bit, and the random-forest scores within 6e-15). The checker also rejects a case file the index does not list and
+  case number and ONNX export bit for bit, and the random-forest scores within 6e-15). The 0.05.001 bake,
+  now committed, reproduced it again (687 s and 2106 s while browser checks shared the machine). The checker also rejects a case file the index does not list and
   holds the benchmark's variant metrics equal to the artifacts. The parity test's first run found the
   payable's recovery by size unresolvable in near-empty size classes; both engines now report those
   classes as empty below a declared share. Methodology page 14's findings are pinned to the record.

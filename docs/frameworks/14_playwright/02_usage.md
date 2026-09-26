@@ -47,6 +47,10 @@ against a state with the defect and seen to fail, then against the fixed state a
 | document height | the larger of `<html>`'s and `<body>`'s scroll height against the viewport | an App-route check that read the pinned height and could never fail |
 | view list | the gate's list of views against the app's tab bar | (structural: a new view added to the app would otherwise never be measured) |
 | scroll tables | on a content page at the gated desktop sizes, any table whose scroll box needs a sideways scroll | the uncertainty table, 135 px wider than its box at 1280x800 in Spanish |
+| text panels | on the App route, each text panel beside the charts (facts, tables, notes): the extent of its content against its height, at least 0.3 | at 2560x1440 the Grinding facts filled about a fifth of their cell and the Methods tables a fifth to a third of their column; at 1280x800 the magnetite Separation facts filled 0.29 of theirs |
+| `RAIL_PROBE` | every visible element of the workbench and focus rails against the rail's content box | in Spanish at 1280x800 the longest control row widened the whole controls column, and the rail cut every value at its edge ("720 t,", "8,0 r") on all ten App views |
+| `CANVAS_TEXT_PROBE` | what each chart declares on its host about the text on its canvas, which no page probe can read: category labels that do not fit their category once wrapped (`data-ticks-cut`), a y title too long for its axis in two lines (`data-title-cut`) and level labels with no free place beside the data (`data-labels-over`); every chart declares its title, so a visible chart that declared nothing has not drawn, and fails | in Spanish at 1280x800 the four Sobol factor names ran into each other, "Ganancia en metal recuperado (%)" and "Error del guardia" were cut at both ends, and "nominal" sat on a data point; squeezed to 220 px, the fixed Sobol chart declares all four labels |
+| `ELLIPSIS_PROBE` | every element an ellipsis actually cuts must carry its full text in its `title` | in Spanish at 1280x800 the readout's status was cut to "Dentro de todas las verif..." with nothing to read it by |
 | flowsheet drawing | the union of the drawn units, streams and labels against the svg's frame (its box less the overlay inset the diagram declares, at most a quarter of each axis): at least 90% on the limiting axis, and inside the frame | at 2560x1440 the circuit spanned 74.5% of its frame's width and half its height, and the focus view 73.4%, while the svg element's own box passed the 80% check at 86.7% |
 
 The App route additionally requires one row of tabs, a rail that fits without scrolling, the active view
@@ -57,7 +61,7 @@ check wherever the flowsheet is on the stage.
 A phone and tablet pass follows the matrix (`OF_SMALL`: both themes and both languages at 390x844 and
 768x1024 by default, empty for none). Below 860 px the rail stacks above the instrument and the page body scrolls, so the
 fixed-surface measures do not apply; every view must instead keep the rail whole and clear of the
-readout, keep the document from scrolling sideways, keep every element inside the viewport unless it
+readout, keep its controls inside it (`RAIL_PROBE`) and every cut text named (`ELLIPSIS_PROBE`), keep the document from scrolling sideways, keep every element inside the viewport unless it
 sits in its own scroll box (the readout, the tab row and a phone's flowsheet scroll sideways), and draw
 the flowsheet with no unit box over another. Its first run found the rail shrunk to 61 px under its
 controls, overlapping flowsheet boxes on a phone, and, at 768 px in Spanish, the header's actions off

@@ -105,7 +105,9 @@ export function GrindingView({ trace, ore, lang, onCursor }: { trace: Trace; ore
   const charts = grindingCharts(trace, ore, lang, onCursor);
   const m = trace.metrics;
   return (
-    <div className="of-view of-grid-2x2">
+    // a fourth chart when the composite scale departs from 1, else the facts, which on a large screen
+    // become a strip under the charts (of-grid-strip)
+    <div className={`of-view of-grid-2x2${charts.scale ? '' : ' of-grid-strip'}`}>
       {charts.psd}
       {charts.partition}
       {charts.liberation}

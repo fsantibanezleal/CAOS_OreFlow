@@ -53,11 +53,14 @@ input, select, textarea { font: inherit; }
 .of-rail-sections button:hover { color: var(--color-fg); }
 .of-rail-sections button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
 .of-rail-sections button.invalid { border-color: var(--color-bad); }
-.of-rail-controls { display: grid; gap: 10px; min-height: 0; }
+/* one column no wider than the rail: an auto column took the longest row's width (the Spanish crusher
+ * setting and its value) and the rail's overflow cut every value at its edge */
+.of-rail-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-height: 0; }
 
 .of-knob { display: grid; gap: 2px; }
-.of-knob label { display: flex; justify-content: space-between; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
-.of-knob label span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-knob label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
+/* a long name wraps rather than hiding its end; the value keeps its line */
+.of-knob label span { min-width: 0; overflow-wrap: break-word; }
 .of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
@@ -109,7 +112,24 @@ input, select, textarea { font: inherit; }
 
 /* ---- view layouts ---- */
 .of-grid-2x2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; }
-.of-grid-1x2 { display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; }
+/* On a large screen a text panel beside the charts fills little of its cell (the Grinding facts a fifth of it
+ * at 2560x1440): the charts take the rows, the last one across both columns, and the panel becomes a strip
+ * under them, as tall as its content. Facts alone (of-grid-strip) move from 1800x1000; the Separation
+ * panel also holds the kinetic table, so it moves only where its cell is mostly empty (of-grid-strip-panel) */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .of-grid-2x2.of-grid-strip { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; }
+  .of-grid-2x2.of-grid-strip > :nth-child(3), .of-grid-2x2.of-grid-strip > :nth-child(4) { grid-column: 1 / -1; }
+}
+@media (min-width: 2200px) and (min-height: 1200px) {
+  .of-grid-2x2.of-grid-strip-panel { grid-template-rows: minmax(0, 1fr) minmax(0, 1fr) auto; }
+  .of-grid-2x2.of-grid-strip-panel > :nth-child(3), .of-grid-2x2.of-grid-strip-panel > :nth-child(4) { grid-column: 1 / -1; }
+  .of-grid-strip-panel > .of-panel { flex-direction: row; align-items: flex-start; gap: 24px; }
+  .of-grid-strip-panel > .of-panel > .of-table { flex: none; width: auto; }
+  .of-grid-strip-panel > .of-panel > .of-facts { flex: 1 1 auto; min-width: 0; }
+}
+/* one chart over its facts strip, at every size: beside the chart, the six LIMS facts of the magnetite
+ * circuit filled 29% of their panel at 1280x800 */
+.of-grid-single { display: grid; grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; gap: 10px; }
 .of-view-circuit { display: flex; }
 .of-view-circuit > .of-stage { flex: 1 1 auto; position: relative; padding: 0; }
 .of-view-response, .of-view-compare { display: flex; flex-direction: column; gap: 8px; }
@@ -160,6 +180,16 @@ input, select, textarea { font: inherit; }
 .of-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .of-unit-card-head h3 { margin: 0; font-size: 0.95rem; }
 .of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
+/* The Methods records' side panel filled a fifth to a third of its column at 2560x1440 (the Sobol table the
+ * least): on a large screen it becomes a strip under the chart, its parts side by side, as tall as its
+ * content and never more than 42% of the screen (it scrolls inside beyond that) */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .of-split { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .of-split > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
+  .of-split > .of-aside > * { flex: 0 1 auto; min-width: 0; }
+  .of-split > .of-aside > .of-table { width: auto; }
+  .of-split > .of-aside > .of-status-line, .of-split > .of-aside > .of-note { flex-basis: 100%; }
+}
 .of-stack { display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; min-height: 0; }
 .of-stack.of-stack-2-1 { grid-template-rows: minmax(0, 2fr) minmax(0, 1fr); }
 .of-compare-charts { flex: 1 1 auto; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; min-height: 0; }
@@ -373,6 +403,9 @@ input, select, textarea { font: inherit; }
   /* the readout stays one row and scrolls sideways rather than cutting its last readings */
   .of-readout { overflow-x: auto; scrollbar-width: none; }
   .of-main { min-height: 78dvh; }
-  .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-1x2 { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
+  .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }
+  /* the legend under the title, across the chart: beside it, six series took six lines and left the
+     size-distribution plot about 50 px on a phone */
+  .of-plot-head { flex-wrap: wrap; row-gap: 2px; }
 }

@@ -85,6 +85,13 @@ instrument reports to the same place.
 | Methods | The variant's method records as sub-tabs: the optimizer, the uncertainty record, the Sobol indices (nominal state) and the learned lane, which runs the exported surrogate and guard in the browser | PE-39 (the learned lane) |
 | Case | The case's context in a fixed order (problem, components and variables, formalization, scope and assumptions, what each variant shows, how to read the views) and the comparison of its six single-factor variants, with the twelve cases on one map of recovery against specific energy | PE-40 (the context), PE-32 (the variants) |
 
+The magnetite Separation view holds one chart and six facts. Its facts sit in a strip under the chart at
+every size: in a panel beside the chart they filled 29% of it at 1280x800. On a large screen (from 1800
+by 1000 px) the other text panels beside the charts would stand mostly empty as well, so they become
+strips under them, as tall as their content: the Grinding facts and the Methods records' tables and
+notes. The flotation Separation panel, which holds the kinetic table as well, does so from 2200 by
+1200 px. The last chart of a two-by-two grid then spans both columns.
+
 Each view's panel is keyed by the case, so a choice that only makes sense for one case, such as an
 input or a factor, never carries over to another.
 
@@ -161,7 +168,8 @@ both languages) it:
   learned lane, and measures what ADR-0071 binds: no document scroll in either direction, no element
   outside the viewport and none clipped out of reach inside the view, no equation wider than its box,
   a rail that shows its own controls, one row of tabs, the active view at least half the viewport,
-  `<html lang>` equal to the interface language, and, where the flowsheet is on the stage, what it drew
+  `<html lang>` equal to the interface language, every text panel beside the charts at least 30% filled
+  by its content, and, where the flowsheet is on the stage, what it drew
   (units, streams and labels) across at least 90% of its frame on the limiting axis and inside it: the
   svg element always fills its host, so its own box says nothing about the drawing;
 - opens the architecture modal and checks every tab: the diagram inlined, only the interface

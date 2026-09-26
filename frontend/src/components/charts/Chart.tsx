@@ -13,9 +13,15 @@
  *   sized host would clip. Arrow keys move the cursor sample by sample when the chart has focus.
  * - Marks label what the engine computed (a cut, a target, a liberation size) at their x value, and
  *   level marks a limit (a specification, a threshold, the base case) at their y value; labels that
- *   would overprint are stacked.
- * - A categorical axis (inputs, starts, variants) places one tick per category; paired bar series sit
- *   side by side around each tick.
+ *   would overprint are stacked, and a level's label takes the place nearest the right end of its line,
+ *   above or below, that covers no data point.
+ * - The y title is drawn by the chart, wrapped to the plot's height in up to two lines.
+ * - What the chart could not fit on its canvas, which no page check can read, is declared on the host
+ *   for the browser gate: `data-ticks-cut`, `data-title-cut` and `data-labels-over`.
+ * - A categorical axis (inputs, starts, variants) places one tick per category, its label wrapped to the
+ *   category's width, and the host declares in `data-ticks-cut` how many labels still do not fit, for
+ *   the browser gate (the canvas is out of its reach); paired bar series sit side by side around each tick. Bars on a numeric axis (a histogram) take their share of the bin at
+ *   any width, and the range reaches half a bin past the first and last, so the end bars are whole.
  * - Point labels name the points of the first series (a case on a map of cases); a label that would
  *   overlap one already drawn is left to the cursor reading.
  * - The plot is an image with the chart's summary as its name, and a visually hidden table carries
@@ -26,8 +32,10 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { formatTick, type Lang } from '../../lib/format';
+import { halfSpacing } from '../../lib/histogram';
 import { t, UI } from '../../lib/i18n';
 import { OverlayInset } from './inset';
+import { categoryTicks, tickLines, wrapLabel } from './ticks';
 
 export type Colour = 'accent' | 'accent-2' | 'good' | 'warn' | 'bad' | 'magenta' | 'subtle';
 
@@ -179,6 +187,24 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         placed.push(box);
         label(mark.label, x, top + (row + 1) * line - 3 * ratio);
       }
+      // the data points in canvas pixels, so a level's label goes where it covers none: the "nominal" label
+      // sat on a variant's point in the Case view, and "sin cambio" on the Experiments page's points
+      const dots: Box[] = [];
+      if (levels?.length) {
+        const xs = self.data[0] as number[];
+        self.series.forEach((s, i) => {
+          if (i === 0 || s.show === false) return;
+          const ys = self.data[i] as (number | null)[];
+          for (let k = 0; k < xs.length; k += 1) {
+            const v = ys[k];
+            if (v === null || v === undefined) continue;
+            const px = self.valToPos(xs[k], 'x', true);
+            const py = self.valToPos(v, 'y', true);
+            if (px >= left && px <= left + width && py >= top && py <= top + height) dots.push({ x0: px - 5 * ratio, y0: py - 5 * ratio, x1: px + 5 * ratio, y1: py + 5 * ratio });
+          }
+        });
+      }
+      let over = 0;
       for (const level of levels ?? []) {
         const y = self.valToPos(level.y, 'y', true);
         if (!Number.isFinite(y) || y < top || y > top + height) continue;
@@ -186,8 +212,23 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         ctx.moveTo(left, y);
         ctx.lineTo(left + width, y);
         ctx.stroke();
-        if (level.label) label(level.label, left + width - ctx.measureText(level.label).width - 4 * ratio, y - 4 * ratio);
+        if (!level.label) continue;
+        const w = ctx.measureText(level.label).width;
+        // baselines from the right end of the line leftwards, above it and below: where points sit on the line
+        // at both ends (the six optimizer starts on the optimum), the label takes the nearest gap between them,
+        // and where the gaps are narrower than the label (a phone), it stands a few pixels clear of the line
+        const spots: Array<[number, number]> = [];
+        for (const [above, below] of [[4, 13], [8, 17]]) {
+          for (let x = left + width - w - 4 * ratio; x >= left + 4 * ratio; x -= 8 * ratio) spots.push([x, y - above * ratio], [x, y + below * ratio]);
+        }
+        const boxOf = ([x, b]: [number, number]): Box => ({ x0: x - 2 * ratio, y0: b - 10 * ratio, x1: x + w + 2 * ratio, y1: b + 3 * ratio });
+        const free = spots.find(s => { const b = boxOf(s); return b.y0 >= top && b.y1 <= top + height && !dots.some(d => overlaps(d, b)) && !placed.some(p => overlaps(p, b)); });
+        if (!free) over += 1;
+        const [lx, ly] = free ?? spots[0];
+        placed.push(boxOf([lx, ly]));
+        label(level.label, lx, ly);
       }
+      if (levels?.length) host.dataset.labelsOver = String(over);
       if (pointLabels?.length && self.series[1]?.show !== false) {
         const xs = self.data[0] as number[];
         const ys = self.data[1] as (number | null)[];
@@ -212,20 +253,60 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       }
       ctx.restore();
     };
+    // uPlot draws an axis title on one line, centred on the axis, so a title longer than a short plot was
+    // cut at both ends ("Ganancia en metal recuperado (%" on the Benchmark page, "Error del guardia" under
+    // the learned lane, in Spanish at 1280x800). The y title is drawn here instead, in the band uPlot
+    // keeps for it left of the 56 px tick column, wrapped to the plot's height in up to two lines.
+    const drawYTitle = (self: uPlot) => {
+      const ctx = self.ctx;
+      const ratio = uPlot.pxRatio;
+      const { left, top, height } = self.bbox;
+      ctx.save();
+      ctx.font = `600 ${Math.round(11 * ratio)}px ${colours.font}`;
+      const room = height / ratio - 6;
+      const width = (s: string) => ctx.measureText(s).width / ratio;
+      const lines = wrapLabel(yLabel, room, width);
+      host.dataset.titleCut = lines.length > 2 || lines.some(l => width(l) > room) ? '1' : '0';
+      const shown = lines.length > 2 ? [lines[0], lines.slice(1).join(' ')] : lines;
+      ctx.fillStyle = colours.axis;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.translate(left - 56 * ratio, top + height / 2);
+      ctx.rotate(-Math.PI / 2);
+      shown.forEach((text, j) => ctx.fillText(text, 0, -(shown.length - 1 - j) * 13 * ratio));
+      ctx.restore();
+    };
     const ticks = (log: boolean) => (_self: uPlot, splits: number[], _axis: number, _space: number, incr: number) =>
       splits.map(v => formatTick(v, incr, lang, log));
     const axis = (label: string, size: number, log: boolean): uPlot.Axis => ({
       label, labelSize: size, stroke: colours.axis, grid: { stroke: colours.grid, width: 1 }, ticks: { stroke: colours.grid },
       font: `11px ${colours.font}`, labelFont: `600 11px ${colours.font}`, values: ticks(log),
     });
+    // tick labels are measured in the axis font, in CSS pixels
+    const measure = document.createElement('canvas').getContext('2d');
+    if (measure) measure.font = `11px ${colours.font}`;
+    const textWidth = (s: string) => measure?.measureText(s).width ?? 6 * s.length;
+    const categoryValues = (self: uPlot) => {
+      const plot = self.bbox?.width ? self.bbox.width / uPlot.pxRatio : host.clientWidth - 72;
+      const { values, cut } = categoryTicks(categories ?? [], plot / Math.max(1, categories?.length ?? 1) - 8, textWidth);
+      host.dataset.ticksCut = String(cut);
+      return values;
+    };
+    // uPlot's x axis is 50 px; a wrapped label takes 16.5 px a line more, and a few px keep its last line
+    // off the axis title
+    const categorySize = (_self: uPlot, values: string[] | null) => Math.max(50, 38 + 16.5 * (tickLines(values) - 1));
     const xAxis: uPlot.Axis = categories
-      ? { ...axis(xLabel, 24, false), splits: () => categories.map((_, i) => i), values: () => categories, grid: { show: false } }
+      ? { ...axis(xLabel, 24, false), splits: () => categories.map((_, i) => i), values: categoryValues, size: categorySize, grid: { show: false } }
       : axis(xLabel, 24, !!logX);
     const span = (_self: uPlot, min: number, max: number): uPlot.Range.MinMax => [min, max];
+    // a bar is centred on its x value: ranged on the values alone, a histogram's end bars were cut in half
+    const half = !categories && series.some(s => s.bars) ? halfSpacing(data[0] as number[]) : 0;
+    const binned = (_self: uPlot, min: number, max: number): uPlot.Range.MinMax => [min - half, max + half];
     const xScale: uPlot.Scale = categories
       ? { time: false, range: [-0.5, categories.length - 0.5] }
-      : { time: false, distr: logX ? 3 : 1, ...(logX ? { range: span } : {}) };
-    const yAxis = { ...axis(yLabel, 30, !!logY), size: 56 };
+      : { time: false, distr: logX ? 3 : 1, ...(logX ? { range: span } : half > 0 ? { range: binned } : {}) };
+    // an empty title keeps uPlot's 30 px band, where drawYTitle writes the real one
+    const yAxis = { ...axis('', 30, !!logY), size: 56 };
     const options: uPlot.Options = {
       width: Math.max(160, host.clientWidth),
       height: Math.max(120, host.clientHeight),
@@ -238,7 +319,9 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         { label: xLabel },
         ...series.map((s): uPlot.Series => {
           const stroke = colours.resolve(s.colour);
-          const bars = s.align ? uPlot.paths.bars?.({ size: [0.36, 48], align: s.align }) : uPlot.paths.bars?.({ size: [0.8, 64] });
+          // a category's bar stops at 64 px; a histogram's keeps its share of the bin, or at 2560 px its bars
+          // stood apart like categories
+          const bars = s.align ? uPlot.paths.bars?.({ size: [0.36, 48], align: s.align }) : uPlot.paths.bars?.({ size: [0.8, categories ? 64 : Infinity] });
           return {
             label: s.label, stroke, width: s.width ?? 2, dash: s.dash, show: !hiddenRef.current.has(s.label),
             ...(s.fillTo !== undefined ? { fill: `${stroke}22` } : {}),
@@ -249,7 +332,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       ],
       bands: series.flatMap((s, i) => (s.fillTo !== undefined ? [{ series: [i + 1, s.fillTo] as [number, number] }] : [])),
       hooks: {
-        draw: [drawMarks],
+        draw: [drawYTitle, drawMarks],
         setScale: [(self: uPlot, key: string) => {
           if (key !== 'x') return;
           const xs = self.data[0] as number[];
