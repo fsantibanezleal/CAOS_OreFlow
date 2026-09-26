@@ -26,7 +26,11 @@ card for any library it introduces) in the same commit before the next one start
   holds the benchmark's variant metrics equal to the artifacts. The parity test's first run found the
   payable's recovery by size unresolvable in near-empty size classes; both engines now report those
   classes as empty below a declared share. Methodology page 14's findings are pinned to the record.
-- [ ] T17 TypeScript engine port, Web Worker sweeps, parity test on all variants (PE-31, PE-38).
+- [x] T17 TypeScript engine port, Web Worker sweeps, parity test on all variants (PE-31, PE-38).
+  All 72 baked variants reproduce within 1e-6 relative (about 1e-14 on the physical metrics); the
+  kinetic fits' step counts are diagnostics and are not compared. The worker test drives the real
+  worker module; that sweeps start only from an explicit request is checked by
+  `scripts/check_ui_formulas.py`, which lands with T18.
 - [ ] T18 Workbench, circuit, response, methods, compare and focus views on the new trace; locale formatter and document language (PE-35, PE-36, PE-37).
 - [ ] T19 Methodology, Introduction, Implementation, Experiments, Benchmark content, citations and architecture modal from the dossier.
 - [ ] T20 `docs/` wiki tree, README, STRUCTURE, CHANGELOG, manuscript rewrite.
