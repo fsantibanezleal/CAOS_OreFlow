@@ -1,5 +1,18 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `deploy/setup-vps.sh` now works as an update path as well as a first install:
+  - it restarts the running service, which `enable --now` left on the code it had loaded;
+  - it installs only the packages that are missing, where it had reinstalled and so upgraded them,
+    the host's shared nginx among them;
+  - once the certificate exists it installs the TLS virtual host directly. On a rerun the plain one
+    had been loaded first, for a few seconds, and HTTPS for this name reached another site;
+  - it retries its local health checks while the restarted port refuses connections;
+  - it adds the repository to git's safe directories once, not on every run.
+
 ## [0.05.001] - 2026-09-26
 
 A patch of 0.05.000:

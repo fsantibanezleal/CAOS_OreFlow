@@ -80,18 +80,32 @@ validator).
 
 ### Setting up and updating the host
 
-`deploy/setup-vps.sh`, run as root on the host, is idempotent. It installs git, nginx, certbot and the
-other packages it needs (the package manager also upgrades any that has a newer version), and Node 22
-when the host has an older one; creates the `fasl` user; clones the repository or fast-forwards `main`; creates
-the virtual environment and installs the runtime; builds the site; installs the systemd unit and the
-HTTP virtual host and enables the service; requests a certificate if none exists; then installs the
-explicit TLS virtual host (`deploy/oreflow.nginx.tls`), so on a host serving many sites the request for
-this name gets this certificate; and ends by checking `/healthz` and `/api/cases` on the local port.
-The script sets a host up; it does not restart a service that is already running, and it may upgrade
-packages the host's other sites share. An update therefore takes the script's own steps and no more:
-fast-forward `main`, install the runtime requirements, build the site, return the checkout to `fasl`,
-restart `oreflow.service`, and check `/healthz` and `/api/cases` on the local port (the releases from
-0.04.000 on were deployed so).
+`deploy/setup-vps.sh`, run as root on the host, sets it up and, run again, updates it. In order, it:
+- installs git, nginx, certbot and the other packages it needs, only where they are missing:
+  installing a package that is present upgrades it, and nginx serves the host's other sites;
+- installs Node 22 when the host has an older one;
+- creates the `fasl` user;
+- clones the repository or fast-forwards `main`;
+- creates the virtual environment, installs the runtime and builds the site;
+- installs the systemd unit, enables the service and restarts it, so a running service loads the new code;
+- installs the virtual host. Once the certificate exists this is the explicit TLS one
+  (`deploy/oreflow.nginx.tls`), so on a host serving many sites the request for this name always gets
+  this certificate. On a first install the script serves plain HTTP, requests the certificate and then
+  installs the TLS host;
+- checks `/healthz` and `/api/cases` on the local port, retrying while the restarted port refuses
+  connections.
+
+Its rerun path was checked against the ML host on 2026-09-26: no package was missing, the certificate
+was present, and the installed unit and virtual host were identical to the repository's. It has not yet
+been run as an update. The releases so far took only the steps an update needs:
+1. fast-forward `main`;
+2. install the runtime requirements;
+3. build the site;
+4. return the checkout to `fasl`;
+5. restart `oreflow.service`;
+6. check `/healthz` and `/api/cases` on the local port.
+
+The releases from 0.04.000 to 0.05.001 were deployed this way.
 
 ## Verifying a release from outside
 
