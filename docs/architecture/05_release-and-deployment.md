@@ -80,13 +80,18 @@ validator).
 
 ### Setting up and updating the host
 
-`deploy/setup-vps.sh`, run as root on the host, is idempotent. It installs git, nginx, certbot and
-Node 22 where missing; creates the `fasl` user; clones the repository or fast-forwards `main`; creates
+`deploy/setup-vps.sh`, run as root on the host, is idempotent. It installs git, nginx, certbot and the
+other packages it needs (the package manager also upgrades any that has a newer version), and Node 22
+when the host has an older one; creates the `fasl` user; clones the repository or fast-forwards `main`; creates
 the virtual environment and installs the runtime; builds the site; installs the systemd unit and the
 HTTP virtual host and enables the service; requests a certificate if none exists; then installs the
 explicit TLS virtual host (`deploy/oreflow.nginx.tls`), so on a host serving many sites the request for
 this name gets this certificate; and ends by checking `/healthz` and `/api/cases` on the local port.
-An update is the same script: it fast-forwards, rebuilds and restarts.
+The script sets a host up; it does not restart a service that is already running, and it may upgrade
+packages the host's other sites share. An update therefore takes the script's own steps and no more:
+fast-forward `main`, install the runtime requirements, build the site, return the checkout to `fasl`,
+restart `oreflow.service`, and check `/healthz` and `/api/cases` on the local port (the releases from
+0.04.000 on were deployed so).
 
 ## Verifying a release from outside
 
@@ -111,4 +116,4 @@ The commit, the workflow runs and the outcome of each check are recorded per rel
 ## Rolling back
 
 Restore the previous reviewed `main` commit through a pull request, let Pages redeploy from the push,
-run `deploy/setup-vps.sh` again on the host, and repeat the checks above.
+take the update steps above on the host, and repeat the checks above.
