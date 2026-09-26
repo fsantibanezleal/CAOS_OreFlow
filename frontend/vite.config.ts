@@ -16,6 +16,9 @@ function caseIds(): string[] {
 
 export default defineConfig({
   base: process.env.VITE_BASE_PATH || '/',
+  // the port imports the Python engine's data files and the release VERSION from outside frontend/: the
+  // dev server may serve the repository, and nothing wider, whatever Vite's default search finds
+  server: { fs: { allow: [join(here, '..')] } },
   resolve: {
     dedupe: ['react', 'react-dom', 'react-router', 'zustand'],
     // onnxruntime-web's build without an embedded WebAssembly URL: the runtime is served once, from
