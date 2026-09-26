@@ -633,7 +633,7 @@ const LEARNED: Topic = {
       es: 'El guardia levanta una falsa alarma en 1,3% de los estados reservados de la envolvente y acepta 17,0% de las sondas fuera de ella; casi todas salen a lo largo de la carga circulante, el agua del rebose o la abertura del chancador (91 a 97% de esas sondas aceptadas): el guardia apenas nota un estado que solo es inusual en esas entradas. Reservadas, las plantas de oro, magnetita, fosfato, cobre oxidado y oro refractario se marcan en cada estado, y las otras siete plantas en a lo más 11% de los suyos: el guardia dice cuándo el sustituto está fuera de lo que conoce, y la tabla de particiones muestra por qué importa.' },
   ],
   equations: [
-    { tex: r`\tilde R^2 = \operatorname{median}_{c}\ R^2_{c}`, caption: { en: 'The transfer score: the median over the twelve folds of the R² on the held-out case c.', es: 'El puntaje de transferencia: la mediana sobre las doce particiones del R² en el caso reservado c.' } },
+    { tex: { en: r`\tilde R^2 = \operatorname{median}_{c}\ R^2_{c}`, es: r`\tilde R^2 = \operatorname{mediana}_{c}\ R^2_{c}` }, caption: { en: 'The transfer score: the median over the twelve folds of the R² on the held-out case c.', es: 'El puntaje de transferencia: la mediana sobre las doce particiones del R² en el caso reservado c.' } },
   ],
   limits: [
     { en: 'The surrogates learn this engine on these twelve authored plants; leave one case out bounds their transfer to a thirteenth authored plant, not to a real one.', es: 'Los sustitutos aprenden este motor en estas doce plantas de autor; dejar un caso fuera acota su transferencia a una decimotercera planta de autor, no a una real.' },
