@@ -11,7 +11,7 @@ import type { OperatingContract } from '../../engine/contract';
 import type { OperatingPoint } from '../../engine/model';
 import type { SweepCell } from '../../engine/sweep';
 import type { CaseArtifact, OptimizationRecord } from '../../lib/artifacts.types';
-import { formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../lib/format';
+import { formatFixed, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../lib/format';
 import { metricLabel, t, UI } from '../../lib/i18n';
 import { Chart } from '../../components/charts/Chart';
 import { Heatmap } from '../../components/charts/Heatmap';
@@ -94,6 +94,10 @@ export function ResponseView({ contract, artifact, optimization, point, lang, on
     );
   } else if (cells.length > 0) {
     const [ax, ay] = axes;
+    // one precision per heatmap axis, from its grid step, so its ticks read alike (0.0 to 75.0, not 0.00
+    // beside 18.8; 75 to 300, not 75.0 beside 131); a log10 of a display step, not an engine quantity
+    const stepDecimals = (values: number[]) => Math.max(0, 1 - Math.floor(Math.log10(Math.abs(values[1] - values[0]) || 1)));
+    const [xd, yd] = [stepDecimals(ax.values), stepDecimals(ay.values)];
     const grid = (fn: (c: SweepCell) => number | null) => ay.values.map((_, j) => ax.values.map((_, i) => {
       const c = cells.find(cc => cc.index[0] === i && cc.index[1] === j);
       return c && c.accepted ? fn(c) : null;
@@ -108,7 +112,7 @@ export function ResponseView({ contract, artifact, optimization, point, lang, on
         summary={`${metricLabel(metric, lang)} ${lang === 'es' ? 'sobre' : 'over'} ${declared[xInput].label[lang]} ${lang === 'es' ? 'y' : 'and'} ${declared[yInput].label[lang]}`}
         contours={[{ field: gradeSlack, label: TEXT.grade[lang], colour: '--color-fg' }, { field: powerSlack, label: TEXT.power[lang], colour: '--color-bad' }]}
         points={points}
-        format={(v, axis) => (axis === 'x' ? formatValue(v, unitOf(xInput), lang) : axis === 'y' ? formatValue(v, unitOf(yInput), lang) : formatSignificant(v, lang, 3))}
+        format={(v, axis) => (axis === 'x' ? formatFixed(v, lang, xd) : axis === 'y' ? formatFixed(v, lang, yd) : formatSignificant(v, lang, 3))}
         onCell={cell => onCursor(cell ? `${declared[xInput].label[lang]} ${formatWithUnit(cell.x, unitOf(xInput), lang)}, ${declared[yInput].label[lang]} ${formatWithUnit(cell.y, unitOf(yInput), lang)}: ${cell.z === null ? t(UI.rejected, lang) : formatWithUnit(cell.z, metricUnit, lang)}` : null)} />
     );
   }
