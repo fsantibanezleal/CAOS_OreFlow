@@ -132,16 +132,18 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
   const m = trace.metrics;
   if (charts.capture) {
     return (
-      <div className="of-view of-grid-1x2">
+      // the facts, a strip under the chart on a large screen (of-grid-strip)
+      <div className="of-view of-grid-1x2 of-grid-strip">
         {charts.capture}
-        <Facts trace={trace} lang={lang} keys={['recovery_pct', 'magnetite_recovery_pct', 'concentrate_grade', 'concentrate_SiO2', 'mass_pull_pct', 'tail_grade']} />
+        <Facts trace={trace} lang={lang} framed keys={['recovery_pct', 'magnetite_recovery_pct', 'concentrate_grade', 'concentrate_SiO2', 'mass_pull_pct', 'tail_grade']} />
       </div>
     );
   }
   const kinetics = (trace.methods as { kinetics: Kinetics }).kinetics;
   const models = kinetics.models ?? [];
   return (
-    <div className="of-view of-grid-2x2">
+    // the kinetic table and the facts, a strip under the charts on a large screen (of-grid-strip-panel)
+    <div className="of-view of-grid-2x2 of-grid-strip-panel">
       {charts.recovery_by_size}
       {charts.bank_profile}
       {charts.deslime ?? charts.kinetics}
@@ -166,9 +168,10 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
   );
 }
 
-function Facts({ trace, lang, keys }: { trace: Trace; lang: Lang; keys: string[] }) {
+// framed: a facts list that stands in the grid by itself (in a panel it takes the panel's frame)
+function Facts({ trace, lang, keys, framed = false }: { trace: Trace; lang: Lang; keys: string[]; framed?: boolean }) {
   return (
-    <dl className="of-facts">
+    <dl className={framed ? 'of-facts of-grid-facts' : 'of-facts'}>
       {keys.filter(k => k in trace.metrics).map(k => <div key={k}><dt>{metricLabel(k, lang)}</dt><dd>{formatWithUnit(trace.metrics[k], trace.metric_units[k], lang)}</dd></div>)}
     </dl>
   );

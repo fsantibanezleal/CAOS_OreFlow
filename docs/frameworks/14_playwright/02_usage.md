@@ -47,6 +47,7 @@ against a state with the defect and seen to fail, then against the fixed state a
 | document height | the larger of `<html>`'s and `<body>`'s scroll height against the viewport | an App-route check that read the pinned height and could never fail |
 | view list | the gate's list of views against the app's tab bar | (structural: a new view added to the app would otherwise never be measured) |
 | scroll tables | on a content page at the gated desktop sizes, any table whose scroll box needs a sideways scroll | the uncertainty table, 135 px wider than its box at 1280x800 in Spanish |
+| text panels | on the App route, each text panel beside the charts (facts, tables, notes): the extent of its content against its height, at least 0.3 | at 2560x1440 the Grinding facts filled a fifth of their cell and the Methods tables a fifth to a third of their column |
 | flowsheet drawing | the union of the drawn units, streams and labels against the svg's frame (its box less the overlay inset the diagram declares, at most a quarter of each axis): at least 90% on the limiting axis, and inside the frame | at 2560x1440 the circuit spanned 74.5% of its frame's width and half its height, and the focus view 73.4%, while the svg element's own box passed the 80% check at 86.7% |
 
 The App route additionally requires one row of tabs, a rail that fits without scrolling, the active view

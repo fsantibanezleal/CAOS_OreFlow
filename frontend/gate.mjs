@@ -17,7 +17,8 @@
  *   view) at least half the viewport, and `<html lang>` equal to the interface language; where the
  *   flowsheet is on the stage, what it drew (units, streams and labels) must span at least 90% of its
  *   frame on the limiting axis and stay inside it, since the svg element always fills its host and its
- *   own box says nothing about the drawing;
+ *   own box says nothing about the drawing; and every text panel beside the charts filled at least 30%
+ *   by its content;
  * - opens the architecture modal and checks every tab (ADR-0058): the diagram inlined, only the
  *   interface language's text shown, every text inside the diagram and inside any box it touches;
  * - enters the focus route by clicking, measures the stage and its largest chart (at least 80%) and the
@@ -248,6 +249,16 @@ async function measure(page, stageSelector) {
       const insetOk = l + r <= 0.25 * s.width && t + b <= 0.25 * s.height;
       drawn = { fill: +fill.toFixed(3), width: +((x1 - x0) / fw).toFixed(3), height: +((y1 - y0) / fh).toFixed(3), inside, inset: [t, r, b, l], zoom: +(flow.dataset.zoom ?? 1), ok: fill >= 0.9 && inside && insetOk };
     }
+    // a text panel beside the charts must not stand mostly empty: its children's extent against its own
+    // height (at 2560x1440 the Grinding facts filled a fifth of their cell, the Sobol table a fifth of
+    // its column); a panel whose content is taller scrolls inside and reads above 1
+    const panels = [...document.querySelectorAll('.of-view-host .of-panel, .of-view-host .of-aside, .of-view-host .of-grid-facts')]
+      .filter(p => p.getBoundingClientRect().height > 0)
+      .map(p => {
+        const box = p.getBoundingClientRect();
+        const kids = [...p.children].map(c => c.getBoundingClientRect()).filter(q => q.height > 0);
+        return kids.length ? +((Math.max(...kids.map(q => q.bottom)) - Math.min(...kids.map(q => q.top))) / box.height).toFixed(2) : 0;
+      });
     return {
       // shell known defect 1 pins documentElement.scrollHeight to the viewport, so the height is read
       // through <body> as well: either one taller than the viewport is a document scroll
@@ -259,11 +270,12 @@ async function measure(page, stageSelector) {
       stage: selector ? +(area(document.querySelector(selector)) / viewport).toFixed(3) : null,
       largestViz: +(viz / viewport).toFixed(3),
       drawn,
+      panels,
       lang: de.lang,
     };
   }, stageSelector ?? null);
   return { ...m, outside, clipped, cut, decimals, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0,
-    filled: m.drawn === null || m.drawn.ok };
+    filled: (m.drawn === null || m.drawn.ok) && m.panels.every(f => f >= 0.3) };
 }
 
 // what every workbench view must hold (ADR-0071), in the interface language
