@@ -337,7 +337,7 @@ input, select, textarea { font: inherit; }
 .of-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
 /* ---- the focus route ---- */
-/* The shell's rail column, clamp(300px, 20vw, 340px), leaves the stage 76.5% of a 1280x800 viewport,
+/* The shell's rail column, clamp(300px, 20vw, 340px), leaves the stage 76.6% of a 1280x800 viewport,
    under the ADR-0070 80% floor; a narrower lower bound keeps the floor at every gated viewport
    (80.6% at 1280x800, 81% at 1600x900, 86.7% at 2560x1440). Recorded in shell-known-defects.md. */
 @media (min-width: 861px) {
