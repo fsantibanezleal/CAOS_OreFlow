@@ -244,6 +244,10 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
 
   await page.goto(`${BASE}/?case=${CASE}`, { waitUntil: 'networkidle', timeout: 90000 });
   await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
+  // the gate walks its own list, where each view's special handling is declared: a view added to the app
+  // and not to this list would never be measured, so the two must agree
+  const tabs = await page.locator('.of-viewbar [role=tab]').count();
+  record(`${tag} view list`, tabs === VIEWS.length, { tabs, gate: VIEWS.length });
   for (const [index, view] of VIEWS.entries()) {
     await page.locator('.of-viewbar [role=tab]').nth(index).click();
     if (view === 'response') {
