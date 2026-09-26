@@ -458,6 +458,7 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                "guard_feature_mean": final_guard["_standardizer"].mean.tolist(),
                "guard_feature_scale": final_guard["_standardizer"].scale.tolist(), "guard_threshold": final_guard["threshold"]}
     (models_dir / "process_surrogate.json").write_text(json.dumps(scalers, indent=1) + "\n", encoding="utf-8", newline="\n")
+    write_surrogate_reference(models_dir, cases)
     summary: dict[str, Any] = {}
     for model_name in MODELS:
         summary[model_name] = {}
@@ -487,3 +488,39 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                   "guard_threshold": final_guard["threshold"], "exports": exports},
         "seconds": time.perf_counter() - started,
     }
+
+
+def surrogate_reference(models_dir: Path, cases: tuple[CaseDef, ...] = CASES) -> list[dict[str, Any]]:
+    """Features and ONNX Runtime outputs of the exported surrogate and guard at every case's nominal point.
+
+    Written into ``process_surrogate.json`` so the browser, which recomputes the features and runs the
+    same ONNX files, can be checked against this reference end to end.
+    """
+    import onnxruntime
+
+    scalers = json.loads((models_dir / "process_surrogate.json").read_text(encoding="utf-8"))
+    surrogate = onnxruntime.InferenceSession(str(models_dir / "process_surrogate.onnx"), providers=["CPUExecutionProvider"])
+    guard_model = onnxruntime.InferenceSession(str(models_dir / "process_guard.onnx"), providers=["CPUExecutionProvider"])
+    fm, fs = np.asarray(scalers["feature_mean"]), np.asarray(scalers["feature_scale"])
+    tm, ts = np.asarray(scalers["target_mean"]), np.asarray(scalers["target_scale"])
+    gm, gs = np.asarray(scalers["guard_feature_mean"]), np.asarray(scalers["guard_feature_scale"])
+    out = []
+    for case in cases:
+        factors = {name: 1.0 for name in _ore_factors(case)}
+        x = np.asarray(features(case, case.nominal, factors))
+        standardized = ((x - fm) / fs).astype(np.float32)[None, :]
+        prediction = surrogate.run(None, {"features": standardized})[0][0].astype(np.float64) * ts + tm
+        guard_input = ((x - gm) / gs).astype(np.float32)[None, :]
+        reconstruction = guard_model.run(None, {"features": guard_input})[0][0].astype(np.float64)
+        error = float(np.mean((reconstruction - guard_input[0].astype(np.float64)) ** 2))
+        out.append({"case_id": case.id, "features": [float(v) for v in x],
+                    "prediction": {name: float(v) for name, v in zip(TARGETS, prediction)},
+                    "guard_error": error, "guard_flag": error > scalers["guard_threshold"]})
+    return out
+
+
+def write_surrogate_reference(models_dir: Path, cases: tuple[CaseDef, ...] = CASES) -> None:
+    path = models_dir / "process_surrogate.json"
+    scalers = json.loads(path.read_text(encoding="utf-8"))
+    scalers["reference"] = surrogate_reference(models_dir, cases)
+    path.write_text(json.dumps(scalers, indent=1) + "\n", encoding="utf-8", newline="\n")

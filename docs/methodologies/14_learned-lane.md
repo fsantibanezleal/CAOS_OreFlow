@@ -84,6 +84,84 @@ or the export fails. `models/process_surrogate.json` carries the feature and tar
 guard threshold, so the browser can standardize a state, run both models and flag an out-of-envelope
 one.
 
+## Findings
+
+The bake of 2026-09-26 trained and scored every model on 3072 engine states (256 per case,
+CUDA for the networks). The tables are transcribed from `data/derived/learning.json`, and
+`tests/test_learning_findings.py` fails if a number here and the record disagree.
+
+| Model | Recovery: interpolation R² | Recovery: LOCO median R² | Recovery: LOCO mean RMSE (pts) | Log upgrade: interpolation R² | Log upgrade: LOCO median R² | Log upgrade: LOCO mean RMSE | Energy: interpolation R² | Energy: LOCO median R² | Energy: LOCO mean RMSE (kWh/t) |
+|---|---|---|---|---|---|---|---|---|---|
+| Ridge | 0.678 | 0.531 | 18.5 | 0.885 | -14.358 | 1.27 | 0.805 | -0.204 | 5.78 |
+| Random forest | 0.834 | 0.606 | 12.1 | 0.997 | -0.218 | 0.18 | 0.963 | 0.858 | 1.44 |
+| Gradient boosting | 0.909 | 0.749 | 11.8 | 0.998 | -0.883 | 0.15 | 0.974 | 0.887 | 1.33 |
+| Gaussian process | 0.837 | 0.496 | 13.3 | 0.999 | -2.420 | 0.26 | 0.980 | 0.508 | 3.04 |
+| MLP | 0.968 | 0.216 | 42.1 | 0.998 | -0.494 | 0.65 | 0.992 | 0.697 | 3.67 |
+
+- **Interpolation is easy; transfer is not.** Inside the twelve cases' envelopes every model but ridge
+  explains more than four fifths of the recovery variance, the MLP most of all. On a case it never saw,
+  gradient boosting keeps the best median R² with a mean error near twelve recovery points, while the
+  MLP, the best interpolator, falls the furthest: it has learned these plants, not flotation.
+- **The upgrade ratio does not transfer.** Every model reproduces the log upgrade within a case, the
+  tree models almost exactly, and every model's leave-one-case-out median R² is below zero: the
+  concentrate-to-head ratio depends on each plant's cleaner circuit and mineral system, which the
+  features describe only in part.
+- **Energy transfers.** The forest and gradient boosting keep a median R² near 0.9 on unseen cases,
+  with a mean error of about 1.3 to 1.4 kWh/t: specific energy follows throughput per megawatt, work
+  index and grind, which the features carry directly.
+- **The exported surrogate is the MLP**, trained on every state after evaluation (early stopping
+  restored epoch 1804 of 1954). It suits fast interpolation inside the trained envelopes and not a new plant;
+  the workbench's Methods view shows its answer beside the engine's, with these results and the guard's
+  verdict.
+
+| Gaussian process, interpolation split | Recovery | Log upgrade | Energy |
+|---|---|---|---|
+| Coverage of the nominal 95% interval | 89.2% | 92.0% | 95.6% |
+
+The Gaussian process's nominal 95% intervals are slightly overconfident for recovery and close to
+nominal for energy.
+
+| Guard | Value |
+|---|---|
+| Threshold (mean squared error) | 0.363 |
+| False alarms on held-out in-envelope states | 1.3% |
+| False accepts on shifted probes | 17.0% |
+| States of the held-out case flagged (mean over folds) | 42.8% |
+
+| Held-out case | Flagged by the guard |
+|---|---|
+| Soft copper porphyry | 0.4% |
+| Hard copper porphyry | 0.4% |
+| Free-milling gold with gravity | 100.0% |
+| Fine magnetite concentration | 100.0% |
+| Nickel sulphide with serpentine slimes | 10.9% |
+| Phosphate with clay slimes | 100.0% |
+| Copper-molybdenum bulk flotation | 0.0% |
+| Oxide copper by sulphidisation | 100.0% |
+| Zinc sulphide | 1.6% |
+| Copper ore with clay | 0.4% |
+| Low-grade copper at high throughput | 0.4% |
+| Refractory gold in sulphides | 100.0% |
+
+**The guard does what it is for.** Its false alarms sit near the 1% its threshold implies, and it
+accepts about a sixth of the probes pushed half a training range outside one feature. On an unseen
+case its verdict is bimodal: it flags every state of the five plants unlike any other (gravity gold,
+magnetite, phosphate with desliming, oxide copper by sulphidisation, refractory gold) and almost none
+of the copper sulphide cases, whose features lie among the other copper plants'. The mean over folds is
+the average of those two correct answers, not a middling detection rate.
+
+| Feature (gradient boosting, recovery) | RMSE increase when permuted (pts) |
+|---|---|
+| `specific_throughput_t_h_mw` | 10.31 |
+| `dose_ratio` | 10.12 |
+| `work_index_kwh_t` | 4.74 |
+| `grind_to_liberation` | 4.24 |
+| `rougher_volume_m3_per_tph` | 3.85 |
+
+The gradient-boosting surrogate leans on throughput per installed megawatt and the collector dose
+ratio, then on work index, grind relative to liberation and rougher volume per t/h: the grinding
+capacity, reagent kinetics, liberation and residence the engine's recovery responds to.
+
 ## Verification
 
 - `tests/test_learning.py::test_protocols_and_model_identity` (PE-29), on a sandbox design of three
@@ -95,6 +173,8 @@ one.
   exports reproduce PyTorch and ship their scalers.
 - `test_design_is_seeded_and_inside_the_envelope`, `test_protocol_splits` and
   `test_features_never_see_the_case_identity`.
+- `tests/test_learning_findings.py`: every number of the findings tables above equals the record in
+  `data/derived/learning.json` at the precision printed here.
 
 ## What it is not
 

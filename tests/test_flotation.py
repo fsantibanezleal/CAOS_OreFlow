@@ -60,6 +60,18 @@ def test_cleaner_recycle_converges(case_id):
         assert f.relative_change < 1e-12, (case_id, variant["id"], f.relative_change, f.iterations)
 
 
+@pytest.mark.parametrize("case_id", flotation_cases())
+def test_recovery_by_size_is_empty_only_in_the_tails(case_id):
+    """The payable's recovery by size is a fraction where a class holds payable and null where it holds
+    none that float64 can resolve: never a zero invented for an empty class (PE-31)."""
+    curve = run_variant(case_id, "nominal").curves["recovery_by_size"]["primary"]
+    present = [i for i, value in enumerate(curve) if value is not None]
+    assert len(present) >= 20
+    assert present == list(range(present[0], present[-1] + 1))
+    assert curve[0] is None                       # the coarsest class never reaches the rougher
+    assert all(0.0 <= curve[i] <= 1.0 for i in present)
+
+
 def test_stage_and_overall_recovery_are_distinct():
     for case_id in ("gold_free_milling", "phosphate_clay"):
         m = run_variant(case_id, "nominal").metrics

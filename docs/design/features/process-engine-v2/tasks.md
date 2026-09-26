@@ -20,7 +20,12 @@ card for any library it introduces) in the same commit before the next one start
 - [x] T14 Uncertainty and Sobol (PE-28): scrambled Latin hypercube, authored spreads, SALib Saltelli indices.
 - [x] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29); the baked
   results and the test that pins the page's findings land with T16.
-- [ ] T16 Pipeline stages, artifacts, manifests, benchmark, non-vacuous validation, check_artifacts (PE-02).
+- [x] T16 Pipeline stages, artifacts, manifests, benchmark, non-vacuous validation, check_artifacts (PE-02).
+  Canonical bake of 2026-09-26: 12 cases and 72 variants, validation passed (cases 327 s on twelve
+  workers, learning 1972 s with CUDA). The checker also rejects a case file the index does not list and
+  holds the benchmark's variant metrics equal to the artifacts. The parity test's first run found the
+  payable's recovery by size unresolvable in near-empty size classes; both engines now report those
+  classes as empty below a declared share. Methodology page 14's findings are pinned to the record.
 - [ ] T17 TypeScript engine port, Web Worker sweeps, parity test on all variants (PE-31, PE-38).
 - [ ] T18 Workbench, circuit, response, methods, compare and focus views on the new trace; locale formatter and document language (PE-35, PE-36, PE-37).
 - [ ] T19 Methodology, Introduction, Implementation, Experiments, Benchmark content, citations and architecture modal from the dossier.

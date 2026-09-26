@@ -6,15 +6,16 @@ import pytest
 from engine_helpers import run_variant
 from pipeline.engine.comminution import bond_energy, operating_work_index
 from pipeline.engine.energy import kick, rittinger
+from pipeline.methods import oracles
 
 
 def test_gmg_worked_example():
-    # GMG01-MP-2021 section 4.2.1: 3150 kW, 450 t/h, F80 2500 um, P80 212 um, test Wi 16.1 kWh/t.
-    w = 3150.0 / 450.0
-    assert w == pytest.approx(7.0)
-    assert operating_work_index(w, 2500.0, 212.0) == pytest.approx(14.4, abs=0.05)
-    # Section 4.2.2: W 8.56 kWh/t, F80 19300 um, P80 155 um gives 11.7 kWh/t.
-    assert operating_work_index(8.56, 19300.0, 155.0) == pytest.approx(11.7, abs=0.05)
+    # GMG01-MP-2021 sections 4.2.1 and 4.2.2, from the oracle record the benchmark stores
+    record = oracles.gmg()
+    assert record["within_tolerance"]
+    first = record["examples"][0]
+    assert first["specific_energy_kwh_t"] == pytest.approx(7.0)
+    assert operating_work_index(first["specific_energy_kwh_t"], 2500.0, 212.0) == pytest.approx(14.4, abs=0.05)
     assert bond_energy(16.1, 1000.0, 212.0) == pytest.approx(5.97, abs=0.01)
 
 

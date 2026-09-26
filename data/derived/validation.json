@@ -1,11 +1,1 @@
-{
-  "checks": {
-    "case_count": true,
-    "mass_balance": true,
-    "method_cells": true,
-    "variant_count": true
-  },
-  "max_mass_balance_error_pct": 2.842170943040401e-14,
-  "schema": "oreflow.validation/v1",
-  "status": "passed"
-}
+{"schema":"oreflow.validation/v2","engine_version":"0.05.000","contract_digest":"ecc7d8badf6c49222ce7840099e737d883d8703411e17955aced4ba935d001b6","passed":true,"errors":[],"stages":["contract","cases","learning","benchmark","manifests","validation"],"workers":12,"seconds":{"contract":0.00970959999904153,"cases":326.62310600000274,"learning":1971.9170614000031,"benchmark":0.15661580000596587,"manifests":0.09513980000338051,"validation":0.3554885999983526}}

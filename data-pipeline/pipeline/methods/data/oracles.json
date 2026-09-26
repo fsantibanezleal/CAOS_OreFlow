@@ -1,0 +1,113 @@
+{
+  "schema": "oreflow.oracles/v1",
+  "note": "Published examples the engine is checked against. Each is a published tool or paper example, not plant data. Values under 'published' are transcribed from the research dossier of 2026-09-26; values under 'authored' are inputs the example does not state and this product chose.",
+  "molycop": {
+    "source": "Moly-Cop Tools BallSim_Direct base case with the BallParam_Direct default parameters (Sepulveda); dossier section 1.5.",
+    "published": {
+      "feed_tph": 504.0,
+      "feed_f80_um": 6913.0,
+      "p80_um": 169.4,
+      "circulating_load": 2.77,
+      "gross_specific_energy_kwh_t": 8.56,
+      "discharge_solids": 0.72,
+      "cyclone_diameter_cm": 66.0,
+      "cyclones": 6,
+      "cyclone_pressure_psi": 7.7
+    },
+    "parameters": {
+      "alpha0": 0.0091,
+      "alpha1": 0.651,
+      "alpha2": 2.5,
+      "critical_size_um": 6514.0,
+      "beta0": 0.2,
+      "beta1": 0.249,
+      "beta2": 4.02
+    },
+    "authored": {
+      "work_index_kwh_t": 12.0,
+      "overflow_water_m3_t": 1.857,
+      "feed_slope": 0.9,
+      "cyclone_sharpness": 1.66,
+      "underflow_solids": 0.75,
+      "inlet_cm": 19.0,
+      "vortex_cm": 24.0,
+      "apex_cm": 14.0,
+      "free_vortex_height_cm": 200.0,
+      "why": "The work index equals the reference work index, so the default selection function applies unscaled; the overflow is at 35% solids; the feed shape and the cyclone geometry are not stated in the example. The head grade (0.5% Cu) only sets the mineral split; installed power is unlimited so the solver meets the published P80.",
+      "head_grade_pct": 0.5
+    },
+    "tolerance": {
+      "p80_um": 0.005,
+      "circulating_load": 0.005,
+      "gross_specific_energy_kwh_t": 0.2
+    }
+  },
+  "gmg": {
+    "source": "Global Mining Guidelines Group, GMG01-MP-2021, sections 4.2.1 and 4.2.2; dossier section 1.1.",
+    "examples": [
+      {
+        "power_kw": 3150.0,
+        "throughput_tph": 450.0,
+        "f80_um": 2500.0,
+        "p80_um": 212.0,
+        "operating_work_index_kwh_t": 14.4
+      },
+      {
+        "specific_energy_kwh_t": 8.56,
+        "f80_um": 19300.0,
+        "p80_um": 155.0,
+        "operating_work_index_kwh_t": 11.7
+      }
+    ],
+    "tolerance_abs_kwh_t": 0.05
+  },
+  "laplante": {
+    "source": "Laplante and Staunton, gravity recovery of gold, simulator example (AMIRA P420B); dossier section 4.",
+    "published": {
+      "bleed": [
+        0.1,
+        0.2,
+        0.3,
+        0.4,
+        0.5,
+        0.6
+      ],
+      "gold_recovery_pct": [
+        64.1,
+        71.0,
+        73.8,
+        75.4,
+        76.2,
+        77.1
+      ],
+      "grg_circulating_load_pct": [
+        2016.0,
+        1125.0,
+        784.0,
+        683.0,
+        511.0,
+        413.0
+      ]
+    },
+    "why": "A trend oracle: the published plant (150 t/h, 2.0 g/t, 250% circulating load) is not the engine's gold case, so the check is the direction and the diminishing returns, and that gold circulates far more than the ore."
+  },
+  "zandrivierspoort": {
+    "source": "Muthaphuli, P. (2014), Production of pelletizing concentrates from Zandrivierspoort magnetite/haematite ore by magnetic separation, J. S. Afr. Inst. Min. Metall. 114(7); dossier section 5.",
+    "published": {
+      "grind_p80_um": [
+        75.0,
+        45.0
+      ],
+      "concentrate_fe_pct": [
+        64.9,
+        69.0
+      ],
+      "concentrate_silica_pct": [
+        7.7,
+        2.25
+      ],
+      "rougher_magnetite_recovery_min_pct": 98.0
+    },
+    "why": "A trend oracle: the published ore is magnetite with haematite; the engine's case is magnetite in an iron silicate, so the check is that a finer grind raises the concentrate grade within the published range."
+  }
+}

@@ -325,6 +325,11 @@
       "unit": "t/h per t/h of throughput",
       "source": "Numerics: a class mass below minus this tolerance raises a negative-mass flag."
     },
+    "numerics.curve_class_share_floor": {
+      "value": 1e-08,
+      "unit": "1",
+      "source": "Numerics: a size class holding less than this share of the rougher-feed payable is reported empty (null) in the recovery-by-size curve; below it the class composition is round-off of the cyclone split, and the float64 ratio error grows as 1e-16 over the share."
+    },
     "numerics.cut_search_step_ratio": {
       "value": 4.0,
       "unit": "1",

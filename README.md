@@ -36,7 +36,7 @@ npm ci
 npm run build
 ```
 
-The accelerator lane is `.venv-gpu`. The pipeline records the PyTorch device in `models/registry.json`; if the host has no compatible NVIDIA device, it records a CPU fallback rather than claiming GPU execution. The committed model registry records CUDA training on the local RTX 4070 Laptop GPU for the neural tiers; the public browser does not perform GPU training.
+The accelerator lane is `.venv-gpu`. The learned lane records the PyTorch device of every network in `data/derived/learning.json` (`mlp_training.device`); if the host has no compatible NVIDIA device, it records a CPU fallback rather than claiming GPU execution. The public browser does not perform GPU training.
 
 `precompute.ps1` runs both independent lanes. The particle lane needs the CC BY 4.0 workbook fetched by `fetch-data.ps1`; to rerun it alone use `./.venv-gpu/Scripts/python.exe data-pipeline/run_particles.py`. Its compact scores, calibration bins and threshold curves are committed in `data/derived/source/hzdr_particle_benchmark.json`, while the executable small ONNX model is `models/particle_mlp.onnx`. The large raw workbook and training checkpoint stay local/ignored. See [data contract](docs/data-contract.md) for leakage and missingness rules.
 
@@ -54,4 +54,4 @@ The research dossier and source ledger are in [docs/research-review.md](docs/res
 
 ## License
 
-Apache-2.0 for code and authored content. External data remains under its source license and is not redistributed in raw form.
+MIT for code and authored content (see `LICENSE`). External data remains under its source license and is not redistributed in raw form.

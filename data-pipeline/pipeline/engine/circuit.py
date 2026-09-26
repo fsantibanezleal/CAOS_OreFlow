@@ -264,8 +264,10 @@ def _curves(r: ResolvedOre, op: OperatingPoint, streams: dict[str, Stream], grin
             value += content[d.id] * x[d.id]
             recovered += content[d.id] * x[d.id] * flotation.rougher.recovery[d.id]
         host = f"{r.host}:free"
+        # a class that holds almost none of the payable (the coarse tail past the cyclone) is empty, not 0%
+        floor = float(constant("numerics.curve_class_share_floor")) * float(value.sum())
         curves["recovery_by_size"] = {
-            "primary": [float(a / b) if b > 0.0 else 0.0 for a, b in zip(recovered, value)],
+            "primary": [float(a / b) if b > floor else None for a, b in zip(recovered, value)],
             "host_gangue": [float(v) for v in flotation.rougher.recovery[host]],
             "host_gangue_entrained_share": [float(v) for v in flotation.rougher.entrained_share[host]],
         }

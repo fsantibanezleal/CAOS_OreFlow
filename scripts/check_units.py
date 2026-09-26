@@ -19,6 +19,7 @@ METHODS_PY = ROOT / "data-pipeline" / "pipeline" / "methods"
 ENGINE_TS = ROOT / "frontend" / "src" / "engine"
 CONSTANTS = ENGINE_PY / "data" / "constants.json"
 STRUCTURAL = {0.0, 1.0, 2.0, 0.5, 100.0, -1.0, 0.25}
+BLOCK_COMMENT = re.compile(r"/\*.*?\*/", re.S)
 TS_NUMBER = re.compile(r"(?<![\w.])(\d+\.\d+(?:e[-+]?\d+)?|\d+e[-+]?\d+)(?![\w.])")
 
 
@@ -37,7 +38,10 @@ def typescript_violations() -> list[str]:
     if not ENGINE_TS.exists():
         return out
     for path in sorted(ENGINE_TS.glob("*.ts")):
-        for lineno, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+        text = path.read_text(encoding="utf-8")
+        # block comments are not code: blank them, keeping their newlines so line numbers stay true
+        text = BLOCK_COMMENT.sub(lambda m: "\n" * m.group(0).count("\n"), text)
+        for lineno, line in enumerate(text.splitlines(), 1):
             code = line.split("//", 1)[0]
             for match in TS_NUMBER.finditer(code):
                 if float(match.group(1)) not in STRUCTURAL:

@@ -61,7 +61,7 @@ classes) and `upper_um` (class upper bounds).
 | `partition` | cyclone partition to underflow, with bypass, for the host gangue and each valuable mineral |
 | `liberation` | liberated fraction of each valuable mineral by size |
 | `composite_scale` | host-limited composite scale by size (1 where the host suffices; methodology page 03) |
-| `recovery_by_size` | rougher recovery by size of the primary payable, of free host gangue, and the entrained share of that gangue |
+| `recovery_by_size` | rougher recovery by size of the primary payable, of free host gangue, and the entrained share of that gangue; the payable's value is `null` in a class holding less than `numerics.curve_class_share_floor` (1e-8) of the rougher-feed payable, where the class composition is round-off of the cyclone split |
 | `bank_profile` | cumulative grade and recovery cell by cell down the rougher bank |
 | `capture` | LIMS capture by size and particle class (magnetite) |
 | `deslime_partition` | desliming cyclone partition by particle class (phosphate) |

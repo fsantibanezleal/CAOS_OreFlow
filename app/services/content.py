@@ -23,7 +23,7 @@ def load_json(rel: str) -> dict | None:
 
 
 def load_index() -> dict:
-    return load_json("manifests/index.json") or {"schema": "oreflow.index/v1", "cases": []}
+    return load_json("manifests/index.json") or {"schema": "oreflow.index/v2", "cases": []}
 
 
 def load_manifest(case_id: str) -> dict | None:
