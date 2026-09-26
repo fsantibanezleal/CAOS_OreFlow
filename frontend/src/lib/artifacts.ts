@@ -3,7 +3,7 @@
  * carries the app version, so a deploy never reads an artifact cached from the previous release.
  */
 import type { OperatingContract } from '../engine/contract';
-import type { Benchmark, CaseArtifact, CaseIndex, CaseManifest, LearningRecord } from './artifacts.types';
+import type { Benchmark, CaseArtifact, CaseIndex, CaseManifest, LearningRecord, ValidationRecord } from './artifacts.types';
 import { APP_VERSION } from './version';
 
 const base = import.meta.env.BASE_URL;
@@ -30,6 +30,7 @@ export const loadCase = (id: string) => get<CaseArtifact>(`cases/${id}.json`);
 export const loadContract = () => get<OperatingContract>('contract/operating_contract.json');
 export const loadBenchmark = () => get<Benchmark>('benchmark.json');
 export const loadLearning = () => get<LearningRecord>('learning.json');
+export const loadValidation = () => get<ValidationRecord>('validation.json');
 
 export type ParticleThreshold = { threshold: number; selected_fraction: number; expected_recovery: number; expected_grade_proxy: number };
 export type ParticleModelEvaluation = {

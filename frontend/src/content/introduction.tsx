@@ -9,33 +9,10 @@ import { loadBenchmark, loadContract, loadIndex } from '../lib/artifacts';
 import { formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
 import { categoryName, CATEGORY, familyName } from '../lib/i18n';
 import { Loaded, useArtifact } from './data';
+import { Arrow, Box, pick } from './figures';
 import type { Bi, Topic } from './doc';
 
 const r = String.raw;
-const pick = (lang: Lang, en: string, es: string) => (lang === 'es' ? es : en);
-
-function Arrow({ id }: { id: string }) {
-  return (
-    <defs>
-      <marker id={id} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-        <path d="M0,0 L10,5 L0,10 z" className="dg-arrowhead" />
-      </marker>
-    </defs>
-  );
-}
-
-/** One box with a title and sub lines; `lines` start 16 px under the title. */
-function Box({ x, y, w, h, title, lines = [], kind }: { x: number; y: number; w: number; h: number; title: string; lines?: string[]; kind?: 'accent' | 'good' | 'optional' }) {
-  const cls = kind === 'accent' ? 'dg-box accent' : kind === 'good' ? 'dg-box good' : kind === 'optional' ? 'dg-box of-dg-optional' : 'dg-box';
-  return (
-    <g>
-      <rect className={cls} x={x} y={y} width={w} height={h} rx="7" />
-      <text className="dg-box-title" x={x + 12} y={y + 20}>{title}</text>
-      {lines.map((line, i) => <text key={i} className="dg-box-sub" x={x + 12} y={y + 36 + 14 * i}>{line}</text>)}
-    </g>
-  );
-}
-
 function OverviewFigure({ lang }: { lang: Lang }) {
   const p = (en: string, es: string) => pick(lang, en, es);
   const arrow = 'url(#of-intro-arrow)';

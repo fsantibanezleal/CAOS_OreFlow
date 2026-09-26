@@ -134,3 +134,14 @@ export type Benchmark = {
   learning: { summary: LearningSummary; identity: Record<string, string>; guard: Record<string, number>; design_rows: number; device: string } | null;
   lanes: Record<string, { path: string; schema: string } | null>;
 };
+
+export type ValidationRecord = {
+  schema: 'oreflow.validation/v2';
+  engine_version: string;
+  contract_digest: string;
+  passed: boolean;
+  errors: string[];
+  stages: string[];
+  workers: number;
+  seconds: Record<string, number>;
+};

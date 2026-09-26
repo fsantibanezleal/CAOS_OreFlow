@@ -24,20 +24,20 @@ function LiberationFigure({ lang }: { lang: Lang }) {
       <text className="dg-tick" x="40" y="204" textAnchor="end">0</text>
       <text className="dg-axis-label" x="160" y="226" textAnchor="middle">{es ? 'tamaño d (escala log)' : 'size d (log scale)'}</text>
       <text className="dg-axis-label" x="18" y="115" textAnchor="middle" transform="rotate(-90 18 115)">{es ? 'fracción liberada L' : 'liberated fraction L'}</text>
-      <g transform="translate(300 40)">
-        <rect className="dg-box accent" x="0" y="0" width="104" height="44" rx="6" />
+      <g transform="translate(288 40)">
+        <rect className="dg-box accent" x="0" y="0" width="126" height="44" rx="6" />
         <circle cx="22" cy="22" r="11" className="dg-fill-accent" />
-        <text className="dg-box-title" x="40" y="20">{es ? 'liberada' : 'liberated'}</text>
-        <text className="dg-box-sub" x="40" y="34">{es ? 'valioso' : 'valuable'}</text>
-        <rect className="dg-box" x="0" y="58" width="104" height="44" rx="6" />
+        <text className="dg-box-title" x="38" y="20">{es ? 'liberada' : 'liberated'}</text>
+        <text className="dg-box-sub" x="38" y="34">{es ? 'valioso' : 'valuable'}</text>
+        <rect className="dg-box" x="0" y="58" width="126" height="44" rx="6" />
         <path d="M 11 80 a 11 11 0 0 1 22 0 z" className="dg-fill-accent" />
         <path d="M 11 80 a 11 11 0 0 0 22 0 z" className="dg-fill-warn" />
-        <text className="dg-box-title" x="40" y="78">{es ? 'mixto' : 'composite'}</text>
-        <text className="dg-box-sub" x="40" y="92">{es ? 'contenido c' : 'content c'}</text>
-        <rect className="dg-box" x="0" y="116" width="104" height="44" rx="6" />
+        <text className="dg-box-title" x="38" y="78">{es ? 'mixto' : 'composite'}</text>
+        <text className="dg-box-sub" x="38" y="92">{es ? 'contenido c' : 'content c'}</text>
+        <rect className="dg-box" x="0" y="116" width="126" height="44" rx="6" />
         <circle cx="22" cy="138" r="11" className="dg-fill-warn" />
-        <text className="dg-box-title" x="40" y="136">{es ? 'libre' : 'free'}</text>
-        <text className="dg-box-sub" x="40" y="150">{es ? 'ganga huésped' : 'host gangue'}</text>
+        <text className="dg-box-title" x="38" y="136">{es ? 'libre' : 'free'}</text>
+        <text className="dg-box-sub" x="38" y="150">{es ? 'ganga huésped' : 'host gangue'}</text>
       </g>
     </svg>
   );

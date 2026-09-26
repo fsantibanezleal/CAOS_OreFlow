@@ -27,6 +27,10 @@ jobs:
         with: {python-version: '3.12'}
       - run: python scripts/check_template_residue.py
       - run: python scripts/check_content_standards.py
+      - name: Every engine constant declared with its unit and source (PE-33)
+        run: python scripts/check_units.py
+      - name: No engine arithmetic in the interface; sweeps only on request (PE-36, PE-38)
+        run: python scripts/check_ui_formulas.py
       - run: python scripts/check_artifacts.py
   frontend:
     runs-on: ubuntu-latest

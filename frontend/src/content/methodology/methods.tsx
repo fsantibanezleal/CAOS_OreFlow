@@ -72,7 +72,8 @@ function UncertaintyFigure({ lang }: { lang: Lang }) {
         {Array.from({ length: 8 }, (_, i) => <line key={`h${i}`} className="dg-grid" x1="0" y1={15 * i} x2="120" y2={15 * i} />)}
         {Array.from({ length: 8 }, (_, i) => <line key={`v${i}`} className="dg-grid" x1={15 * i} y1="0" x2={15 * i} y2="120" />)}
         {[3, 6, 0, 5, 7, 2, 4, 1].map((row, col) => <circle key={col} cx={15 * col + 7.5} cy={15 * row + 7.5} r="3" className="dg-fill-accent" />)}
-        <text className="dg-box-sub" x="60" y="138" textAnchor="middle">{es ? 'una muestra por fila y columna' : 'one sample per row and column'}</text>
+        <text className="dg-box-sub" x="60" y="138" textAnchor="middle">{es ? 'hipercubo latino' : 'Latin hypercube'}</text>
+        <text className="dg-box-sub" x="60" y="152" textAnchor="middle">{es ? 'una por fila y columna' : 'one per row and column'}</text>
       </g>
       <g transform="translate(160 20)">
         {bars.map((h, i) => <rect key={i} className="dg-bar" x={i * 12} y={120 - 3.4 * h} width="10" height={3.4 * h} />)}
@@ -102,17 +103,17 @@ function LearnedFigure({ lang }: { lang: Lang }) {
     ? [['diseño Sobol', '256 por caso'], ['motor', 'estados'], ['22 variables', 'físicas'], ['5 modelos', 'protocolos'], ['ONNX', 'MLP y guardia'], ['navegador', 'onnxruntime-web']]
     : [['Sobol design', '256 per case'], ['engine', 'states'], ['22 features', 'physical'], ['5 models', 'protocols'], ['ONNX', 'MLP and guard'], ['browser', 'onnxruntime-web']];
   return (
-    <svg className="fig-svg wide" viewBox="0 0 600 150" role="img" aria-label={es ? 'La vía aprendida desde el diseño hasta el navegador' : 'The learned lane from design to browser'}>
+    <svg className="fig-svg wide" viewBox="0 0 680 150" role="img" aria-label={es ? 'La vía aprendida desde el diseño hasta el navegador' : 'The learned lane from design to browser'}>
       <Arrowhead id="of-learn-arrow" />
       {boxes.map(([title, sub], i) => (
-        <g key={title} transform={`translate(${8 + i * 98} 30)`}>
-          <rect className={i === 3 ? 'dg-box accent' : 'dg-box'} x="0" y="0" width="84" height="46" rx="7" />
-          <text className="dg-box-title" x="42" y="20" textAnchor="middle">{title}</text>
-          <text className="dg-box-sub" x="42" y="35" textAnchor="middle">{sub}</text>
-          {i < boxes.length - 1 && <line className="dg-edge" x1="84" y1="23" x2="96" y2="23" markerEnd="url(#of-learn-arrow)" />}
+        <g key={title} transform={`translate(${8 + i * 112} 30)`}>
+          <rect className={i === 3 ? 'dg-box accent' : 'dg-box'} x="0" y="0" width="104" height="46" rx="7" />
+          <text className="dg-box-title" x="52" y="20" textAnchor="middle">{title}</text>
+          <text className="dg-box-sub" x="52" y="35" textAnchor="middle">{sub}</text>
+          {i < boxes.length - 1 && <line className="dg-edge" x1="104" y1="23" x2="110" y2="23" markerEnd="url(#of-learn-arrow)" />}
         </g>
       ))}
-      <text className="dg-note" x="300" y="112" textAnchor="middle">{es ? 'interpolación: 80/20 dentro de cada caso · transferencia: dejando un caso fuera' : 'interpolation: 80/20 inside every case · transfer: leave one case out'}</text>
+      <text className="dg-note" x="340" y="112" textAnchor="middle">{es ? 'interpolación: 80/20 dentro de cada caso · transferencia: dejando un caso fuera' : 'interpolation: 80/20 inside every case · transfer: leave one case out'}</text>
     </svg>
   );
 }

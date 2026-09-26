@@ -71,6 +71,30 @@ const CLIP_PROBE = selector => {
   return out;
 };
 
+// A schematic's text must stay inside the box that holds it and inside its figure: a translation that
+// runs longer than its box is the commonest way a figure breaks without anyone touching the drawing.
+const FIGURE_PROBE = () => {
+  const out = [];
+  for (const svg of document.querySelectorAll('svg.fig-svg')) {
+    const fr = svg.getBoundingClientRect();
+    if (fr.width === 0) continue;
+    const boxes = [...svg.querySelectorAll('rect.dg-box')].map(r => r.getBoundingClientRect());
+    for (const t of svg.querySelectorAll('text')) {
+      const b = t.getBoundingClientRect();
+      if (b.width === 0) continue;
+      const name = (t.textContent || '').slice(0, 40);
+      if (b.left < fr.left - 1 || b.right > fr.right + 1 || b.top < fr.top - 1 || b.bottom > fr.bottom + 1) out.push(`outside its figure: ${name}`);
+      // a text that touches a box must lie wholly inside it: a label running past its box's side or
+      // hanging below its bottom edge is cut by the box outline
+      const inside = r => b.left >= r.left - 1 && b.right <= r.right + 1 && b.top >= r.top - 1 && b.bottom <= r.bottom + 1;
+      const touches = r => Math.min(b.right, r.right) - Math.max(b.left, r.left) > 1 && Math.min(b.bottom, r.bottom) - Math.max(b.top, r.top) > 1;
+      if (boxes.some(r => touches(r) && !inside(r)) && !boxes.some(r => touches(r) && inside(r) && boxes.every(o => o === r || !touches(o) || inside(o)))) out.push(`crosses a box: ${name}`);
+      if (out.length >= 5) return out;
+    }
+  }
+  return out;
+};
+
 async function measure(page, stageSelector) {
   const outside = await page.evaluate(OVERFLOW_PROBE);
   const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
@@ -192,11 +216,12 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         await page.waitForFunction(() => !document.querySelector('.of-doc-state[role=status]'), null, { timeout: 60000 });
         await page.waitForTimeout(200);
         const outside = await page.evaluate(OVERFLOW_PROBE);
+        const figures = await page.evaluate(FIGURE_PROBE);
         const doc = await page.evaluate(() => ({ overX: document.body.scrollWidth > document.body.clientWidth + 1, lang: document.documentElement.lang,
           katexErrors: document.querySelectorAll('.katex-error').length, loadErrors: document.querySelectorAll('.of-doc-state[role=alert]').length,
           // an equation wider than its box can only be read by scrolling inside it
           cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && outside.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside });
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && outside.length === 0 && figures.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside, figures });
         // a full-page capture stops at the body's scroll box; release it for the capture only
         const unclip = await page.addStyleTag({ content: 'html, body, #root { height: auto !important; overflow: visible !important; }' });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });

@@ -38,4 +38,5 @@
 .of-doc-table-data { max-width: none; font-variant-numeric: tabular-nums; }
 .of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-faint); font-style: italic; }
 .of-doc-table td { white-space: nowrap; }
+.of-doc-table td.of-doc-wrap { white-space: normal; min-width: 14rem; }
 .of-doc-state { padding: 0.8rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-fg-subtle); }
