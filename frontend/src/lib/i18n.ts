@@ -99,6 +99,14 @@ const FLAGS: Record<string, T> = {
 
 export const flagText = (code: string, lang: Lang): string => FLAGS[code]?.[lang] ?? code;
 
+/** A case record's provenance, a fixed phrase of the case catalog, in the interface language. */
+const PROVENANCE: Record<string, T> = {
+  'authored scenario; parameters inside cited ranges; not plant-calibrated': {
+    en: 'authored scenario; parameters inside cited ranges; not plant-calibrated',
+    es: 'escenario de autor; parámetros dentro de rangos citados; sin calibración de planta' },
+};
+export const provenanceText = (value: string, lang: Lang): string => PROVENANCE[value]?.[lang] ?? value;
+
 /** A flag's short name, for tables and the HUD where the full sentence does not fit. */
 const FLAG_SHORT: Record<string, T> = {
   power_limited: { en: 'Power-limited', es: 'Limitado por potencia' },

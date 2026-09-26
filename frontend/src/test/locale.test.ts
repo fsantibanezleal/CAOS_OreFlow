@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { formatFixed, formatFraction, formatSignificant, formatValue, formatWithUnit, localizeAuthored, localizeTex, unitLabel } from '../lib/format';
-import { formulaText, metricLabel } from '../lib/i18n';
+import { readdirSync, readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { formulaText, metricLabel, provenanceText } from '../lib/i18n';
 import { CONTENT_CITATIONS, localizeCitations } from '../content/citations';
 
 // PE-35: every number is formatted with the active locale (the document-language half of PE-35 is
@@ -77,5 +80,17 @@ describe('locale formatting', () => {
     expect(pair('Smith and Ibáñez 2020')).toBe('Smith e Ibáñez 2020');
     expect(pair('Smith and Hidalgo 2020')).toBe('Smith e Hidalgo 2020');
     expect(pair('Smith and Hierro 2020')).toBe('Smith y Hierro 2020');
+  });
+
+  it('renders the provenance of every case record in Spanish', () => {
+    // the Case view printed the catalog's English phrase on the Spanish page
+    const root = fileURLToPath(new URL('../../../data/derived/cases/', import.meta.url));
+    const values = new Set(readdirSync(root).filter(f => f.endsWith('.json'))
+      .map(f => (JSON.parse(readFileSync(join(root, f), 'utf-8')) as { provenance: string }).provenance));
+    expect(values.size).toBeGreaterThan(0);
+    for (const value of values) {
+      expect(provenanceText(value, 'en'), value).toBe(value);
+      expect(provenanceText(value, 'es'), value).not.toBe(value);
+    }
   });
 });

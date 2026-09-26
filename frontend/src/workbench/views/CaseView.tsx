@@ -13,7 +13,7 @@ import { CASE_CONTEXT, VARIANT_NOTES } from '../../content/cases';
 import { familyFormulas } from '../../content/equations';
 import type { Benchmark, CaseArtifact, CaseIndex } from '../../lib/artifacts.types';
 import { formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
-import { flagShort, formulaText, metricLabel, mineralName } from '../../lib/i18n';
+import { flagShort, formulaText, metricLabel, mineralName, provenanceText } from '../../lib/i18n';
 import { CompareView } from './CompareView';
 
 const TEXT = {
@@ -147,7 +147,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
           <h3>{TEXT.scope[lang]}</h3>
           <ul>
             {context.scope.map((s, i) => <li key={i}>{s[lang]}</li>)}
-            <li>{`${TEXT.provenance[lang]}: ${artifact.provenance}.`}</li>
+            <li>{`${TEXT.provenance[lang]}: ${provenanceText(artifact.provenance, lang)}.`}</li>
           </ul>
           <table className="of-table">
             <caption>{TEXT.kpi[lang]}</caption>
