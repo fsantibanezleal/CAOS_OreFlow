@@ -114,7 +114,7 @@ Response: sweep the gravity bleed to see recovery saturate.
 
 ## Sources
 
-- **breakage:** Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 um) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.
+- **breakage:** Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 µm) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.
 - **crusher:** Whiten classification K1 0.5 to 0.95 CSS, K2 1.7 to 3.5 CSS, K3 about 2.3; dossier section 1.3.
 - **cyclone:** Plitt geometry ratios typical of mineral-processing cyclones; sharpness and underflow density authored; dossier section 2.
 - **gravity:** Gravity bleed of cyclone underflow and gold circulating load (Laplante and Staunton, AMIRA P420B); dossier section 4.

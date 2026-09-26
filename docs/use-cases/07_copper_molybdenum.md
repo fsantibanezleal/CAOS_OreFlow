@@ -115,7 +115,7 @@ Separation, batch kinetics: the fitted models show how a slow, unresponsive frac
 
 ## Sources
 
-- **breakage:** Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 um) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.
+- **breakage:** Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 µm) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.
 - **crusher:** Whiten classification K1 0.5 to 0.95 CSS, K2 1.7 to 3.5 CSS, K3 about 2.3; dossier section 1.3.
 - **cyclone:** Plitt geometry ratios typical of mineral-processing cyclones; sharpness and underflow density authored; dossier section 2.
 - **flotation:** k from bubble surface area flux (Gorain et al. 1997), Savassi entrainment, perfect-mixer banks; floatability and widths authored within Trahar (1981) size behaviour; dossier section 3.

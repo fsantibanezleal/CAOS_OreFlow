@@ -4,7 +4,7 @@
 
 > What does the desliming cut cost in phosphate?
 
-An igneous phosphate with clay: the grinding overflow is deslimed below about 20 um before fatty-acid flotation of apatite, so the desliming cut trades lost P2O5 against a cleaner flotation feed.
+An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, so the desliming cut trades lost P₂O₅ against a cleaner flotation feed.
 
 | Case id | Category | Circuit family | Provenance |
 |---|---|---|---|
@@ -116,10 +116,10 @@ Response: sweep the desliming cut against recovery; the contract rejects a cut a
 
 ## Sources
 
-- **breakage:** Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 um) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.
+- **breakage:** Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 µm) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.
 - **crusher:** Whiten classification K1 0.5 to 0.95 CSS, K2 1.7 to 3.5 CSS, K3 about 2.3; dossier section 1.3.
 - **cyclone:** Plitt geometry ratios typical of mineral-processing cyclones; sharpness and underflow density authored; dossier section 2.
-- **phosphate:** Desliming below about 20 um and fatty-acid flotation to about 35% P2O5; dossier section 6 (secondary source).
+- **phosphate:** Desliming below about 20 µm and fatty-acid flotation to about 35% P₂O₅; dossier section 6 (secondary source).
 - **flotation:** k from bubble surface area flux (Gorain et al. 1997), Savassi entrainment, perfect-mixer banks; floatability and widths authored within Trahar (1981) size behaviour; dossier section 3.
 - **water:** Process-water capacity per tonne of ore (pumping and thickener capacity), authored 5% above each case's nominal requirement; it is the water constraint of the operating-point optimizer.
 - **kpi:** Nominal KPI ranges are typical practice ranges from the dossier section 3.7 and the cited sources; they are plausibility gates, not predictions.

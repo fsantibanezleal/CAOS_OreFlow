@@ -14,14 +14,14 @@ from ..engine.model import (Bank, Carrier, Crusher, Cyclone, DeslimePlant, Flota
                             GravityPlant, MagneticPlant, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant)
 
 SOURCES = {
-    "breakage": "Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 um) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.",
+    "breakage": "Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 µm) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.",
     "crusher": "Whiten classification K1 0.5 to 0.95 CSS, K2 1.7 to 3.5 CSS, K3 about 2.3; dossier section 1.3.",
     "cyclone": "Plitt geometry ratios typical of mineral-processing cyclones; sharpness and underflow density authored; dossier section 2.",
     "flotation": "k from bubble surface area flux (Gorain et al. 1997), Savassi entrainment, perfect-mixer banks; floatability and widths authored within Trahar (1981) size behaviour; dossier section 3.",
     "collector": "Saturating collector response with gangue saturating at higher dose (chalcopyrite/pyrite critical review, PMC9572913); dossier section 3.5.",
     "gravity": "Gravity bleed of cyclone underflow and gold circulating load (Laplante and Staunton, AMIRA P420B); dossier section 4.",
     "magnetic": "LIMS magnetite recovery above 98% and grade rising with finer grind (Muthaphuli 2014); dossier section 5.",
-    "phosphate": "Desliming below about 20 um and fatty-acid flotation to about 35% P2O5; dossier section 6 (secondary source).",
+    "phosphate": "Desliming below about 20 µm and fatty-acid flotation to about 35% P₂O₅; dossier section 6 (secondary source).",
     "water": "Process-water capacity per tonne of ore (pumping and thickener capacity), authored 5% above each case's nominal requirement; it is the water constraint of the operating-point optimizer.",
     "kpi": "Nominal KPI ranges are typical practice ranges from the dossier section 3.7 and the cited sources; they are plausibility gates, not predictions.",
 }
@@ -222,8 +222,8 @@ def _cases() -> tuple[CaseDef, ...]:
         ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi")))
     cases.append(CaseDef(
         "phosphate_clay", "classification", ("Phosphate with clay slimes", "Fosfato con lamas arcillosas"),
-        ("An igneous phosphate with clay: the grinding overflow is deslimed below about 20 um before fatty-acid flotation of apatite, so the desliming cut trades lost P2O5 against a cleaner flotation feed.",
-         "Un fosfato ígneo con arcilla: el rebose de molienda se deslama bajo unos 20 um antes de flotar la apatita con ácidos grasos, por lo que el corte de deslamado cambia P2O5 perdido por una alimentación más limpia a flotación."),
+        ("An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, so the desliming cut trades lost P₂O₅ against a cleaner flotation feed.",
+         "Un fosfato ígneo con arcilla: el rebose de molienda se deslama bajo unos 20 µm antes de flotar la apatita con ácidos grasos, por lo que el corte de deslamado cambia P₂O₅ perdido por una alimentación más limpia a flotación."),
         ("What does the desliming cut cost in phosphate?", "¿Cuánto fosfato cuesta el corte de deslamado?"),
         Ore(minerals=(MineralSpec(id="fluorapatite", grindability=1.4, liberation_size_um=280.0, liberation_slope=1.8, composite_content=0.5,
                                   host="quartz", flotation=Flotability(floatability=1.8e-4, optimum_size_um=70.0, fine_width=1.3, coarse_width=0.7, half_dose_gpt=250.0, unresponsive_fraction=0.02)),

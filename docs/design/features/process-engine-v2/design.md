@@ -287,5 +287,5 @@ over another.
 
 One circuit evaluation: under 50 ms in Python, under 30 ms in the browser. The full bake of 72
 variants with uncertainty, optimization, Sobol and the design matrix: about 35 minutes locally
-(the committed bake of 2026-09-26 on 12 case workers with CUDA: cases 327 s, learning 1972 s, every
+(the committed bake of 2026-09-26 on 12 case workers with CUDA: cases 375 s, learning 1688 s, every
 other stage under a second; the validation record carries the timings of the bake it belongs to).
