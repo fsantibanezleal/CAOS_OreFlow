@@ -99,3 +99,29 @@ export function formatWithUnit(value: number | null | undefined, unit: string, l
 export function formatFraction(value: number | null | undefined, lang: Lang, decimals = 1): string {
   return usable(value) ? `${formatFixed(100.0 * value, lang, decimals)}%` : MISSING;
 }
+
+// a number that stands alone: not joined to a letter, a dot or a slash (an identifier, a version, a DOI)
+const AUTHORED_NUMBER = /(?<![\w./])([-+]?)(\d{1,3}(?:,\d{3})+|\d+)(?:\.(\d+))?(e[-+]?\d+)?(?![\w./]|,\d)/gi;
+
+/**
+ * An authored value written in the English convention (a parameter cell such as '0.4, 0.65, 4.02' or
+ * '1.8e-4 - 3.2e-4'), in the interface language. In Spanish a decimal point becomes the decimal comma
+ * and English grouping becomes point grouping; where a decimal comma appeared, the commas that list
+ * values become semicolons, so '0.4, 0.65' reads '0,4; 0,65' and not as four numbers.
+ */
+export function localizeAuthored(text: string, lang: Lang): string {
+  if (lang === 'en') return text;
+  let decimals = false;
+  const out = text.replace(AUTHORED_NUMBER, (match: string, sign: string, whole: string, fraction?: string, exponent?: string) => {
+    if (fraction === undefined && !whole.includes(',')) return match;
+    if (fraction !== undefined) decimals = true;
+    return `${sign}${whole.replace(/,/g, '.')}${fraction !== undefined ? `,${fraction}` : ''}${exponent ?? ''}`;
+  });
+  return decimals ? out.replace(/,(?=\s)/g, ';') : out;
+}
+
+/** A TeX formula in the interface language: in Spanish the decimal comma, braced so KaTeX sets it inside
+ * the number instead of as punctuation followed by a space. */
+export function localizeTex(tex: string, lang: Lang): string {
+  return lang === 'en' ? tex : tex.replace(/(\d)\.(?=\d)/g, '$1{,}');
+}

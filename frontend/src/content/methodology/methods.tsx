@@ -41,7 +41,7 @@ function KineticsFigure({ lang }: { lang: Lang }) {
 
 function OptimizerFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
-  const starts: Array<[number, number]> = [[90, 160], [300, 170], [120, 60], [330, 70], [210, 120], [260, 40]];
+  const starts: Array<[number, number]> = [[90, 160], [300, 170], [110, 110], [340, 130], [215, 150], [300, 60]];
   return (
     <svg className="fig-svg" viewBox="0 0 420 240" role="img" aria-label={es ? 'Región factible, restricciones activas y seis inicios' : 'Feasible region, active constraints and six starts'}>
       <Arrowhead id="of-opt-arrow" />
@@ -53,7 +53,7 @@ function OptimizerFigure({ lang }: { lang: Lang }) {
       <path className="dg-marker" d="M 60 40 C 220 70, 300 110, 390 150" fill="none" />
       <text className="dg-marker-label" x="300" y="104">{es ? 'ley mínima' : 'grade spec'}</text>
       <circle cx="152" cy="62" r="5" className="dg-fill-warn" />
-      <text className="dg-marker-label" x="160" y="58">{es ? 'óptimo' : 'optimum'}</text>
+      <text className="dg-marker-label" x="160" y="52">{es ? 'óptimo' : 'optimum'}</text>
       {starts.map(([x, y]) => <line key={`${x}-${y}`} className="dg-edge" x1={x} y1={y} x2={x + (152 - x) * 0.82} y2={y + (62 - y) * 0.82} markerEnd="url(#of-opt-arrow)" />)}
       {starts.map(([x, y]) => <circle key={`s${x}-${y}`} cx={x} cy={y} r="3" className="dg-fill-accent" />)}
       <text className="dg-axis-label" x="220" y="222" textAnchor="middle">{es ? 'objetivo de molienda P80 (más fino a la izquierda)' : 'grind target P80 (finer to the left)'}</text>

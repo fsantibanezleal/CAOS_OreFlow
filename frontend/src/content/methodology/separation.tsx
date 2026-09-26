@@ -32,7 +32,7 @@ function PartitionFigure({ lang }: { lang: Lang }) {
       <text className="dg-marker-label" x="254" y="206">d50c</text>
       <text className="dg-marker-label" x="150" y="206">d50c,k</text>
       <text className="dg-edge-label" x="300" y="70">{es ? 'ganga' : 'gangue'}</text>
-      <text className="dg-edge-label" x="140" y="80">{es ? 'mineral denso' : 'dense mineral'}</text>
+      <text className="dg-edge-label" x="180" y="78" textAnchor="end">{es ? 'mineral denso' : 'dense mineral'}</text>
       <text className="dg-axis-label" x="220" y="228" textAnchor="middle">{es ? 'tamaño (escala log)' : 'size (log scale)'}</text>
       <text className="dg-axis-label" x="18" y="105" textAnchor="middle" transform="rotate(-90 18 105)">{es ? 'fracción a la descarga' : 'fraction to underflow'}</text>
     </svg>
@@ -112,7 +112,7 @@ function MagneticFigure({ lang }: { lang: Lang }) {
       {[[98, es ? 'LIMS rougher' : 'LIMS rougher'], [246, es ? 'LIMS limpieza' : 'LIMS cleaner']].map(([x, label]) => (
         <g key={String(x)}>
           <circle cx={Number(x) + 40} cy="60" r="30" className="dg-node" />
-          <text className="dg-node-label" x={Number(x) + 40} y="104" textAnchor="middle">{String(label)}</text>
+          <text className="dg-node-label" x={Number(x) + 40} y="22" textAnchor="middle">{String(label)}</text>
         </g>
       ))}
       <line className="dg-edge" x1="168" y1="60" x2="244" y2="60" markerEnd="url(#of-lims-arrow)" />
@@ -170,7 +170,7 @@ export const SEPARATION: Topic[] = [
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
       rows: [
         [{ en: 'sharpness m', es: 'nitidez m' }, '2.0', { en: 'authored; Moly-Cop example 1.66', es: 'de autor; ejemplo de Moly-Cop 1,66' }],
-        [{ en: 'underflow solids', es: 'sólidos en la descarga' }, '75% w/w', { en: 'authored', es: 'de autor' }],
+        [{ en: 'underflow solids', es: 'sólidos en la descarga' }, { en: '75% w/w', es: '75% p/p' }, { en: 'authored', es: 'de autor' }],
         [{ en: 'geometry ratios Di, Do, Du, h', es: 'razones geométricas Di, Do, Du, h' }, '0.256, 0.335, 0.197, 2.95 Dc', { en: 'typical proportions', es: 'proporciones típicas' }],
         ['Dc', '25 - 91 cm', { en: 'chosen so the nominal Plitt pressure lies in the window', es: 'elegido para que la presión nominal de Plitt quede en la ventana' }],
       ],
@@ -285,7 +285,7 @@ export const SEPARATION: Topic[] = [
       rows: [
         [{ en: 'desliming cut', es: 'corte de deslamado' }, '20 µm', { en: 'practice below about 20 µm', es: 'práctica bajo unos 20 µm' }],
         [{ en: 'sharpness, water bypass', es: 'nitidez, cortocircuito de agua' }, '2.5, 0.12', { en: 'authored', es: 'de autor' }],
-        [{ en: 'rougher feed solids after repulping', es: 'sólidos de alimentación rougher tras repulpeo' }, '33% w/w', { en: 'authored', es: 'de autor' }],
+        [{ en: 'rougher feed solids after repulping', es: 'sólidos de alimentación rougher tras repulpeo' }, { en: '33% w/w', es: '33% p/p' }, { en: 'authored', es: 'de autor' }],
       ],
     },
     limits: [

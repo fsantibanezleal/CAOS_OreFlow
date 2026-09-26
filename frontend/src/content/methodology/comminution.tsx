@@ -2,7 +2,7 @@
  * Methodology, comminution: the Whiten crusher (methodology page 02), the energy-specific population
  * balance in closed circuit (page 03) and the energy laws (page 09), transcribed from those pages.
  */
-import type { Lang } from '../../lib/format';
+import { localizeAuthored, type Lang } from '../../lib/format';
 import type { Topic } from '../doc';
 
 const r = String.raw;
@@ -63,7 +63,7 @@ function CircuitFigure({ lang }: { lang: Lang }) {
       {[['0.70', 70, 72], ['0.15', 152, 40], ['0.15', 202, 40]].map(([label, x, w]) => (
         <g key={String(x)}>
           <rect className="dg-box" x={Number(x)} y="60" width={Number(w)} height="36" rx="5" />
-          <text className="dg-box-sub" x={Number(x) + Number(w) / 2} y="82" textAnchor="middle">{label}</text>
+          <text className="dg-box-sub" x={Number(x) + Number(w) / 2} y="82" textAnchor="middle">{localizeAuthored(String(label), lang)}</text>
         </g>
       ))}
       <line className="dg-edge" x1="142" y1="78" x2="150" y2="78" markerEnd="url(#of-circuit-arrow)" />
@@ -82,23 +82,31 @@ function CircuitFigure({ lang }: { lang: Lang }) {
   );
 }
 
+// computed from the three laws (docs/methodologies/09_energy.md) at 33 log-spaced product sizes
+const BOND_PATH = 'M 60.0 60.2 L 70.0 62.8 L 80.0 65.3 L 90.0 67.9 L 100.0 70.4 L 110.0 73.0 L 120.0 75.6 L 130.0 78.2 L 140.0 80.8 L 150.0 83.4 L 160.0 86.0 L 170.0 88.7 L 180.0 91.3 L 190.0 94.0 L 200.0 96.7 L 210.0 99.4 L 220.0 102.2 L 230.0 104.9 L 240.0 107.7 L 250.0 110.6 L 260.0 113.4 L 270.0 116.3 L 280.0 119.2 L 290.0 122.2 L 300.0 125.2 L 310.0 128.2 L 320.0 131.3 L 330.0 134.5 L 340.0 137.7 L 350.0 141.0 L 360.0 144.4 L 370.0 147.9 L 380.0 151.4';
+const KICK_PATH = 'M 60.0 87.3 L 70.0 88.1 L 80.0 88.9 L 90.0 89.7 L 100.0 90.5 L 110.0 91.4 L 120.0 92.3 L 130.0 93.2 L 140.0 94.1 L 150.0 95.0 L 160.0 96.0 L 170.0 97.0 L 180.0 98.0 L 190.0 99.0 L 200.0 100.1 L 210.0 101.2 L 220.0 102.3 L 230.0 103.5 L 240.0 104.7 L 250.0 105.9 L 260.0 107.2 L 270.0 108.5 L 280.0 109.9 L 290.0 111.3 L 300.0 112.8 L 310.0 114.4 L 320.0 116.0 L 330.0 117.6 L 340.0 119.4 L 350.0 121.2 L 360.0 123.1 L 370.0 125.1 L 380.0 127.3';
+const RITTINGER_PATH = 'M 60.0 24.1 L 70.0 28.9 L 80.0 33.8 L 90.0 38.6 L 100.0 43.5 L 110.0 48.3 L 120.0 53.2 L 130.0 58.0 L 140.0 62.9 L 150.0 67.8 L 160.0 72.6 L 170.0 77.5 L 180.0 82.4 L 190.0 87.3 L 200.0 92.2 L 210.0 97.1 L 220.0 102.0 L 230.0 106.9 L 240.0 111.8 L 250.0 116.8 L 260.0 121.7 L 270.0 126.7 L 280.0 131.7 L 290.0 136.7 L 300.0 141.7 L 310.0 146.8 L 320.0 151.9 L 330.0 157.0 L 340.0 162.1 L 350.0 167.3 L 360.0 172.6 L 370.0 177.9 L 380.0 183.3';
+
 function EnergyFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
   return (
-    <svg className="fig-svg" viewBox="0 0 420 240" role="img" aria-label={es ? 'Leyes de energía calibradas en una reducción de referencia' : 'Energy laws calibrated at a reference reduction'}>
+    <svg className="fig-svg" viewBox="0 0 450 240" role="img" aria-label={es ? 'Leyes de energía calibradas en una reducción de referencia' : 'Energy laws calibrated at a reference reduction'}>
       <line className="dg-axis" x1="50" y1="190" x2="390" y2="190" />
       <line className="dg-axis" x1="50" y1="190" x2="50" y2="20" />
-      <path className="dg-curve" d="M 60 30 C 130 95, 220 140, 380 170" />
-      <path className="dg-curve-2" d="M 60 18 C 120 110, 200 150, 380 178" />
-      <path className="dg-curve-faint" d="M 60 60 C 140 100, 230 135, 380 158" />
-      <circle cx="205" cy="127" r="4" className="dg-fill-warn" />
-      <line className="dg-marker" x1="205" y1="190" x2="205" y2="127" />
-      <text className="dg-marker-label" x="209" y="120">{es ? 'referencia' : 'reference'}</text>
-      <text className="dg-edge-label" x="330" y="160">Bond</text>
-      <text className="dg-edge-label" x="330" y="190" dy="-4">Rittinger</text>
-      <text className="dg-edge-label" x="330" y="146">Kick</text>
+      {/* the three laws calibrated to agree at the engine's reference reduction (F 10000 um, P 150 um), on log-log
+          axes over a product P80 of 20 to 1100 um (Wi = 1; E_B = 10 (P^-1/2 - F^-1/2), E_K = c ln(F/P),
+          E_R = c (1/P - 1/F)); they meet at the reference and diverge away from it */}
+      <path className="dg-curve" fill="none" d={BOND_PATH} />
+      <path className="dg-curve-2" fill="none" d={RITTINGER_PATH} />
+      <path className="dg-curve-faint" fill="none" d={KICK_PATH} />
+      <line className="dg-marker" x1="220.9" y1="190" x2="220.9" y2="102.4" />
+      <circle cx="220.9" cy="102.4" r="4" className="dg-fill-warn" />
+      <text className="dg-marker-label" x="227" y="94">{es ? 'referencia' : 'reference'}</text>
+      <text className="dg-edge-label" x="388" y="131">Kick</text>
+      <text className="dg-edge-label" x="388" y="155">Bond</text>
+      <text className="dg-edge-label" x="388" y="187">Rittinger</text>
       <text className="dg-axis-label" x="220" y="214" textAnchor="middle">{es ? 'P80 del producto (escala log)' : 'product P80 (log scale)'}</text>
-      <text className="dg-axis-label" x="18" y="105" textAnchor="middle" transform="rotate(-90 18 105)">{es ? 'energía específica' : 'specific energy'}</text>
+      <text className="dg-axis-label" x="18" y="105" textAnchor="middle" transform="rotate(-90 18 105)">{es ? 'energía específica (escala log)' : 'specific energy (log scale)'}</text>
     </svg>
   );
 }
@@ -158,7 +166,7 @@ export const COMMINUTION: Topic[] = [
         ['d_crit', '6514 µm', { en: 'Moly-Cop default', es: 'valor por defecto de Moly-Cop' }],
         ['β0, β1, β2', '0.4, 0.65, 4.02', { en: 'Moly-Cop documented alternative set', es: 'conjunto alternativo documentado de Moly-Cop' }],
         [{ en: 'mixer volume fractions', es: 'fracciones de volumen de los mezcladores' }, '0.70, 0.15, 0.15', { en: 'Austin structure; values declared', es: 'estructura de Austin; valores declarados' }],
-        [{ en: 'mill discharge solids', es: 'sólidos en la descarga del molino' }, '72% w/w', { en: 'Moly-Cop base case', es: 'caso base de Moly-Cop' }],
+        [{ en: 'mill discharge solids', es: 'sólidos en la descarga del molino' }, { en: '72% w/w', es: '72% p/p' }, { en: 'Moly-Cop base case', es: 'caso base de Moly-Cop' }],
       ],
     },
     limits: [

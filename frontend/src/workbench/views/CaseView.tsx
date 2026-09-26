@@ -12,7 +12,7 @@ import type { OperatingPoint } from '../../engine/model';
 import { CASE_CONTEXT, VARIANT_NOTES } from '../../content/cases';
 import { familyFormulas } from '../../content/equations';
 import type { Benchmark, CaseArtifact, CaseIndex } from '../../lib/artifacts.types';
-import { formatSignificant, formatValue, formatWithUnit, type Lang } from '../../lib/format';
+import { formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
 import { flagShort, metricLabel, mineralName } from '../../lib/i18n';
 import { CompareView } from './CompareView';
 
@@ -208,7 +208,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
         </section>
         <section>
           <h3>{TEXT.formalization[lang]}</h3>
-          {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={f.tex} caption={f.caption[lang]} />)}
+          {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={localizeTex(f.tex, lang)} caption={f.caption[lang]} />)}
         </section>
       </div>
     </div>

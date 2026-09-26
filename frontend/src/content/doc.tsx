@@ -7,7 +7,7 @@
  */
 import { Callout, Equation, Figure, Refs, SubTabs, Tabs } from '@fasl-work/caos-app-shell';
 import type { ReactNode } from 'react';
-import type { Lang } from '../lib/format';
+import { localizeAuthored, localizeTex, type Lang } from '../lib/format';
 
 export type Bi = { en: string; es: string };
 export type Topic = {
@@ -35,6 +35,9 @@ const T = {
 };
 
 const text = (value: string | Bi, lang: Lang) => (typeof value === 'string' ? value : value[lang]);
+// a plain table cell is an authored value in the English convention; a formula sets its decimals per language
+const cell = (value: string | Bi, lang: Lang) => (typeof value === 'string' ? localizeAuthored(value, lang) : value[lang]);
+const formula = (value: string | Bi, lang: Lang) => localizeTex(text(value, lang), lang);
 const tex = (value: string | Bi) => (typeof value === 'string' ? value : value.en);
 
 export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
@@ -54,14 +57,14 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
           </div>
           <div className="of-topic-body with-figure">
             <div className="of-topic-text">{topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}</div>
-            <div className="of-topic-equations">{topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={text(eq.tex, lang)} caption={eq.caption[lang]} />)}</div>
+            <div className="of-topic-equations">{topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={eq.caption[lang]} />)}</div>
           </div>
         </>
       ) : topic.figure ? (
         <div className="of-topic-body with-figure">
           <div className="of-topic-text">
             {topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}
-            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={text(eq.tex, lang)} caption={eq.caption[lang]} />)}
+            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={eq.caption[lang]} />)}
           </div>
           {/* the figure leads the second column and the limits follow it: equations keep the wider column,
               and wrapping text fills the narrower one */}
@@ -76,7 +79,7 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
         <div className="of-topic-body">
           <div className="of-topic-text">
             {topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}
-            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={text(eq.tex, lang)} caption={eq.caption[lang]} />)}
+            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={eq.caption[lang]} />)}
           </div>
         </div>
       )}
@@ -85,7 +88,7 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
         <table className="of-doc-table">
           <thead><tr>{topic.table.head.map((h, i) => <th scope="col" key={i}>{h[lang]}</th>)}</tr></thead>
           <tbody>{topic.table.rows.map((row, i) => (
-            <tr key={i}>{row.map((cell, k) => (k === 0 ? <th scope="row" key={k}>{text(cell, lang)}</th> : <td key={k}>{text(cell, lang)}</td>))}</tr>
+            <tr key={i}>{row.map((value, k) => (k === 0 ? <th scope="row" key={k}>{cell(value, lang)}</th> : <td key={k}>{cell(value, lang)}</td>))}</tr>
           ))}</tbody>
         </table>
       )}

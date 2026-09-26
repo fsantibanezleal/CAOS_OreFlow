@@ -20,7 +20,7 @@ function LiberationFigure({ lang }: { lang: Lang }) {
       <line className="dg-marker" x1="150" y1="200" x2="150" y2="30" />
       <text className="dg-marker-label" x="154" y="44">x_L</text>
       <text className="dg-tick" x="40" y="44" textAnchor="end">1</text>
-      <text className="dg-tick" x="40" y="119" textAnchor="end">0.5</text>
+      <text className="dg-tick" x="40" y="119" textAnchor="end">{es ? '0,5' : '0.5'}</text>
       <text className="dg-tick" x="40" y="204" textAnchor="end">0</text>
       <text className="dg-axis-label" x="160" y="226" textAnchor="middle">{es ? 'tamaño d (escala log)' : 'size d (log scale)'}</text>
       <text className="dg-axis-label" x="18" y="115" textAnchor="middle" transform="rotate(-90 18 115)">{es ? 'fracción liberada L' : 'liberated fraction L'}</text>

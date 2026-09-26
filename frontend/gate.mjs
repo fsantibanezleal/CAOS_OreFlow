@@ -86,12 +86,28 @@ const CLIP_PROBE = selector => {
 
 // A schematic's text must stay inside the box that holds it and inside its figure: a translation that
 // runs longer than its box is the commonest way a figure breaks without anyone touching the drawing.
+// Nor may a curve, a marker or an edge run through a label: each stroke is sampled every two pixels in
+// screen space, and a sample inside the core of a text's box (a pixel in from the sides, a quarter of
+// its height in from the top and the bottom, so a line passing under the descenders is not counted)
+// is a crossing. Axes and grid lines are left out: tick labels sit on them by design.
 const FIGURE_PROBE = () => {
   const out = [];
   for (const svg of document.querySelectorAll('svg.fig-svg')) {
     const fr = svg.getBoundingClientRect();
     if (fr.width === 0) continue;
     const boxes = [...svg.querySelectorAll('rect.dg-box')].map(r => r.getBoundingClientRect());
+    const samples = [];
+    for (const stroke of svg.querySelectorAll('.dg-edge, .dg-marker, .dg-curve, .dg-curve-2, .dg-curve-faint, .dg-asymptote')) {
+      if (typeof stroke.getTotalLength !== 'function') continue;
+      const total = stroke.getTotalLength();
+      const m = stroke.getScreenCTM();
+      if (!m || !(total > 0)) continue;
+      const steps = Math.max(8, Math.ceil(total / 2));
+      for (let i = 0; i <= steps; i += 1) {
+        const q = stroke.getPointAtLength((total * i) / steps);
+        samples.push([m.a * q.x + m.c * q.y + m.e, m.b * q.x + m.d * q.y + m.f]);
+      }
+    }
     for (const t of svg.querySelectorAll('text')) {
       const b = t.getBoundingClientRect();
       if (b.width === 0) continue;
@@ -102,8 +118,38 @@ const FIGURE_PROBE = () => {
       const inside = r => b.left >= r.left - 1 && b.right <= r.right + 1 && b.top >= r.top - 1 && b.bottom <= r.bottom + 1;
       const touches = r => Math.min(b.right, r.right) - Math.max(b.left, r.left) > 1 && Math.min(b.bottom, r.bottom) - Math.max(b.top, r.top) > 1;
       if (boxes.some(r => touches(r) && !inside(r)) && !boxes.some(r => touches(r) && inside(r) && boxes.every(o => o === r || !touches(o) || inside(o)))) out.push(`crosses a box: ${name}`);
+      const inset = b.height / 4;
+      if (samples.some(([x, y]) => x > b.left + 1 && x < b.right - 1 && y > b.top + inset && y < b.bottom - inset)) out.push(`a line runs through: ${name}`);
       if (out.length >= 5) return out;
     }
+  }
+  return out;
+};
+
+// Spanish sets the decimal comma (PE-35). A visible number with a decimal point on a Spanish page is an
+// English string that escaped the formatter: point grouping of thousands (1.800) is the only point a
+// Spanish number carries, and inside an equation none at all. Licence names (CC BY 4.0) and the
+// reference lists keep their own spelling. The page's own language is read from <html lang>, which the
+// gate checks separately against the interface language.
+const LOCALE_PROBE = () => {
+  if (document.documentElement.lang !== 'es') return [];
+  const out = [];
+  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const el = node.parentElement;
+    if (!el || el.closest('.katex-mathml, .sr-only, .of-sr-only, .site-footer, footer, code, pre, .references, .reference-list, .th-refs, [lang="en"]')) continue;
+    const r = el.getBoundingClientRect();
+    if (r.width === 0 || r.height === 0) continue;
+    const text = (node.textContent || '').replace(/CC BY \d\.\d/g, '');
+    const math = !!el.closest('.katex');
+    for (const m of text.matchAll(/(?<![\w./])\d+(?:\.\d+)+(?![\w./])/g)) {
+      if (!math && /^[1-9]\d{0,2}(?:\.\d{3})+$/.test(m[0])) continue;
+      // a decimal has one point: two or more that are not grouping make a version (0.05.000)
+      if (!math && m[0].split('.').length > 2) continue;
+      out.push(`${math ? 'equation' : el.closest('svg') ? 'figure' : el.tagName.toLowerCase()}: ${m[0]} in ${text.trim().slice(0, 50)}`);
+      break;
+    }
+    if (out.length >= 6) break;
   }
   return out;
 };
@@ -154,6 +200,7 @@ async function checkArchitecture(page, tag, lang) {
 async function measure(page, stageSelector) {
   const outside = await page.evaluate(OVERFLOW_PROBE);
   const clipped = await page.evaluate(CLIP_PROBE, stageSelector ?? '.of-view-host');
+  const decimals = await page.evaluate(LOCALE_PROBE);
   // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
   const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
@@ -177,7 +224,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, fits: outside.length === 0 && clipped.length === 0 && cut === 0 };
+  return { ...m, outside, clipped, cut, decimals, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 };
 }
 
 async function settleCharts(page, minimum = 1) {
@@ -286,6 +333,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         await page.waitForTimeout(200);
         const outside = await page.evaluate(OVERFLOW_PROBE);
         const figures = await page.evaluate(FIGURE_PROBE);
+        const decimals = await page.evaluate(LOCALE_PROBE);
         const doc = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
           lang: document.documentElement.lang,
           katexErrors: document.querySelectorAll('.katex-error').length, loadErrors: document.querySelectorAll('.of-doc-state[role=alert]').length,
@@ -295,7 +343,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
             window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside, figures });
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0, { ...doc, outside, figures, decimals });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
