@@ -294,7 +294,7 @@ const GATES: Array<[Bi, Bi, Bi]> = [
   [{ en: 'No engine arithmetic in the interface', es: 'Sin aritmética del motor en la interfaz' }, { en: 'a static scan of every interface file', es: 'una revisión estática de cada archivo de interfaz' }, { en: 'CI', es: 'CI' }],
   [{ en: 'Every constant declared with its unit', es: 'Cada constante declarada con su unidad' }, { en: 'a static scan of both engines', es: 'una revisión estática de ambos motores' }, { en: 'CI', es: 'CI' }],
   [{ en: 'The case contexts hold', es: 'Los contextos de los casos se sostienen' }, { en: 'every qualitative claim of every case context checked on the baked results', es: 'cada afirmación cualitativa de cada contexto verificada sobre los resultados horneados' }, { en: 'CI', es: 'CI' }],
-  [{ en: 'Layout, language and figures', es: 'Diseño, idioma y figuras' }, { en: 'the browser gate at three viewports, both themes and both languages', es: 'el control en navegador en tres tamaños, ambos temas y ambos idiomas' }, { en: 'local, before a release', es: 'local, antes de publicar' }],
+  [{ en: 'Layout, language and figures', es: 'Diseño, idioma y figuras' }, { en: 'the browser gate at three desktop sizes, both themes and both languages, and at a phone and a tablet size', es: 'el control en navegador en tres tamaños de escritorio, ambos temas y ambos idiomas, y en un tamaño de teléfono y uno de tableta' }, { en: 'local, before a release', es: 'local, antes de publicar' }],
 ];
 
 const SYSTEM: Topic = {
@@ -444,6 +444,7 @@ const RELEASE: Topic = {
   table: {
     head: [{ en: 'What is held', es: 'Qué se sostiene' }, { en: 'How', es: 'Cómo' }, { en: 'Where it runs', es: 'Dónde corre' }],
     rows: GATES,
+    wrap: [1],
   },
   limits: [
     { en: 'The Python suite and the browser gate run locally, not in CI, because they solve and train; a release record states that they passed.', es: 'La batería en Python y el control en navegador corren localmente, no en CI, porque resuelven y entrenan; el registro de cada versión dice que pasaron.' },

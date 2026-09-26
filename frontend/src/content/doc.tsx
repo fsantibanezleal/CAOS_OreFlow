@@ -20,7 +20,7 @@ export type Topic = {
   /** Assumptions and limitations. */
   limits?: Bi[];
   /** A table of the parameters the engine uses (values are the case catalog's or the constants'). */
-  table?: { head: Bi[]; rows: Array<Array<string | Bi>> };
+  table?: { head: Bi[]; rows: Array<Array<string | Bi>>; wrap?: number[] };   // wrap: the columns of prose, which break over lines
   /** A wide figure (a flowsheet) spans the text column below the prose; a narrow one sits beside it. */
   figure?: { caption: Bi; render: (lang: Lang) => ReactNode; wide?: boolean };
   /** Content read from the committed artifacts at run time (a results table, an interactive chart),
@@ -88,7 +88,8 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
         <table className="of-doc-table">
           <thead><tr>{topic.table.head.map((h, i) => <th scope="col" key={i}>{h[lang]}</th>)}</tr></thead>
           <tbody>{topic.table.rows.map((row, i) => (
-            <tr key={i}>{row.map((value, k) => (k === 0 ? <th scope="row" key={k}>{cell(value, lang)}</th> : <td key={k}>{cell(value, lang)}</td>))}</tr>
+            <tr key={i}>{row.map((value, k) => (k === 0 ? <th scope="row" key={k}>{cell(value, lang)}</th>
+              : <td key={k} className={topic.table?.wrap?.includes(k) ? 'of-doc-wrap' : undefined}>{cell(value, lang)}</td>))}</tr>
           ))}</tbody>
         </table>
       )}
