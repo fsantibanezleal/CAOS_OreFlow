@@ -115,7 +115,7 @@ entrapment `e0 + e1 exp(-d/d_e)`, halved in the cleaner. Fe grade from the miner
 Crushing Bond; grinding from the PBM; Bond requirement, operating work index and efficiency ratio
 for the achieved reduction; Rittinger and Kick calibrated to Bond at the reference reduction
 `F_ref = 10000 um`, `P_ref = 150 um` with the case work index. The reported total is crushing plus
-grinding.
+grinding plus, where the circuit has one, regrind.
 
 ## 10. Method records
 
@@ -277,5 +277,5 @@ screenshot of every view (PE-37).
 
 One circuit evaluation: under 50 ms in Python, under 30 ms in the browser. The full bake of 72
 variants with uncertainty, optimization, Sobol and the design matrix: about 35 minutes locally
-(measured 2026-09-26 on 12 case workers with CUDA: cases 297 s, learning 1789 s, every other stage
-under a second).
+(the committed bake of 2026-09-26 on 12 case workers with CUDA: cases 327 s, learning 1972 s, every
+other stage under a second; the validation record carries the timings of the bake it belongs to).

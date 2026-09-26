@@ -33,6 +33,8 @@ jobs:
         run: python scripts/check_ui_formulas.py
       - name: Every architecture diagram carries both languages (ADR-0058)
         run: python scripts/check_arch_i18n.py
+      - name: The SDD exists and every live requirement names a gate that exists (ADR-0075)
+        run: python scripts/check_sdd.py
       - run: python scripts/check_artifacts.py
   frontend:
     runs-on: ubuntu-latest

@@ -37,7 +37,7 @@ Non-goals, stated so they cannot be implied:
   with its full operating point, named streams (solids, water, assays, size distribution for the
   key streams), unit curves (partition, recovery by size, bank profile, batch kinetics, energy
   laws), metrics with explicit units, method records and provenance. Manifests, the index, the
-  method matrix and the benchmark follow. All artifacts carry the engine version, which is the
+  learning record with the exported networks, the benchmark and the validation record follow. All artifacts carry the engine version, which is the
   release version.
 
 ## 3. Lanes
@@ -70,7 +70,7 @@ applicable variant, tests, documentation and an honest lane label.
 | Gravity concentration (gold) | Gold circulating load exceeds ore circulating load; recovery rises with bleed with diminishing returns, as in the Laplante example. |
 | Low-intensity magnetic separation | Liberated magnetite recovery above 90%; concentrate Fe grade rises with finer grind. |
 | Flotation banks (rougher and cleaner) | Perfect mixers in series with k from bubble surface area flux, Savassi entrainment, cleaner recycle to the rougher; reduces to the tanks-in-series formula with no entrainment. |
-| First-order, Kelsall, Klimpel and compressed/stretched exponential kinetics | Fitted by least squares to the engine's batch curve; each reports parameters, fit error and the plant-bank projection under the same residence distribution. |
+| First-order, Kelsall, Klimpel, gamma and compressed/stretched exponential kinetics | Fitted by least squares to the engine's batch curve; each reports parameters, fit error and the plant-bank projection under the same residence distribution. |
 | Circuit balance | Solids, each element and water close at every unit and for the circuit, computed from the output streams, not from the solver. |
 | Constrained optimization | Maximizes recovered primary element subject to grade, power and water constraints; never returns an infeasible point. |
 | Uncertainty and sensitivity | Seeded Monte Carlo quantiles, constraint probabilities and Sobol indices for nominal variants. |
@@ -121,19 +121,20 @@ The driver is the API: if the API is retired, the VPS target is retired with it.
   release; the tolerance is not widened to pass.
 - Any wording that presents authored scenarios as plant results is a release blocker.
 
-## 9. Operating-envelope lane
+## 9. Response lane
 
-The Investigate view samples a finite grid of settings around the current operating point, applies
-explicit limits (minimum recovery, minimum grade, maximum specific energy, maximum water, maximum
-collector) and a declared stress (harder ore, lower floatability), classifies feasible and
-non-dominated points and lets the user apply one point or export the full audit record. It runs in a
-Web Worker on request. It is a finite conditional sample, not a continuous optimum and not a
-confidence statement.
+The 0.04.000 Investigate view is superseded (`docs/design/features/operating-envelope/`). The Response
+view sweeps one contract input, or two as a decision surface with the grade-specification and
+installed-power boundaries drawn, with the engine in a Web Worker and only on an explicit request
+(PE-38); every cell is validated first and a rejected cell is recorded with its code. The constrained
+optimizer (PE-27) answers the question the envelope approximated: the best point within every
+constraint, from six starts, simulated again before it is reported. Both are conditional on the
+authored plant and are not confidence statements.
 
 ## 10. Measured-data lanes
 
 Unchanged in purpose and kept separate from the simulator: the GeoMet locked-cycle recovery lane
 (`data-pipeline/run_geomet.py`, 52 tests from 29 holes, hole and spatial-zone holdouts) and the HZDR
 particle lane (`data-pipeline/pipeline/stages/particle_experiment.py`). The GeoMet lane adds paired
-bootstrap intervals over holes for each model's error difference from the training mean, because no
-model clearly beats that baseline on 52 tests and a ranking without intervals would overstate it.
+bootstrap intervals over holes for the error difference of every pair of models, because no model
+clearly beats the training mean on 52 tests and a ranking without intervals would overstate it.

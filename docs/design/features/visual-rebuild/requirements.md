@@ -1,6 +1,6 @@
 # OreFlow visual and interaction rebuild: requirements
 
-Status: implementation in progress; user acceptance has not been recorded. This document records the defects reported after v0.02.001. A green build is not acceptance.
+Status: superseded by process-engine-v2 (0.05.000), design section 12: the interface was rebuilt on the new trace (PE-35 to PE-40) and its layout, language, figure and modal rules are measured by `frontend/gate.mjs`. The rows below record the defects reported after v0.02.001; they are not a live specification.
 
 | ID | Requirement | Verification gate |
 | --- | --- | --- |
