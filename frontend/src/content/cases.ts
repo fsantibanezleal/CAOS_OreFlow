@@ -18,24 +18,24 @@ export const VARIANT_NOTES: Record<string, Bi> = {
     es: 'Índice de trabajo de Bond 25% mayor. El circuito necesita más energía por tonelada para la misma molienda; si la potencia instalada no alcanza, el molino opera en su límite y el producto se engruesa, lo que cuesta liberación.',
   },
   coarser_grind: {
-    en: 'Grind target 35% coarser. Less energy per tonne, fewer liberated particles and a coarser separation feed: the price of the energy saved is paid in recovery.',
-    es: 'Objetivo de molienda 35% más grueso. Menos energía por tonelada, menos partículas liberadas y una alimentación más gruesa a la separación: la energía ahorrada se paga en recuperación.',
+    en: 'Grind target 35% coarser. Less energy per tonne and fewer liberated grains, so the concentrate grade falls; a flotation circuit pays for the energy saved in recovery as well, while magnetic drums keep capturing the coarser composites and recover a little more iron at the lower grade.',
+    es: 'Objetivo de molienda 35% más grueso. Menos energía por tonelada y menos granos liberados, por lo que baja la ley del concentrado; un circuito de flotación paga además la energía ahorrada en recuperación, mientras los tambores magnéticos siguen capturando los mixtos más gruesos y recuperan algo más de hierro con menor ley.',
   },
   finer_grind: {
     en: 'Grind target 25% finer. More of the valuable mineral is liberated from its host, so a concentrate that depends on liberation gains grade, at a higher specific energy.',
     es: 'Objetivo de molienda 25% más fino. Se libera más mineral valioso de su huésped, por lo que un concentrado que depende de la liberación gana ley, con mayor energía específica.',
   },
   higher_throughput: {
-    en: 'Throughput 25% higher. Flotation residence falls in proportion, and once the mill reaches its installed power the grind coarsens as well.',
-    es: 'Tratamiento 25% mayor. La residencia en flotación cae en proporción y, cuando el molino llega a su potencia instalada, la molienda también se engruesa.',
+    en: 'Throughput 25% higher. Once the mill reaches its installed power the grind coarsens, and in a flotation circuit the residence in every bank falls in proportion as well; the metal recovered per hour can still rise, because the extra tonnes outweigh the recovery lost.',
+    es: 'Tratamiento 25% mayor. Cuando el molino llega a su potencia instalada la molienda se engruesa, y en un circuito de flotación la residencia en cada banco también cae en proporción; el metal recuperado por hora aún puede subir, porque las toneladas extra pesan más que la recuperación perdida.',
   },
   more_collector: {
     en: 'More collector. The valuable mineral\'s response saturates at a lower dose than the gangue\'s and the composites\', so extra reagent adds recovery with diminishing returns and floats more of what dilutes the concentrate.',
     es: 'Más colector. La respuesta del mineral valioso se satura a menor dosis que la de la ganga y los mixtos, por lo que el reactivo adicional suma recuperación con retornos decrecientes y flota más de lo que diluye el concentrado.',
   },
   more_air: {
-    en: 'Gas velocity 40% higher. A larger bubble surface area flux raises every rate constant, and the froth recovers more water, which carries more entrained gangue.',
-    es: 'Velocidad de gas 40% mayor. Un mayor flujo de área superficial de burbujas eleva todas las constantes cinéticas, y la espuma recupera más agua, que arrastra más ganga.',
+    en: 'Gas velocity 40% higher. A larger bubble surface area flux raises every rate constant; the froth also recovers more water, which carries more entrained gangue, but the faster flotation of the valuable mineral usually weighs more, so recovery rises and the grade holds or rises slightly.',
+    es: 'Velocidad de gas 40% mayor. Un mayor flujo de área superficial de burbujas eleva todas las constantes cinéticas; la espuma recupera además más agua, que arrastra más ganga, pero la flotación más rápida del mineral valioso suele pesar más, por lo que la recuperación sube y la ley se mantiene o sube levemente.',
   },
   larger_bleed: {
     en: 'Twice the underflow sent to the gravity unit. More free gold is taken out of the grinding loop before it overgrinds or reaches flotation, and less gold circulates.',
