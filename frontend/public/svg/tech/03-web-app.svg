@@ -1,31 +1,33 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 492" width="880" class="arch-svg" role="img" aria-label="The web app: build overlay, routes, the workbench loop and the pages">
   <style>
+    /* the page's tokens inside the app; CSS system colours where the file is shown as an image */
+    .arch-svg { color-scheme: light dark; }
     .arch-svg text { font-family: var(--font-sans, Inter, "Segoe UI", system-ui, sans-serif); }
     .arch-svg .mono { font-family: var(--font-mono, ui-monospace, "Cascadia Mono", Consolas, monospace); }
-    .arch-svg .bx { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
-    .arch-svg .bx-hi { stroke: var(--color-accent); stroke-width: 1.6; }
-    .arch-svg .bx-good { stroke: var(--color-good); stroke-width: 1.6; }
-    .arch-svg .bx-warn { stroke: var(--color-warn); stroke-width: 1.6; }
-    .arch-svg .band { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
-    .arch-svg .bt { fill: var(--color-fg-subtle); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
-    .arch-svg .h1 { fill: var(--color-fg); font-size: 15px; font-weight: 700; }
-    .arch-svg .sub { fill: var(--color-fg-subtle); font-size: 10.5px; }
-    .arch-svg .ttl { fill: var(--color-fg); font-size: 12.5px; font-weight: 600; }
-    .arch-svg .it { fill: var(--color-fg); font-size: 10.5px; }
-    .arch-svg .cd { fill: var(--color-accent); font-size: 10px; }
-    .arch-svg .eq { fill: var(--color-fg); font-size: 10.5px; }
-    .arch-svg .mu { fill: var(--color-fg-subtle); font-size: 10px; font-style: italic; }
-    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint); stroke-width: 1.5; }
-    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent); stroke-width: 1.5; }
-    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn); stroke-width: 1.5; stroke-dasharray: 5 4; }
-    .arch-svg .lbl { fill: var(--color-fg-subtle); font-size: 9.5px; }
-    .arch-svg .chip { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 1; }
+    .arch-svg .bx { fill: var(--color-surface-2, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1.2; }
+    .arch-svg .bx-hi { stroke: var(--color-accent, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-good { stroke: var(--color-good, LinkText); stroke-width: 1.6; }
+    .arch-svg .bx-warn { stroke: var(--color-warn, GrayText); stroke-width: 1.6; }
+    .arch-svg .band { fill: none; stroke: var(--color-border, GrayText); stroke-width: 1.2; stroke-dasharray: 5 4; }
+    .arch-svg .bt { fill: var(--color-fg-subtle, GrayText); font-size: 11px; font-weight: 700; letter-spacing: 0.04em; }
+    .arch-svg .h1 { fill: var(--color-fg, CanvasText); font-size: 15px; font-weight: 700; }
+    .arch-svg .sub { fill: var(--color-fg-subtle, GrayText); font-size: 10.5px; }
+    .arch-svg .ttl { fill: var(--color-fg, CanvasText); font-size: 12.5px; font-weight: 600; }
+    .arch-svg .it { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .cd { fill: var(--color-accent, LinkText); font-size: 10px; }
+    .arch-svg .eq { fill: var(--color-fg, CanvasText); font-size: 10.5px; }
+    .arch-svg .mu { fill: var(--color-fg-subtle, GrayText); font-size: 10px; font-style: italic; }
+    .arch-svg .flow { fill: none; stroke: var(--color-fg-faint, GrayText); stroke-width: 1.5; }
+    .arch-svg .flow-hi { fill: none; stroke: var(--color-accent, LinkText); stroke-width: 1.5; }
+    .arch-svg .flow-dash { fill: none; stroke: var(--color-warn, GrayText); stroke-width: 1.5; stroke-dasharray: 5 4; }
+    .arch-svg .lbl { fill: var(--color-fg-subtle, GrayText); font-size: 9.5px; }
+    .arch-svg .chip { fill: var(--color-surface, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1; }
     /* Standalone default: English. Inside the modal the shell's [data-arch-lang] rules decide. */
     svg .l-es { display: none; }
   </style>
   <defs>
     <marker id="of-arch-3" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint)"/>
+      <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint, GrayText)"/>
     </marker>
   </defs>
   <text class="h1 l-en" x="20" y="28">The web app: what the build copies, the routes, the workbench loop and the content pages</text>

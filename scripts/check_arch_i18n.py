@@ -14,7 +14,11 @@ What this gate enforces:
   2. every `l-en` has an `l-es` at the same (x, y), and the other way round, so a pair cannot be
      half-added or land in the wrong place;
   3. the Spanish string differs from the English one. A copy-paste that never got translated is the
-     most likely way this rots, and it is invisible on screen unless you read both.
+     most likely way this rots, and it is invisible on screen unless you read both;
+  4. every colour (fill, stroke, stop-color, flood-color, color) is `none`, `currentColor`,
+     `transparent`, `inherit`, a `url(#...)` reference, or a shell token with a CSS system colour as its
+     fallback, `var(--color-..., Canvas)`. A literal colour ignores the theme, and a token without a
+     fallback renders black when the file is opened on its own, where the page's tokens do not reach.
 
 What it CANNOT check is whether the Spanish text still fits inside its box. Spanish runs longer than
 English, so that is measured in a real browser by the architecture section of frontend/gate.mjs.
@@ -32,6 +36,26 @@ TEXT_RE = re.compile(r"<text\b([^>]*)>(.*?)</text>", re.S)
 CLASS_RE = re.compile(r'class="([^"]*)"')
 X_RE = re.compile(r'\bx="([^"]*)"')
 Y_RE = re.compile(r'\by="([^"]*)"')
+COLOUR_RE = re.compile(r'\b(fill|stroke|stop-color|flood-color|color)\s*(?:=\s*"([^"]*)"|:\s*([^;}"<]*))')
+TOKEN_RE = re.compile(r"^var\(--[\w-]+,\s*([A-Za-z]+)\s*\)$")
+KEYWORDS = {"none", "currentcolor", "transparent", "inherit"}
+# CSS Color Module 4, section 6.2: the system colours a standalone file resolves without the page
+SYSTEM_COLOURS = {"canvas", "canvastext", "linktext", "visitedtext", "activetext", "buttonface", "buttontext",
+                  "buttonborder", "field", "fieldtext", "highlight", "highlighttext", "selecteditem",
+                  "selecteditemtext", "mark", "marktext", "graytext", "accentcolor", "accentcolortext"}
+
+
+def colour_findings(rel: str, body: str) -> list[str]:
+    out: list[str] = []
+    for prop, attr, decl in COLOUR_RE.findall(body):
+        value = (attr or decl).strip()
+        token = TOKEN_RE.match(value)
+        if value.lower() in KEYWORDS or value.startswith("url(#"):
+            continue
+        if token and token.group(1).lower() in SYSTEM_COLOURS:
+            continue
+        out.append(f"{rel}: {prop} {value!r} is not a shell token with a system-colour fallback")
+    return out
 
 
 def main() -> int:
@@ -51,6 +75,7 @@ def main() -> int:
     for svg in svgs:
         rel = svg.relative_to(ROOT).as_posix()
         body = svg.read_text(encoding="utf-8")
+        errors.extend(colour_findings(rel, body))
         en: dict[tuple[str, str], str] = {}
         es: dict[tuple[str, str], str] = {}
 
@@ -97,7 +122,7 @@ def main() -> int:
         return 1
 
     print(f"architecture diagrams bilingual: {len(svgs)} files, {pairs} translated pairs, "
-          f"{neutral} deliberately language-neutral")
+          f"{neutral} deliberately language-neutral; every colour a shell token with a system fallback")
     return 0
 
 
