@@ -15,7 +15,7 @@ card for any library it introduces) in the same commit before the next one start
 - [x] T10 Case catalog re-authored with sources; single-factor variants (PE-32, PE-34). Engine commit 8c62512.
 - [x] T11 Contract 1 export, API validation, live API tests (PE-30, PE-30b). The browser validator and
   `frontend/src/test/contract.test.ts`, which replays `contract_probes.json`, land with T17 and T18.
-- [ ] T12 Kinetic fits and bank projection (PE-26).
+- [x] T12 Kinetic fits and bank projection (PE-26): five lumped models, including the gamma form of the dossier.
 - [ ] T13 Constrained optimization (PE-27).
 - [ ] T14 Uncertainty and Sobol (PE-28).
 - [ ] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29).

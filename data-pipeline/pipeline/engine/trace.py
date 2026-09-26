@@ -11,6 +11,7 @@ from dataclasses import asdict
 from typing import Any
 
 from .circuit import CircuitResult
+from .kinetics import kinetic_record
 from .model import OperatingPoint
 from .ore import ResolvedOre, fraction_to_grade
 from .streams import Stream
@@ -45,6 +46,12 @@ def _finite(value: Any, path: str, bad: list[str]) -> Any:
     return _finite(float(value), path, bad)   # NumPy scalars
 
 
+def _kinetics(result: CircuitResult, op: OperatingPoint) -> dict[str, Any]:
+    if result.flotation is None:
+        return {"status": "not_applicable", "reason": "the circuit has no flotation stage"}
+    return kinetic_record(result.flotation, result.ore, op.rougher_cells, result.metrics["rougher_recovery_pct"])
+
+
 def trace(result: CircuitResult, op: OperatingPoint, family: str) -> dict[str, Any]:
     body: dict[str, Any] = {
         "schema": SCHEMA,
@@ -58,6 +65,7 @@ def trace(result: CircuitResult, op: OperatingPoint, family: str) -> dict[str, A
         "streams": {name: stream_record(stream, result.ore) for name, stream in result.streams.items()},
         "curves": result.curves,
         "balance": result.balance,
+        "methods": {"kinetics": _kinetics(result, op)},
     }
     bad: list[str] = []
     body = _finite(body, "trace", bad)

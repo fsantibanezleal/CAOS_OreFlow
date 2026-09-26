@@ -23,6 +23,13 @@ and checked on 2026-09-26.
 | [09 Energy](methodologies/09_energy.md) | Bond, operating work index, Rittinger, Kick | `energy.py` |
 | [10 Conservation audit](methodologies/10_conservation-audit.md) | independent balance check | `balance.py` |
 
+Pages 11 onward are the methods that read the engine: they fit, optimize or learn from its
+results, and each measures its own error against the engine it approximates.
+
+| Page | Method | Module |
+|---|---|---|
+| [11 Kinetic fits and bank projection](methodologies/11_kinetic-fits.md) | five lumped batch models, Levenberg-Marquardt, tanks-in-series projection, lumping error | `kinetics.py` |
+
 What the whole engine is not: it is not calibrated to any plant, it is not dynamic, and its numbers
 are consequences of authored parameters inside published ranges. Its tests establish that the
 declared physics is implemented correctly and that it moves in the directions mineral processing

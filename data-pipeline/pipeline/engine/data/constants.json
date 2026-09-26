@@ -334,6 +334,42 @@
       "value": 0.1,
       "unit": "kWh/t",
       "source": "Numerics: floor of the Bond-based starting guess for the energy search."
+    },
+    "kinetics.beta_bounds": {
+      "value": [
+        0.2,
+        5.0
+      ],
+      "unit": "1",
+      "source": "Declared: range of the exponent that keeps the model identifiable on a nine-point batch curve; above 1 the curve has a delayed onset (compressed), below 1 it reflects a spread of rates (stretched); dossier section 3.6, Vinnett and Waters (2025), doi:10.1016/j.mineng.2025.109246."
+    },
+    "kinetics.dense_points": {
+      "value": 65,
+      "unit": "1",
+      "source": "Design: samples of each fitted curve from 0 to the last batch time (0.25 min spacing over 16 min), for plotting from the record."
+    },
+    "numerics.lm_initial_damping": {
+      "value": 0.001,
+      "unit": "1",
+      "source": "Numerics: initial Marquardt damping (Marquardt 1963)."
+    },
+    "numerics.lm_damping_factor": {
+      "value": 10.0,
+      "unit": "1",
+      "source": "Numerics: damping decrease on an accepted step and increase on a rejected one."
+    },
+    "numerics.lm_damping_bounds": {
+      "value": [
+        1e-15,
+        1000000000000000.0
+      ],
+      "unit": "1",
+      "source": "Numerics: damping limits; reaching the upper one means no step lowers the residual in double precision."
+    },
+    "numerics.lm_diagonal_floor": {
+      "value": 1e-12,
+      "unit": "1",
+      "source": "Numerics: floor on the diagonal of the normal matrix used for Marquardt scaling."
     }
   }
 }

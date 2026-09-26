@@ -18,6 +18,7 @@ variant, and the browser engine must reproduce its metrics and curves within 1e-
 | `streams` | every stream as a record (below) |
 | `curves` | size-resolved results (below) |
 | `balance` | `units`: the worst relative closure error of each unit; `max_relative_error`: the worst over the circuit |
+| `methods` | `kinetics`: the virtual batch curve, the five lumped kinetic fits and their bank projections ([methodology page 11](../methodologies/11_kinetic-fits.md)); `{"status": "not_applicable"}` for the magnetic circuit |
 | `flags` | `{code, message}` for every condition the engine reports (below) |
 
 **Stream record.** `solids_tph`, `water_tph`, `solids_pct` (mass percent solids), `p80_um` (`null`
@@ -115,3 +116,12 @@ Gates: `tests/test_live_api.py::test_api_and_contract_agree` replays every contr
 HTTP API and compares status and error codes; `test_live_trace_equals_engine` checks that the API
 trace for each nominal case equals the engine's trace exactly; `test_engine_failure_is_reported`
 checks the 500 envelope.
+
+**Kinetic record** (`methods.kinetics`): `species` (the primary payable), `times_min` and
+`batch_recovery_pct` (the virtual batch test), `dense_times_min` (65 points to the last batch time),
+`bank` (`cells`, `cell_residence_min`, `residence_min`, `exact_true_flotation_pct`,
+`engine_rougher_pct`), and `models`, one per lumped form with `id` (`first_order`, `kelsall`,
+`klimpel`, `gamma`, `stretched_exponential`), `parameters` and `parameter_units`, `rmse_pct`,
+`iterations`, `converged`, `fitted_pct` (at the batch times), `dense_pct`, `bank_projection_pct`,
+`lumping_error_pct` (projection minus the exact bank) and `ultimate_gap_pct` (fitted ultimate recovery
+minus the fitted recovery at the last batch time).

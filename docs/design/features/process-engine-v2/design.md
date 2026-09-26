@@ -120,8 +120,8 @@ grinding.
 ## 10. Method records
 
 - Kinetics: a virtual batch test of the rougher feed (true flotation, times 0.5 to 16 min) is fitted
-  by the same Levenberg-Marquardt routine in both languages with first-order, Kelsall, Klimpel and
-  compressed/stretched exponential forms; each is projected to the rougher bank with the
+  by the same Levenberg-Marquardt routine in both languages with first-order, Kelsall, Klimpel, gamma
+  and compressed/stretched exponential forms; each is projected to the rougher bank with the
   tanks-in-series residence distribution (closed forms for the first three, Gauss-Laguerre
   quadrature with an exported node table for the fourth) and compared with the engine's distributed
   bank recovery.
