@@ -24,6 +24,9 @@
  * - opens every tab and sub-tab of every content page: no sideways overflow, the interface language,
  *   no KaTeX error, no cut equation, no failed record load, no figure text outside its box or across a
  *   box it does not fit, and the in-browser network run where a page offers it;
+ * - at 390x844 and 768x1024 (OF_SMALL), where the rail stacks and the page body scrolls, visits every
+ *   view: the rail whole and clear of the readout, no sideways document scroll, and no flowsheet unit
+ *   box over another;
  * - fails on any console error.
  *
  * A screenshot of every state lands in OF_QA (default `qa-output/`, ignored by git); the measurements
@@ -46,6 +49,8 @@ const COMBOS = ONLY.length ? ALL.filter(c => ONLY.includes(tagOf(c)))
   : FULL ? ALL : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
 if (ONLY.length && COMBOS.length !== ONLY.length) throw new Error(`OF_ONLY names a combination outside the matrix: ${ONLY.join(', ')}`);
 const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case'];
+// the phone and tablet pass (after the matrix); OF_SMALL names its combinations, empty for none
+const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
 mkdirSync(OUT, { recursive: true });
 
@@ -386,7 +391,56 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();
 }
+
+// Phone and tablet (PE-37's gate names phone, tablet and desktop; ADR-0071 binds the three sizes above).
+// Below 860 px the rail stacks above the instrument and the page body scrolls, so the fixed-surface
+// measures do not apply; every view must instead keep the rail whole and clear of the readout, keep the
+// document from scrolling sideways (a wide readout, tab row or flowsheet scrolls inside its own box), and
+// draw the flowsheet with no unit box over another. At 390 px the rail once shrank to 61 px under its
+// controls and the flowsheet's cells to 46 px under 64 px boxes.
+for (const tag of SMALL) {
+  const [size, theme, lang] = tag.split('-');
+  const [w, h] = size.split('x').map(Number);
+  const context = await browser.newContext({ viewport: { width: w, height: h } });
+  await context.addInitScript(([t, l]) => { localStorage.setItem('caos.theme', t); localStorage.setItem('caos.lang', l); }, [theme, lang]);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(String(error)));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  await page.goto(`${BASE}/?case=${CASE}`, { waitUntil: 'networkidle', timeout: 90000 });
+  await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
+  for (const [index, view] of VIEWS.entries()) {
+    await page.locator('.of-viewbar [role=tab]').nth(index).click();
+    await page.waitForTimeout(500);
+    const outside = await page.evaluate(OVERFLOW_PROBE);
+    const m = await page.evaluate(() => {
+      const rail = document.querySelector('.of-rail');
+      const r = rail.getBoundingClientRect();
+      const o = document.querySelector('.of-readout').getBoundingClientRect();
+      const flow = [...document.querySelectorAll('svg.of-flowmap')].find(s => s.getBoundingClientRect().width > 0);
+      let units = null, overlaps = null;
+      if (flow) {
+        const boxes = [...flow.querySelectorAll('.of-flow-unit rect')].map(e => e.getBoundingClientRect());
+        units = boxes.length;
+        overlaps = 0;
+        for (let i = 0; i < boxes.length; i += 1) for (let j = i + 1; j < boxes.length; j += 1) {
+          const a = boxes[i], b = boxes[j];
+          if (a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5) overlaps += 1;
+        }
+      }
+      return {
+        railClear: r.bottom <= o.top + 1, railWhole: rail.scrollHeight <= rail.clientHeight + 2,
+        overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+        lang: document.documentElement.lang, units, overlaps,
+      };
+    });
+    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside });
+    await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
+  }
+  record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
+  await context.close();
+}
 await browser.close();
-writeFileSync(join(OUT, 'gate.json'), JSON.stringify({ base: BASE, case: CASE, full: FULL, only: ONLY, results }, null, 1));
+writeFileSync(join(OUT, 'gate.json'), JSON.stringify({ base: BASE, case: CASE, full: FULL, only: ONLY, small: SMALL, results }, null, 1));
 console.log(failures ? `\nGATE FAILED: ${failures} check(s)` : `\nGATE PASSED: ${results.length} checks`);
 process.exit(failures ? 1 : 0);

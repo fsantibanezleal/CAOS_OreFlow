@@ -11,6 +11,15 @@
  * with 100dvh, and .app-shell with 100vh, neither through this percentage chain. */
 html, body, #root { height: auto; min-height: 100%; }
 
+/* Shell known defect 10 (open in 0.6.11): the route links scroll inside the header only below 760 px;
+ * above that the nav cannot shrink, so from 761 px to about 1060 px in Spanish it pushed the header's
+ * actions (architecture, source, about, language, theme) past the right edge of the screen. The nav
+ * shrinks and scrolls in its row at every width; a wide screen shows it whole, as before. */
+.main-nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; white-space: nowrap; scrollbar-width: none; }
+.main-nav::-webkit-scrollbar { display: none; }
+.main-nav .nav-link { flex: none; }
+.brand, .header-actions { flex: none; white-space: nowrap; }
+
 .of-doc { min-width: 0; }
 .of-doc-head { margin-bottom: 1.2rem; }
 .of-doc-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -0.01em; }

@@ -76,6 +76,8 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   // the grid on the stage (flowsheet.ts): everything below is in the drawing's own px, which the viewBox
   // scales to the stage when the stage is larger than the readable cell on both axes
   const { zoom, cellW, cellH, ox, oy, width, height, frame } = fit(extent(plan), size, [top, right, bottom, left]);
+  // the stage's width, or the readable width on a stage narrower than that (the host then scrolls sideways)
+  const svgWidth = width * zoom > size.width + 0.5 ? width * zoom : size.width;
   const px = (col: number) => ox + col * cellW;
   const py = (row: number) => oy + row * cellH;
   const boxW = Math.max(64, Math.min(132, cellW * 0.66));
@@ -143,7 +145,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
 
   return (
     <div className="of-flowmap-host" ref={hostRef}>
-      <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={size.width} height={size.height} role="img" aria-label={summary}
+      <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
         data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`}>
         <defs>
           {(['plain', 'recycle', 'product'] as const).map(kind => (

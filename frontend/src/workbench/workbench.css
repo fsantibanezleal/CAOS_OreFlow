@@ -238,7 +238,8 @@ input, select, textarea { font: inherit; }
 .of-heatmap-ramp { display: inline-block; width: 160px; height: 10px; border-radius: 3px; }
 .of-heatmap-zlabel { font-family: var(--font-sans); }
 
-.of-flowmap-host { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow: hidden; }
+/* a stage narrower than the readable drawing (a phone) scrolls it sideways (fit in flowsheet.ts) */
+.of-flowmap-host { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: hidden; }
 .of-flowmap { display: block; position: absolute; inset: 0; }
 .of-flow-edge polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
 .of-flow-edge.recycle polyline { stroke: var(--color-warn); stroke-dasharray: 6 4; }
@@ -366,7 +367,11 @@ input, select, textarea { font: inherit; }
 /* ---- narrow screens: the rail stacks above the instrument, and the page body is the one scroller ---- */
 @media (max-width: 860px) {
   .page-body.wide.of-bench { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-content: start; }
-  .of-rail { overflow: visible; }
+  /* the rail's row takes its content: with min-height 0 the stacked row shrank to 61 px and the controls
+     spilled over the readout and the tab row; the page body scrolls instead */
+  .of-rail { overflow: visible; min-height: auto; }
+  /* the readout stays one row and scrolls sideways rather than cutting its last readings */
+  .of-readout { overflow-x: auto; scrollbar-width: none; }
   .of-main { min-height: 78dvh; }
   .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-1x2 { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }

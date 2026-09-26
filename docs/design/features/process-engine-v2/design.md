@@ -201,7 +201,9 @@ The layout follows ADR-0071 and the shell (`@fasl-work/caos-app-shell`), with no
      selecting a unit shows its input and output records and its closure. The drawing fills the
      stage on its limiting axis at every viewport: one scale per axis up to a readable cell (210 by
      150 px, with 11 px unit names), and on a stage larger than that on both axes the whole drawing,
-     text included, scaled by one factor (ADR-0071).
+     text included, scaled by one factor (ADR-0071). A stage narrower than the narrowest readable cell
+     (88 px, a 64 px unit box and room for the stream) keeps that cell, and the diagram scrolls sideways
+     in its panel.
   2. *Grinding*: cumulative size distributions of the circuit streams, the cyclone partition with the
      cut and the bypass marked, the liberation curve with the liberation size and the target P80
      marked, the host-limited composite scale where it departs from 1.
@@ -276,7 +278,10 @@ rail shows its own controls, one tab row, the instrument at least 50% of the vie
 focus route), the drawn flowsheet (its units, streams and labels) across at least 90% of its frame on
 the limiting axis, `<html lang>` equal to the interface language, the focus round trip by clicking,
 and a screenshot of every view (PE-37). `flowsheet.test.ts` holds the same fill for the layout on
-every baked variant, from a phone stage to a 4K one, with and without the focus overlay inset.
+every baked variant, from a phone stage to a 4K one, with and without the focus overlay inset. At
+390x844 and 768x1024 the gate visits every view: the rail whole and clear of the readout, no sideways
+document scroll, no element outside the viewport except in its own scroll box, and no flowsheet unit box
+over another.
 
 ## 13. Performance budget
 

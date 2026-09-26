@@ -166,7 +166,10 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         ctx.lineTo(mark.px, top + height);
         ctx.stroke();
         const w = ctx.measureText(mark.label).width;
-        const x = mark.px + 4 * ratio + w > left + width ? mark.px - 4 * ratio - w : mark.px + 4 * ratio;
+        // right of the mark, else left of it, and never outside the plot: on a phone a long label placed
+        // left of its mark ran over the y axis
+        const side = mark.px + 4 * ratio + w > left + width ? mark.px - 4 * ratio - w : mark.px + 4 * ratio;
+        const x = Math.max(left, Math.min(side, left + width - w));
         let row = 0;
         let box: Box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
         while (placed.some(b => overlaps(b, box)) && row < 6) {

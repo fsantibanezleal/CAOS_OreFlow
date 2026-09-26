@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { TopologyUnit } from '../engine/circuit';
-import { CELL_H, CELL_W, extent, fit, layout } from '../workbench/flowsheet';
+import { CELL_H, CELL_W, extent, fit, layout, MIN_CELL_W } from '../workbench/flowsheet';
 
 // PE-37 (the automated half; the screenshots are the other): on every baked variant the flowsheet
 // places every unit of the trace topology in its own cell, draws every product as a terminal, draws the
@@ -59,7 +59,9 @@ describe('the flowsheet draws the trace topology', () => {
 // ADR-0071 on the flowsheet: on every stage, from a phone to a 4K screen, with and without the focus
 // route's overlay inset, the drawing spans its frame on the limiting axis, never leaves it, sits in its
 // centre, and never shrinks its text (the scale factor is at least 1). At 2560 x 1440 the drawing had
-// stopped at the readable cell and filled 75% of the stage's width and half its height.
+// stopped at the readable cell and filled 75% of the stage's width and half its height. A stage narrower
+// than the readable cell (a phone) keeps that cell: the frame is then wider than the stage and the host
+// scrolls sideways; at 390 px the cells had shrunk to 46 px under 64 px boxes, which overlapped.
 const STAGES: Array<[number, number]> = [[358, 420], [960, 520], [952, 600], [1300, 700], [2189, 1203], [2221, 1440], [3500, 1900]];
 const INSETS: Array<[number, number, number, number]> = [[0, 0, 0, 0], [72, 16, 12, 156]];
 
@@ -75,12 +77,16 @@ describe('the flowsheet fills its stage', () => {
             const [top, right, bottom, left] = inset;
             const where = `${artifact.case_id}:${variant.id} on ${width} x ${height}, inset ${inset.join(' ')}`;
             const f = fit(e, { width, height }, inset);
-            const W = width - left - right;
             const H = height - top - bottom;
+            const narrow = width - left - right < MIN_CELL_W * (e.x1 - e.x0);
+            const W = f.width * f.zoom - left - right;   // the frame's width: the stage's, or wider on a phone
             const drawnW = f.cellW * (e.x1 - e.x0) * f.zoom;
             const drawnH = f.cellH * (e.y1 - e.y0) * f.zoom;
             expect(f.zoom, where).toBeGreaterThanOrEqual(1);
             expect(f.cellW, where).toBeLessThanOrEqual(CELL_W);
+            expect(f.cellW, where).toBeGreaterThanOrEqual(MIN_CELL_W - 1e-9);
+            if (narrow) expect([f.zoom, W > width - left - right], where).toEqual([1, true]);
+            else expect(W, where).toBeCloseTo(width - left - right, 9);
             expect(f.cellH, where).toBeLessThanOrEqual(CELL_H);
             expect(drawnW, where).toBeLessThanOrEqual(W + 1e-9);
             expect(drawnH, where).toBeLessThanOrEqual(H + 1e-9);
@@ -89,9 +95,8 @@ describe('the flowsheet fills its stage', () => {
             expect((f.oy + e.y0 * f.cellH) * f.zoom, where).toBeCloseTo(top + (H - drawnH) / 2, 6);
             expect(f.frame.x0 * f.zoom, where).toBeCloseTo(left, 9);
             expect(f.frame.y0 * f.zoom, where).toBeCloseTo(top, 9);
-            expect(f.frame.x1 * f.zoom, where).toBeCloseTo(width - right, 9);
+            expect(f.frame.x1 * f.zoom, where).toBeCloseTo(left + W, 9);
             expect(f.frame.y1 * f.zoom, where).toBeCloseTo(height - bottom, 9);
-            expect(f.width * f.zoom, where).toBeCloseTo(width, 9);
             expect(f.height * f.zoom, where).toBeCloseTo(height, 9);
           }
         }

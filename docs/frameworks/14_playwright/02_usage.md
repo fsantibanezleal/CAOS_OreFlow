@@ -51,6 +51,15 @@ at least half the viewport, `<html lang>` equal to the interface language; the f
 stage and its largest chart to cover at least 80% of the viewport. Both require the flowsheet drawing
 check wherever the flowsheet is on the stage.
 
+A phone and tablet pass follows the matrix (`OF_SMALL`, default `390x844-light-en,768x1024-dark-es`,
+empty for none). Below 860 px the rail stacks above the instrument and the page body scrolls, so the
+fixed-surface measures do not apply; every view must instead keep the rail whole and clear of the
+readout, keep the document from scrolling sideways, keep every element inside the viewport unless it
+sits in its own scroll box (the readout, the tab row and a phone's flowsheet scroll sideways), and draw
+the flowsheet with no unit box over another. Its first run found the rail shrunk to 61 px under its
+controls, overlapping flowsheet boxes on a phone, and, at 768 px in Spanish, the header's actions off
+the screen (shell known defect 10).
+
 ## Outputs
 
 `gate.json` records every check with its measurements (so a pass shows its margin, not just its verdict),

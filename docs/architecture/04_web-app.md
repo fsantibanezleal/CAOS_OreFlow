@@ -78,7 +78,7 @@ instrument reports to the same place.
 
 | View | What it draws | Requirement |
 |---|---|---|
-| Circuit | The flowsheet from the trace's topology, every stream's flow and grade on the stage, and for the selected unit its input and output streams with its closure error from the independent audit. The drawing spans the stage on its limiting axis at every viewport: one scale per axis up to a readable cell, then the whole drawing, text included, scaled by one factor (`fit` in `flowsheet.ts`) | PE-37 |
+| Circuit | The flowsheet from the trace's topology, every stream's flow and grade on the stage, and for the selected unit its input and output streams with its closure error from the independent audit. The drawing spans the stage on its limiting axis at every viewport: one scale per axis up to a readable cell, then the whole drawing, text included, scaled by one factor (`fit` in `flowsheet.ts`); on a stage narrower than the narrowest readable cell (a phone) the drawing keeps that cell and scrolls sideways in its panel | PE-37 |
 | Grinding | Size distributions of the circuit streams, the cyclone partition, the liberation of each valuable mineral and the host-limited composite scale, with the target, the cut and the liberation sizes marked where the engine put them | PE-36 |
 | Separation | By family: the rougher recovery by size, the grade-recovery curve down the bank and the kinetic record (batch curve, five fits, their bank projections); the magnetic capture by particle class; the desliming partition | PE-36 |
 | Response | A metric against one contract input, or over two inputs as a decision surface with the grade-specification and installed-power boundaries, the current state and the baked optimum marked; computed in the worker only when asked | PE-38 |
@@ -173,6 +173,9 @@ both languages) it:
 - opens every tab and sub-tab of every content page and requires no sideways overflow, the interface
   language, no KaTeX error, no cut equation, no failed record load and no figure text outside its box
   or across a box it does not fit, running the in-browser network where a page offers it;
+- at 390x844 and 768x1024, where the rail stacks above the instrument and the page body scrolls, visits
+  every view and requires the rail whole and clear of the readout, no sideways document scroll, no
+  element outside the viewport except inside its own scroll box, and no flowsheet unit box over another;
 - fails on any console error, and writes a screenshot of every state and the measurements
   (`gate.json`) to `qa-output/`, which git ignores.
 

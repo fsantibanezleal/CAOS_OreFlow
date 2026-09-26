@@ -142,10 +142,13 @@ export function extent(plan: Layout): Extent {
 /** The widest and tallest cell, in px at the drawing's own scale, where the 11 px unit names read well. */
 export const CELL_W = 210;
 export const CELL_H = 150;
+/** The narrowest cell that holds a 64 px unit box (a name on two lines) and 24 px for the stream and its
+ * arrow to the next box: a stage narrower than that (a phone) keeps this width and scrolls sideways. */
+export const MIN_CELL_W = 88;
 
 export type Fit = {
   zoom: number; cellW: number; cellH: number; ox: number; oy: number; width: number; height: number;
-  frame: { x0: number; y0: number; x1: number; y1: number };   // the stage less the inset, where everything is drawn
+  frame: { x0: number; y0: number; x1: number; y1: number };   // the box less the inset, where everything is drawn
 };
 
 /**
@@ -154,7 +157,9 @@ export type Fit = {
  * the circuit spans the stage on its limiting axis instead of sitting small in its middle (ADR-0071).
  * The drawing is laid out in a box of the stage divided by that factor (width by height, in the
  * drawing's own px), which the SVG viewBox scales back; the text never shrinks, since the factor is at
- * least 1. The frame is the part of that box no overlay covers: units, streams and labels stay in it.
+ * least 1. A stage narrower than the narrowest readable cell keeps that cell, so the box is wider than
+ * the stage and the diagram's host scrolls sideways; shrinking would take the names below 6 px. The
+ * frame is the part of the box no overlay covers: units, streams and labels stay in it.
  */
 export function fit(e: Extent, stage: { width: number; height: number }, inset: Inset): Fit {
   const [top, right, bottom, left] = inset;
@@ -163,16 +168,17 @@ export function fit(e: Extent, stage: { width: number; height: number }, inset: 
   const W = stage.width - left - right;
   const H = stage.height - top - bottom;
   const zoom = Math.max(1, Math.min(W / (CELL_W * spanX), H / (CELL_H * spanY)));
-  const w = W / zoom;
+  const w = Math.max(W / zoom, MIN_CELL_W * spanX);
   const h = H / zoom;
   const cellW = Math.min(CELL_W, w / spanX);
   const cellH = Math.min(CELL_H, h / spanY);
+  const width = w + (left + right) / zoom;
   return {
     zoom, cellW, cellH,
     ox: left / zoom + (w - cellW * spanX) / 2 - e.x0 * cellW,
     oy: top / zoom + (h - cellH * spanY) / 2 - e.y0 * cellH,
-    width: stage.width / zoom,
+    width,
     height: stage.height / zoom,
-    frame: { x0: left / zoom, y0: top / zoom, x1: (stage.width - right) / zoom, y1: (stage.height - bottom) / zoom },
+    frame: { x0: left / zoom, y0: top / zoom, x1: width - right / zoom, y1: (stage.height - bottom) / zoom },
   };
 }
