@@ -1,16 +1,29 @@
 /**
- * OreFlow's browser gate (design §12.3; ADR-0070, ADR-0071), run against a served build:
+ * OreFlow's browser gate (design §12.3; ADR-0058, ADR-0070, ADR-0071), run against a served build:
  *
  *   npm run build && npm run preview        (serves on 127.0.0.1:4914)
- *   OF_MATRIX=full node gate.mjs            (smoke: two viewport, theme and language combinations)
+ *   node gate.mjs                           (smoke: two viewport, theme and language combinations)
+ *   OF_MATRIX=full node gate.mjs            (three viewports, both themes, both languages)
  *
- * For every combination it opens the App route, visits every view and every Methods record, runs the
- * Response and learned-lane sweeps, and measures what ADR-0071 binds: no document scroll either way, a
- * rail that shows its own controls, one tab row, the instrument (the active view) at least half the
- * viewport, `<html lang>` equal to the interface language, and no console error. Then it enters the
- * focus route by clicking, measures the stage (at least 80%), and returns by clicking to the same
- * state. A screenshot of every view lands in OF_QA (default `qa-output/`, ignored by git); the
- * measurements are written to `gate.json` there. Exit 1 on any failure.
+ * OF_BASE points it at another host (a public deployment), OF_CASE picks the case, OF_PAGES the content
+ * pages (default all five; empty for none). For every combination it:
+ *
+ * - opens the App route, visits every view, every Case sub-tab and every Methods record, runs the
+ *   Response sweep and the learned lane, and measures what ADR-0071 binds: no document scroll either
+ *   way, no element outside the viewport and none clipped out of reach inside the view, no equation
+ *   wider than its box, a rail that shows its own controls, one tab row, the instrument (the active
+ *   view) at least half the viewport, and `<html lang>` equal to the interface language;
+ * - opens the architecture modal and checks every tab (ADR-0058): the diagram inlined, only the
+ *   interface language's text shown, every text inside the diagram and inside any box it touches;
+ * - enters the focus route by clicking, measures the stage and its largest chart (at least 80%), and
+ *   returns by clicking to the same case, variant and changed controls;
+ * - opens every tab and sub-tab of every content page: no sideways overflow, the interface language,
+ *   no KaTeX error, no cut equation, no failed record load, no figure text outside its box or across a
+ *   box it does not fit, and the in-browser network run where a page offers it;
+ * - fails on any console error.
+ *
+ * A screenshot of every state lands in OF_QA (default `qa-output/`, ignored by git); the measurements
+ * are written to `gate.json` there. Exit 1 on any failure.
  */
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
