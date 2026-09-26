@@ -45,7 +45,16 @@ card for any library it introduces) in the same commit before the next one start
   that crosses a box, the in-browser particle network, and the architecture modal in both languages.
   The pre-0.05 interface, its two stylesheets and its five diagrams are removed; `check_ui_formulas.py`
   exempts nothing, and `check_units.py`, `check_ui_formulas.py` and `check_arch_i18n.py` run in CI.
-- [ ] T20 `docs/` wiki tree, README, STRUCTURE, CHANGELOG, manuscript rewrite.
+- [x] T20 `docs/` wiki tree, README, STRUCTURE, CHANGELOG, manuscript rewrite.
+  The wiki has its six themes (architecture 01 to 05, methodologies 01 to 14, data contract 01 to 05,
+  fifteen framework nodes with runnable Python examples that assert what they print, five guides, twelve
+  use-case pages rendered from the records by `scripts/render_use_cases.mjs` and checked in CI), and
+  `check_sdd.py` gates the design documents. Writing it against the code found and fixed: Spanish numbers
+  printed with decimal points (a locale probe now gates it), five figure labels crossed by lines and an
+  energy-law figure whose curves did not meet at their calibration point (a stroke probe), shell defect 1
+  unapplied and a gate check that could not fail because of it, a Sobol record that ranked round-off, a
+  CI budget gap for the GPU requirements, a broken smoke script, two English words in shared formulas (a
+  test), variant notes that did not hold for every circuit, and a stale service README.
 - [ ] T21 Canonical bake with the GPU lane; full test suite; guards; build; visual QA in both themes and languages at three viewports.
 - [ ] T22 Release 0.05.000, backfilled tags, PRs, CI, Pages, VPS deploy, live verification, CAOS_MANAGE records.
 - [ ] T23 Convergence verdict against every requirement.
