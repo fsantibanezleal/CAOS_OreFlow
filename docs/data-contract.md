@@ -7,7 +7,7 @@ fields and units, what is rejected, what is flagged, and how missing or out-of-r
 |---|---|---|
 | [01 Operating contract](data-contract/01_operating-contract.md) | Contract 1: the operating envelope every state must satisfy before the engine runs | `data-pipeline/pipeline/io/contract.py`, exported to `data/derived/contract/operating_contract.json` |
 | [02 Trace and live API](data-contract/02_trace-and-live-api.md) | The trace of one circuit evaluation and the HTTP routes that serve it | `data-pipeline/pipeline/engine/trace.py`, `app/routers/content.py` |
-| [03 Case artifacts](data-contract/03_case-artifacts.md) | Contract 2: the baked case artifacts and manifests the web replay lane reads | `data-pipeline/pipeline/stages/export.py` |
+| [03 Case artifacts](data-contract/03_case-artifacts.md) | Contract 2: the baked case artifacts, their manifests and the index, the learning record, the benchmark and the validation record | `data-pipeline/pipeline/stages/cases.py` (each case), `data-pipeline/pipeline/pipeline.py` (manifests, index, learning, validation), `data-pipeline/pipeline/stages/benchmark.py` |
 | [04 Particle lane](data-contract/04_particle-lane.md) | HZDR RODARE particle-separation workbook and its learned models | `data-pipeline/run_particles.py` |
 | [05 GeoMet lane](data-contract/05_geomet-lane.md) | GeoMet v4 locked-cycle-test recoveries and assay predictors | `data-pipeline/run_geomet.py` |
 
