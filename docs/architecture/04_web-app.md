@@ -78,7 +78,7 @@ instrument reports to the same place.
 
 | View | What it draws | Requirement |
 |---|---|---|
-| Circuit | The flowsheet from the trace's topology, every stream's flow and grade on the stage, and for the selected unit its input and output streams with its closure error from the independent audit | PE-37 |
+| Circuit | The flowsheet from the trace's topology, every stream's flow and grade on the stage, and for the selected unit its input and output streams with its closure error from the independent audit. The drawing spans the stage on its limiting axis at every viewport: one scale per axis up to a readable cell, then the whole drawing, text included, scaled by one factor (`fit` in `flowsheet.ts`) | PE-37 |
 | Grinding | Size distributions of the circuit streams, the cyclone partition, the liberation of each valuable mineral and the host-limited composite scale, with the target, the cut and the liberation sizes marked where the engine put them | PE-36 |
 | Separation | By family: the rougher recovery by size, the grade-recovery curve down the bank and the kinetic record (batch curve, five fits, their bank projections); the magnetic capture by particle class; the desliming partition | PE-36 |
 | Response | A metric against one contract input, or over two inputs as a decision surface with the grade-specification and installed-power boundaries, the current state and the baked optimum marked; computed in the worker only when asked | PE-38 |
@@ -160,12 +160,16 @@ both languages) it:
 - visits every view, every Case sub-tab and every Methods record, runs the response sweep and the
   learned lane, and measures what ADR-0071 binds: no document scroll in either direction, no element
   outside the viewport and none clipped out of reach inside the view, no equation wider than its box,
-  a rail that shows its own controls, one row of tabs, the active view at least half the viewport, and
-  `<html lang>` equal to the interface language;
+  a rail that shows its own controls, one row of tabs, the active view at least half the viewport,
+  `<html lang>` equal to the interface language, and, where the flowsheet is on the stage, what it drew
+  (units, streams and labels) across at least 90% of its frame on the limiting axis and inside it: the
+  svg element always fills its host, so its own box says nothing about the drawing;
 - opens the architecture modal and checks every tab: the diagram inlined, only the interface
   language's text shown, every text inside the diagram and inside any box it touches;
 - enters the focus route by clicking, requires the stage and its largest chart to cover at least 80%
-  of the viewport, and returns by clicking to the same case, variant and changed controls;
+  of the viewport and the drawn flowsheet to fill its frame as above (the frame is the stage less the
+  overlay inset the diagram declares, bounded to a quarter of each axis), and returns by clicking to
+  the same case, variant and changed controls;
 - opens every tab and sub-tab of every content page and requires no sideways overflow, the interface
   language, no KaTeX error, no cut equation, no failed record load and no figure text outside its box
   or across a box it does not fit, running the in-browser network where a page offers it;

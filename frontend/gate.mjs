@@ -5,18 +5,22 @@
  *   node gate.mjs                           (smoke: two viewport, theme and language combinations)
  *   OF_MATRIX=full node gate.mjs            (three viewports, both themes, both languages)
  *
- * OF_BASE points it at another host (a public deployment), OF_CASE picks the case, OF_PAGES the content
+ * OF_BASE points it at another host (a public deployment), OF_ONLY names combinations of the full matrix
+ * (1280x800-dark-es,...) to re-check after a fix, OF_CASE picks the case, OF_PAGES the content
  * pages (default all five; empty for none). For every combination it:
  *
  * - opens the App route, visits every view, every Case sub-tab and every Methods record, runs the
  *   Response sweep and the learned lane, and measures what ADR-0071 binds: no document scroll either
  *   way, no element outside the viewport and none clipped out of reach inside the view, no equation
  *   wider than its box, a rail that shows its own controls, one tab row, the instrument (the active
- *   view) at least half the viewport, and `<html lang>` equal to the interface language;
+ *   view) at least half the viewport, and `<html lang>` equal to the interface language; where the
+ *   flowsheet is on the stage, what it drew (units, streams and labels) must span at least 90% of its
+ *   frame on the limiting axis and stay inside it, since the svg element always fills its host and its
+ *   own box says nothing about the drawing;
  * - opens the architecture modal and checks every tab (ADR-0058): the diagram inlined, only the
  *   interface language's text shown, every text inside the diagram and inside any box it touches;
- * - enters the focus route by clicking, measures the stage and its largest chart (at least 80%), and
- *   returns by clicking to the same case, variant and changed controls;
+ * - enters the focus route by clicking, measures the stage and its largest chart (at least 80%) and the
+ *   drawn flowsheet as above, and returns by clicking to the same case, variant and changed controls;
  * - opens every tab and sub-tab of every content page: no sideways overflow, the interface language,
  *   no KaTeX error, no cut equation, no failed record load, no figure text outside its box or across a
  *   box it does not fit, and the in-browser network run where a page offers it;
@@ -34,9 +38,13 @@ const OUT = process.env.OF_QA || 'qa-output';
 const CASE = process.env.OF_CASE || 'copper_porphyry_soft';
 const FULL = process.env.OF_MATRIX === 'full';
 const VIEWPORTS = [[1280, 800], [1600, 900], [2560, 1440]];
-const COMBOS = FULL
-  ? VIEWPORTS.flatMap(v => ['dark', 'light'].flatMap(theme => ['en', 'es'].map(lang => ({ v, theme, lang }))))
-  : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
+const ALL = VIEWPORTS.flatMap(v => ['dark', 'light'].flatMap(theme => ['en', 'es'].map(lang => ({ v, theme, lang }))));
+const tagOf = ({ v: [w, h], theme, lang }) => `${w}x${h}-${theme}-${lang}`;
+// OF_ONLY names combinations of the full matrix (1280x800-dark-es,...), to re-check one after a fix
+const ONLY = (process.env.OF_ONLY ?? '').split(',').map(s => s.trim()).filter(Boolean);
+const COMBOS = ONLY.length ? ALL.filter(c => ONLY.includes(tagOf(c)))
+  : FULL ? ALL : [{ v: [1280, 800], theme: 'dark', lang: 'en' }, { v: [1600, 900], theme: 'light', lang: 'es' }];
+if (ONLY.length && COMBOS.length !== ONLY.length) throw new Error(`OF_ONLY names a combination outside the matrix: ${ONLY.join(', ')}`);
 const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case'];
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
 mkdirSync(OUT, { recursive: true });
@@ -211,6 +219,23 @@ async function measure(page, stageSelector) {
     const tabs = [...document.querySelectorAll('.of-viewbar [role=tab]')].map(b => Math.round(b.getBoundingClientRect().top));
     const scope = selector ? document.querySelector(selector) : document;
     const viz = scope ? Math.max(0, ...[...scope.querySelectorAll('canvas, svg.of-flowmap')].map(area)) : 0;
+    // the flowsheet's drawing against its frame: the svg's box less the inset its overlays cover
+    // (declared by the diagram, bounded here to a quarter of each axis so it cannot hollow the frame)
+    const flow = scope ? [...scope.querySelectorAll('svg.of-flowmap')].find(s => area(s) > 0) : undefined;
+    let drawn = null;
+    if (flow) {
+      const s = flow.getBoundingClientRect();
+      const [t, r, b, l] = (flow.dataset.inset ?? '0 0 0 0').split(' ').map(Number);
+      const parts = [...flow.querySelectorAll('.of-flow-unit rect, .of-flow-edge polyline, .of-flow-label')]
+        .map(e => e.getBoundingClientRect()).filter(q => q.width > 0 || q.height > 0);
+      const x0 = Math.min(...parts.map(q => q.left)), x1 = Math.max(...parts.map(q => q.right));
+      const y0 = Math.min(...parts.map(q => q.top)), y1 = Math.max(...parts.map(q => q.bottom));
+      const fw = s.width - l - r, fh = s.height - t - b;
+      const fill = parts.length ? Math.max((x1 - x0) / fw, (y1 - y0) / fh) : 0;
+      const inside = parts.length > 0 && x0 >= s.left + l - 2 && x1 <= s.right - r + 2 && y0 >= s.top + t - 2 && y1 <= s.bottom - b + 2;
+      const insetOk = l + r <= 0.25 * s.width && t + b <= 0.25 * s.height;
+      drawn = { fill: +fill.toFixed(3), width: +((x1 - x0) / fw).toFixed(3), height: +((y1 - y0) / fh).toFixed(3), inside, inset: [t, r, b, l], zoom: +(flow.dataset.zoom ?? 1), ok: fill >= 0.9 && inside && insetOk };
+    }
     return {
       // shell known defect 1 pins documentElement.scrollHeight to the viewport, so the height is read
       // through <body> as well: either one taller than the viewport is a document scroll
@@ -221,11 +246,16 @@ async function measure(page, stageSelector) {
       instrument: +(area(document.querySelector('.of-view-host')) / viewport).toFixed(3),
       stage: selector ? +(area(document.querySelector(selector)) / viewport).toFixed(3) : null,
       largestViz: +(viz / viewport).toFixed(3),
+      drawn,
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, decimals, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 };
+  return { ...m, outside, clipped, cut, decimals, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0,
+    filled: m.drawn === null || m.drawn.ok };
 }
+
+// what every workbench view must hold (ADR-0071), in the interface language
+const viewOk = (m, lang) => !m.overX && m.fits && m.filled && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
 
 async function settleCharts(page, minimum = 1) {
   await page.waitForFunction(n => document.querySelectorAll('.of-view-host canvas, .of-view-host svg.of-flowmap').length >= n, minimum, { timeout: 60000 });
@@ -262,7 +292,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         if (k === 0) await page.waitForSelector('.of-context .katex', { timeout: 60000 });
         else await settleCharts(page, 2);
         const m = await measure(page);
-        const ok = !m.overX && m.fits && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+        const ok = viewOk(m, lang);
         record(`${tag} case/${name}`, ok, m);
         await page.screenshot({ path: join(OUT, `case-${k + 1}-${tag}.png`) });
       }
@@ -282,7 +312,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           await settleCharts(page, 1);
         }
         const m = await measure(page);
-        const ok = !m.overX && m.fits && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+        const ok = viewOk(m, lang);
         record(`${tag} methods/${name}`, ok, m);
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }
@@ -290,7 +320,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     }
     await settleCharts(page, 1);
     const m = await measure(page);
-    const ok = !m.overX && m.fits && !m.overY && m.railScrolls === false && m.tabRows === 1 && m.instrument >= 0.5 && m.lang === lang;
+    const ok = viewOk(m, lang);
     record(`${tag} ${view}`, ok, m);
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
@@ -305,7 +335,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForFunction(() => document.querySelectorAll('.caos-focus-stage canvas, .caos-focus-stage svg.of-flowmap').length > 0, null, { timeout: 60000 });
   await page.waitForTimeout(300);
   const focus = await measure(page, '.caos-focus-stage');
-  record(`${tag} focus`, focus.stage >= 0.8 && focus.largestViz >= 0.8 && !focus.overX && focus.fits && !focus.overY && focus.lang === lang, focus);
+  record(`${tag} focus`, focus.stage >= 0.8 && focus.largestViz >= 0.8 && !focus.overX && focus.fits && focus.filled && !focus.overY && focus.lang === lang, focus);
   await page.screenshot({ path: join(OUT, `focus-${tag}.png`) });
   await page.locator('.caos-focus-actions button').last().click();
   await page.waitForSelector('.of-bench .of-readout-item strong', { timeout: 60000 });
@@ -357,6 +387,6 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await context.close();
 }
 await browser.close();
-writeFileSync(join(OUT, 'gate.json'), JSON.stringify({ base: BASE, case: CASE, full: FULL, results }, null, 1));
+writeFileSync(join(OUT, 'gate.json'), JSON.stringify({ base: BASE, case: CASE, full: FULL, only: ONLY, results }, null, 1));
 console.log(failures ? `\nGATE FAILED: ${failures} check(s)` : `\nGATE PASSED: ${results.length} checks`);
 process.exit(failures ? 1 : 0);

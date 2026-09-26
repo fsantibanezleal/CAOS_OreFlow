@@ -44,10 +44,12 @@ against a state with the defect and seen to fail, then against the fixed state a
 | document scroll | a content page taller than the viewport must move on `scrollTo` | the shell's defect re-imposed: 0 px moved, the document height pinned to the viewport |
 | document height | the larger of `<html>`'s and `<body>`'s scroll height against the viewport | an App-route check that read the pinned height and could never fail |
 | view list | the gate's list of views against the app's tab bar | (structural: a new view added to the app would otherwise never be measured) |
+| flowsheet drawing | the union of the drawn units, streams and labels against the svg's frame (its box less the overlay inset the diagram declares, at most a quarter of each axis): at least 90% on the limiting axis, and inside the frame | at 2560x1440 the circuit spanned 74.5% of its frame's width and half its height, and the focus view 73.4%, while the svg element's own box passed the 80% check at 86.7% |
 
 The App route additionally requires one row of tabs, a rail that fits without scrolling, the active view
 at least half the viewport, `<html lang>` equal to the interface language; the focus route requires the
-stage and its largest chart to cover at least 80% of the viewport.
+stage and its largest chart to cover at least 80% of the viewport. Both require the flowsheet drawing
+check wherever the flowsheet is on the stage.
 
 ## Outputs
 

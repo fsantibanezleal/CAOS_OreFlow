@@ -1,8 +1,10 @@
 /**
  * The circuit as the trace describes it (PE-37): units from the topology, every stream labelled with its
  * solids flow and payable grade from the trace's stream records, recycles dashed, products as terminals.
- * The diagram measures its own box and lays the grid out in screen pixels, so text keeps its size and
- * the circuit fills the stage at any viewport. An edge label that would overlap a unit or another label
+ * The diagram measures its own box and lays the grid out in pixels up to a readable cell, so text keeps
+ * its size on a small stage; a stage larger than that cell on both axes is filled by scaling the whole
+ * drawing by one factor (flowsheet.ts, fit), so the circuit spans the stage at any viewport and its text
+ * grows with it. An edge label that would overlap a unit or another label
  * is left out; every edge still carries its values as a hover title, and the unit panel lists them.
  * Selecting a unit reports it upward; the diagram computes nothing.
  */
@@ -12,7 +14,7 @@ import type { TopologyUnit } from '../engine/circuit';
 import type { Trace } from '../engine/trace';
 import { formatWithUnit, type Lang } from '../lib/format';
 import { streamName } from '../lib/i18n';
-import { layout, type Edge } from './flowsheet';
+import { extent, fit, layout, type Edge } from './flowsheet';
 
 const UNIT_NAMES: Record<string, [string, string]> = {
   crusher: ['Crusher', 'Chancador'], mill_feed_junction: ['Mill feed', 'Alimentación molino'], mill: ['Ball mill', 'Molino de bolas'],
@@ -71,19 +73,9 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const tails = trace.tails as unknown as string[];
   const plan = useMemo(() => layout(topology, concentrates, tails), [topology, concentrates, tails]);
 
-  // the grid's extent in cells, then one scale per axis that fills the box
-  const gx = [...plan.nodes.flatMap(n => [n.col - 0.45, n.col + 0.45]), ...plan.edges.flatMap(e => e.points.map(p => p[0]))];
-  const gy = [...plan.nodes.flatMap(n => [n.row - 0.3, n.row + 0.3]), ...plan.edges.flatMap(e => e.points.map(p => p[1]))];
-  const x0 = Math.min(...gx) - 0.1;
-  const x1 = Math.max(...gx) + 0.1;
-  const y0 = Math.min(...gy) - 0.4;   // room for the labels above the first row
-  const y1 = Math.max(...gy) + 0.15;
-  const W = size.width - left - right;
-  const H = size.height - top - bottom;
-  const cellW = Math.min(210, W / (x1 - x0));
-  const cellH = Math.min(150, H / (y1 - y0));
-  const ox = left + (W - cellW * (x1 - x0)) / 2 - x0 * cellW;
-  const oy = top + (H - cellH * (y1 - y0)) / 2 - y0 * cellH;
+  // the grid on the stage (flowsheet.ts): everything below is in the drawing's own px, which the viewBox
+  // scales to the stage when the stage is larger than the readable cell on both axes
+  const { zoom, cellW, cellH, ox, oy, width, height, frame } = fit(extent(plan), size, [top, right, bottom, left]);
   const px = (col: number) => ox + col * cellW;
   const py = (row: number) => oy + row * cellH;
   const boxW = Math.max(64, Math.min(132, cellW * 0.66));
@@ -124,11 +116,12 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
     const mx = (ax + bx) / 2;
     const my = (ay + by) / 2;
     // above the row of units first (a short edge between two units has no room of its own), then just
-    // above or below the line; a product's label may also end at its arrow, a feed's start at its tail
+    // above or below the line; a product's label may also end at its arrow and a feed's start at its
+    // tail, on the line or above the row
     const candidates: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = horizontal
       ? [
         ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my - 6, anchor: 'end' as const }, { x: Math.max(ax, bx), y: my - BOX_H / 2 - 5, anchor: 'end' as const }] : []),
-        ...(edge.from === null ? [{ x: Math.min(ax, bx), y: my - 6, anchor: 'start' as const }] : []),
+        ...(edge.from === null ? [{ x: Math.min(ax, bx), y: my - 6, anchor: 'start' as const }, { x: Math.min(ax, bx), y: my - BOX_H / 2 - 5, anchor: 'start' as const }] : []),
         { x: mx, y: my - BOX_H / 2 - 5, anchor: 'middle' },
         { x: mx, y: my - 6, anchor: 'middle' },
         { x: mx, y: my + BOX_H / 2 + 13, anchor: 'middle' },
@@ -139,7 +132,8 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
     for (const c of candidates) {
       const bx0 = c.anchor === 'middle' ? c.x - w / 2 : c.anchor === 'start' ? c.x : c.x - w;
       const box = { x0: bx0 - 2, y0: c.y - 10, x1: bx0 + w + 2, y1: c.y + 3 };
-      if (box.x0 < 0 || box.x1 > size.width || [...unitBoxes, ...placed].some(b => overlaps(b, box))) continue;
+      // inside the frame, so no label sits under an overlay (the focus route's readouts)
+      if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...unitBoxes, ...placed].some(b => overlaps(b, box))) continue;
       placed.push(box);
       label = c;
       break;
@@ -149,7 +143,8 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
 
   return (
     <div className="of-flowmap-host" ref={hostRef}>
-      <svg className="of-flowmap" viewBox={`0 0 ${size.width} ${size.height}`} width={size.width} height={size.height} role="img" aria-label={summary}>
+      <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={size.width} height={size.height} role="img" aria-label={summary}
+        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`}>
         <defs>
           {(['plain', 'recycle', 'product'] as const).map(kind => (
             <marker key={kind} id={`of-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

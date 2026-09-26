@@ -198,7 +198,10 @@ The layout follows ADR-0071 and the shell (`@fasl-work/caos-app-shell`), with no
   1. *Circuit*: the flowsheet drawn from the trace topology, every stream with its solids and water
      flow and its payable grade, the recycle edges (cyclone underflow to the mill, cleaner tails to
      the rougher, recleaner tails to the cleaner, the gravity bleed) drawn and labelled (PE-37);
-     selecting a unit shows its input and output records and its closure.
+     selecting a unit shows its input and output records and its closure. The drawing fills the
+     stage on its limiting axis at every viewport: one scale per axis up to a readable cell (210 by
+     150 px, with 11 px unit names), and on a stage larger than that on both axes the whole drawing,
+     text included, scaled by one factor (ADR-0071).
   2. *Grinding*: cumulative size distributions of the circuit streams, the cyclone partition with the
      cut and the bypass marked, the liberation curve with the liberation size and the target P80
      marked, the host-limited composite scale where it departs from 1.
@@ -255,7 +258,7 @@ water above capacity, or within every constraint, plus any other engine flag). A
 reading shows in a corner of the stage. The state travels in the URL (with the chosen instrument), so
 entering and leaving keeps the case, the variant, the view and every changed control; the entry and
 the return are visible controls, verified by clicking. The shell's rail column (at least 300 px)
-leaves the stage 76.5% of a 1280x800 viewport; the product narrows its lower bound to 248 px, which
+leaves the stage 76.6% of a 1280x800 viewport; the product narrows its lower bound to 248 px, which
 keeps the stage above 80% at every gated viewport (recorded as a shell known defect).
 
 ### 12.3 Gates
@@ -270,8 +273,10 @@ interface, and a sweep starts only from a `compute` function referenced only as 
 sweep or a cancel), `surrogate.test.ts` (PE-39), and the browser gate at 1280x800,
 1600x900 and 2560x1440 in both themes and both languages: no document scroll on the App route, the
 rail shows its own controls, one tab row, the instrument at least 50% of the viewport (80% on the
-focus route), `<html lang>` equal to the interface language, the focus round trip by clicking, and a
-screenshot of every view (PE-37).
+focus route), the drawn flowsheet (its units, streams and labels) across at least 90% of its frame on
+the limiting axis, `<html lang>` equal to the interface language, the focus round trip by clicking,
+and a screenshot of every view (PE-37). `flowsheet.test.ts` holds the same fill for the layout on
+every baked variant, from a phone stage to a 4K one, with and without the focus overlay inset.
 
 ## 13. Performance budget
 
