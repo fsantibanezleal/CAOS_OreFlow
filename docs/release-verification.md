@@ -20,7 +20,16 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-To be recorded after the promotion to `main`: the commit, the CI and Pages runs, the VPS deployment and the external checks of architecture 05.
+- PR #36 (the release) and #37 (architecture 05's update steps) merged into `develop`; CI runs `36249347564` and `36249567624` passed the scientific, contracts and frontend jobs. Promotion PR #38 merged into `main` at `0d6245b3747f04097f25e6827924eab826e0971f`; CI `36249650821` and Pages `36249650834` passed for that commit, which carries the annotated tag `v0.05.000` and the GitHub release OreFlow v0.05.000.
+- The ML VPS checkout fast-forwarded from `8897456` to `0d6245b`, installed the runtime requirements, built the site, returned the checkout to `fasl` and restarted the running `oreflow.service`; the local `/healthz` reported 0.05.000 and the checkout read back clean.
+- The external checks of architecture 05, from outside the build machine:
+  1. `https://oreflow.ml.fasl-work.com/healthz` reported 0.05.000.
+  2. `/api/cases` answered `oreflow.index/v2` with 12 cases and 72 variants; `/api/benchmark` answered `oreflow.benchmark/v2` of 0.05.000 with the same contract digest.
+  3. `POST /api/simulate` for the nominal states of the soft copper porphyry and the fine magnetite answered 200, `oreflow.live/v2`, lane `live-api`, with recovery equal to the bake within 1e-9 and every unit's balance closed (at most 1.0e-13 relative over 15 units, 4.2e-16 over 10); a throughput of 50,000 t/h answered 422, `oreflow.rejection/v1`, code `out_of_range`.
+  4. On both hosts the root, `/methodology`, `/benchmark`, `/introduction` and `/experiments` (without the slash, after one redirect), `/methodology/`, `/benchmark/`, `/implementation/` and `/focus/copper_porphyry_soft` answered 200 with the app.
+  5. The browser gate with `OF_BASE` set to each public host (the smoke pair of combinations with the five content pages, and the phone and tablet pass in both themes and languages) passed 142 checks on the VPS and 142 on Pages, and the captures were read. Its first VPS run failed only the architecture modal's tabs 2 to 5: the gate read the diagram before the next tab's diagram had arrived over the network (the capture shows it rendered), so the gate now waits for the tab's own diagram.
+  6. The certificate served for `oreflow.ml.fasl-work.com` names that host (CN and SAN), is issued by Let's Encrypt YE1, is valid to 2026-12-12 and verifies.
+- Scientific boundary: the twelve cases are authored inside published ranges, not calibrated plants; the learned lane's held-out-case scores bound transfer between authored plants. Felipe's acceptance of the design is not recorded.
 
 ## 0.04.000 and earlier
 

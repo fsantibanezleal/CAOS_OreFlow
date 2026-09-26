@@ -202,8 +202,11 @@ async function checkArchitecture(page, tag, lang) {
   const count = await tabs.count();
   record(`${tag} architecture tabs`, count >= 5, { count });
   for (let k = 0; k < count; k += 1) {
+    // the tab's own diagram, not the previous one still in place: on a public host the next svg arrives
+    // after the click, and a probe taken in between found none (tabs 2 to 5 against the VPS, 0.05.000)
+    const before = k === 0 ? '' : await page.evaluate(() => document.querySelector('.caos-architecture-diagram svg')?.outerHTML ?? '');
     await tabs.nth(k).click();
-    await page.waitForFunction(() => document.querySelector('.caos-architecture-diagram svg'), null, { timeout: 30000 });
+    await page.waitForFunction(prev => { const s = document.querySelector('.caos-architecture-diagram svg'); return Boolean(s) && s.outerHTML !== prev; }, before, { timeout: 30000 });
     await page.waitForTimeout(250);
     const a = await page.evaluate(ARCH_PROBE);
     const own = lang === 'es' ? a.es : a.en, other = lang === 'es' ? a.en : a.es;
