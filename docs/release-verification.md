@@ -27,7 +27,20 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-- Recorded after the deploy of this release.
+- PR #64 (the release) merged into `develop` at `a4f8b50`; CI `36490870532` passed. Promotion PR #65 merged into `main` at `2ba66cd4c2d04caf956ba327d9a59475d61c31d5`; CI `36490962086` and Pages `36490962087` passed for that commit, which carries the annotated tag `v0.06.000` and its GitHub release.
+- **The ML VPS updated through `deploy/setup-vps.sh`, its first run as an update (#61).** The release's copy of the script ran from outside the checkout, so its own `git pull` could not rewrite the file bash was reading. It:
+  - fast-forwarded the checkout from `fb00b90` to `2ba66cd`, installing no package;
+  - rebuilt the site, with the bundle `index-Dxh7Rp0X.js`, the local release build's hash;
+  - restarted `oreflow.service`, and its local health check retried through the refused connections of the restart;
+  - exited 0. The checkout, the environment and the build are owned by `fasl`. The one root-owned file found afterwards, `.git/index`, came from the verification's own `git status` and was returned to `fasl`.
+- The external checks of architecture 05, from outside the build machine:
+  1. `https://oreflow.ml.fasl-work.com/healthz` reported 0.06.000.
+  2. `/api/cases` answered `oreflow.index/v2` with 12 cases and 72 variants of 0.06.000, and `/api/benchmark` answered `oreflow.benchmark/v2` of the same version and contract digest, with both measured-lane links.
+  3. `POST /api/simulate` for the nominal states of the soft copper porphyry and the fine magnetite answered 200, `oreflow.live/v2`, lane `live-api`. Recovery matched the bake within 1.4e-14, and every balance closed (at most 1.0e-13 relative). A throughput of 50,000 t/h answered 422, `oreflow.rejection/v1`, code `out_of_range`.
+  4. On both hosts the root, `/methodology/`, `/benchmark/` and `/implementation/` answered 200 with the app, and `/methodology`, `/benchmark`, `/introduction`, `/experiments` and `/focus/copper_porphyry_soft` did so after one redirect. Pages serves 0.06.000 records under its base path.
+  5. The browser gate with `OF_BASE` set to each public host (the smoke pair of combinations with the five content pages, and the phone and tablet pass in both themes and languages) passed 142 checks on the VPS and 142 on Pages. A phone capture of the live Case view was read.
+  6. The certificate for `oreflow.ml.fasl-work.com` names that host (CN and SAN), is issued by Let's Encrypt YE1, and is valid to 2026-12-12.
+- Scientific boundary: the twelve cases are authored inside sourced ranges, not calibrated plants. The engine is checked against published examples, not plant operation, and the learned lane's held-out-case scores bound transfer between authored plants. The audit's other gaps (#51 to #57) are 0.07.000. Felipe's acceptance of the design is not recorded.
 
 ## 0.05.001, 2026-09-26
 
