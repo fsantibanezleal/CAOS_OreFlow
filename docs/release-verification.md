@@ -27,7 +27,7 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-REMOTE_PLACEHOLDER
+- Recorded after the deploy of this release.
 
 ## 0.05.001, 2026-09-26
 
