@@ -1,6 +1,6 @@
 # Live uncertainty tasks
 
-- [ ] T1 (UQ-01, UQ-02, UQ-03). SplitMix64, uniforms and the Latin hypercube in
+- [x] T1 (UQ-01, UQ-02, UQ-03). SplitMix64, uniforms and the Latin hypercube in
   `data-pipeline/pipeline/methods/sampling.py` and `frontend/src/engine/sampling.ts`, with the vector and strata
   tests.
 - [ ] T2 (UQ-04). The uncertainty record built from the new design; checks in `scripts/check_artifacts.py`; the
