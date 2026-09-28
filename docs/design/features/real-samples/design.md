@@ -15,13 +15,33 @@
 
 ## Normative mineralogy
 
-From the head assays in ppm:
-- chalcopyrite `CuFeS2` takes all the Cu;
-- its S need is `Cu * 2 M_S / M_Cu`, and the remaining S goes to pyrite `FeS2`;
-- the remaining mass is the case's gangue minerals, in their authored proportions.
+Measured on 2026-09-28: the samples' sulphur cannot cover chalcopyrite.
+- Of 53 locked-cycle samples, 52 fall short; 37 are below even bornite's need.
+- The median S/Cu is 0.35 by mass; chalcopyrite needs 1.01, bornite 0.40 and chalcocite 0.25.
 
-The atomic weights are the engine's (`chemistry`). The allocation is sequential (Whiten 2007 and Lund et al.
-2013 describe the least-squares generalization), and it is labelled an assumption on every surface that shows it.
+The allocation is therefore sulphur-limited, in moles (c Cu, s S):
+
+| Sulphur | Copper minerals |
+|---|---|
+| `s >= 2c` | chalcopyrite `c`; pyrite from the remaining S |
+| `0.8c <= s < 2c` | chalcopyrite `(5s - 4c)/6`, bornite `(2c - s)/6` |
+| `0.5c <= s < 0.8c` | bornite `(2s - c)/3`, chalcocite `(4c - 5s)/3` |
+| `s < 0.5c` | excluded, with the reason in the ledger |
+
+All 53 samples fall in the first three rows. In the median one, bornite carries 55% of the copper and chalcocite 38%.
+- The remaining iron is not identified by the assays. It goes to magnetite, as an assumption shown with the result.
+- The rest of the mass is the case's gangue, in its authored proportions.
+- The atomic weights are the engine's (`chemistry`). The allocation is sequential; Whiten (2007) and Lund et al.
+  (2013) describe the least-squares generalization.
+- The allocation is labelled an assumption on every surface that shows it.
+
+**Bornite and chalcocite** join the mineral catalogue, with:
+- formulas and densities;
+- element contents from the atomic weights;
+- flotation parameters authored relative to chalcopyrite from Tafirenyika et al. (2022) and Jiang et al. (2025),
+  each labelled authored and sourced.
+
+This is research task T2a, done before T2.
 
 ## Engine run
 
