@@ -44,7 +44,7 @@ Bond ball-mill work index 14.0 kWh/t; crushing work index 15.5 kWh/t.
 | Recleaner bank | 4 cells of 6 m³ at 0.9 cm/s |
 | Regrind | 4.0 kWh per tonne of rougher concentrate |
 | Grade specification | Ni at least 12.0% |
-| Process water | at most 3.22 m³ per tonne |
+| Process water | at most 3.04 m³ per tonne |
 
 ## The operating point
 
@@ -94,7 +94,7 @@ Every unit and the circuit close within 5.1e-13 relative (the requirement is 1e-
 
 ## Method records at the nominal state
 
-- **Optimizer:** optimal at Grind target (P80) 109 µm, Collector dose 135.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraints: none; recovered metal +3.68% against the nominal state (214 engine runs from 6 starts).
+- **Optimizer:** optimal at Grind target (P80) 109 µm, Collector dose 135.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraints: none; recovered metal +3.68% against the nominal state (226 engine runs from 6 starts).
 - **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 74.0%, P50 79.1%, P95 81.8%; probability of meeting every constraint 80%.
 - **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.91); concentrate grade: head grade (total index 0.67); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 0.92).
 - **Kinetic fits:** of the five lumped models fitted to the virtual batch test, the Kelsall model projects the rougher bank closest to the exact bank recovery by true flotation (83.1%), 0.53 points below it.

@@ -45,7 +45,7 @@ Bond ball-mill work index 13.0 kWh/t; crushing work index 14.3 kWh/t.
 | Recleaner bank | 4 cells of 8 m³ at 0.9 cm/s |
 | Regrind | 6.0 kWh per tonne of rougher concentrate |
 | Grade specification | Cu at least 24.0% |
-| Process water | at most 2.98 m³ per tonne |
+| Process water | at most 2.97 m³ per tonne |
 
 ## The operating point
 

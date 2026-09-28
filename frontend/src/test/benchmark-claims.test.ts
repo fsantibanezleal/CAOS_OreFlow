@@ -84,37 +84,41 @@ describe('the Benchmark page says what the records hold', () => {
     expect(order.at(-1)).toBe('first_order');
   });
 
-  it('optimization: 70 of 72 feasible, 40 variants break a constraint, every loss from one, power most often active', () => {
+  it('optimization: 70 of 72 feasible, 28 variants break a constraint, the one loss from one, power most often active', () => {
     const records = Object.entries(benchmark.optimization).flatMap(([id, variants]) => Object.entries(variants).map(([v, r]) => ({ id, v, r })));
     expect(records).toHaveLength(72);
     expect(records.filter(x => x.r.status === 'optimal')).toHaveLength(70);
     expect(records.filter(x => x.r.status !== 'optimal').map(x => `${x.id}:${x.v}`).sort()).toEqual(['iron_magnetite_fine:harder_ore', 'iron_magnetite_fine:higher_throughput']);
-    expect(records.filter(x => !x.r.base_feasible)).toHaveLength(40);
+    expect(records.filter(x => !x.r.base_feasible)).toHaveLength(28);
     const gains = records.filter(x => x.r.gain_pct !== null).sort((a, b) => (a.r.gain_pct as number) - (b.r.gain_pct as number));
-    expect([gains[0].id, gains[0].v, round(gains[0].r.gain_pct as number, 1)]).toEqual(['zinc_sulfide', 'harder_ore', -10.8]);
-    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 24.0]);
-    expect(gains.filter(x => (x.r.gain_pct as number) < 0).every(x => !x.r.base_feasible)).toBe(true);
+    expect([gains[0].id, gains[0].v, round(gains[0].r.gain_pct as number, 1)]).toEqual(['iron_magnetite_fine', 'coarser_grind', -0.8]);
+    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 18.2]);
+    const losses = gains.filter(x => (x.r.gain_pct as number) < 0);
+    expect(losses).toHaveLength(1);
+    expect(losses.every(x => !x.r.base_feasible)).toBe(true);
     const count = (name: string) => records.filter(x => x.r.active.includes(name)).length;
-    expect([count('power'), count('grade'), count('water')]).toEqual([58, 34, 12]);
+    expect([count('power'), count('grade'), count('water')]).toEqual([58, 17, 6]);
     const nominal = Object.entries(benchmark.optimization).map(([id, v]) => ({ id, gain: v.nominal.gain_pct as number })).sort((a, b) => a.gain - b.gain);
     expect([nominal[0].id, round(nominal[0].gain, 1)]).toEqual(['iron_magnetite_fine', 0.3]);
-    expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 11.0]);
+    expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 7.6]);
   });
 
   it('uncertainty: the spreads, the joint probabilities and the dominant inputs as quoted', () => {
     const u = benchmark.uncertainty;
     const width = Object.entries(u).map(([id, r]) => ({ id, w: r.recovery_pct.p95 - r.recovery_pct.p05 })).sort((a, b) => a.w - b.w);
     expect([width[0].id, round(width[0].w, 1)]).toEqual(['gold_free_milling', 3.7]);
-    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 12.8]);
+    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 9.1]);
     const joint = Object.entries(u).map(([id, r]) => ({ id, p: r.probabilities.all_constraints })).sort((a, b) => a.p - b.p);
-    expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['zinc_sulfide', 3]);
-    expect([joint.at(-1)!.id, joint.at(-1)!.p]).toEqual(['copper_oxide', 1]);
-    expect(Math.round(100 * u.zinc_sulfide.probabilities.grade_meets_spec)).toBe(5);
+    expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['iron_magnetite_fine', 53]);
+    const m = u.iron_magnetite_fine.probabilities;
+    expect([Math.round(100 * m.grade_meets_spec), Math.round(100 * m.power_within_installed)]).toEqual([65, 79]);
+    const top = joint.filter(x => x.p === joint.at(-1)!.p).map(x => x.id).sort();
+    expect([top, Math.round(100 * joint.at(-1)!.p)]).toEqual([['copper_porphyry_soft', 'gold_free_milling'], 82]);
     const not = (key: string, value: string) => Object.entries(u).filter(([, r]) => r.dominant_input[key] !== value).map(([id]) => id).sort();
     expect(not('recovery_pct', 'floatability')).toEqual(['copper_porphyry_hard', 'iron_magnetite_fine']);
     expect(u.copper_porphyry_hard.dominant_input.recovery_pct).toBe('work_index');
     expect(u.iron_magnetite_fine.dominant_input.recovery_pct).toBe('head_grade');
-    expect(not('concentrate_grade', 'liberation_size')).toEqual(['gold_free_milling', 'nickel_sulphide', 'refractory_gold']);
+    expect(not('concentrate_grade', 'liberation_size')).toEqual(['copper_oxide', 'gold_free_milling', 'nickel_sulphide', 'refractory_gold']);
     expect(not('specific_energy_grinding_kwh_t', 'work_index')).toEqual([]);
     expect(not('recovered_primary_tph', 'head_grade')).toEqual([]);
   });

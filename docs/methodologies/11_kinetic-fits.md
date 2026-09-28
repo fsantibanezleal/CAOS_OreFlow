@@ -78,7 +78,7 @@ bank residence (often above 20 min) is longer than the 16 min test.
 On the twelve nominal cases the first-order model underestimates the exact bank by 3 to 7 points,
 because it caps the ultimate recovery at the plateau of a 16 min test. The Kelsall and gamma forms
 fit the batch curve to within 0.2 points RMSE and project within about 1.6 points. The stretched
-exponential settles at $\beta$ between 0.84 and 0.94: a spread of rates, as the class structure
+exponential settles at $\beta$ between 0.83 and 0.94: a spread of rates, as the class structure
 implies. These ranges are pinned by `test_documented_findings_on_nominal_cases`. All 330 fits on
 the baked variants converge, which the browser parity depends on. In the seeded envelope sample of
 the contract gate (measured on 2026-09-26), 12 of 1670 fits, gamma and Kelsall at states whose batch

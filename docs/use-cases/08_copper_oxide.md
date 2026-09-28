@@ -45,7 +45,7 @@ Bond ball-mill work index 12.5 kWh/t; crushing work index 13.5 kWh/t.
 | Recleaner bank | 4 cells of 8 m³ at 0.9 cm/s |
 | Regrind | 4.0 kWh per tonne of rougher concentrate |
 | Grade specification | Cu at least 20.0% |
-| Process water | at most 2.51 m³ per tonne |
+| Process water | at most 3.29 m³ per tonne |
 
 ## The operating point
 
@@ -94,8 +94,8 @@ Every unit and the circuit close within 8.0e-14 relative (the requirement is 1e-
 
 ## Method records at the nominal state
 
-- **Optimizer:** optimal at Grind target (P80) 105 µm, Collector dose 25 g/t, Gas velocity (rougher) 2.50 cm/s; active constraints: power, water; recovered metal -0.98% against the nominal state (287 engine runs from 6 starts).
-- **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 75.1%, P50 79.2%, P95 81.5%; probability of meeting every constraint 0%.
+- **Optimizer:** optimal at Grind target (P80) 105 µm, Collector dose 122 g/t, Gas velocity (rougher) 2.50 cm/s; active constraints: power, water; recovered metal +7.61% against the nominal state (161 engine runs from 6 starts).
+- **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 75.1%, P50 79.2%, P95 81.5%; probability of meeting every constraint 63%.
 - **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.88); concentrate grade: head grade (total index 0.87); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 0.95).
 - **Kinetic fits:** of the five lumped models fitted to the virtual batch test, the gamma model projects the rougher bank closest to the exact bank recovery by true flotation (84.3%), 0.22 points below it.
 

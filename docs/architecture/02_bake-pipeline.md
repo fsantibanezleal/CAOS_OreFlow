@@ -38,7 +38,11 @@ those folders whole, so a case left over from an older catalog would otherwise s
 
 Each stage and each finished case prints a timestamped line, and a bake still running after 45
 minutes prints the stack of every thread once, so a stall shows where it is. On the development
-machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes five to six minutes on twelve
-workers and the learning stage about thirty (375 s and 1688 s unloaded on 2026-09-26; the committed
-bake of 0.05.001, run while browser checks shared the machine, took 687 s and 2106 s, and its validation
-record carries them); every other stage takes under a second.
+machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes six to ten minutes on twelve
+workers and the learning stage half an hour to over an hour, depending on what else the machine runs.
+The measurements:
+- 375 s and 1688 s for 0.05.000, unloaded, on 2026-09-26;
+- 517 s and 3180 s for the committed 0.06.000 bake of 2026-09-28, which shared the machine with another job;
+- 605 s and 4622 s for its predecessor that day, also loaded.
+
+The validation record carries the timings of the bake it belongs to. Every other stage takes under a second.
