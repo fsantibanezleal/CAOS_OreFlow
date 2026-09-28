@@ -171,9 +171,10 @@ function casePage(entry, n) {
   out.push('');
 
   out.push('## At the nominal state', '');
-  out.push('| Check | Value | Plausible range | Within |', '|---|---|---|---|');
+  out.push('| Check | Value | Plausible range | Within | Source of the range |', '|---|---|---|---|---|');
   for (const [name, k] of Object.entries(manifest.kpis)) {
-    out.push(`| ${label(name, units)} | ${metric(name, k.value, units)} | ${metric(name, k.range[0], units)} to ${metric(name, k.range[1], units)} | ${k.within ? 'yes' : 'no'} |`);
+    const source = artifact.kpi_sources?.[name]?.en ?? 'not recorded';
+    out.push(`| ${label(name, units)} | ${metric(name, k.value, units)} | ${metric(name, k.range[0], units)} to ${metric(name, k.range[1], units)} | ${k.within ? 'yes' : 'no'} | ${source} |`);
   }
   out.push('', `Every unit and the circuit close within ${significant(m.balance_max_relative_error, 2)} relative (the requirement is 1e-9). Water: ${metric('water_intensity_m3_t', m.water_intensity_m3_t, units)}.`, '');
 

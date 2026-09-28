@@ -43,7 +43,7 @@ class Payable:
 class MineralSpec:
     id: str                        # key into engine/data/minerals.json
     fraction: float = 0.0          # declared ore mass fraction (gangue proportion or trace carrier)
-    grindability: float = 1.0      # multiplier on the energy-specific selection function (1)
+    grindability: float = 1.0      # breakage rate relative to the ore (mass-weighted harmonic mean 1) (1)
     liberation_size_um: float = 0.0    # size at 50% liberation (valuable minerals)
     liberation_slope: float = 1.0      # exponent of the liberation curve (1)
     composite_content: float = 0.0     # mass fraction of this mineral in its binary composites

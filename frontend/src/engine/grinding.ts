@@ -53,6 +53,7 @@ export class GrindingCircuit {
   readonly bypass: number;
   readonly bleed: number;
   readonly rhoHost: number;
+  readonly meanGrindability: number;
   private cutGuess: number;
   compositeScale: Vec;
 
@@ -60,13 +61,25 @@ export class GrindingCircuit {
     this.g = grid();
     const mill = plant.mill;
     const b = breakageMatrix(mill.beta0, mill.beta1, mill.beta2);
+    // The work index is the ore's hardness. A mineral's grindability says how fast it breaks relative
+    // to the rest of the ore: the energy a mineral needs for a given reduction goes as 1/grindability,
+    // and the ore's specific energy (what the work index measures) is the mass-weighted sum of those,
+    // so the ore breaks like one mineral at the mass-weighted harmonic mean. The selection is divided by
+    // that mean: the ore as a whole breaks at the rate its work index sets, and the grindabilities only
+    // share the breakage among the minerals.
+    let inverse = 0.0;
+    for (const m of ore.ids) inverse += ore.fraction[m] / ore.spec[m].grindability;
+    const meanGrindability = 1.0 / inverse;
+    this.meanGrindability = meanGrindability;
     const base = selectionEnergy(mill, op.work_index_kwh_t);
+    for (let i = 0; i < base.length; i += 1) base[i] /= meanGrindability;
     for (const m of ore.ids) {
       const spec = ore.spec[m];
       const selection = new Float64Array(this.g.n);
       if (ore.valuable.includes(m)) {
         const lib = ore.liberation[m];
-        for (let i = 0; i < this.g.n; i += 1) selection[i] = base[i] * (lib[i] * spec.grindability + (1.0 - lib[i]));
+        // liberated grains break at their own rate, composites at the ore's rate
+        for (let i = 0; i < this.g.n; i += 1) selection[i] = base[i] * (lib[i] * spec.grindability + (1.0 - lib[i]) * meanGrindability);
       } else {
         for (let i = 0; i < this.g.n; i += 1) selection[i] = base[i] * spec.grindability;
       }

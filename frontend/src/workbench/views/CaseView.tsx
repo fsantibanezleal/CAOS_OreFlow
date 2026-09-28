@@ -6,6 +6,7 @@
  * the ore and plant definitions, the contract bounds, the KPI checks and each variant's results.
  */
 import { Callout, Equation, Refs, SubTabs } from '@fasl-work/caos-app-shell';
+import { Fragment } from 'react';
 import { mineralTable } from '../../engine/constants';
 import type { OperatingContract } from '../../engine/contract';
 import type { OperatingPoint } from '../../engine/model';
@@ -58,7 +59,7 @@ const TEXT = {
   magneticUnit: { en: 'LIMS maximum capture', es: 'Captura máxima LIMS' },
   deslimeUnit: { en: 'Desliming sharpness and water bypass', es: 'Nitidez y cortocircuito de agua del deslamado' },
   head: { en: 'Head grade', es: 'Ley de cabeza' },
-  kpi: { en: 'Plausibility gates at the nominal state (practice ranges, not predictions)', es: 'Controles de plausibilidad en el estado nominal (rangos de práctica, no predicciones)' },
+  kpi: { en: 'Plausibility gates at the nominal state (practice ranges from their sources, not predictions)', es: 'Controles de plausibilidad en el estado nominal (rangos de práctica según sus fuentes, no predicciones)' },
   within: { en: 'within', es: 'dentro' },
   outside: { en: 'outside', es: 'fuera' },
   variant: { en: 'Variant', es: 'Variante' },
@@ -154,10 +155,15 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
             <tbody>{Object.entries(artifact.kpi_ranges).map(([key, [lo, hi]]) => {
               const value = m[key];
               const inside = value >= lo && value <= hi;
+              const source = artifact.kpi_sources?.[key]?.[lang];
               return (
-                <tr key={key}><th scope="row">{metricLabel(key, lang)}</th><td>{formatWithUnit(value, units[key], lang)}</td>
-                  <td>{`${formatValue(lo, units[key], lang)} – ${formatWithUnit(hi, units[key], lang)}`}</td>
-                  <td><span className={inside ? 'of-tag ok' : 'of-tag'}>{inside ? TEXT.within[lang] : TEXT.outside[lang]}</span></td></tr>
+                <Fragment key={key}>
+                  <tr><th scope="row">{metricLabel(key, lang)}</th><td>{formatWithUnit(value, units[key], lang)}</td>
+                    <td>{`${formatValue(lo, units[key], lang)} – ${formatWithUnit(hi, units[key], lang)}`}</td>
+                    <td><span className={inside ? 'of-tag ok' : 'of-tag'}>{inside ? TEXT.within[lang] : TEXT.outside[lang]}</span></td></tr>
+                  {/* the range's own source: every range is taken from one, or labelled authored (#58) */}
+                  {source && <tr className="of-kpi-source"><td colSpan={4}>{source}</td></tr>}
+                </Fragment>
               );
             })}</tbody>
           </table>

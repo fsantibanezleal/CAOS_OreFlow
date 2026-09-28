@@ -87,6 +87,7 @@ validator).
 - creates the `fasl` user;
 - clones the repository or fast-forwards `main`;
 - creates the virtual environment, installs the runtime and builds the site;
+- returns the checkout, its environment and its build to `fasl`, after they are made;
 - installs the systemd unit, enables the service and restarts it, so a running service loads the new code;
 - installs the virtual host. Once the certificate exists this is the explicit TLS one
   (`deploy/oreflow.nginx.tls`), so on a host serving many sites the request for this name always gets

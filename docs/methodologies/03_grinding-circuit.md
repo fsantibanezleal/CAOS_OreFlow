@@ -43,9 +43,16 @@ new feed of every mineral.
 ## Implementation
 
 `grinding.GrindingCircuit` builds $D$, $D^2$ and $D^3$ once per mineral, with selection
-$S^E_i(L_i g_V + 1 - L_i)$ for a valuable mineral (liberated grains break at their own relative
-grindability $g_V$, composites at the ore rate) and $S^E_i g_G$ for gangue. The ore work index scales
-$\alpha_0$ by $W_{i,ref}/W_i$. Valuable minerals are solved first; the host gangue locked in their
+$(S^E_i/\bar g)(L_i g_V + (1 - L_i)\bar g)$ for a valuable mineral (liberated grains break at their own
+relative grindability $g_V$, composites at the ore rate) and $(S^E_i/\bar g)\,g_G$ for gangue. The ore work
+index scales $\alpha_0$ by $W_{i,ref}/W_i$, and $\bar g = 1/\sum_k x_k/g_k$ is the ore's mass-weighted
+harmonic mean grindability ($x_k$ the mass fraction of mineral $k$). A mineral's energy for a given
+reduction goes as $1/g_k$ and the ore's specific energy, which the work index measures, is the
+mass-weighted sum of those, so the ore breaks like one mineral of grindability $\bar g$. Dividing by
+$\bar g$ lets the work index alone set the ore's hardness; the grindabilities only share the breakage
+among the minerals (PE-07b). Before 0.06.000 the selection was not divided, so an ore whose bulk mineral
+was declared soft (the serpentine of the nickel case, the clays of three others) broke faster than its
+own work index allowed and its grinding energy was understated by up to 1.9 times. Valuable minerals are solved first; the host gangue locked in their
 composites classifies with the composite density, which enters the host-gangue system as a known
 source term, so every system stays linear.
 

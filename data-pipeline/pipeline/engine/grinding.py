@@ -63,13 +63,21 @@ class GrindingCircuit:
         self.g = grid()
         mill = plant.mill
         b = breakage_matrix(mill.beta0, mill.beta1, mill.beta2)
-        base = selection_energy(mill, op.work_index_kwh_t)
+        # The work index is the ore's hardness. A mineral's grindability says how fast it breaks
+        # relative to the rest of the ore: the energy a mineral needs for a given reduction goes as
+        # 1/grindability, and the ore's specific energy (what the work index measures) is the
+        # mass-weighted sum of those, so the ore breaks like one mineral at the mass-weighted harmonic
+        # mean. The selection is divided by that mean: the ore as a whole breaks at the rate its work
+        # index sets, and the grindabilities only share the breakage among the minerals.
+        self.mean_grindability = 1.0 / sum(ore.fraction[m] / ore.spec[m].grindability for m in ore.ids)
+        base = selection_energy(mill, op.work_index_kwh_t) / self.mean_grindability
         self.operators: dict[str, MillOperator] = {}
         for m in ore.ids:
             spec = ore.spec[m]
             if m in ore.valuable:
                 lib = ore.liberation[m]
-                selection = base * (lib * spec.grindability + (1.0 - lib))
+                # liberated grains break at their own rate, composites at the ore's rate
+                selection = base * (lib * spec.grindability + (1.0 - lib) * self.mean_grindability)
             else:
                 selection = base * spec.grindability
             self.operators[m] = MillOperator(selection, b)

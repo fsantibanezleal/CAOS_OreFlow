@@ -60,23 +60,25 @@ against the base, `starts` (each start and end point with its feasibility and ev
 
 ## What the nominal cases show
 
-Measured on 2026-09-26; the baked numbers for every variant are on the Experiments page.
+Measured on the 0.06.000 records of 2026-09-28; the baked numbers for every variant are on the Experiments page.
 
-- All six starts reach the same optimum in every case, so the answer does not depend on where the
-  search begins.
-- Four copper cases (hard porphyry, copper-molybdenum, clay and low grade) end with both the grade
-  and the power constraints active: more collector and air until the concentrate is at the
-  specification, and the finest grind the mill can deliver. The soft porphyry, with a wider grade
-  margin, is limited by power alone.
-- Two nominal points are off their own specification, the hard porphyry (23.7% Cu against 24%) and
-  the zinc case (47.3% Zn against 50%). For both, the optimizer finds a point that meets the
-  specification and also recovers more, through a finer grind, less collector and more air.
-- The gas velocity ends at its upper bound in almost every case. That is a property of the model: a
-  higher gas velocity raises the bubble surface area flux, and the engine has no froth-stability
-  penalty, so the bound of 2.5 cm/s is what stops it. In the nickel case the water constraint binds
-  first.
-- In the phosphate case no constraint is active at the grind: a finer grind loses more apatite to
-  slimes, so the grind has an interior optimum.
+- All six starts reach the same optimum in every case, within 1e-7 relative in recovered metal, so the answer
+  does not depend on where the search begins.
+- Every nominal state meets its own grade specification. The gains at the nominal states run from 0.3%
+  (magnetite) to 7.6% (oxide copper).
+- Two copper cases, the hard porphyry and the low-grade copper, end with both the grade and the power
+  constraints active: more collector until the concentrate is at the specification, and the finest grind the
+  mill can deliver.
+- Six flotation cases are limited by power alone, with the collector at its upper bound: the soft porphyry,
+  the copper-molybdenum, the copper ore with clay, the zinc, the free-milling gold and the refractory gold.
+  Oxide copper is limited by power and by water.
+- The gas velocity ends at its upper bound in every flotation case. That is a property of the model: a higher gas
+  velocity raises the bubble surface area flux, and the engine has no froth-stability penalty, so the bound of
+  2.5 cm/s is what stops it.
+- In the nickel and phosphate cases no constraint is active: the collector and the gas velocity end at their
+  bounds, and the grind has an interior optimum. In the phosphate, a finer grind loses more apatite to slimes.
+- In the magnetite case the grind, its only decision, coarsens from 60 to 65 µm, until the concentrate grade
+  meets its 65% Fe specification.
 
 ## Verification
 
