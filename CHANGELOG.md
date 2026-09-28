@@ -59,6 +59,8 @@ From the audit of 2026-09-27 (issues #50 and #58):
     had been loaded first, for a few seconds, and HTTPS for this name reached another site;
   - it retries its local health checks while the restarted port refuses connections;
   - it adds the repository to git's safe directories once, not on every run.
+  - it returns the checkout to `fasl` after building, not before. Before, an update left the environment,
+    `node_modules` and the build owned by root.
 
 ### Changed
 

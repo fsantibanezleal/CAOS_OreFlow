@@ -21,11 +21,12 @@ if ! id fasl >/dev/null 2>&1; then
 fi
 git config --global --get-all safe.directory | grep -xF "$APP_ROOT" >/dev/null || git config --global --add safe.directory "$APP_ROOT"
 if [ ! -d "$APP_ROOT/.git" ]; then git clone "$REPO" "$APP_ROOT"; else git -C "$APP_ROOT" fetch origin && git -C "$APP_ROOT" checkout main && git -C "$APP_ROOT" pull --ff-only; fi
-chown -R fasl:fasl "$APP_ROOT"
 python3 -m venv "$APP_ROOT/.venv"
 "$APP_ROOT/.venv/bin/pip" install --upgrade pip
 "$APP_ROOT/.venv/bin/pip" install -r "$APP_ROOT/requirements.txt" -r "$APP_ROOT/requirements-api.txt"
 (cd "$APP_ROOT/frontend" && npm ci && npm run build)
+# the service runs as fasl: the checkout, its environment and its build go back to it after they are made
+chown -R fasl:fasl "$APP_ROOT"
 install -m 0644 "$APP_ROOT/deploy/oreflow.service" /etc/systemd/system/oreflow.service
 # with a certificate in place the TLS virtual host goes in directly: the plain one, which a first install
 # needs for certbot, has no 443 server, and while it was loaded HTTPS for this name reached another site
