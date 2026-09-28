@@ -233,7 +233,7 @@ def _cases() -> tuple[CaseDef, ...]:
          "Un pórfido competente de alto índice de trabajo; la potencia instalada del molino limita y un mineral más duro engruesa la molienda."),
         ("What happens to recovery when the mill runs out of power?", "¿Qué le pasa a la recuperación cuando el molino se queda sin potencia?"),
         grade=0.52, wi=18.5, tph=510.0, p80=165.0, power_kw=7360.0, rougher_m3=100.0, cleaner_m3=14.0, recleaner_m3=8.0,
-        cyclone_cm=50.8, liberation_um=120.0, composite=0.42, floatability=3.2e-4, water_limit=2.26))
+        cyclone_cm=50.8, liberation_um=120.0, composite=0.42, floatability=3.2e-4, water_limit=2.25))
     cases.append(CaseDef(
         "gold_free_milling", "classification", ("Free-milling gold with gravity", "Oro de molienda libre con gravimetría"),
         ("Free gold liberated in the grinding circuit is dense and malleable, so cyclones return it to the mill; a gravity unit on an underflow bleed recovers it before flotation takes the gold held in pyrite.",
@@ -284,7 +284,7 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Ni", "%", (Carrier("pentlandite", 1.0),), 1.2),),
             work_index_kwh_t=14.0, crushing_work_index_kwh_t=15.5, quality_species=("MgO",)),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(6520.0), cyclone=_cyclone(38.1),
-              flotation=_flotation(80.0, 12.0, 6.0, 4.0, xi_um=40.0), grade_spec=GradeSpec("Ni", 12.0), water_limit_m3_t=3.22),
+              flotation=_flotation(80.0, 12.0, 6.0, 4.0, xi_um=40.0), grade_spec=GradeSpec("Ni", 12.0), water_limit_m3_t=3.04),
         OperatingPoint(throughput_tph=430.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.6, crusher_css_mm=8.0,
                        work_index_kwh_t=14.0, head_grade=1.2, collector_gpt=45.0, jg_cm_s=1.3, rougher_cells=8),
         _flotation_variants(), _kpi("nickel_sulphide"),
@@ -314,7 +314,7 @@ def _cases() -> tuple[CaseDef, ...]:
          "Un pórfido flotado como concentrado colectivo Cu-Mo; la molibdenita es hidrófoba natural pero laminar y fina, por lo que se recupera unos puntos bajo el cobre."),
         ("Why does molybdenite trail copper in the same froth?", "¿Por qué la molibdenita queda detrás del cobre en la misma espuma?"),
         grade=0.61, wi=16.2, tph=640.0, p80=150.0, power_kw=9460.0, rougher_m3=120.0, cleaner_m3=18.0, recleaner_m3=9.0,
-        cyclone_cm=50.8, liberation_um=120.0, composite=0.42, floatability=2.7e-4, water_limit=2.27,
+        cyclone_cm=50.8, liberation_um=120.0, composite=0.42, floatability=2.7e-4, water_limit=2.26,
         extra_minerals=(MineralSpec(id="molybdenite", grindability=1.2, liberation_size_um=60.0, liberation_slope=1.5, composite_content=0.3,
                                     host="quartz", flotation=Flotability(floatability=2.6e-4, optimum_size_um=35.0, fine_width=1.5, coarse_width=0.7,
                                                                         half_dose_gpt=12.0, unresponsive_fraction=0.6)),),
@@ -332,7 +332,7 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Cu", "%", (Carrier("malachite", 0.9), Carrier("chrysocolla", 0.1)), 1.05),),
             work_index_kwh_t=12.5, crushing_work_index_kwh_t=13.5),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(7210.0), cyclone=_cyclone(50.8),
-              flotation=_flotation(110.0, 16.0, 8.0, 4.0, xi_um=60.0, cleaner_wash=0.6, recleaner_wash=0.45), grade_spec=GradeSpec("Cu", 20.0), water_limit_m3_t=2.51),
+              flotation=_flotation(110.0, 16.0, 8.0, 4.0, xi_um=60.0, cleaner_wash=0.6, recleaner_wash=0.45), grade_spec=GradeSpec("Cu", 20.0), water_limit_m3_t=3.29),
         OperatingPoint(throughput_tph=580.0, target_p80_um=140.0, circulating_load=2.5, water_m3_t=2.2, crusher_css_mm=8.0,
                        work_index_kwh_t=12.5, head_grade=1.05, collector_gpt=150.0, jg_cm_s=1.4, rougher_cells=8),
         _flotation_variants(), _kpi("copper_oxide"),
@@ -349,7 +349,7 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("Zn", "%", (Carrier("sphalerite", 1.0),), 4.8),),
             work_index_kwh_t=14.8, crushing_work_index_kwh_t=16.0),
         Plant(family="rougher", crusher=_crusher(), mill=_mill(13100.0), cyclone=_cyclone(38.1),
-              flotation=_flotation(140.0, 30.0, 15.0, 4.0), grade_spec=GradeSpec("Zn", 50.0), water_limit_m3_t=2.97),
+              flotation=_flotation(140.0, 30.0, 15.0, 4.0), grade_spec=GradeSpec("Zn", 50.0), water_limit_m3_t=2.81),
         OperatingPoint(throughput_tph=780.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.2, crusher_css_mm=8.0,
                        work_index_kwh_t=14.8, head_grade=4.8, collector_gpt=50.0, jg_cm_s=1.4, rougher_cells=8),
         _flotation_variants(), _kpi("zinc_sulfide"),
@@ -360,7 +360,7 @@ def _cases() -> tuple[CaseDef, ...]:
          "Un mineral de cobre con una fracción arcillosa que se muele a lamas; la arcilla arrastrada diluye el concentrado, por lo que el lavado de espuma y el aire pesan más que en un mineral limpio."),
         ("How much grade does clay entrainment take?", "¿Cuánta ley se lleva el arrastre de arcilla?"),
         grade=0.48, wi=13.0, tph=520.0, p80=150.0, power_kw=5840.0, rougher_m3=110.0, cleaner_m3=16.0, recleaner_m3=8.0,
-        cyclone_cm=66.0, liberation_um=120.0, composite=0.42, floatability=2.4e-4, xi_um=60.0, water=2.8, water_limit=2.98,
+        cyclone_cm=66.0, liberation_um=120.0, composite=0.42, floatability=2.4e-4, xi_um=60.0, water=2.8, water_limit=2.97,
         extra_minerals=(MineralSpec(id="kaolinite", fraction=0.2, grindability=4.0,
                                     flotation=Flotability(floatability=2.0e-6, optimum_size_um=15.0, fine_width=1.2, coarse_width=0.8, half_dose_gpt=1500.0)),)))
     cases.append(_copper(
@@ -369,7 +369,7 @@ def _cases() -> tuple[CaseDef, ...]:
          "Una planta de pórfido grande y de baja ley donde el tratamiento paga las cuentas; un mineral más duro o más alimentación se nota primero en la potencia del molino y luego en la recuperación."),
         ("Is it better to push tonnes or to hold the grind?", "¿Conviene empujar toneladas o sostener la molienda?"),
         grade=0.29, wi=15.5, tph=1120.0, p80=180.0, power_kw=14120.0, rougher_m3=200.0, cleaner_m3=22.0, recleaner_m3=11.0,
-        cyclone_cm=66.0, liberation_um=120.0, composite=0.42, floatability=3.2e-4, water_limit=2.23))
+        cyclone_cm=66.0, liberation_um=120.0, composite=0.42, floatability=3.2e-4, water_limit=2.22))
     cases.append(CaseDef(
         "refractory_gold", "integration", ("Refractory gold in sulphides", "Oro refractario en sulfuros"),
         ("Gold locked in pyrite and arsenopyrite that no grind can free; flotation makes a sulphide concentrate for oxidation downstream, so sulphide recovery is gold recovery.",
