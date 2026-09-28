@@ -329,6 +329,9 @@ input, select, textarea { font: inherit; }
 .of-context li + li { margin-top: 3px; }
 .of-context .of-table { margin: 6px 0 10px; }
 .of-context .of-table td { white-space: normal; }
+/* a range's source sits under its row: the row above loses its rule, the note wraps across the table */
+.of-context .of-table tr:has(+ .of-kpi-source) > * { border-bottom: 0; }
+.of-context .of-table .of-kpi-source td { padding-top: 0; text-align: left; white-space: normal; font-size: 0.7rem; line-height: 1.35; color: var(--color-fg-subtle); }
 .of-variant-notes td:nth-child(2) { text-align: left; min-width: 18ch; }
 .of-context-side .of-table td:nth-child(2) { text-align: left; }
 .of-variant-notes td:nth-child(3) { text-align: left; font-variant-numeric: tabular-nums; }
