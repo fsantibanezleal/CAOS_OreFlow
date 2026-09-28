@@ -49,6 +49,8 @@ export type Bank = {
 export type FlotationPlant = {
   rougher: Bank; cleaner: Bank; d32_base_mm: number; d32_slope_mm_per_cm_s: number; water_floatability: number;
   entrainment_size_um: number; drainage: number; recleaner: Bank | null; regrind_energy_kwh_t: number;
+  /** The cleaner tail returns to the rougher feed (the default); false sends it to the final tail (the ablation). */
+  cleaner_tail_to_rougher?: boolean;
 };
 export type GravityPlant = { max_recovery: number; size_scale_um: number; composite_recovery: number; gangue_yield: number };
 export type MagneticPlant = {

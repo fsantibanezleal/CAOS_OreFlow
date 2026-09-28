@@ -1,7 +1,7 @@
 /**
  * Experiments (ADR-0016 section 9.C): the design of the numerical experiments and its coverage, the
- * metrics, what the single-factor variants did in every case, and the protocols of the method records
- * and of the learned lane (the leakage-safe one). Transcribed from the process-engine design and
+ * metrics (with the kinetic protocol) and what the single-factor variants did in every case; the data and
+ * splits tabs are experiments-data.tsx, the uncertainty and ablations tabs experiments-studies.tsx. Transcribed from the process-engine design and
  * requirements and the methodology pages; every result is read from the committed benchmark, and every
  * qualitative claim of the results text is checked against it by a test.
  */
@@ -16,6 +16,7 @@ import { Loaded, useArtifact } from './data';
 import { VARIANT_KINDS } from './design';
 import type { Bi, Topic } from './doc';
 import { DATA, SPLITS } from './experiments-data';
+import { ABLATIONS, UNCERTAINTY } from './experiments-studies';
 import { Arrow, pick } from './figures';
 
 const r = String.raw;
@@ -92,30 +93,6 @@ function RecoveryFigure({ lang }: { lang: Lang }) {
   );
 }
 
-function FoldsFigure({ lang }: { lang: Lang }) {
-  const p = (en: string, es: string) => pick(lang, en, es);
-  return (
-    <svg className="fig-svg" viewBox="0 0 440 250" role="img" aria-label={p('Twelve folds, each holding out one whole case', 'Doce particiones, cada una reservando un caso completo')}>
-      <text className="dg-box-title" x="12" y="18">{p('leave one case out: 12 folds', 'dejar un caso fuera: 12 particiones')}</text>
-      {Array.from({ length: 12 }, (_, fold) => (
-        <g key={fold}>
-          <text className="dg-tick" x="12" y={42 + 15 * fold}>{fold + 1}</text>
-          {Array.from({ length: 12 }, (_, c) => (
-            <rect key={c} x={36 + 20 * c} y={32 + 15 * fold} width="17" height="12" rx="2" className={c === fold ? 'dg-fill-warn' : 'dg-fill-accent'} />
-          ))}
-        </g>
-      ))}
-      <rect x="300" y="40" width="17" height="12" rx="2" className="dg-fill-accent" />
-      <text className="dg-box-sub" x="324" y="50">{p('train: 2816', 'entrena: 2816')}</text>
-      <rect x="300" y="62" width="17" height="12" rx="2" className="dg-fill-warn" />
-      <text className="dg-box-sub" x="324" y="72">{p('test: 256', 'prueba: 256')}</text>
-      <text className="dg-box-sub" x="300" y="104">{p('interpolation:', 'interpolación:')}</text>
-      <text className="dg-box-sub" x="300" y="118">{p('20% of every case', '20% de cada caso')}</text>
-      <text className="dg-box-sub" x="300" y="132">{p('2460 train, 612 test', '2460 entrena, 612 prueba')}</text>
-      <text className="dg-note" x="220" y="236" textAnchor="middle">{p('columns: the twelve cases; features never name the case', 'columnas: los doce casos; las variables nunca nombran el caso')}</text>
-    </svg>
-  );
-}
 
 const SIGN_METRICS: Array<{ key: string; label: Bi }> = [
   { key: 'recovery_pct', label: { en: 'recovery', es: 'recuperación' } },
@@ -368,8 +345,11 @@ const METRICS: Topic = {
       es: 'La energía específica es chancado más molienda más remolienda, por tonelada de mineral; la potencia del molino es la energía de molienda por el tonelaje. El índice de trabajo operacional de Bond y su razón de eficiencia se informan para la reducción lograda, y las leyes de Rittinger y Kick son comparaciones calibradas con Bond, nunca sumadas a él. La intensidad de agua es el agua fresca por tonelada de mineral.' },
     { en: 'Three constraints judge a state: the final grade at or above the case\'s specification, the required mill power at or below the installed power, and the process water within the plant\'s capacity. Each case\'s nominal results are also checked against published plant practice for its ore type. At the nominal state no case is power-limited, and every check lies inside its published range; the table reads each one from the bake.',
       es: 'Tres restricciones juzgan un estado: la ley final sobre la especificación del caso, la potencia requerida del molino bajo la instalada, y el agua de proceso dentro de la capacidad de la planta. Los resultados nominales de cada caso también se verifican contra práctica de planta publicada para su tipo de mineral. En el estado nominal ningún caso está limitado por potencia, y cada verificación cae dentro de su rango publicado; la tabla lee cada una desde el horneado.' },
+    { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports a result only if it is feasible when simulated again from scratch.',
+      es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un resultado solo si es factible al simularlo de nuevo desde cero.' },
   ],
   equations: [
+    { tex: r`\varepsilon = \hat R_N - R_N`, caption: { en: 'The lumping error ε of a kinetic model: its projection to the bank of N cells minus the exact distributed bank recovery R_N.', es: 'El error de agregación ε de un modelo cinético: su proyección al banco de N celdas menos la recuperación exacta del banco distribuido R_N.' } },
     { tex: r`R = \frac{C_p}{F_p},\qquad R_s = \frac{C_{p,s}}{F_{p,s}}`, caption: { en: 'Overall recovery: the payable flow in the final concentrates C_p over the payable flow in the plant feed F_p; a stage recovery R_s on the stage s\'s own concentrate and feed.', es: 'Recuperación total: el flujo de pagable en los concentrados finales C_p sobre el flujo de pagable en la alimentación de planta F_p; una recuperación de etapa R_s sobre el concentrado y la alimentación propios de la etapa s.' } },
     { tex: r`\dot m = R\,f\,F,\qquad W_{i,o} = \frac{E}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}}`, caption: { en: 'Recovered metal from recovery, head grade and throughput, and the Bond operating work index of the achieved reduction.', es: 'Metal recuperado desde la recuperación, la ley de cabeza y el tonelaje, y el índice de trabajo operacional de Bond de la reducción lograda.' } },
   ],
@@ -378,7 +358,7 @@ const METRICS: Topic = {
   ],
   figure: { caption: { en: 'Overall recovery is measured on the plant feed, a stage recovery on the stage\'s own feed; an upstream loss separates them.', es: 'La recuperación total se mide sobre la alimentación de planta, una recuperación de etapa sobre la alimentación propia de la etapa; una pérdida aguas arriba las separa.' }, render: lang => <RecoveryFigure lang={lang} /> },
   data: lang => <KpiTable lang={lang} />,
-  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019'],
+  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'marquardt1963', 'powell1994'],
 };
 
 const RESULTS: Topic = {
@@ -402,25 +382,6 @@ const RESULTS: Topic = {
   refs: ['gorain1997', 'savassi1998', 'muthaphuli2014', 'laplante-staunton', 'phosphate2019'],
 };
 
-const PROTOCOLS: Topic = {
-  id: 'protocols',
-  title: { en: 'Protocols', es: 'Protocolos' },
-  paragraphs: [
-    { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports a result only if it is feasible when simulated again from scratch.',
-      es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un resultado solo si es factible al simularlo de nuevo desde cero.' },
-    { en: 'Uncertainty: 128 seeded Latin-hypercube draws of the work index, the head grade, the liberation size and the floatability within authored spreads, the operating point held fixed, give the quantiles of every output and the probability of meeting each constraint. Sensitivity: Saltelli\'s design with N = 256 at the nominal state gives first-order and total Sobol indices with bootstrap intervals.',
-      es: 'Incertidumbre: 128 sorteos sembrados de hipercubo latino del índice de trabajo, la ley de cabeza, el tamaño de liberación y la flotabilidad dentro de rangos de autor, con el punto de operación fijo, dan los cuantiles de cada salida y la probabilidad de cumplir cada restricción. Sensibilidad: el diseño de Saltelli con N = 256 en el estado nominal da los índices de Sobol de primer orden y totales con intervalos bootstrap.' },
-  ],
-  equations: [
-    { tex: r`\varepsilon = \hat R_N - R_N`, caption: { en: 'The lumping error ε of a kinetic model: its projection to the bank of N cells minus the exact distributed bank recovery R_N.', es: 'El error de agregación ε de un modelo cinético: su proyección al banco de N celdas menos la recuperación exacta del banco distribuido R_N.' } },
-    { tex: r`R^2 = 1 - \frac{\sum_i (y_i - \hat y_i)^2}{\sum_i (y_i - \bar y)^2},\qquad \mathrm{RMSE} = \sqrt{\tfrac{1}{n}\textstyle\sum_i (y_i - \hat y_i)^2}`, caption: { en: 'The scores of every learned model, on the held-out states of each protocol.', es: 'Los puntajes de cada modelo aprendido, sobre los estados reservados de cada protocolo.' } },
-  ],
-  limits: [
-    { en: 'The kinetic and uncertainty protocols run on the authored cases; their records describe the engine, not a plant.', es: 'Los protocolos cinético y de incertidumbre corren sobre los casos de autor; sus registros describen el motor, no una planta.' },
-  ],
-  figure: { caption: { en: 'Leave one case out: in each fold one whole case is held out and the other eleven train the models.', es: 'Dejar un caso fuera: en cada partición se reserva un caso completo y los otros once entrenan los modelos.' }, render: lang => <FoldsFigure lang={lang} /> },
-  refs: ['marquardt1963', 'powell1994', 'saltelli2010', 'salib2017', 'sklearn2011', 'geomet', 'hzdr'],
-};
 
 export const EXPERIMENTS: Array<{ id: string; label: Bi; topics: Topic[] }> = [
   { id: 'design', label: { en: 'Design and coverage', es: 'Diseño y cobertura' }, topics: [DESIGN] },
@@ -428,5 +389,6 @@ export const EXPERIMENTS: Array<{ id: string; label: Bi; topics: Topic[] }> = [
   { id: 'splits', label: { en: 'Splits', es: 'Particiones' }, topics: [SPLITS] },
   { id: 'metrics', label: { en: 'Metrics', es: 'Métricas' }, topics: [METRICS] },
   { id: 'responses', label: { en: 'What the variants did', es: 'Qué hicieron las variantes' }, topics: [RESULTS] },
-  { id: 'protocols', label: { en: 'Protocols', es: 'Protocolos' }, topics: [PROTOCOLS] },
+  { id: 'uncertainty', label: { en: 'Uncertainty', es: 'Incertidumbre' }, topics: [UNCERTAINTY] },
+  { id: 'ablations', label: { en: 'Ablations', es: 'Ablaciones' }, topics: [ABLATIONS] },
 ];

@@ -288,6 +288,57 @@ def check_benchmark(derived: Path, version: str, digest: str | None) -> list[str
     return errors
 
 
+def check_studies(derived: Path, version: str, digest: str | None) -> list[str]:
+    """AB-01 to AB-03: the ablations and the uncertainty seed study of every nominal state."""
+    path = derived / "studies.json"
+    if not path.is_file():
+        return ["missing studies.json"]
+    st = _load(path)
+    errors: list[str] = []
+    if st.get("schema") != "oreflow.studies/v1" or st.get("engine_version") != version or st.get("contract_digest") != digest:
+        errors.append("studies schema, engine version or contract digest")
+    switches = list(st.get("switches", {}))
+    if switches != ["entrainment", "composite_classes", "cleaner_recirculation", "regrind", "gravity_bleed"]:
+        errors.append(f"studies switches {switches}")
+    index = _load(derived / "manifests" / "index.json")
+    seeds = _constant("studies.seed_study_seeds")
+    for case in index.get("cases", []):
+        cid = case["case_id"]
+        entry = st.get("cases", {}).get(cid)
+        if entry is None:
+            errors.append(f"studies: no entry for {cid}")
+            continue
+        # every switch is on in the committed case record: the flag of the one engine switch is at its default
+        flotation = _load(derived / "cases" / f"{cid}.json")["definition"]["plant"].get("flotation")
+        if flotation is not None and flotation.get("cleaner_tail_to_rougher") is not True:
+            errors.append(f"studies: {cid} case record has cleaner recirculation off")
+        ablations = entry.get("ablations", {})
+        if list(ablations) != switches:
+            errors.append(f"studies: {cid} ablations {list(ablations)}")
+        for name, rec in ablations.items():
+            if rec.get("status") == "not_applicable":
+                if set(rec) != {"status"}:
+                    errors.append(f"studies: {cid}:{name} not applicable but carries values")
+                continue
+            if rec.get("status") != "computed" or not rec.get("balance", 1.0) <= BALANCE_TOLERANCE:
+                errors.append(f"studies: {cid}:{name} status or balance")
+                continue
+            for key, delta in rec["delta"].items():
+                if abs(delta - (rec["off"][key] - rec["on"][key])) > 1e-9 * max(1.0, abs(rec["on"][key])):
+                    errors.append(f"studies: {cid}:{name} delta of {key}")
+        seed_study = entry.get("seed_study", {})
+        per_seed = seed_study.get("per_seed", [])
+        if seed_study.get("seeds") != seeds or [r.get("seed") for r in per_seed] != seeds or len(set(seeds)) != len(seeds):
+            errors.append(f"studies: {cid} seed study seeds")
+        if seed_study.get("samples") != _constant("uncertainty.samples") or seed_study.get("generator") != "SplitMix64":
+            errors.append(f"studies: {cid} seed study design")
+        if per_seed:
+            p = [r["all_constraints"] for r in per_seed]
+            if abs(seed_study["spread"]["all_constraints"] - (max(p) - min(p))) > 1e-12:
+                errors.append(f"studies: {cid} seed study spread")
+    return errors
+
+
 def check_particles(derived: Path, models: Path) -> list[str]:
     errors: list[str] = []
     path = derived / "source" / "hzdr_particle_benchmark.json"
@@ -357,7 +408,8 @@ def run(derived: Path, models: Path, allow_reused_learning: bool = False) -> lis
     contract_errors, digest = check_contract(derived)
     return (contract_errors + check_cases(derived, version, digest)
             + check_learning(derived, models, version, digest, allow_reused_learning)
-            + check_benchmark(derived, version, digest) + check_particles(derived, models) + check_geomet(derived))
+            + check_benchmark(derived, version, digest) + check_studies(derived, version, digest)
+            + check_particles(derived, models) + check_geomet(derived))
 
 
 def main() -> int:
@@ -371,7 +423,7 @@ def main() -> int:
         print("\n".join(f"  - {error}" for error in errors[:200]))
         return 1
     print(f"ARTIFACTS OK: contract, {N_CASES} cases, {N_VARIANTS} variants with recomputed balances and method records; "
-          "learning, benchmark, HZDR particle and GeoMet lanes.")
+          "learning, benchmark, studies, HZDR particle and GeoMet lanes.")
     return 0
 
 

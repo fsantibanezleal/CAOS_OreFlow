@@ -460,6 +460,20 @@
       "unit": "1",
       "source": "Design (UQ-07): a seed the workbench accepts, from 0 to 2^53 - 1, the largest integer a browser number holds exactly."
     },
+    "studies.seed_study_seeds": {
+      "value": [
+        101,
+        202,
+        303,
+        404,
+        505,
+        606,
+        707,
+        808
+      ],
+      "unit": "1",
+      "source": "Design (Experiments, uncertainty): eight seeds, distinct from the bake's, at which every nominal uncertainty record is re-run to measure the design's own sampling error."
+    },
     "uncertainty.samples_bounds": {
       "value": [
         32,

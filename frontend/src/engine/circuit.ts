@@ -112,7 +112,9 @@ export function simulate(ore: Ore, plant: Plant, op: OperatingPoint): CircuitRes
     const cleanerInputs = [regrind !== null ? 'regrind_product' : 'rougher_concentrate'];
     if (flotation.recleaner !== null) cleanerInputs.push('recleaner_tail');
     units.push(['flotation_link', [separationFeed], ['flotation_feed'], flotation.dilution_rougher_tph]);
-    units.push(['rougher_junction', ['flotation_feed', 'cleaner_tail'], ['rougher_feed'], 0.0]);
+    // the cleaner tail returns to the rougher feed unless the ablation sends it to the final tail
+    const recirculate = flot.cleaner_tail_to_rougher !== false;
+    units.push(['rougher_junction', recirculate ? ['flotation_feed', 'cleaner_tail'] : ['flotation_feed'], ['rougher_feed'], 0.0]);
     units.push(['rougher', ['rougher_feed'], ['rougher_concentrate', 'rougher_tail'], 0.0]);
     units.push(['cleaner_junction', cleanerInputs, ['cleaner_feed'], flotation.dilution_cleaner_tph]);
     units.push(['cleaner', ['cleaner_feed'], ['cleaner_concentrate', 'cleaner_tail'], 0.0]);
@@ -123,6 +125,7 @@ export function simulate(ore: Ore, plant: Plant, op: OperatingPoint): CircuitRes
     }
     concentrates.push(finalStreamName(flotation));
     tails.push('rougher_tail');
+    if (!recirculate) tails.push('cleaner_tail');
   }
   const topology: TopologyUnit[] = units.map(([unit, inputs, outputs, water]) => ({ unit, inputs: [...inputs], outputs: [...outputs], water_added_tph: water }));
   units.push(['circuit', ['crusher_feed'], [...concentrates, ...tails], freshWater]);
@@ -217,7 +220,7 @@ function computeMetrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, stream
     put('rougher_water_recovery_pct', 100.0 * flotation.rougher.water_recovery, '%');
     put('cleaner_water_recovery_pct', 100.0 * flotation.cleaner.water_recovery, '%');
     put('bubble_surface_flux_s', flotation.sb_rougher, '1/s');
-    put('cleaner_recycle_tph', f.cleaner_tail.tph(), 't/h');
+    put('cleaner_recycle_tph', (plant.flotation as NonNullable<Plant['flotation']>).cleaner_tail_to_rougher === false ? 0.0 : f.cleaner_tail.tph(), 't/h');
     put('recycle_iterations', flotation.iterations, '1');
     const free = flotation.defs.filter(d => d.kind === 'free');
     const final = flotation.species_final;

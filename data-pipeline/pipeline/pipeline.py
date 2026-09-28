@@ -26,7 +26,7 @@ from .io.contract import export_contract
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DERIVED = REPO_ROOT / "data" / "derived"
 MODELS = REPO_ROOT / "models"
-STAGES = ("contract", "cases", "learning", "benchmark", "manifests", "validation")
+STAGES = ("contract", "cases", "learning", "benchmark", "studies", "manifests", "validation")
 HEADLINE = ("recovery_pct", "concentrate_grade", "specific_energy_total_kwh_t", "p80_um", "mill_power_kw")
 
 
@@ -45,6 +45,12 @@ def _bake(args: tuple[str, dict[str, Any], str]) -> dict[str, Any]:
     from .stages.cases import bake_case
 
     return bake_case(*args)
+
+
+def _study(case_id: str) -> dict[str, Any]:
+    from .stages.studies import study_case
+
+    return study_case(case_id)
 
 
 def _checker():
@@ -109,6 +115,22 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     bench = benchmark.build(artifacts, oracles.all_oracles(), record, derived, __version__, digest)
     write_json(derived / "benchmark.json", bench)
     timings["benchmark"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    from .stages import studies
+    _log(f"studies: ablations and the uncertainty seed study on {workers} worker(s)")
+    studied: dict[str, dict[str, Any]] = {}
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn")) as pool:
+            futures = {pool.submit(_study, case_id): case_id for case_id in ids}
+            for future in as_completed(futures):
+                studied[futures[future]] = future.result()
+    else:
+        for case_id in ids:
+            studied[case_id] = _study(case_id)
+    write_json(derived / "studies.json", studies.build([studied[case_id] for case_id in ids], __version__, digest))
+    timings["studies"] = time.perf_counter() - t
+    _log(f"studies done ({timings['studies']:.0f}s)")
 
     t = time.perf_counter()
     # every catalog case is rewritten below; a case the catalog no longer has must not ship from an older bake

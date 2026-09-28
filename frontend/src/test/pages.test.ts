@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { EXPERIMENTS } from '../content/experiments';
 import { IMPLEMENTATION } from '../content/implementation';
 
 // PG-01 and PG-02: the planned tab census of the two pages 0.07.000 extends (the plan of 2026-09-13, fixed in
@@ -8,8 +9,12 @@ describe('the planned page tabs', () => {
     expect(IMPLEMENTATION.map(t => t.id)).toEqual(['system', 'engine', 'bake', 'contracts', 'lanes', 'models', 'gpu', 'release', 'deploy']);
   });
 
+  it('Experiments has the seven planned tabs', () => {
+    expect(EXPERIMENTS.map(t => t.id)).toEqual(['design', 'data', 'splits', 'metrics', 'responses', 'uncertainty', 'ablations']);
+  });
+
   it('every tab carries a bilingual label and at least one topic with a figure or data', () => {
-    for (const tab of IMPLEMENTATION) {
+    for (const tab of [...IMPLEMENTATION, ...EXPERIMENTS]) {
       expect(tab.label.en && tab.label.es, tab.id).toBeTruthy();
       expect(tab.topics.length, tab.id).toBeGreaterThan(0);
       for (const topic of tab.topics) expect(Boolean(topic.figure || topic.data), `${tab.id}/${topic.id}`).toBe(true);

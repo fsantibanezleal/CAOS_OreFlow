@@ -71,3 +71,19 @@ export type GeometBenchmark = {
   protocols: { hole: GeometProtocol; zone: GeometProtocol };
 };
 export const loadGeometBenchmark = () => get<GeometBenchmark>('source/geomet_lct_benchmark.json');
+
+export type AblationRecord = { status: 'not_applicable' } | {
+  status: 'computed'; on: Record<string, number>; off: Record<string, number>; delta: Record<string, number>; flags: string[]; balance: number;
+};
+export type SeedStudy = {
+  seeds: number[]; samples: number; design: string; generator: string;
+  per_seed: Array<{ seed: number; recovery_pct: Record<string, number>; concentrate_grade: Record<string, number>; all_constraints: number }>;
+  spread: { recovery_pct: Record<string, number>; concentrate_grade: Record<string, number>; all_constraints: number };
+};
+export type Studies = {
+  schema: 'oreflow.studies/v1'; engine_version: string; contract_digest: string;
+  switches: Record<string, { removes: { en: string; es: string } }>;
+  cases: Record<string, { ablations: Record<string, AblationRecord>; seed_study: SeedStudy }>;
+};
+/** The mechanism ablations and the uncertainty seed study of every nominal state (the studies stage). */
+export const loadStudies = () => get<Studies>('studies.json');

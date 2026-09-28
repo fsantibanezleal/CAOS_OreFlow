@@ -19,7 +19,7 @@ const r = String.raw;
 const t = (text: Bi, lang: Lang) => text[lang];
 
 /** Catalog codes (L1, C2, F3, ...) in index order, as the workbench's case selector shows them. */
-function codes(index: CaseIndex): Record<string, string> {
+export function codes(index: CaseIndex): Record<string, string> {
   const counts: Record<string, number> = {};
   return Object.fromEntries(index.cases.map(c => {
     counts[c.category] = (counts[c.category] ?? 0) + 1;
@@ -148,7 +148,7 @@ const TEXT = {
 const fill = (template: string, values: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? key);
 const signed = (value: number, lang: Lang, decimals: number) => `${value > 0 ? '+' : ''}${formatFixed(value, lang, decimals)}`;
 
-function Reading({ text, lang }: { text: string | null; lang: Lang }) {
+export function Reading({ text, lang }: { text: string | null; lang: Lang }) {
   return <p className="of-doc-reading" aria-live="polite">{text ?? TEXT.reading[lang]}</p>;
 }
 
