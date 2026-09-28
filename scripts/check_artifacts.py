@@ -193,7 +193,7 @@ def check_cases(derived: Path, version: str, digest: str | None) -> list[str]:
     return errors
 
 
-def check_learning(derived: Path, models: Path, version: str, digest: str | None) -> list[str]:
+def check_learning(derived: Path, models: Path, version: str, digest: str | None, allow_reused: bool = False) -> list[str]:
     path = derived / "learning.json"
     if not path.is_file():
         return ["missing learning.json"]
@@ -203,6 +203,9 @@ def check_learning(derived: Path, models: Path, version: str, digest: str | None
         errors.append("learning schema or model set")
     if record.get("engine_version") != version or record.get("contract_digest") != digest:
         errors.append("learning record belongs to another engine version or contract")
+    # a development bake reuses an earlier learned lane (pipeline --reuse-learning); only a full bake may ship
+    if record.get("reused") and not allow_reused:
+        errors.append("learning record was reused by a development bake; committed records come from a full bake")
     if not record.get("identity", {}).get("hist_gradient_boosting", "").endswith("HistGradientBoostingRegressor"):
         errors.append("gradient boosting is not HistGradientBoostingRegressor")
     folds = record.get("leave_one_case_out", [])
@@ -330,10 +333,11 @@ def check_geomet(derived: Path) -> list[str]:
     return errors
 
 
-def run(derived: Path, models: Path) -> list[str]:
+def run(derived: Path, models: Path, allow_reused_learning: bool = False) -> list[str]:
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     contract_errors, digest = check_contract(derived)
-    return (contract_errors + check_cases(derived, version, digest) + check_learning(derived, models, version, digest)
+    return (contract_errors + check_cases(derived, version, digest)
+            + check_learning(derived, models, version, digest, allow_reused_learning)
             + check_benchmark(derived, version, digest) + check_particles(derived, models) + check_geomet(derived))
 
 

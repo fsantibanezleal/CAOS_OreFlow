@@ -54,7 +54,8 @@ def _checker():
     return module
 
 
-def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None) -> dict[str, Any]:
+def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None,
+            reuse_learning: Path | None = None) -> dict[str, Any]:
     from .methods import learning, oracles
     from .stages import benchmark
 
@@ -89,8 +90,16 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     timings["cases"] = time.perf_counter() - t
 
     t = time.perf_counter()
-    _log("learning: design, protocols and exports")
-    record = learning.run(contract, models_dir)
+    if reuse_learning is not None:
+        # a development bake of the case stage: the learned lane depends on the engine and the case envelopes,
+        # not on the method records, so it is taken from an earlier bake and marked. check_artifacts.py fails any
+        # committed record so marked: release records come from a full bake
+        _log(f"learning: reused from {reuse_learning} (development bake)")
+        record = json.loads(Path(reuse_learning).read_text(encoding="utf-8"))
+        record["reused"] = {"from_contract_digest": record.get("contract_digest"), "from_engine_version": record.get("engine_version")}
+    else:
+        _log("learning: design, protocols and exports")
+        record = learning.run(contract, models_dir)
     record["engine_version"], record["contract_digest"] = __version__, digest
     write_json(derived / "learning.json", record)
     timings["learning"] = time.perf_counter() - t
@@ -134,11 +143,11 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
 
     t = time.perf_counter()
     _log("validation: artifact checks")
-    errors = _checker().run(derived, models_dir)
+    errors = _checker().run(derived, models_dir, allow_reused_learning=reuse_learning is not None)
     timings["validation"] = time.perf_counter() - t
     validation = {"schema": "oreflow.validation/v2", "engine_version": __version__, "contract_digest": digest,
                   "passed": not errors, "errors": errors, "stages": list(STAGES), "workers": workers,
-                  "seconds": timings}
+                  "seconds": timings, **({"learning_reused": True} if reuse_learning is not None else {})}
     write_json(derived / "validation.json", validation)
     if errors:
         raise SystemExit("bake failed validation:\n" + "\n".join(f"  - {e}" for e in errors[:50]))
@@ -150,12 +159,16 @@ def main() -> None:
     parser.add_argument("--output", type=Path, help="sandbox derived directory (default data/derived)")
     parser.add_argument("--models", type=Path, help="sandbox models directory (default models)")
     parser.add_argument("--workers", type=int, help="case worker processes (default half the cores, at most 12)")
+    parser.add_argument("--reuse-learning", type=Path, help="development bakes only: take learning.json from this file; "
+                        "the record is marked reused and cannot be committed")
     args = parser.parse_args()
+    if args.reuse_learning is not None and args.output is None:
+        parser.error("--reuse-learning writes a development bake and needs a sandbox --output")
     # joblib probes physical cores with a Windows tool that may be absent and falls back to logical cores
     warnings.filterwarnings("ignore", message="Could not find the number of physical cores", category=UserWarning)
     # a bake that is still running after 45 minutes prints every thread's stack once, so a stall shows its place
     faulthandler.dump_traceback_later(45 * 60, exit=False)
-    result = run_all(args.output, args.models, args.workers)
+    result = run_all(args.output, args.models, args.workers, args.reuse_learning)
     faulthandler.cancel_dump_traceback_later()
     print(f"oreflow bake {__version__}: stages {' -> '.join(STAGES)}; "
           + ", ".join(f"{k} {v:.0f}s" for k, v in result["seconds"].items()) + "; validation passed")
