@@ -30,7 +30,7 @@
  ],
  "feature_mean": [
   -2.4654854854877413,
-  82.87040235222518,
+  74.37064454932043,
   163.5801200729693,
   2.500021815954824,
   2.4990152703194326,
@@ -54,7 +54,7 @@
  ],
  "feature_scale": [
   1.5106716495028047,
-  39.800532118116095,
+  31.47929769977239,
   71.02215313262202,
   0.8660440090109736,
   0.8662780888897771,
@@ -77,18 +77,18 @@
   0.2763853991962942
  ],
  "target_mean": [
-  73.01663369653897,
-  1.2757524094927362,
-  13.003028540622914
+  73.47777187585551,
+  1.2760235848695733,
+  13.709890510824735
  ],
  "target_scale": [
-  16.953791212958063,
-  0.47632855923079415,
-  5.214183740194004
+  16.61043936523027,
+  0.4762197791303745,
+  4.835335766145546
  ],
  "guard_feature_mean": [
   -2.4654854854877413,
-  82.87040235222518,
+  74.37064454932043,
   163.5801200729693,
   2.500021815954824,
   2.4990152703194326,
@@ -112,7 +112,7 @@
  ],
  "guard_feature_scale": [
   1.5106716495028047,
-  39.800532118116095,
+  31.47929769977239,
   71.02215313262202,
   0.8660440090109736,
   0.8662780888897771,
@@ -134,13 +134,13 @@
   0.27638539919629795,
   0.2763853991962942
  ],
- "guard_threshold": 0.36283225976089717,
+ "guard_threshold": 0.38611357373115734,
  "reference": [
   {
    "case_id": "copper_porphyry_soft",
    "features": [
     -2.1307682802690238,
-    98.63013698630137,
+    99.03713892709767,
     150.0,
     2.5,
     2.1,
@@ -163,18 +163,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 93.55000454333373,
-    "log_upgrade": 1.553784254450509,
-    "specific_energy_total_kwh_t": 10.172879266929145
+    "recovery_pct": 93.90719286681714,
+    "log_upgrade": 1.5505523935793837,
+    "specific_energy_total_kwh_t": 10.325318369950498
    },
-   "guard_error": 0.06929300531675403,
+   "guard_error": 0.059917814784666665,
    "guard_flag": false
   },
   {
    "case_id": "copper_porphyry_hard",
    "features": [
     -2.283996656365201,
-    68.91891891891892,
+    69.29347826086956,
     165.0,
     2.5,
     2.1,
@@ -197,18 +197,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 91.73893206564877,
-    "log_upgrade": 1.6565247334150226,
-    "specific_energy_total_kwh_t": 15.784030173354868
+    "recovery_pct": 92.27910364939264,
+    "log_upgrade": 1.6592509901278703,
+    "specific_energy_total_kwh_t": 15.834032765110518
    },
-   "guard_error": 0.018759208938631342,
+   "guard_error": 0.06812829887275834,
    "guard_flag": false
   },
   {
    "case_id": "gold_free_milling",
    "features": [
     -5.468521082957745,
-    56.52173913043479,
+    56.89277899343544,
     106.0,
     2.5,
     2.1,
@@ -231,18 +231,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 96.70429272968185,
-    "log_upgrade": 1.418929090845757,
-    "specific_energy_total_kwh_t": 16.83527402788376
+    "recovery_pct": 96.81022703642071,
+    "log_upgrade": 1.4181418089661624,
+    "specific_energy_total_kwh_t": 16.643286124807734
    },
-   "guard_error": 0.029932003941810167,
+   "guard_error": 0.025037656534431352,
    "guard_flag": false
   },
   {
    "case_id": "iron_magnetite_fine",
    "features": [
     -0.5767541260631921,
-    45.320197044334975,
+    46.7005076142132,
     60.0,
     2.5,
     2.4,
@@ -265,18 +265,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 84.91422110625234,
-    "log_upgrade": 0.3438961894795748,
-    "specific_energy_total_kwh_t": 20.073426605426732
+    "recovery_pct": 84.37370952980623,
+    "log_upgrade": 0.3466232639033975,
+    "specific_energy_total_kwh_t": 19.95388033900297
    },
-   "guard_error": 0.0033875221838726766,
+   "guard_error": 0.0019334032194546385,
    "guard_flag": false
   },
   {
    "case_id": "nickel_sulphide",
    "features": [
     -1.9208187539523751,
-    119.44444444444444,
+    65.95092024539878,
     106.0,
     2.5,
     2.6,
@@ -299,18 +299,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 73.76811999179397,
-    "log_upgrade": 1.1250857517512896,
-    "specific_energy_total_kwh_t": 9.294002726401144
+    "recovery_pct": 75.25578379870373,
+    "log_upgrade": 1.1222488275085982,
+    "specific_energy_total_kwh_t": 15.332407074672172
    },
-   "guard_error": 0.05559490006429282,
+   "guard_error": 0.03249802569116545,
    "guard_flag": false
   },
   {
    "case_id": "phosphate_clay",
    "features": [
     -0.9430951486635274,
-    151.61290322580643,
+    128.4153005464481,
     150.0,
     2.2,
     2.8,
@@ -333,18 +333,18 @@
     1.0
    ],
    "prediction": {
-    "recovery_pct": 71.8689368336939,
-    "log_upgrade": 0.4750504638237286,
-    "specific_energy_total_kwh_t": 6.288015240792883
+    "recovery_pct": 71.04730193877889,
+    "log_upgrade": 0.46738289288719914,
+    "specific_energy_total_kwh_t": 7.2242788055582965
    },
-   "guard_error": 0.02762725589836539,
+   "guard_error": 0.027263034353167067,
    "guard_flag": false
   },
   {
    "case_id": "copper_molybdenum",
    "features": [
     -2.214670164989233,
-    67.36842105263158,
+    67.65327695560254,
     150.0,
     2.5,
     2.1,
@@ -367,18 +367,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 93.18613885043229,
-    "log_upgrade": 1.6054458322281389,
-    "specific_energy_total_kwh_t": 15.09524294506186
+    "recovery_pct": 93.57580218534466,
+    "log_upgrade": 1.610177226214622,
+    "specific_energy_total_kwh_t": 15.020659465324487
    },
-   "guard_error": 0.01915233796810442,
+   "guard_error": 0.034796852531485276,
    "guard_flag": false
   },
   {
    "case_id": "copper_oxide",
    "features": [
     -1.978810700930062,
-    95.08196721311477,
+    80.44382801664355,
     140.0,
     2.5,
     2.2,
@@ -401,18 +401,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 67.06422938691902,
-    "log_upgrade": 1.4564263296340263,
-    "specific_energy_total_kwh_t": 10.453295371917294
+    "recovery_pct": 67.68386097028846,
+    "log_upgrade": 1.4597277753428173,
+    "specific_energy_total_kwh_t": 12.099469768284562
    },
-   "guard_error": 0.13124398277645166,
+   "guard_error": 0.10085360484033368,
    "guard_flag": false
   },
   {
    "case_id": "zinc_sulfide",
    "features": [
     -1.3187587626244128,
-    59.09090909090909,
+    59.54198473282443,
     106.0,
     2.5,
     2.2,
@@ -435,18 +435,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 86.25338966348063,
-    "log_upgrade": 0.9890614731052649,
-    "specific_energy_total_kwh_t": 17.354682339282633
+    "recovery_pct": 86.93639496104774,
+    "log_upgrade": 0.9849600830927077,
+    "specific_energy_total_kwh_t": 17.2835804388439
    },
-   "guard_error": 0.06545779375442554,
+   "guard_error": 0.06757688640849747,
    "guard_flag": false
   },
   {
    "case_id": "mixed_ore_high_clay",
    "features": [
     -2.318758762624413,
-    104.0,
+    89.04109589041096,
     150.0,
     2.5,
     2.8,
@@ -469,18 +469,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 90.48441213120364,
-    "log_upgrade": 1.7064991525703703,
-    "specific_energy_total_kwh_t": 10.293163532483085
+    "recovery_pct": 91.22034013376877,
+    "log_upgrade": 1.7054825161558889,
+    "specific_energy_total_kwh_t": 11.612024078709425
    },
-   "guard_error": 0.04518795335929449,
+   "guard_error": 0.035157494188267725,
    "guard_flag": false
   },
   {
    "case_id": "low_grade_copper",
    "features": [
     -2.537602002101044,
-    78.87323943661973,
+    79.3201133144476,
     180.0,
     2.5,
     2.1,
@@ -503,18 +503,18 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 90.95888379493023,
-    "log_upgrade": 1.9157233455249956,
-    "specific_energy_total_kwh_t": 12.90832326671545
+    "recovery_pct": 90.98489610273487,
+    "log_upgrade": 1.911439000657516,
+    "specific_energy_total_kwh_t": 12.824649690886485
    },
-   "guard_error": 0.048211849142181136,
+   "guard_error": 0.05995054929327773,
    "guard_flag": false
   },
   {
    "case_id": "refractory_gold",
    "features": [
     -5.657577319177793,
-    49.20634920634921,
+    49.839228295819936,
     106.0,
     2.5,
     2.2,
@@ -537,11 +537,11 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 94.20701536833272,
-    "log_upgrade": 1.1044126997526085,
-    "specific_energy_total_kwh_t": 19.396942759221368
+    "recovery_pct": 94.68222715749636,
+    "log_upgrade": 1.0976006908942106,
+    "specific_energy_total_kwh_t": 19.28324459000425
    },
-   "guard_error": 0.03213130606956864,
+   "guard_error": 0.10714543155095516,
    "guard_flag": false
   }
  ]
