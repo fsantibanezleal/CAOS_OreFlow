@@ -133,3 +133,58 @@ def test_infeasible_reports_least_violating():
     result = _run(lambda x: (x[0], max(0.0, 2.0 - x[0]) ** 2), (0.5,))
     assert result.feasible is None
     assert result.infeasible == (1.0,) and result.infeasible_h == 1.0
+
+
+# OP-08, the method's part: the browser's pattern search (frontend/src/engine/pattern_search.ts) takes the same
+# path. Both suites hold these digests of the evaluation sequence (x, f, h and the source of every evaluation,
+# then the mesh size and barrier of every iteration, as little-endian doubles). The evaluators multiply
+# rather than raise to a power, so the two languages compute them identically.
+PATTERN_SEARCH_DIGESTS = {
+    "bowl": "4dcf0b3dba2272faf975bcd9425c47a00b0c1da6e7f203e78ba70597e6b38edc",
+    "disc": "8650a09291e2acd651a8c119b6a44a8788236e1e231a20905872a7816b25074c",
+    "impossible": "5a17ba72ae89daa5ff441725fa54168c92c67e0f0214bfb2c2a4341d21e8897e",
+    "search": "deb8b4e114ba302f274781866a14de491774cbf92924ffab5f33c722f483d9df",
+}
+
+
+def _pattern_problems():
+    def bowl(x):
+        a, b = x[0] - 0.3, x[1] - 0.7
+        return a * a + b * b, 0.0
+
+    def disc(x):
+        v = max(0.0, x[0] * x[0] + x[1] * x[1] - 0.5)
+        return -(x[0] + x[1]), v * v
+
+    def impossible(x):
+        v = max(0.0, 2.0 - x[0])
+        return x[0], v * v
+
+    def bowl3(x):
+        a, b = x[0] - 0.8, x[1] - 0.15
+        return a * a + b * b + 0.1 * x[2], 0.0
+
+    def mirror(state):
+        return [] if state.feasible is None else [tuple(1.0 - v for v in state.feasible)]
+
+    return {"bowl": (bowl, (0.9, 0.1), None), "disc": (disc, (1.0, 1.0), None),
+            "impossible": (impossible, (0.5,), None), "search": (bowl3, (0.2, 0.85, 0.5), mirror)}
+
+
+def _pattern_digest(result) -> str:
+    import hashlib
+    import struct
+
+    source = {"start": 0.0, "search": 1.0, "poll": 2.0}
+    digest = hashlib.sha256()
+    for e in result.evaluations:
+        digest.update(struct.pack(f"<{len(e['x']) + 3}d", *e["x"], e["f"], e["h"], source[e["source"]]))
+    for it in result.iterations:
+        digest.update(struct.pack("<2d", it["delta"], it["h_max"]))
+    return digest.hexdigest()
+
+
+def test_pattern_search_digests():
+    for name, (evaluate, start, search) in _pattern_problems().items():
+        result = _run(evaluate, start, search=search)
+        assert _pattern_digest(result) == PATTERN_SEARCH_DIGESTS[name], name
