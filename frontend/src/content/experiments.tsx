@@ -15,6 +15,7 @@ import { metricLabel } from '../lib/i18n';
 import { Loaded, useArtifact } from './data';
 import { VARIANT_KINDS } from './design';
 import type { Bi, Topic } from './doc';
+import { DATA, SPLITS } from './experiments-data';
 import { Arrow, pick } from './figures';
 
 const r = String.raw;
@@ -409,19 +410,13 @@ const PROTOCOLS: Topic = {
       es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un resultado solo si es factible al simularlo de nuevo desde cero.' },
     { en: 'Uncertainty: 128 seeded Latin-hypercube draws of the work index, the head grade, the liberation size and the floatability within authored spreads, the operating point held fixed, give the quantiles of every output and the probability of meeting each constraint. Sensitivity: Saltelli\'s design with N = 256 at the nominal state gives first-order and total Sobol indices with bootstrap intervals.',
       es: 'Incertidumbre: 128 sorteos sembrados de hipercubo latino del índice de trabajo, la ley de cabeza, el tamaño de liberación y la flotabilidad dentro de rangos de autor, con el punto de operación fijo, dan los cuantiles de cada salida y la probabilidad de cumplir cada restricción. Sensibilidad: el diseño de Saltelli con N = 256 en el estado nominal da los índices de Sobol de primer orden y totales con intervalos bootstrap.' },
-    { en: 'The learned lane is scored on a 3072-state design, 256 per case, by two protocols. Interpolation holds out 20% of every case\'s states (2460 to train, 612 to test). Leave one case out holds out a whole case in each of twelve folds (2816 states to train, 256 to test), so no state of the tested plant is seen in training; the features are physical properties and controls, never the case\'s identity. This is the leakage-safe protocol, and the one that bounds how far a surrogate can be trusted on a new plant.',
-      es: 'La vía aprendida se evalúa sobre un diseño de 3072 estados, 256 por caso, con dos protocolos. La interpolación reserva el 20% de los estados de cada caso (2460 para entrenar, 612 para probar). Dejar un caso fuera reserva un caso completo en cada una de doce particiones (2816 estados para entrenar, 256 para probar), así que ningún estado de la planta probada se ve al entrenar; las variables son propiedades físicas y controles, nunca la identidad del caso. Este es el protocolo sin fuga, y el que acota cuánto se puede confiar en un sustituto para una planta nueva.' },
-    { en: 'The guard\'s threshold is the 99th percentile of its validation reconstruction errors. Its false-alarm rate is measured on the 612 held-out states of the envelope; its false-accept rate on 11,016 probes, each held-out state pushed half its training range past the maximum of one continuous feature at a time. The measured lanes follow the same rule: the GeoMet tests are split by whole drill hole and by spatial zone, and the HZDR particles keep their original training and test sheets.',
-      es: 'El umbral del guardia es el percentil 99 de sus errores de reconstrucción de validación. Su tasa de falsas alarmas se mide en los 612 estados reservados de la envolvente; su tasa de falsas aceptaciones en 11.016 sondas, cada estado reservado empujado la mitad de su rango de entrenamiento más allá del máximo de una variable continua a la vez. Las vías medidas siguen la misma regla: los ensayos GeoMet se dividen por sondaje completo y por zona espacial, y las partículas HZDR conservan sus hojas originales de entrenamiento y prueba.' },
   ],
   equations: [
     { tex: r`\varepsilon = \hat R_N - R_N`, caption: { en: 'The lumping error ε of a kinetic model: its projection to the bank of N cells minus the exact distributed bank recovery R_N.', es: 'El error de agregación ε de un modelo cinético: su proyección al banco de N celdas menos la recuperación exacta del banco distribuido R_N.' } },
     { tex: r`R^2 = 1 - \frac{\sum_i (y_i - \hat y_i)^2}{\sum_i (y_i - \bar y)^2},\qquad \mathrm{RMSE} = \sqrt{\tfrac{1}{n}\textstyle\sum_i (y_i - \hat y_i)^2}`, caption: { en: 'The scores of every learned model, on the held-out states of each protocol.', es: 'Los puntajes de cada modelo aprendido, sobre los estados reservados de cada protocolo.' } },
-    { tex: r`\alpha = \Pr\left[e(z) > q_{0.99}\mid z \in U\right],\qquad \beta = \Pr\left[e(z) \le q_{0.99}\mid z \notin U\right]`, caption: { en: 'The guard\'s false-alarm rate α on in-envelope states U, and its false-accept rate β on out-of-envelope probes.', es: 'La tasa de falsas alarmas α del guardia sobre estados de la envolvente U, y su tasa de falsas aceptaciones β sobre sondas fuera de ella.' } },
   ],
   limits: [
-    { en: 'Leave one case out measures transfer to a thirteenth authored plant, not to a real one; the twelve cases are the whole population the models ever see.', es: 'Dejar un caso fuera mide la transferencia a una decimotercera planta de autor, no a una real; los doce casos son toda la población que los modelos llegan a ver.' },
-    { en: 'The guard\'s probes step out along one feature at a time; a state that is unusual only in a combination of features is not probed.', es: 'Las sondas del guardia salen a lo largo de una variable a la vez; un estado que solo es inusual en una combinación de variables no se sondea.' },
+    { en: 'The kinetic and uncertainty protocols run on the authored cases; their records describe the engine, not a plant.', es: 'Los protocolos cinético y de incertidumbre corren sobre los casos de autor; sus registros describen el motor, no una planta.' },
   ],
   figure: { caption: { en: 'Leave one case out: in each fold one whole case is held out and the other eleven train the models.', es: 'Dejar un caso fuera: en cada partición se reserva un caso completo y los otros once entrenan los modelos.' }, render: lang => <FoldsFigure lang={lang} /> },
   refs: ['marquardt1963', 'powell1994', 'saltelli2010', 'salib2017', 'sklearn2011', 'geomet', 'hzdr'],
@@ -429,6 +424,8 @@ const PROTOCOLS: Topic = {
 
 export const EXPERIMENTS: Array<{ id: string; label: Bi; topics: Topic[] }> = [
   { id: 'design', label: { en: 'Design and coverage', es: 'Diseño y cobertura' }, topics: [DESIGN] },
+  { id: 'data', label: { en: 'Data', es: 'Datos' }, topics: [DATA] },
+  { id: 'splits', label: { en: 'Splits', es: 'Particiones' }, topics: [SPLITS] },
   { id: 'metrics', label: { en: 'Metrics', es: 'Métricas' }, topics: [METRICS] },
   { id: 'responses', label: { en: 'What the variants did', es: 'Qué hicieron las variantes' }, topics: [RESULTS] },
   { id: 'protocols', label: { en: 'Protocols', es: 'Protocolos' }, topics: [PROTOCOLS] },
