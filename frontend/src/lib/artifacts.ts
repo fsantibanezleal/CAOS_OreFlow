@@ -44,7 +44,7 @@ export type ParticleBenchmark = {
   protocol: {
     train_rows: number; fit_rows: number; validation_rows: number; test_rows: number;
     features: string[]; excluded_from_features: string[]; target: string; test_oracle: string;
-    published_reference: string; split: string; device: string; mlp_best_epoch: number;
+    published_reference: string; split: string; device: string; mlp_best_epoch: number; torch_version: string; mlp_validation_bce: number;
     missingness: string; threshold_interpretation: string;
   };
   standardization: { mean: number[]; scale: number[] };

@@ -57,6 +57,7 @@ const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case
 // (both themes and both languages at each size: PE-37 names phone, tablet and desktop in both)
 const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,390x844-dark-es,768x1024-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
+const TAB_CENSUS = { implementation: 9, experiments: 7 };
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -444,6 +445,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
     const topTabs = page.locator('.page-body .tablist [role=tab]');
     const groups = await topTabs.count();
+    // PG-01, PG-02: the planned tab census of the pages that 0.07.000 extends
+    if (route in TAB_CENSUS) record(`${tag} ${route} tabs`, groups === TAB_CENSUS[route], { groups, expected: TAB_CENSUS[route] });
     for (let g = 0; g < Math.max(1, groups); g += 1) {
       if (groups) await topTabs.nth(g).click();
       const subTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');

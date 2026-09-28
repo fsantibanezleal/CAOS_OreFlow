@@ -11,6 +11,7 @@ import { formatFixed, formatSignificant, type Lang } from '../lib/format';
 import { Loaded, useArtifact } from './data';
 import type { Bi, Topic } from './doc';
 import { Arrow, Box, pick } from './figures';
+import { DEPLOY, GPU, MODELS } from './implementation-models';
 
 const r = String.raw;
 
@@ -407,8 +408,8 @@ const LANES: Topic = {
       es: 'En el navegador, un control movido se valida primero contra el contrato, luego la traducción del motor resuelve el nuevo estado en un Web Worker, y solo se conserva la respuesta más nueva, así que un deslizador arrastrado nunca encola trazas viejas. Los barridos de una o dos entradas corren en el mismo proceso solo cuando se piden: cada celda se valida, se resuelve y se devuelve al terminar, un barrido más nuevo o una cancelación detiene al anterior entre celdas, y las celdas rechazadas se registran con sus códigos.' },
     { en: 'The learned lane also runs in the browser. Its 22 features are computed exactly as the bake computes them, standardized with the bake\'s scalers, and passed to the exported surrogate and guard by onnxruntime-web on WebAssembly with one thread, in one call per network for a whole sweep, beside the engine\'s own answer for the same states.',
       es: 'La vía aprendida también corre en el navegador. Sus 22 variables se calculan exactamente como las calcula el horneado, se estandarizan con los escaladores del horneado y pasan al sustituto y al guardia exportados con onnxruntime-web sobre WebAssembly con un hilo, en una llamada por red para un barrido completo, junto a la respuesta del propio motor para los mismos estados.' },
-    { en: 'The method records are baked and read: the kinetic fits, the constrained optimum from six starts, the 128-sample uncertainty record, the Sobol indices and the learning protocol results take from seconds to half an hour each to compute, so the Methods view shows the records baked for the selected variant, and says so when a control has moved away from it.',
-      es: 'Los registros de métodos se hornean y se leen: los ajustes cinéticos, el óptimo con restricciones desde seis inicios, el registro de incertidumbre de 128 muestras, los índices de Sobol y los resultados de los protocolos de aprendizaje toman de segundos a media hora cada uno, así que la vista de Métodos muestra los registros horneados para la variante elegida, y lo dice cuando un control se alejó de ella.' },
+    { en: 'The method records are baked and read: the kinetic fits, the constrained optimum from six starts, the 128-sample uncertainty record, the Sobol indices and the learning protocol results take from seconds to half an hour each to compute, so the Methods view shows the records baked for the selected variant, and says so when a control has moved away from it. The uncertainty record can also be re-run there at another seed or sample count: the worker runs the engine on every sample of the current state with the same generator as the bake, one run per tick, and stops on a cancel or a newer run.',
+      es: 'Los registros de métodos se hornean y se leen: los ajustes cinéticos, el óptimo con restricciones desde seis inicios, el registro de incertidumbre de 128 muestras, los índices de Sobol y los resultados de los protocolos de aprendizaje toman de segundos a media hora cada uno, así que la vista de Métodos muestra los registros horneados para la variante elegida, y lo dice cuando un control se alejó de ella. El registro de incertidumbre también puede volver a correrse ahí con otra semilla o número de muestras: el proceso corre el motor en cada muestra del estado actual con el mismo generador del horneado, una corrida por paso, y se detiene ante una cancelación o una corrida más nueva.' },
     { en: 'The service runs the Python engine behind the same contract. A validated simulation returns the trace with the contract digest; a rejected state returns every error with its code and limits; an engine failure on an accepted state is reported with the state that caused it. The service also serves the built site and the artifacts, and it never trains or rewrites an artifact.',
       es: 'El servicio ejecuta el motor en Python tras el mismo contrato. Una simulación validada devuelve la traza con la huella del contrato; un estado rechazado devuelve cada error con su código y sus límites; una falla del motor en un estado aceptado se informa con el estado que la causó. El servicio además sirve el sitio compilado y los artefactos, y nunca entrena ni reescribe un artefacto.' },
   ],
@@ -417,7 +418,7 @@ const LANES: Topic = {
     { tex: r`\hat y = \sigma_y\, f_\theta\!\left(\frac{x - \mu_x}{\sigma_x}\right) + \mu_y`, caption: { en: 'The browser\'s surrogate: the exported network on features standardized with the bake\'s scalers.', es: 'El sustituto del navegador: la red exportada sobre variables estandarizadas con los escaladores del horneado.' } },
   ],
   limits: [
-    { en: 'The live lane recomputes the circuit, not the method records: a moved control does not re-run the optimizer, the uncertainty or the Sobol analysis.', es: 'La vía viva recalcula el circuito, no los registros de métodos: un control movido no vuelve a ejecutar el optimizador, la incertidumbre ni el análisis de Sobol.' },
+    { en: 'The live lane recomputes the circuit on every moved control, and the uncertainty record only when asked; a moved control does not re-run the optimizer or the Sobol analysis.', es: 'La vía viva recalcula el circuito con cada control movido, y el registro de incertidumbre solo cuando se pide; un control movido no vuelve a ejecutar el optimizador ni el análisis de Sobol.' },
     { en: 'The surrogate is as good as its leave-one-case-out scores; the guard flags unfamiliar states but cannot detect an error of the engine.', es: 'El sustituto vale lo que sus puntajes dejando un caso fuera; el guardia marca estados desconocidos pero no puede detectar un error del motor.' },
   ],
   figure: { caption: { en: 'What recomputes live in the browser, what is baked and read, and what the service does.', es: 'Qué se recalcula en vivo en el navegador, qué se hornea y se lee, y qué hace el servicio.' }, render: lang => <LanesFigure lang={lang} /> },
@@ -460,5 +461,8 @@ export const IMPLEMENTATION: Array<{ id: string; label: Bi; topics: Topic[] }> =
   { id: 'bake', label: { en: 'The bake', es: 'El horneado' }, topics: [BAKE] },
   { id: 'contracts', label: { en: 'Contracts and artifacts', es: 'Contratos y artefactos' }, topics: [CONTRACTS] },
   { id: 'lanes', label: { en: 'What runs where', es: 'Qué corre dónde' }, topics: [LANES] },
+  { id: 'models', label: { en: 'Model registry', es: 'Registro de modelos' }, topics: [MODELS] },
+  { id: 'gpu', label: { en: 'The GPU lane', es: 'La vía GPU' }, topics: [GPU] },
   { id: 'release', label: { en: 'Gates and release', es: 'Controles y publicación' }, topics: [RELEASE] },
+  { id: 'deploy', label: { en: 'Deployment', es: 'Despliegue' }, topics: [DEPLOY] },
 ];

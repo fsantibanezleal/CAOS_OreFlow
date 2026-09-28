@@ -112,6 +112,8 @@ export type LearningRecord = {
   leave_one_case_out: Array<{ held_out: string; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
   summary: LearningSummary;
   final: { mlp_training: Record<string, unknown>; guard_threshold: number; exports: Record<string, { path: string; bytes: number; max_abs_difference: number; opset: number }> };
+  settings: Record<string, unknown>;
+  seconds: number;
   engine_version: string;
   contract_digest: string;
 };
