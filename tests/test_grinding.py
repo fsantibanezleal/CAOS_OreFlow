@@ -1,4 +1,5 @@
-"""PE-05 target and circulating load; PE-06 steady-state delivery; PE-07 power-limited mode."""
+"""PE-05 target and circulating load; PE-06 steady-state delivery; PE-07 power-limited mode;
+PE-07b grindability shares breakage without changing the ore's hardness."""
 from __future__ import annotations
 
 from dataclasses import replace
@@ -58,3 +59,24 @@ def test_host_limited_composites():
     assert result.balance["max_relative_error"] < 1e-9
     nominal = run_variant(case.id, "nominal").grinding.composite_scale
     assert float(np.min(nominal)) == 1.0
+
+
+def test_grindability_shares_breakage_not_hardness():
+    # PE-07b: the work index is the ore's hardness; grindabilities only share the breakage among the
+    # minerals. Scaling every grindability of an ore by one factor leaves the circuit unchanged, where
+    # a grindability that multiplied the selection directly would change the energy by that factor.
+    case = CASE_BY_ID["phosphate_clay"]
+    base = simulate(case.ore, case.plant, case.nominal)
+    scaled_ore = replace(case.ore, minerals=tuple(replace(m, grindability=2.5 * m.grindability) for m in case.ore.minerals))
+    scaled = simulate(scaled_ore, case.plant, case.nominal)
+    for key in ("specific_energy_grinding_kwh_t", "mill_power_kw", "p80_um", "recovery_pct", "concentrate_grade"):
+        assert scaled.metrics[key] == pytest.approx(base.metrics[key], rel=1e-9)
+
+
+@pytest.mark.parametrize("case_id", [c.id for c in CASES])
+def test_bond_efficiency_consistent_across_cases(case_id):
+    # PE-07b: with the ore's hardness set by its work index alone, every case grinds with the same
+    # efficiency against Bond's law (0.84 to 0.92 on 0.06.000); a ratio far above 1 would mean the
+    # circuit breaks the ore faster than its own work index allows.
+    ratio = run_variant(case_id, "nominal").metrics["bond_efficiency_ratio"]
+    assert 0.80 <= ratio <= 0.95

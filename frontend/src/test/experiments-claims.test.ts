@@ -92,7 +92,7 @@ describe('the Experiments page says what the bake did', () => {
     expect(range(p80, 0)).toEqual([9, 64]);
     const energy = changes('harder_ore', 'specific_energy_total_kwh_t');
     expect(rises(energy)).toBe(12);
-    expect(range(energy, 1)).toEqual([0.5, 2.6]);
+    expect(range(energy, 1)).toEqual([0.5, 2.5]);
     expect(falls(changes('harder_ore', 'concentrate_grade'))).toBe(12);
     expect(ids(changes('harder_ore', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     expect(falls(changes('harder_ore', 'recovery_pct'))).toBe(11);
@@ -101,7 +101,7 @@ describe('the Experiments page says what the bake did', () => {
   it('a coarser grind saves energy and lowers grade everywhere; recovery falls except in magnetite', () => {
     const energy = changes('coarser_grind', 'specific_energy_total_kwh_t');
     expect(falls(energy)).toBe(12);
-    expect(range(energy, 1)).toEqual([-3.5, -1.0]);
+    expect(range(energy, 1)).toEqual([-3.4, -1.2]);
     expect(falls(changes('coarser_grind', 'concentrate_grade'))).toBe(12);
     expect(ids(changes('coarser_grind', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     expect(falls(changes('coarser_grind', 'recovery_pct'))).toBe(11);
@@ -111,7 +111,7 @@ describe('the Experiments page says what the bake did', () => {
     const energy = changes('higher_throughput', 'specific_energy_total_kwh_t');
     expect(energy.every(r => r.limited)).toBe(true);
     expect(falls(energy)).toBe(12);
-    expect(range(energy, 1)).toEqual([-2.8, -0.5]);
+    expect(range(energy, 1)).toEqual([-2.8, -0.6]);
     expect(rises(changes('higher_throughput', 'p80_um'))).toBe(12);
     expect(rises(changes('higher_throughput', 'recovered_primary_tph'))).toBe(12);
     expect(ids(changes('higher_throughput', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
@@ -124,15 +124,15 @@ describe('the Experiments page says what the bake did', () => {
     const collector = changes('more_collector', 'recovery_pct');
     expect(collector).toHaveLength(11);
     expect(rises(collector)).toBe(11);
-    expect(range(collector, 1)).toEqual([0.5, 2.1]);
+    expect(range(collector, 1)).toEqual([0.4, 1.5]);
     expect(falls(changes('more_collector', 'concentrate_grade'))).toBe(11);
     const air = changes('more_air', 'recovery_pct');
     expect(air).toHaveLength(9);
     expect(rises(air)).toBe(9);
-    expect(range(air, 1)).toEqual([1.0, 1.7]);
+    expect(range(air, 1)).toEqual([0.8, 1.3]);
     const grade = changes('more_air', 'concentrate_grade');
-    expect(rises(grade)).toBe(8);
-    expect(ids(grade, -1)).toEqual(['refractory_gold']);
+    expect(rises(grade)).toBe(7);
+    expect(ids(grade, -1)).toEqual(['nickel_sulphide', 'refractory_gold']);
   });
 
   it('the families\' own levers move their results by the amounts quoted', () => {
@@ -145,8 +145,8 @@ describe('the Experiments page says what the bake did', () => {
     expect(Number(one('finer_grind', 'concentrate_grade').delta.toFixed(1))).toBe(1.3);
     expect(Number(one('finer_grind', 'specific_energy_total_kwh_t').delta.toFixed(1))).toBe(2.3);
     expect(one('finer_grind', 'p80_um').limited).toBe(true);
-    expect(Number(one('finer_crusher', 'specific_energy_total_kwh_t').delta.toFixed(2))).toBe(-0.18);
+    expect(Number(one('finer_crusher', 'specific_energy_total_kwh_t').delta.toFixed(2))).toBe(-0.17);
     expect(Math.abs(one('finer_crusher', 'p80_um').delta)).toBeLessThan(1e-6);
-    expect(Number(one('coarser_deslime', 'recovery_pct').delta.toFixed(1))).toBe(-5.2);
+    expect(Number(one('coarser_deslime', 'recovery_pct').delta.toFixed(1))).toBe(-5.3);
   });
 });

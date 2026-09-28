@@ -50,7 +50,7 @@ describe('the Benchmark page says what the records hold', () => {
     expect([round(g[0], 1), round(g.at(-1)!, 1)]).toEqual([13.7, 31.7]);
     expect([l.published.gold_recovery_pct[0], l.published.gold_recovery_pct.at(-1)]).toEqual([64.1, 77.1]);
     const gold = l.engine.gold_circulating_load_pct;
-    expect([Math.round(gold[0]), Math.round(gold.at(-1)!)]).toEqual([555, 271]);
+    expect([Math.round(gold[0]), Math.round(gold.at(-1)!)]).toEqual([556, 271]);
     expect(gold.slice(1).every((v, i) => v < gold[i])).toBe(true);
     expect(gold.every((v, i) => v > l.engine.ore_circulating_load_pct[i])).toBe(true);
     expect(l.engine.ore_circulating_load_pct.every(v => Math.round(v) === 250)).toBe(true);
@@ -63,20 +63,20 @@ describe('the Benchmark page says what the records hold', () => {
     expect(z.engine.magnetite_recovery_pct.map(v => round(v, 1))).toEqual([94.9, 93.5]);
   });
 
-  it('kinetic lumping: 66 converged fits a model, first order worst, Kelsall and gamma best', () => {
+  it('kinetic lumping: 66 converged fits a model, first order worst, gamma then Kelsall best', () => {
     const k = benchmark.kinetics;
     for (const record of Object.values(k)) expect([record.fits, record.converged_share]).toEqual([66, 1]);
     const mean = (id: string) => round(k[id].mean_abs_lumping_error_pct, 1), worst = (id: string) => round(k[id].worst_abs_lumping_error_pct, 1);
-    expect([mean('first_order'), worst('first_order')]).toEqual([5.3, 8.4]);
-    expect([mean('kelsall'), worst('kelsall')]).toEqual([0.9, 2.0]);
-    expect([mean('gamma'), worst('gamma')]).toEqual([0.7, 1.9]);
-    expect([mean('klimpel'), mean('stretched_exponential')]).toEqual([2.0, 3.0]);
+    expect([mean('first_order'), worst('first_order')]).toEqual([5.1, 8.2]);
+    expect([round(k.gamma.mean_abs_lumping_error_pct, 2), round(k.kelsall.mean_abs_lumping_error_pct, 2)]).toEqual([0.75, 0.85]);
+    expect([worst('gamma'), worst('kelsall')]).toEqual([1.9, 1.9]);
+    expect([mean('klimpel'), mean('stretched_exponential')]).toEqual([1.7, 2.9]);
     // the first-order model's bank: residence past the 16-minute test, and an underestimate at every nominal state
     const index = read<{ cases: Array<{ case_id: string }> }>('manifests/index.json');
     const nominal = index.cases.map(c => read<{ variants: Array<{ trace: { metrics: Record<string, number>; methods: { kinetics: { status?: string; models?: Array<{ id: string; lumping_error_pct: number }> } } } }> }>(`cases/${c.case_id}.json`).variants[0].trace)
       .filter(tr => tr.methods.kinetics.status !== 'not_applicable');
     const residence = nominal.map(tr => tr.metrics.rougher_residence_min);
-    expect([Math.floor(Math.min(...residence)), Math.round(Math.max(...residence))]).toEqual([20, 30]);
+    expect([Math.round(Math.min(...residence)), Math.round(Math.max(...residence))]).toEqual([20, 30]);
     expect(Math.min(...residence)).toBeGreaterThan(16);
     expect(nominal.every(tr => tr.methods.kinetics.models!.find(m => m.id === 'first_order')!.lumping_error_pct < 0)).toBe(true);
     const order = Object.keys(k).sort((a, b) => k[a].mean_abs_lumping_error_pct - k[b].mean_abs_lumping_error_pct);
@@ -84,71 +84,85 @@ describe('the Benchmark page says what the records hold', () => {
     expect(order.at(-1)).toBe('first_order');
   });
 
-  it('optimization: 70 of 72 feasible, 40 variants break a constraint, every loss from one, power most often active', () => {
+  it('optimization: 70 of 72 feasible, 28 variants break a constraint, the one loss from one, power most often active', () => {
     const records = Object.entries(benchmark.optimization).flatMap(([id, variants]) => Object.entries(variants).map(([v, r]) => ({ id, v, r })));
     expect(records).toHaveLength(72);
     expect(records.filter(x => x.r.status === 'optimal')).toHaveLength(70);
     expect(records.filter(x => x.r.status !== 'optimal').map(x => `${x.id}:${x.v}`).sort()).toEqual(['iron_magnetite_fine:harder_ore', 'iron_magnetite_fine:higher_throughput']);
-    expect(records.filter(x => !x.r.base_feasible)).toHaveLength(40);
+    expect(records.filter(x => !x.r.base_feasible)).toHaveLength(28);
     const gains = records.filter(x => x.r.gain_pct !== null).sort((a, b) => (a.r.gain_pct as number) - (b.r.gain_pct as number));
-    expect([gains[0].id, gains[0].v, round(gains[0].r.gain_pct as number, 1)]).toEqual(['zinc_sulfide', 'harder_ore', -10.8]);
-    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 24.0]);
-    expect(gains.filter(x => (x.r.gain_pct as number) < 0).every(x => !x.r.base_feasible)).toBe(true);
+    expect([gains[0].id, gains[0].v, round(gains[0].r.gain_pct as number, 1)]).toEqual(['iron_magnetite_fine', 'coarser_grind', -0.8]);
+    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 18.2]);
+    const losses = gains.filter(x => (x.r.gain_pct as number) < 0);
+    expect(losses).toHaveLength(1);
+    expect(losses.every(x => !x.r.base_feasible)).toBe(true);
     const count = (name: string) => records.filter(x => x.r.active.includes(name)).length;
-    expect([count('power'), count('grade'), count('water')]).toEqual([58, 34, 12]);
+    expect([count('power'), count('grade'), count('water')]).toEqual([58, 17, 6]);
     const nominal = Object.entries(benchmark.optimization).map(([id, v]) => ({ id, gain: v.nominal.gain_pct as number })).sort((a, b) => a.gain - b.gain);
     expect([nominal[0].id, round(nominal[0].gain, 1)]).toEqual(['iron_magnetite_fine', 0.3]);
-    expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 11.0]);
+    expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 7.6]);
   });
 
   it('uncertainty: the spreads, the joint probabilities and the dominant inputs as quoted', () => {
     const u = benchmark.uncertainty;
     const width = Object.entries(u).map(([id, r]) => ({ id, w: r.recovery_pct.p95 - r.recovery_pct.p05 })).sort((a, b) => a.w - b.w);
     expect([width[0].id, round(width[0].w, 1)]).toEqual(['gold_free_milling', 3.7]);
-    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 12.8]);
+    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 9.1]);
     const joint = Object.entries(u).map(([id, r]) => ({ id, p: r.probabilities.all_constraints })).sort((a, b) => a.p - b.p);
-    expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['zinc_sulfide', 3]);
-    expect([joint.at(-1)!.id, joint.at(-1)!.p]).toEqual(['copper_oxide', 1]);
-    expect(Math.round(100 * u.zinc_sulfide.probabilities.grade_meets_spec)).toBe(5);
+    expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['iron_magnetite_fine', 53]);
+    const m = u.iron_magnetite_fine.probabilities;
+    expect([Math.round(100 * m.grade_meets_spec), Math.round(100 * m.power_within_installed)]).toEqual([65, 79]);
+    const top = joint.filter(x => x.p === joint.at(-1)!.p).map(x => x.id).sort();
+    expect([top, Math.round(100 * joint.at(-1)!.p)]).toEqual([['copper_porphyry_soft', 'gold_free_milling'], 82]);
     const not = (key: string, value: string) => Object.entries(u).filter(([, r]) => r.dominant_input[key] !== value).map(([id]) => id).sort();
     expect(not('recovery_pct', 'floatability')).toEqual(['copper_porphyry_hard', 'iron_magnetite_fine']);
     expect(u.copper_porphyry_hard.dominant_input.recovery_pct).toBe('work_index');
     expect(u.iron_magnetite_fine.dominant_input.recovery_pct).toBe('head_grade');
-    expect(not('concentrate_grade', 'liberation_size')).toEqual(['gold_free_milling', 'nickel_sulphide', 'refractory_gold']);
+    expect(not('concentrate_grade', 'liberation_size')).toEqual(['copper_oxide', 'gold_free_milling', 'nickel_sulphide', 'refractory_gold']);
     expect(not('specific_energy_grinding_kwh_t', 'work_index')).toEqual([]);
     expect(not('recovered_primary_tph', 'head_grade')).toEqual([]);
   });
 
   it('learned lane: interpolation and transfer rank the models as quoted, and the guard behaves as described', () => {
-    const s = learning.summary;
-    expect(round(s.mlp.recovery_pct.interpolation_r2, 3)).toBe(0.968);
-    expect(Object.keys(s).every(m => s[m].recovery_pct.interpolation_r2 <= s.mlp.recovery_pct.interpolation_r2)).toBe(true);
-    expect([round(s.mlp.recovery_pct.loco_r2_median, 3), round(s.mlp.recovery_pct.loco_rmse_mean, 1)]).toEqual([0.216, 42.1]);
-    expect(Object.keys(s).every(m => s[m].recovery_pct.loco_r2_median >= s.mlp.recovery_pct.loco_r2_median)).toBe(true);
-    const gb = s.hist_gradient_boosting.recovery_pct;
-    expect([round(gb.loco_r2_median, 3), round(gb.loco_rmse_mean, 1)]).toEqual([0.749, 11.8]);
-    expect(Object.keys(s).every(m => s[m].recovery_pct.loco_r2_median <= gb.loco_r2_median)).toBe(true);
-    const magnetite = learning.leave_one_case_out.find(f => f.held_out === 'iron_magnetite_fine')!;
-    expect(Math.round(magnetite.models.mlp.recovery_pct.rmse)).toBe(259);
+    const s = learning.summary, models = Object.keys(s);
+    expect(round(s.mlp.recovery_pct.interpolation_r2, 3)).toBe(0.955);
+    expect(models.every(m => s[m].recovery_pct.interpolation_r2 <= s.mlp.recovery_pct.interpolation_r2)).toBe(true);
+    expect([round(s.mlp.recovery_pct.loco_r2_median, 3), round(s.mlp.recovery_pct.loco_rmse_mean, 1)]).toEqual([0.638, 55.5]);
+    expect(models.every(m => s[m].recovery_pct.loco_rmse_mean <= s.mlp.recovery_pct.loco_rmse_mean)).toBe(true);
+    const gb = s.hist_gradient_boosting.recovery_pct, rf = s.random_forest.recovery_pct;
+    expect([round(gb.loco_r2_median, 3), round(gb.loco_rmse_mean, 1), round(rf.loco_rmse_mean, 1)]).toEqual([0.714, 13.4, 13.0]);
+    expect(models.every(m => s[m].recovery_pct.loco_r2_median <= gb.loco_r2_median)).toBe(true);
+    expect(models.every(m => s[m].recovery_pct.loco_rmse_mean >= rf.loco_rmse_mean)).toBe(true);
+    const folds = learning.leave_one_case_out, fold = (id: string) => folds.find(f => f.held_out === id)!;
+    const magnetite = fold('iron_magnetite_fine');
+    expect(Math.round(magnetite.models.mlp.recovery_pct.rmse)).toBe(283);
     expect(magnetite.models.mlp.recovery_pct.rmse).toBeGreaterThan(100); // only predictions outside 0 to 100% can give this
-    expect([round(s.hist_gradient_boosting.specific_energy_total_kwh_t.loco_r2_median, 3), round(s.random_forest.specific_energy_total_kwh_t.loco_r2_median, 3)]).toEqual([0.887, 0.858]);
-    expect(Object.keys(s).every(m => s[m].log_upgrade.loco_r2_median < 0)).toBe(true);
+    const copper = ['copper_porphyry_soft', 'copper_porphyry_hard', 'copper_molybdenum', 'mixed_ore_high_clay', 'low_grade_copper'];
+    for (const id of copper) {
+      const m = fold(id).models;
+      expect(Object.keys(m).every(k => m[k].recovery_pct.rmse >= m.mlp.recovery_pct.rmse)).toBe(true);
+    }
+    const energy = models.filter(m => m !== 'ridge').map(m => s[m].specific_energy_total_kwh_t.loco_r2_median);
+    expect([round(Math.min(...energy), 3), round(Math.max(...energy), 3)]).toEqual([0.928, 0.984]);
+    expect(models.every(m => s[m].log_upgrade.loco_r2_median < 0)).toBe(true);
     const gp = learning.interpolation.models.gaussian_process;
-    expect(['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'].map(t => round(100 * gp[t].coverage_95, 1))).toEqual([89.2, 92.0, 95.6]);
-    expect(round(100 * learning.guard.false_alarm_rate, 1)).toBe(1.3);
-    expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(17.0);
+    const coverage = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'].map(t => 100 * gp[t].coverage_95);
+    expect(coverage.map(c => round(c, 1))).toEqual([88.2, 90.0, 91.8]);
+    expect(coverage.every(c => c < 95)).toBe(true);
+    expect(round(100 * learning.guard.false_alarm_rate, 1)).toBe(0.5);
+    expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(18.1);
     const byFeature = learning.guard.false_accept_by_feature;
-    const blind = ['circulating_load', 'water_m3_t', 'crusher_css_mm'];
-    expect(blind.map(f => Math.round(100 * byFeature[f]))).toEqual([91, 97, 97]);
+    const blind = ['water_m3_t', 'circulating_load', 'crusher_css_mm'];
+    expect(Object.keys(byFeature).sort((a, b) => byFeature[b] - byFeature[a]).slice(0, 3)).toEqual(blind);
+    expect(blind.map(f => Math.round(100 * byFeature[f]))).toEqual([98, 97, 95]);
     const accepted = Object.values(byFeature).reduce((a, b) => a + b, 0), fromBlind = blind.reduce((a, f) => a + byFeature[f], 0);
-    expect(fromBlind / accepted).toBeGreaterThan(0.9); // almost all accepted probes step out along those three inputs
-    const flagged = learning.leave_one_case_out.filter(f => f.held_out_flag_rate === 1).map(f => f.held_out).sort();
-    expect(flagged).toEqual(['copper_oxide', 'gold_free_milling', 'iron_magnetite_fine', 'phosphate_clay', 'refractory_gold']);
-    const others = learning.leave_one_case_out.filter(f => f.held_out_flag_rate < 1);
-    expect(others).toHaveLength(7);
-    expect(Math.max(...others.map(f => f.held_out_flag_rate))).toBeLessThanOrEqual(0.11);
-    expect(learning.leave_one_case_out.filter(f => f.models.mlp.recovery_pct.r2 < 0)).toHaveLength(6);
-    expect(learning.leave_one_case_out.filter(f => f.models.hist_gradient_boosting.recovery_pct.r2 < 0)).toHaveLength(2);
+    expect(Math.round(100 * fromBlind / accepted)).toBe(89);
+    const flagged = folds.filter(f => f.held_out_flag_rate === 1).map(f => f.held_out).sort();
+    expect(flagged).toEqual(['gold_free_milling', 'iron_magnetite_fine', 'phosphate_clay', 'refractory_gold']);
+    expect(round(100 * fold('copper_oxide').held_out_flag_rate, 1)).toBe(99.6);
+    expect([Math.round(100 * fold('nickel_sulphide').held_out_flag_rate), Math.round(100 * fold('zinc_sulfide').held_out_flag_rate)]).toEqual([70, 19]);
+    expect(round(100 * Math.max(...copper.map(id => fold(id).held_out_flag_rate)), 1)).toBe(4.7);
+    expect(folds.filter(f => f.models.mlp.recovery_pct.r2 < 0).map(f => f.held_out).sort()).toEqual(['gold_free_milling', 'iron_magnetite_fine', 'phosphate_clay']);
   });
 
   it('measured lanes: the GeoMet bootstrap and the HZDR probability errors as quoted', () => {

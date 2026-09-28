@@ -70,6 +70,8 @@ export type CaseArtifact = {
   notes: string[];
   sources: Record<string, string>;
   kpi_ranges: Record<string, [number, number]>;
+  /** Where each plausibility range comes from: a citation, or an explicit authored label. */
+  kpi_sources: Record<string, Bilingual>;
   definition: { ore: Ore; plant: Plant };
   nominal: OperatingPoint;
   variants: VariantArtifact[];

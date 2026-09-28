@@ -65,10 +65,14 @@ def test_infeasible_specification_is_never_optimal():
 
 
 def test_off_specification_base_is_restored():
-    # the hard porphyry runs 23.7% Cu at nominal against a 24% specification
-    record = _record("copper_porphyry_hard")
+    # every nominal state meets its own specification since 0.06.000, so the test makes one that does not:
+    # the hard porphyry (26.2% Cu at nominal) against a 26.5% specification
+    case = CASE_BY_ID["copper_porphyry_hard"]
+    strict = replace(case, plant=replace(case.plant, grade_spec=GradeSpec("Cu", 26.5)))
+    record = optimize(strict, strict.nominal, build_contract())
     assert not record["base"]["feasible"] and record["base"]["slacks"]["grade"] < 0.0
-    assert record["optimum"]["values"]["grade"] >= 24.0 * (1.0 - TOL)
+    assert record["status"] == "optimal"
+    assert record["optimum"]["values"]["grade"] >= 26.5 * (1.0 - TOL)
     assert "grade" in record["optimum"]["active"]
 
 

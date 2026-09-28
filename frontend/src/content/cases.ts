@@ -56,8 +56,8 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     problem: [
       { en: 'Grinding finer keeps paying while chalcopyrite is still locked in composites, and stops paying below its liberation size, where every extra micron costs energy and the fines float more slowly and entrain more gangue.',
         es: 'Moler más fino rinde mientras la calcopirita sigue atrapada en mixtos y deja de rendir bajo su tamaño de liberación, donde cada micrón extra cuesta energía y los finos flotan más lento y arrastran más ganga.' },
-      { en: 'Porphyry plants clean a rougher concentrate to reach smelter grades of about 25 to 50% Cu and usually recover 80 to 90% of the copper, above 90% for sulphide copper. The case asks where on that trade the grind should sit.',
-        es: 'Las plantas de pórfido limpian un concentrado rougher hasta leyes de fundición de unos 25 a 50% Cu y suelen recuperar 80 a 90% del cobre, sobre 90% en cobre sulfurado. El caso pregunta dónde de ese compromiso conviene fijar la molienda.' },
+      { en: 'Porphyry plants clean a rougher concentrate to reach smelter grades of 25 to 50% Cu depending on the copper minerals (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content) and usually recover 80 to 90% of the copper, above 90% for sulphide copper. The case asks where on that trade the grind should sit.',
+        es: 'Las plantas de pórfido limpian un concentrado rougher hasta leyes de fundición de 25 a 50% Cu según los minerales de cobre (un concentrado de calcopirita como este no puede superar 34,6% Cu, su contenido estequiométrico) y suelen recuperar 80 a 90% del cobre, sobre 90% en cobre sulfurado. El caso pregunta dónde de ese compromiso conviene fijar la molienda.' },
     ],
     scope: [
       { en: 'An authored plant: every parameter is inside a range recorded in the research, none is a plant measurement or a calibration.', es: 'Una planta de autor: cada parámetro está dentro de un rango registrado en la investigación; ninguno es una medición de planta ni una calibración.' },

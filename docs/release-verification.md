@@ -2,6 +2,33 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.06.000, 2026-09-28
+
+### Local gate
+
+- The committed bake of 2026-09-28: contract, cases (517 s on 12 workers), learning (3180 s, CUDA, RTX 4070 Laptop GPU), benchmark, manifests and validation, while another job shared the machine; `validation.json` records `passed: true`. It was made into a sandbox that held the measured lanes' records, then compared file by file with the records it replaced:
+  - the seven cases whose water limits moved differ only in that limit, their optimization records and their uncertainty probabilities;
+  - the learning record is equal up to the random forest's last bits (at most 5e-15 relative) and two timings;
+  - every model export is bit-identical;
+  - the benchmark's links to the measured lanes, null in the intermediate record, are restored.
+
+  It was adopted whole.
+- `scripts/check_artifacts.py` gained the lane-link check, which fails the intermediate record on both lanes.
+- `tests/test_case_rules.py` holds every case to its authoring rules:
+  - every range names its source;
+  - every nominal state lies inside its ranges and meets its grade spec;
+  - every water capacity follows its rule.
+- `tests/test_manuscript_claims.py` holds the manuscript to the records. Run against the 0.05.000 draft, it fails six of its seven tests.
+- `scripts/smoke.ps1` passed in 103 s on the release candidate: the eight guards (408 tracked files), the use-case page check (13 pages), ruff, 364 Python tests, the typecheck, 174 frontend tests and the production build. Its first run on the candidate failed at the build: the run was launched with PowerShell's `*>` redirection inside the session, which turns vite's stderr notice into a terminating error. It passed when the output was redirected at the process level.
+- Browser gate on the served build of the release candidate (bundle `index-Dxh7Rp0X.js`): 712 checks passed, none failed. That is the full matrix (1280x800, 1600x900 and 2560x1440; dark and light; English and Spanish) and the phone and tablet pass.
+- The screenshots read:
+  - the Case view's Context and Variants tabs at 2560x1440 in light Spanish: the sourced plausibility rows render under their KPIs, in Spanish, uncut;
+  - the Benchmark uncertainty record at 1280x800 in dark Spanish: the text matches its table (82% for the soft porphyry and the free-milling gold, 53% for the magnetite, with its grade at 65% and its power at 79%).
+
+### Remote gate
+
+- Recorded after the deploy of this release.
+
 ## 0.05.001, 2026-09-26
 
 ### Local gate

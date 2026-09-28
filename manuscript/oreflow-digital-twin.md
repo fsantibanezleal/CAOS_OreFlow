@@ -2,10 +2,10 @@
 
 Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research programme, Santiago, Chile
 
-Draft of 2026-09-26, written against OreFlow 0.05.000. Not deposited; no DOI. Every number below is read
+Draft of 2026-09-28, written against OreFlow 0.06.000. Not deposited; no DOI. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
-`data/derived/source/*.json`, the twelve case artifacts), which the repository's tests hold the documentation
-to.
+`data/derived/source/*.json`, the twelve case artifacts), and `tests/test_manuscript_claims.py` fails if a
+number here and the records disagree.
 
 ## Abstract
 
@@ -19,13 +19,14 @@ balance of every unit within 1e-9. The engine is checked against four published 
 by an independent browser implementation within 1e-6 on all 72 committed states. On a 3072-state design over
 twelve authored plants, five surrogates (ridge, random forest, histogram gradient boosting, a Gaussian
 process and a multilayer perceptron) are scored by interpolation inside the cases and by leave one case out.
-The protocols rank the models differently: the perceptron interpolates recovery best (RMSE 3.07 points) and
-transfers worst (42.1 points on average over the held-out plants). The transfer failure is concentrated:
-held-out copper sulphide plants cost the perceptron 2.1 to 4.7 points, while the three plants whose circuits
-differ from the rest cost 78 to 259 points. Specific energy transfers (median held-out R² 0.887 for gradient
-boosting); the concentrate upgrade does not transfer for any model. An autoencoder guard flags 1.3% of
-in-envelope states but accepts 17.0% of states pushed outside the training range, almost all of them shifts
-of three weakly coupled inputs. The results bound transfer between authored plants, not to real ones.
+The protocols rank the models differently: the perceptron interpolates recovery best (RMSE 3.35 points) and
+transfers worst by mean error (55.5 points on average over the held-out plants), though its median held-out
+R² (0.638) is second only to gradient boosting's (0.714). The transfer failure is concentrated: held-out
+copper sulphide plants cost the perceptron 1.8 to 3.5 points, while the three plants whose circuits differ
+from the rest cost 88 to 283 points. Specific energy transfers (median held-out R² 0.928 to 0.984 for the
+four non-linear models); the concentrate upgrade does not transfer for any model. An autoencoder guard flags
+0.5% of in-envelope states but accepts 18.1% of states pushed outside the training range, 89% of them
+shifts of three weakly coupled inputs. The results bound transfer between authored plants, not to real ones.
 
 ## 1. Introduction
 
@@ -45,8 +46,8 @@ reproduced. Its contributions are three:
 2. a test protocol that scores learned surrogates of it by interpolation and by leave one case out over
    twelve authored plants in four circuit families, with interval coverage and an out-of-envelope guard;
 3. the finding that transfer failure is concentrated in the plants unlike the others, that the ranking of
-   models reverses between the protocols, and that the guard misses shifts of inputs its training features do
-   not correlate with.
+   models changes between the protocols and with the statistic that summarizes transfer, and that the guard
+   misses shifts of inputs its training features do not correlate with.
 
 ## 2. The engine
 
@@ -122,7 +123,7 @@ record within 1e-6 relative, with the same flags.
 |---|---|---|
 | Moly-Cop BallSim base case (504 t/h, F80 6913 µm) | P80 169.4 µm, circulating load 2.77, 8.56 kWh/t | P80 and circulating load met to round-off; 9.13 kWh/t, 6.7% above, inside the declared 20% tolerance |
 | GMG worked examples of the operating work index | 14.4 and 11.7 kWh/t | 14.38 and 11.71 kWh/t |
-| Laplante gravity example (a different plant) | gold recovery rising from 64.1 to 77.1% with the bleed, with diminishing returns | gravity recovery rising from 13.7 to 31.7% over the same bleeds, with diminishing returns; gold circulating load 555 to 271% against an ore circulating load of 250% |
+| Laplante gravity example (a different plant) | gold recovery rising from 64.1 to 77.1% with the bleed, with diminishing returns | gravity recovery rising from 13.7 to 31.7% over the same bleeds, with diminishing returns; gold circulating load 556 to 271% against an ore circulating load of 250% |
 | Zandrivierspoort magnetite (a different ore) | a grind from 75 to 45 µm raises the concentrate from 64.9 to 69.0% Fe | the engine's magnetite case rises from 63.8 to 67.8% Fe: 4.0 points against the published 4.1 |
 
 The gravity and magnetite examples are trend oracles: the engine's cases are not the published plants, so the
@@ -172,14 +173,16 @@ the maximum of one continuous feature.
 
 | Model | Interpolation RMSE | Interpolation R² | Leave one case out: mean RMSE | worst case | median R² |
 |---|---|---|---|---|---|
-| Ridge | 9.77 | 0.678 | 18.47 | 49.99 | 0.531 |
-| Random forest | 7.00 | 0.834 | 12.08 | 47.02 | 0.606 |
-| Histogram gradient boosting | 5.18 | 0.909 | 11.84 | 58.70 | 0.749 |
-| Gaussian process | 6.95 | 0.837 | 13.28 | 30.27 | 0.496 |
-| Perceptron | 3.07 | 0.968 | 42.11 | 259.28 | 0.216 |
+| Ridge | 9.68 | 0.625 | 19.28 | 53.97 | 0.116 |
+| Random forest | 6.63 | 0.824 | 13.02 | 50.90 | 0.564 |
+| Histogram gradient boosting | 4.77 | 0.909 | 13.35 | 64.64 | 0.714 |
+| Gaussian process | 6.62 | 0.825 | 14.54 | 44.23 | 0.417 |
+| Perceptron | 3.35 | 0.955 | 55.51 | 282.84 | 0.638 |
 
-The perceptron is the best interpolator and the worst at transfer; gradient boosting is the best at transfer
-by mean and median. An interpolation score alone would have chosen the model that transfers worst.
+The perceptron is the best interpolator and the worst at transfer by mean error; by median R² it is second.
+Gradient boosting has the best median held-out R² and the random forest the lowest mean error. An
+interpolation score alone would have chosen the model with the largest transfer errors, and a median alone
+would have hidden them: they come from three held-out plants (Table 2).
 
 ### 5.2 Transfer failure is concentrated
 
@@ -187,45 +190,48 @@ by mean and median. An interpolation score alone would have chosen the model tha
 
 | Held-out case | Ridge | Random forest | Gradient boosting | Gaussian process | Perceptron |
 |---|---|---|---|---|---|
-| Soft copper porphyry | 9.3 | 7.6 | 5.3 | 6.3 | 2.9 |
-| Hard copper porphyry | 9.4 | 6.7 | 4.9 | 6.0 | 2.1 |
-| Copper-molybdenum | 9.3 | 5.8 | 3.9 | 5.7 | 2.4 |
-| Low-grade copper | 9.5 | 5.8 | 4.0 | 6.9 | 2.4 |
-| Copper ore with clay | 9.9 | 7.1 | 5.7 | 7.2 | 4.7 |
-| Zinc sulphide | 12.9 | 10.9 | 9.4 | 10.7 | 8.6 |
-| Nickel sulphide | 7.9 | 10.2 | 9.3 | 10.8 | 15.7 |
-| Refractory gold | 16.5 | 9.5 | 7.0 | 15.7 | 17.5 |
-| Oxide copper | 23.7 | 18.7 | 18.3 | 23.4 | 19.6 |
-| Phosphate with desliming | 36.2 | 8.5 | 9.5 | 19.1 | 78.1 |
-| Free-milling gold with gravity | 50.0 | 7.2 | 6.1 | 17.3 | 91.9 |
-| Magnetite with drums | 26.9 | 47.0 | 58.7 | 30.3 | 259.3 |
+| Low-grade copper at high throughput | 9.4 | 6.0 | 4.2 | 5.5 | 1.8 |
+| Copper-molybdenum bulk flotation | 8.9 | 6.1 | 3.8 | 4.6 | 2.2 |
+| Hard copper porphyry | 9.2 | 6.9 | 5.1 | 5.3 | 2.3 |
+| Copper ore with clay | 9.5 | 6.4 | 4.5 | 6.4 | 2.9 |
+| Soft copper porphyry | 12.1 | 9.5 | 7.2 | 7.7 | 3.5 |
+| Zinc sulphide | 10.7 | 10.3 | 8.6 | 9.1 | 7.2 |
+| Nickel sulphide with serpentine slimes | 15.5 | 12.6 | 12.8 | 11.7 | 10.0 |
+| Refractory gold in sulphides | 16.3 | 10.4 | 8.1 | 14.4 | 10.9 |
+| Oxide copper by sulphidisation | 22.9 | 13.3 | 15.6 | 20.7 | 12.8 |
+| Free-milling gold with gravity | 54.0 | 8.3 | 8.1 | 24.5 | 87.5 |
+| Phosphate with clay slimes | 29.9 | 15.4 | 17.4 | 20.4 | 242.1 |
+| Fine magnetite concentration | 33.0 | 50.9 | 64.6 | 44.2 | 282.8 |
 
 Held out, the five copper sulphide plants, each with close neighbours in the training set, are predicted about
 as well as the pooled interpolation, and by the perceptron, in four of the five, better than it. The plants whose circuits no other
-case shares fail: the perceptron predicts recoveries far outside 0 to 100% for the magnetite circuit, and the
-tree models, which cannot extrapolate, fail there as well (47 and 59 points), where ridge fails least. The
-same model can be the best on one held-out plant and the worst on another.
+case shares fail: the perceptron predicts recoveries far outside 0 to 100% for the magnetite, phosphate and
+gravity gold circuits, and the tree models, which cannot extrapolate, fail on the magnetite circuit as well
+(51 and 65 points), where ridge fails least (33). The same model can be the best on one held-out plant and
+the worst on another.
 
 ### 5.3 Energy transfers; the upgrade does not
 
-For the total specific energy, gradient boosting and the random forest transfer with median held-out R² of
-0.887 and 0.858 (mean RMSE 1.33 and 1.45 kWh/t), because hardness and grind govern energy in every case. The
-log10 upgrade ratio interpolates almost perfectly (R² 0.997 to 0.999 for the four non-linear models) and does
-not transfer at all: its median held-out R² is negative for every model, because the upgrade depends on
-mineralogy that the other eleven plants do not share.
+For the total specific energy every non-linear model transfers, with median held-out R² from 0.928 (random
+forest) to 0.984 (perceptron), because hardness, grind and throughput per megawatt govern energy in every case.
+By mean error gradient boosting (0.94 kWh/t) and the random forest (1.11) lead; the perceptron's 2.95 comes
+from the phosphate and magnetite circuits (18.7 and 8.4 kWh/t). The log10 upgrade ratio interpolates almost
+perfectly (R² 0.996 to 0.998 for the four non-linear models) and does not transfer at all: its median held-out
+R² is negative for every model, because the upgrade depends on mineralogy that the other eleven plants do not
+share.
 
 ### 5.4 Interval coverage
 
-The Gaussian process's 95% intervals cover 89.2% of the held-out recoveries (mean half-width 10.5 points),
-92.0% of the upgrades and 95.6% of the energies under interpolation: somewhat too narrow for recovery. On a
+The Gaussian process's 95% intervals cover 88.2% of the held-out recoveries (mean half-width 9.3 points),
+90.0% of the upgrades and 91.8% of the energies under interpolation: too narrow for every target. On a
 deterministic teacher the fitted noise term goes to its lower bound, and the intervals express only the
 kernel's smoothness assumption.
 
 ### 5.5 The guard
 
-The autoencoder flags 1.3% of the held-out in-envelope states and accepts 17.0% of the out-of-envelope probes.
-The accepts are not spread evenly: probes that shift the water (97% accepted), the crusher setting (97%) or the
-circulating load (91%) pass almost always. A single input that moves without the features it correlates with
+The autoencoder flags 0.5% of the held-out in-envelope states and accepts 18.1% of the out-of-envelope probes.
+The accepts are not spread evenly: probes that shift the water (98% accepted), the circulating load (97%) or
+the crusher setting (95%) pass almost always. A single input that moves without the features it correlates with
 changes the reconstruction little, which is exactly the situation an autoencoder of correlated features
 cannot see. A guard is honest only with its false-accept rate per feature beside it.
 
@@ -235,8 +241,8 @@ The engine produces, for each variant, records that do not depend on learning:
 
 - **Kinetic lumping.** Five lumped models fitted to a virtual batch test of the rougher feed, projected to
   the bank under the same residence distribution and compared with the exact bank recovery by true flotation,
-  over 66 flotation states: mean absolute projection errors of 0.75 points for the gamma model, 0.91 for
-  Kelsall, 2.02 for Klimpel, 3.02 for the stretched exponential and 5.32 for first order (Polat and Chander
+  over 66 flotation states: mean absolute projection errors of 0.75 points for the gamma model, 0.85 for
+  Kelsall, 1.75 for Klimpel, 2.90 for the stretched exponential and 5.12 for first order (Polat and Chander
   2000; Vinnett and Waters 2025). The first-order projection falls below the exact result at every nominal
   state: a batch curve that is a mixture of rates is not one exponential.
 - **Constrained optimization.** COBYLA from six starts (Powell 1994; Zhang et al. 2023) finds a point within
@@ -245,7 +251,8 @@ The engine produces, for each variant, records that do not depend on learning:
   installed power.
 - **Sensitivity.** Sobol indices of four uncertain ore properties at each nominal state (Saltelli et al. 2010;
   Herman and Usher 2017): floatability drives recovery in ten cases, liberation size drives concentrate grade
-  in nine, the work index drives grinding energy and the head grade drives recovered metal in all twelve.
+  in eight and the head grade in the other four, the work index drives grinding energy and the head grade
+  drives recovered metal in all twelve.
 
 ## 7. Two measured lanes, kept apart
 
@@ -294,11 +301,11 @@ surrogate preserves the ranking of operating decisions.
 ## 9. Reproducibility
 
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
-the browser port, the service and the documentation are versioned together; this draft describes 0.05.000.
-`./scripts/setup.ps1` builds the environments, `./scripts/precompute.ps1` regenerates every record (the
-an unloaded process bake takes about 375 s for the cases on 12 workers and 1688 s for the learned lane on an RTX 4070
-Laptop GPU, on a workstation with 32 logical cores; the two measured lanes follow it), and
-`./scripts/smoke.ps1` runs the checks, including 341 Python tests and 165 frontend tests. The workbench at
+the browser port, the service and the documentation are versioned together; this draft describes 0.06.000.
+`./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
+workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed bake took 517 s for the cases on 12
+workers and 3180 s for the learned lane, while another job shared the machine; the two measured lanes follow it.
+`./scripts/smoke.ps1` runs the checks, including 364 Python tests and 174 frontend tests. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.
 
 ## References
