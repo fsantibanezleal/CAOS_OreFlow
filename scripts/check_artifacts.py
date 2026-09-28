@@ -240,6 +240,14 @@ def check_benchmark(derived: Path, version: str, digest: str | None) -> list[str
               o.get("laplante", {}).get("gold_above_ore"), o.get("zandrivierspoort", {}).get("finer_grind_raises_grade")]
     if not all(checks):
         errors.append("an oracle check failed")
+    # the benchmark links the measured lanes it was built beside. A 0.06.000 candidate whose sandbox lacked the
+    # lanes' records left both links null, and its validation, re-run after the records were added, passed
+    for lane, (name, schema) in {"particles": ("hzdr_particle_benchmark.json", "oreflow.particle-benchmark/v1"),
+                                 "geomet": ("geomet_lct_benchmark.json", "oreflow.geomet-lct/v1")}.items():
+        link = (b.get("lanes") or {}).get(lane) or {}
+        source = derived / "source" / name
+        if link.get("path") != name or link.get("schema") != schema or not source.is_file() or _load(source).get("schema") != schema:
+            errors.append(f"benchmark lane {lane} is not linked to source/{name}")
     # the per-variant summaries the Compare view plots must be the case artifacts' own metrics
     for case in b.get("cases", []):
         artifact_path = derived / "cases" / f"{case.get('case_id')}.json"
