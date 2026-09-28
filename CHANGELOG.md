@@ -2,8 +2,55 @@
 
 ## [Unreleased]
 
+## [0.06.000] - 2026-09-28
+
+From the audit of 2026-09-27 (issues #50 and #58):
+- the engine's grinding energy no longer lets a soft bulk mineral override the ore's work index;
+- seven of the twelve cases are re-authored inside the ranges their sources give;
+- every plausibility range names its source;
+- every page, guide and the manuscript quote the new records, and tests hold them to those records.
+
 ### Fixed
 
+- **Grinding energy (PE-07b).** The mineral grindabilities multiplied the energy-specific selection
+  directly. An ore whose bulk mineral was declared soft therefore broke faster than its own Bond work
+  index allowed: the serpentine of the nickel case, and the clays of the oxide, mixed and phosphate cases.
+  Its grinding energy was understated up to 1.9 times, and the nickel case ground at 1.62 times Bond's
+  efficiency.
+  - The selection is now divided by the ore's mass-weighted harmonic mean grindability, and composites
+    break at the ore's rate, so the work index alone sets the ore's hardness.
+  - Every nominal case grinds at 0.83 to 0.91 of Bond, and `tests/test_grinding.py` holds that ratio.
+  - Installed power is re-sized with the documented rule: the same headroom over the nominal requirement.
+- **Seven cases outside their cited ranges** (#58). The audit named three; checking every case against
+  its source found seven, and the hard porphyry missed its own 24% Cu spec. Each change stays within the
+  case's documented mechanism:
+  - zinc: sphalerite liberation 80 to 150 µm, 47.3 to 52.9% Zn, inside the 50 to 60% of the US EPA's
+    zinc sector profile (citing Kirk-Othmer) and the case's own 50% spec;
+  - nickel: pyrrhotite depressed, pentlandite liberation 95 µm, less floatable serpentine; 16.0 to 19.8%
+    Ni and 13.7 to 10.2% MgO, against about 20% Ni in Mt Keith-type ore;
+  - oxide copper: floatable clay, chrysocolla 10% of the copper, a better sulphidised malachite liberated
+    at 90 µm; 29.8 to 20.8% Cu at 67.7 to 79.0% recovery, inside 15 to 21% Cu at 77 to 86%;
+  - the four other copper porphyries: chalcopyrite liberation 120 µm, composite content 0.42; 23.7-24.4
+    to 25.9-26.7% Cu, inside the practice band from 25% Cu to chalcopyrite's stoichiometric 34.6%.
+- **Plausibility ranges** were authored wider than their sources, so the gate passed off-spec cases.
+  - Every range now comes from one table in the case catalog, each with its source note: a citation, or
+    an explicit "authored" label where no source exists.
+  - The case records export the notes (`kpi_sources`), the Case view shows each under its row, and the
+    use-case pages have a column for them.
+- **Process-water capacity** is 1.05 times each case's nominal need again, to two decimals, as documented.
+  After the re-authoring, oxide copper needed 3.13 m³/t against a 2.51 limit, so its nominal state broke
+  the water constraint.
+- `tests/test_case_rules.py` holds every case to its authoring rules:
+  - every range names its source;
+  - every nominal state sits inside its ranges and meets its own grade spec;
+  - every water capacity follows its rule.
+- **Case text.** The soft porphyry quoted smelter grades of 25 to 50% Cu without the source's qualifier;
+  a chalcopyrite concentrate is capped at 34.6% Cu. The Introduction's scope line says how the
+  grindabilities act, and its Spanish reads per ore (mena).
+- **The manuscript** still described 0.05.000. Its tables, abstract, results and method records now quote
+  the 0.06.000 records, and `tests/test_manuscript_claims.py` holds them to those records: it parses the
+  tables and formats every quoted number from the records. Run against the previous draft, it fails six of
+  its seven tests.
 - `deploy/setup-vps.sh` now works as an update path as well as a first install:
   - it restarts the running service, which `enable --now` left on the code it had loaded;
   - it installs only the packages that are missing, where it had reinstalled and so upgraded them,
@@ -12,6 +59,31 @@
     had been loaded first, for a few seconds, and HTTPS for this name reached another site;
   - it retries its local health checks while the restarted port refuses connections;
   - it adds the repository to git's safe directories once, not on every run.
+
+### Changed
+
+- The records of the 0.06.000 bake. Every page, guide and methodology page that quotes them was updated,
+  and the page-claim tests were updated with them:
+  - **the learned lane.** The MLP still interpolates recovery best (R² 0.955) and has the largest mean
+    transfer error (55.5 points). By median held-out R² it is now second (0.638), after gradient boosting
+    (0.714). The random forest has the lowest mean error, and the MLP is the most accurate model on every
+    held-out copper sulphide plant;
+  - **the guard.** It raises 0.5% false alarms and accepts 18.1% of the probes, 89% of those along the
+    water, the circulating load and the crusher setting. The oxide copper plant is flagged in 99.6% of its
+    states, where it was flagged in all of them;
+  - **kinetic lumping.** First order loses 5.1 points on average; gamma 0.75 and Kelsall 0.85;
+  - **the variant effects on the Experiments page** follow the new grinding energy and cases.
+  - **optimization.** Every nominal state now meets its own specification and constraints. 28 of the 72 variants
+    break a constraint as run, where 40 did. The gains run from -0.8% to +18.2%; the one loss comes from a state
+    that broke a constraint. Power is active at 58 optima, grade at 17, water at 6;
+  - **uncertainty.** The probability of meeting every constraint at nominal runs from 53% (magnetite) to 82%.
+    Liberation size drives the concentrate grade in eight cases, and the head grade in the other four;
+  - **methodology pages 11 to 13** are re-measured on these records, and the bake timings are updated.
+- The benchmark record links its measured lanes again. They were null in an intermediate record, because that
+  bake's sandbox lacked the lanes' records when the benchmark stage ran. `scripts/check_artifacts.py` now
+  requires both links.
+- Two tests pinned to the cases before their re-authoring now build their own states: the kinetic ranges
+  (the stretched exponential's beta is 0.83 to 0.94), and an off-specification state for the optimizer.
 
 ## [0.05.001] - 2026-09-26
 
