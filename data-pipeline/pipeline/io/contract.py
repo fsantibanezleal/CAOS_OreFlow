@@ -144,6 +144,7 @@ MESSAGES = {
     "not_finite": {"en": "The value must be finite.", "es": "El valor debe ser finito."},
     "not_integer": {"en": "The value must be a whole number.", "es": "El valor debe ser un número entero."},
     "out_of_range": {"en": "The value is outside the operating envelope.", "es": "El valor está fuera de la envolvente de operación."},
+    "off_step": {"en": "The value must be a multiple of the control's step.", "es": "El valor debe ser un múltiplo del paso del control."},
 }
 
 
@@ -175,6 +176,44 @@ def _case_entry(case: Any) -> dict[str, Any]:
             "nominal": nominal, "inputs": inputs}
 
 
+def _controls() -> dict[str, Any]:
+    """Controls of the method records, not of the plant: the workbench re-runs a record with them (UQ-07)."""
+    seed_lo, seed_hi = (int(v) for v in constant("uncertainty.seed_bounds"))
+    n_lo, n_hi, n_step = (int(v) for v in constant("uncertainty.samples_bounds"))
+    return {
+        "uncertainty_seed": {"min": seed_lo, "max": seed_hi, "step": 1, "integer": True, "unit": "1",
+                             "default": int(constant("uncertainty.seed")),
+                             "label": {"en": "Seed", "es": "Semilla"},
+                             "help": {"en": "The Latin hypercube's seed; the baked record uses the default.",
+                                      "es": "La semilla del hipercubo latino; el registro horneado usa la predeterminada."}},
+        "uncertainty_samples": {"min": n_lo, "max": n_hi, "step": n_step, "integer": True, "unit": "1",
+                                "default": int(constant("uncertainty.samples")),
+                                "label": {"en": "Samples", "es": "Muestras"},
+                                "help": {"en": "Engine runs of the design, in steps of 32.",
+                                         "es": "Corridas del motor del diseño, en pasos de 32."}},
+    }
+
+
+def validate_control(contract: dict[str, Any], name: str, value: Any) -> dict[str, Any]:
+    """Interpret one method control; the browser validator is a line-by-line port. Returns ``{"accepted", "value",
+    "errors"}`` with the same error codes as the operating inputs, plus ``off_step``."""
+    spec = contract.get("controls", {}).get(name)
+    if spec is None:
+        return {"accepted": False, "value": None, "errors": [{"code": "unknown_input", "input": name}]}
+    if not _is_number(value):
+        return {"accepted": False, "value": None, "errors": [{"code": "not_a_number", "input": name}]}
+    if not math.isfinite(float(value)):
+        return {"accepted": False, "value": None, "errors": [{"code": "not_finite", "input": name}]}
+    if spec["integer"] and float(value) != int(value):
+        return {"accepted": False, "value": None, "errors": [{"code": "not_integer", "input": name, "value": value}]}
+    if not spec["min"] <= value <= spec["max"]:
+        return {"accepted": False, "value": None,
+                "errors": [{"code": "out_of_range", "input": name, "value": value, "min": spec["min"], "max": spec["max"]}]}
+    if (int(value) - spec["min"]) % spec["step"] != 0:
+        return {"accepted": False, "value": None, "errors": [{"code": "off_step", "input": name, "value": value, "step": spec["step"]}]}
+    return {"accepted": True, "value": int(value) if spec["integer"] else value, "errors": []}
+
+
 def _digest(document: dict[str, Any]) -> str:
     body = json.dumps({k: v for k, v in document.items() if k != "digest"}, sort_keys=True, separators=(",", ":"))
     return hashlib.sha256(body.encode("utf-8")).hexdigest()
@@ -197,6 +236,7 @@ def build_contract() -> dict[str, Any]:
         "rules": [dict(rule) for rule in RULES],
         "messages": MESSAGES,
         "cases": {case.id: _case_entry(case) for case in CASES},
+        "controls": _controls(),
         "grid": {"upper_um": [float(v) for v in g.upper], "size_um": [float(v) for v in g.size]},
         "laguerre": {"nodes": [float(v) for v in nodes], "weights": [float(v) for v in weights]},
     }

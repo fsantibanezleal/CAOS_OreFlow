@@ -113,3 +113,35 @@ def test_engine_solves_the_envelope(case_id):
 
 def test_contract_file_location():
     assert CONTRACT_PATH.parts[-3:] == ("derived", "contract", "operating_contract.json")
+
+
+# UQ-07: the method controls, and the one validator the browser repeats. frontend/src/test/contract.test.ts holds
+# the same probe table, so the two languages give the same verdict on every probe.
+CONTROL_PROBES = [
+    ("uncertainty_seed", 20260926, True, None), ("uncertainty_seed", 0, True, None),
+    ("uncertainty_seed", 9007199254740991, True, None), ("uncertainty_seed", 9007199254740992, False, "out_of_range"),
+    ("uncertainty_seed", -1, False, "out_of_range"), ("uncertainty_seed", 1.5, False, "not_integer"),
+    ("uncertainty_seed", "7", False, "not_a_number"), ("uncertainty_seed", float("nan"), False, "not_finite"),
+    ("uncertainty_samples", 128, True, None), ("uncertainty_samples", 32, True, None), ("uncertainty_samples", 512, True, None),
+    ("uncertainty_samples", 100, False, "off_step"), ("uncertainty_samples", 16, False, "out_of_range"),
+    ("uncertainty_samples", 544, False, "out_of_range"), ("uncertainty_bins", 10, False, "unknown_input"),
+]
+
+
+def test_uncertainty_controls_declared():
+    from pipeline.engine.constants import constant
+    from pipeline.io.contract import build_contract, validate_control
+
+    contract = build_contract()
+    controls = contract["controls"]
+    assert controls["uncertainty_seed"]["default"] == int(constant("uncertainty.seed"))
+    assert controls["uncertainty_samples"]["default"] == int(constant("uncertainty.samples"))
+    for spec in controls.values():
+        assert spec["label"]["en"] and spec["label"]["es"] and spec["help"]["en"] and spec["help"]["es"]
+        assert validate_control(contract, next(k for k, v in controls.items() if v is spec), spec["default"])["accepted"]
+    assert "off_step" in contract["messages"]
+    for name, value, accepted, code in CONTROL_PROBES:
+        verdict = validate_control(contract, name, value)
+        assert verdict["accepted"] == accepted, (name, value, verdict)
+        if code:
+            assert verdict["errors"][0]["code"] == code, (name, value, verdict)

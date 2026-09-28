@@ -450,7 +450,24 @@
     "uncertainty.seed": {
       "value": 20260926,
       "unit": "1",
-      "source": "Design: seed of the scrambled Latin hypercube, so every record is reproducible."
+      "source": "Design: seed of the SplitMix64 Latin hypercube, so every record is reproducible and the browser repeats it (UQ-01 to UQ-05)."
+    },
+    "uncertainty.seed_bounds": {
+      "value": [
+        0,
+        9007199254740991
+      ],
+      "unit": "1",
+      "source": "Design (UQ-07): a seed the workbench accepts, from 0 to 2^53 - 1, the largest integer a browser number holds exactly."
+    },
+    "uncertainty.samples_bounds": {
+      "value": [
+        32,
+        512,
+        32
+      ],
+      "unit": "1",
+      "source": "Design (UQ-07): the workbench's sample count, minimum, maximum and step; 512 engine runs take about half a minute in the browser."
     },
     "uncertainty.quantiles": {
       "value": [

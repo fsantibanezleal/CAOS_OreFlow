@@ -180,7 +180,11 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         const x = Math.max(left, Math.min(side, left + width - w));
         let row = 0;
         let box: Box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
-        while (placed.some(b => overlaps(b, box)) && row < 6) {
+        // a label that touches its neighbour reads as one word ("P50base" in the Uncertainty histogram when the
+        // median and the base state were close), so labels in one row keep a gap of a mark's spacing
+        const gap = 4 * ratio;
+        const crowds = (other: Box) => overlaps(other, { ...box, x0: box.x0 - gap, x1: box.x1 + gap });
+        while (placed.some(crowds) && row < 6) {
           row += 1;
           box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
         }

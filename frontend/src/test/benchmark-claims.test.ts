@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { ENGINE_BENCHMARK } from '../content/benchmark';
 
 // The Benchmark page states the published-example checks, the method records' findings, the learned
 // lane's scores and the measured lanes' results in its prose; every number and direction it states is
@@ -121,6 +122,10 @@ describe('the Benchmark page says what the records hold', () => {
     expect(not('concentrate_grade', 'liberation_size')).toEqual(['copper_oxide', 'gold_free_milling', 'nickel_sulphide', 'refractory_gold']);
     expect(not('specific_energy_grinding_kwh_t', 'work_index')).toEqual([]);
     expect(not('recovered_primary_tph', 'head_grade')).toEqual([]);
+    // UQ-08: the page says which record the workbench re-runs live and which stays baked
+    const limits = (ENGINE_BENCHMARK.UNCERTAINTY.limits ?? []).map(l => l.en).join(' ');
+    expect(limits).toMatch(/re-runs the uncertainty record/);
+    expect(limits).toMatch(/Sobol indices are baked only/);
   });
 
   it('learned lane: interpolation and transfer rank the models as quoted, and the guard behaves as described', () => {

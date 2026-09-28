@@ -7,6 +7,7 @@ import type { OperatingContract } from './contract';
 import type { OperatingPoint, Ore, Plant } from './model';
 import type { SweepCell, SweepRequest } from './sweep';
 import type { Trace } from './trace';
+import type { UncertaintyRecord } from './uncertainty';
 import type { Inbound, Outbound } from './worker';
 
 type Pending = { resolve: (trace: Trace) => void; reject: (error: Error) => void };
@@ -17,6 +18,8 @@ let nextId = 1;
 let latestEvaluate = 0;
 const evaluations = new Map<number, Pending>();
 const sweeps = new Map<number, SweepHandlers>();
+type RunHandlers = { onProgress: (done: number, total: number) => void; resolve: (record: UncertaintyRecord) => void; reject: (error: Error) => void };
+const runs = new Map<number, RunHandlers>();
 
 function engineWorker(): Worker {
   if (worker) return worker;
@@ -33,12 +36,19 @@ function engineWorker(): Worker {
     } else if (message.type === 'done') {
       sweeps.get(message.id)?.resolve(message.cells);
       sweeps.delete(message.id);
+    } else if (message.type === 'progress') {
+      runs.get(message.id)?.onProgress(message.done, message.total);
+    } else if (message.type === 'record') {
+      runs.get(message.id)?.resolve(message.record);
+      runs.delete(message.id);
     } else if (message.type === 'error') {
       const error = new Error(message.message);
       evaluations.get(message.id)?.reject(error);
       evaluations.delete(message.id);
       sweeps.get(message.id)?.reject(error);
       sweeps.delete(message.id);
+      runs.get(message.id)?.reject(error);
+      runs.delete(message.id);
     }
   };
   return worker;
@@ -70,6 +80,24 @@ export function sweepInWorker(request: Omit<SweepRequest, 'id'>, contract: Opera
 export function cancelSweep(id: number): void {
   const handlers = sweeps.get(id);
   sweeps.delete(id);
+  handlers?.reject(new Error('cancelled'));
+  post({ type: 'cancel', id });
+}
+
+/** Re-runs the uncertainty record at a seed and sample count (UQ-06); progress streams to `onProgress`. */
+export function uncertaintyInWorker(ore: Ore, plant: Plant, point: OperatingPoint, samples: number, seed: number,
+  onProgress: (done: number, total: number) => void): { id: number; done: Promise<UncertaintyRecord> } {
+  const id = nextId++;
+  const done = new Promise<UncertaintyRecord>((resolve, reject) => {
+    runs.set(id, { onProgress, resolve, reject });
+    post({ type: 'uncertainty', id, ore, plant, point, samples, seed });
+  });
+  return { id, done };
+}
+
+export function cancelRun(id: number): void {
+  const handlers = runs.get(id);
+  runs.delete(id);
   handlers?.reject(new Error('cancelled'));
   post({ type: 'cancel', id });
 }

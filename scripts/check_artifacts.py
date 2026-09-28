@@ -31,6 +31,16 @@ def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _sampling():
+    """The bake's own generator and design (stdlib only), loaded from its file, not through the numpy package."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("oreflow_sampling", ROOT / "data-pipeline" / "pipeline" / "methods" / "sampling.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def _constant(key: str):
     return _load(CONSTANTS)["constants"][key]["value"]
 
@@ -140,6 +150,15 @@ def check_variant(case_id: str, family: str, variant: dict) -> list[str]:
     unc = methods.get("uncertainty", {})
     if unc.get("samples") != _constant("uncertainty.samples"):
         errors.append(f"{where}: uncertainty sample count")
+    # UQ-04: the factors are the SplitMix64 Latin hypercube of the declared seed, reproduced bit for bit
+    if unc.get("design") != "Latin hypercube" or unc.get("generator") != "SplitMix64" or unc.get("seed") != _constant("uncertainty.seed"):
+        errors.append(f"{where}: uncertainty design, generator or seed")
+    else:
+        widths = [float(v["half_width"]) for v in unc["inputs"].values()]
+        unit = _sampling().latin_hypercube(int(unc["samples"]), len(widths), int(unc["seed"]))
+        expected = [[(1.0 - w) + (2.0 * w) * u for w, u in zip(widths, row)] for row in unit]
+        if expected != unc.get("factors"):
+            errors.append(f"{where}: uncertainty factors are not the declared design")
     for name, out in unc.get("outputs", {}).items():
         if not out["p05"] <= out["p50"] <= out["p95"]:
             errors.append(f"{where}: quantile order {name}")

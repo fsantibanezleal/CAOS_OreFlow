@@ -52,10 +52,19 @@ collector and gas at their upper bounds, and installed power is the active const
 
 Four ore properties are uncertain (Bond work index, head grade, the valuable minerals' liberation
 size and floatability; three for the magnetite circuit), each uniform on `[1 - h, 1 + h]` times its
-value with declared half-widths `h`. A scrambled Latin hypercube spreads the samples:
+value with declared half-widths `h`. A Latin hypercube spreads the samples. Up to 0.06.000 it was SciPy's:
 
 ```python
 unit = qmc.LatinHypercube(d=len(names), scramble=True, rng=np.random.default_rng(seed)).random(n)
+```
+
+Since 0.07.000 it is OreFlow's own, `methods/sampling.py`: a SplitMix64 stream, a Fisher-Yates permutation of
+the strata per input, one uniform per stratum. The browser's `engine/sampling.ts` repeats it bit for bit, so
+the workbench can re-run the record at another seed. NumPy's generator has no browser counterpart, so SciPy's
+design could not be reproduced there:
+
+```python
+unit = np.asarray(latin_hypercube(n, len(names), seed))
 factors = 1.0 - np.asarray(widths) + 2.0 * np.asarray(widths) * unit
 ```
 

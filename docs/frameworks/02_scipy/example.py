@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / "data-pipeline"))
 from pipeline.cases.catalog import CASE_BY_ID  # noqa: E402
 from pipeline.engine.constants import constant  # noqa: E402
 from pipeline.methods.optimization import optimize  # noqa: E402
+from pipeline.methods.sampling import latin_hypercube  # noqa: E402
 from pipeline.methods.uncertainty import inputs_for  # noqa: E402
 
 CASE = "copper_porphyry_soft"
@@ -45,16 +46,21 @@ assert all(slack >= -1e-6 * abs(limit) for slack, limit in
             (optimum["slacks"]["power"], baked["constraints"]["power"]["maximum_kw"])))
 print("  reproduces the committed record")
 
-# 2. the uncertainty design: a scrambled Latin hypercube of 128 samples with the declared seed
+# 2. the uncertainty design: a Latin hypercube of 128 samples with the declared seed. Since 0.07.000 the record
+# draws it from OreFlow's SplitMix64 stream (methods/sampling.py), which the browser repeats bit for bit
 names = inputs_for(case)
 widths = np.array([constant("uncertainty.half_widths")[n] for n in names])
 n, seed = int(constant("uncertainty.samples")), int(constant("uncertainty.seed"))
-unit = qmc.LatinHypercube(d=len(names), scramble=True, rng=np.random.default_rng(seed)).random(n)
+unit = np.asarray(latin_hypercube(n, len(names), seed))
 factors = 1.0 - widths + 2.0 * widths * unit
 assert np.array_equal(factors, np.asarray(nominal["methods"]["uncertainty"]["factors"]))
-strata = np.floor(unit * n).astype(int)
-assert all(sorted(strata[:, j]) == list(range(n)) for j in range(len(names)))
-print(f"latin hypercube: {n} samples of {names}, one per stratum of every input, identical to the committed factors")
+# SciPy's scrambled Latin hypercube stratifies the same way, from NumPy's stream, which a browser cannot repeat
+scipy_unit = qmc.LatinHypercube(d=len(names), scramble=True, rng=np.random.default_rng(seed)).random(n)
+for design in (unit, scipy_unit):
+    strata = np.floor(design * n).astype(int)
+    assert all(sorted(strata[:, j]) == list(range(n)) for j in range(len(names)))
+print(f"latin hypercube: {n} samples of {names}, one per stratum of every input, identical to the committed factors;"
+      " SciPy's design is stratified too, from another stream")
 
 # 3. a Sobol design: in blocks of 2^m points every one-dimensional projection is stratified too
 sobol = qmc.Sobol(d=3, scramble=True, rng=np.random.default_rng(20260927)).random(256)

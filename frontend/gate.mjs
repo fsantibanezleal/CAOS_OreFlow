@@ -338,6 +338,7 @@ async function settleCharts(page, minimum = 1) {
   await page.waitForTimeout(250);
 }
 
+let uncertaintyRerunChecked = false;
 const browser = await chromium.launch();
 for (const { v: [w, h], theme, lang } of COMBOS) {
   const tag = `${w}x${h}-${theme}-${lang}`;
@@ -390,6 +391,22 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         const m = await measure(page);
         const ok = viewOk(m, lang);
         record(`${tag} methods/${name}`, ok, m);
+        // UQ-06: the uncertainty record carries its re-run controls in every combination, and once per run of the
+        // gate a 32-sample re-run at another seed completes and replaces the baked record
+        if (/^(Uncertainty|Incertidumbre)$/.test(name)) {
+          const rerun = page.locator('.of-view-methods .of-rerun');
+          const controls = { box: await rerun.count(), seed: await rerun.locator('input[type=number]').count(), samples: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count() };
+          let live = null;
+          if (!uncertaintyRerunChecked && controls.box === 1) {
+            uncertaintyRerunChecked = true;
+            await rerun.locator('input[type=number]').fill('7');
+            await rerun.locator('select').selectOption('32');
+            await rerun.locator('.of-run').click();
+            live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 120000 }).then(() => true, () => false);
+            if (live) await rerun.locator('.of-revert').click();
+          }
+          record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false, { ...controls, live });
+        }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }
       continue;

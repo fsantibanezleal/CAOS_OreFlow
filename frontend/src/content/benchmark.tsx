@@ -616,6 +616,7 @@ const UNCERTAINTY: Topic = {
   ],
   limits: [
     { en: 'The spreads are authored and the inputs independent by construction; real ore properties co-vary, and the indices are only as meaningful as that assumption.', es: 'Los rangos son de autor y las entradas independientes por construcción; las propiedades reales del mineral covarían, y los índices valen lo que ese supuesto.' },
+    { en: 'The workbench re-runs the uncertainty record at another seed or sample count, in the browser, with the same generator as the bake; the Sobol indices are baked only, at the nominal states, and are not re-run live.', es: 'El laboratorio vuelve a correr el registro de incertidumbre con otra semilla o número de muestras, en el navegador, con el mismo generador del horneado; los índices de Sobol solo se hornean, en los estados nominales, y no se vuelven a correr en vivo.' },
   ],
   figure: { caption: { en: 'The recovery quantiles of every case under the ore\'s uncertainty, at its nominal operating point.', es: 'Los cuantiles de recuperación de cada caso bajo la incertidumbre del mineral, en su punto nominal de operación.' }, render: lang => <UncertaintyChart lang={lang} /> },
   data: lang => <UncertaintyTable lang={lang} />,

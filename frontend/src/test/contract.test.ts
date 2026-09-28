@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import contractDoc from '../../../data/derived/contract/operating_contract.json';
 import probesDoc from '../../../data/derived/contract/contract_probes.json';
-import { decodeValue, validate, verdictSummary, type OperatingContract } from '../engine/contract';
+import { decodeValue, validate, validateControl, verdictSummary, type OperatingContract } from '../engine/contract';
 
 // PE-30: the browser validator accepts and rejects exactly the states the Python validator and the API do.
 const contract = contractDoc as unknown as OperatingContract;
@@ -29,5 +29,31 @@ describe('Contract 1 in the browser', () => {
     expect(validate(contract, 'copper_porphyry_soft', { throughput_tph: '720' }).errors[0].code).toBe('not_a_number');
     expect(validate(contract, 'copper_porphyry_soft', { rougher_cells: 8.5 }).errors[0].code).toBe('not_integer');
     expect(validate(contract, 'iron_magnetite_fine', { collector_gpt: 30 }).errors[0].code).toBe('not_applicable');
+  });
+});
+
+// UQ-07: the method controls. tests/test_contract.py holds the same probe table, so both languages give the same
+// verdict on every probe.
+const CONTROL_PROBES: Array<[string, unknown, boolean, string | null]> = [
+  ['uncertainty_seed', 20260926, true, null], ['uncertainty_seed', 0, true, null],
+  ['uncertainty_seed', 9007199254740991, true, null], ['uncertainty_seed', 9007199254740992, false, 'out_of_range'],
+  ['uncertainty_seed', -1, false, 'out_of_range'], ['uncertainty_seed', 1.5, false, 'not_integer'],
+  ['uncertainty_seed', '7', false, 'not_a_number'], ['uncertainty_seed', Number.NaN, false, 'not_finite'],
+  ['uncertainty_samples', 128, true, null], ['uncertainty_samples', 32, true, null], ['uncertainty_samples', 512, true, null],
+  ['uncertainty_samples', 100, false, 'off_step'], ['uncertainty_samples', 16, false, 'out_of_range'],
+  ['uncertainty_samples', 544, false, 'out_of_range'], ['uncertainty_bins', 10, false, 'unknown_input'],
+];
+
+describe('the method controls', () => {
+  it('are declared with their defaults and validated as the bake validates them', () => {
+    const contract = contractDoc as unknown as OperatingContract;
+    const controls = contract.controls!;
+    expect(Object.keys(controls).sort()).toEqual(['uncertainty_samples', 'uncertainty_seed']);
+    for (const [name, spec] of Object.entries(controls)) expect(validateControl(contract, name, spec.default).accepted).toBe(true);
+    for (const [name, value, accepted, code] of CONTROL_PROBES) {
+      const verdict = validateControl(contract, name, value);
+      expect(verdict.accepted, `${name}=${String(value)}`).toBe(accepted);
+      if (code) expect(verdict.errors[0].code, `${name}=${String(value)}`).toBe(code);
+    }
   });
 });

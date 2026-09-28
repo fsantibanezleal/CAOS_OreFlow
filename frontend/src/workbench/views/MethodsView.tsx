@@ -36,7 +36,8 @@ export function MethodsView({ contract, artifact, variant, point, trace, modifie
     { id: 'optimizer', label: TEXT.optimizer[lang],
       content: <Optimizer key={caseId} record={variant.methods.optimization} contract={contract} caseId={caseId} modified={modified} lang={lang} onCursor={onCursor} /> },
     { id: 'uncertainty', label: TEXT.uncertainty[lang],
-      content: <Uncertainty key={caseId} record={variant.methods.uncertainty} gradeUnit={gradeUnit} modified={modified} lang={lang} onCursor={onCursor} /> },
+      content: <Uncertainty key={caseId} record={variant.methods.uncertainty} contract={contract} ore={artifact.definition.ore} plant={artifact.definition.plant} point={point}
+        gradeUnit={gradeUnit} modified={modified} lang={lang} onCursor={onCursor} /> },
     ...(sensitivity ? [{ id: 'sensitivity', label: TEXT.sensitivity[lang],
       content: <Sensitivity key={caseId} record={sensitivity} atNominal={variant.id === 'nominal'} lang={lang} onCursor={onCursor} /> }] : []),
     { id: 'learned', label: TEXT.learned[lang],

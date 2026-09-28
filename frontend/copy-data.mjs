@@ -18,7 +18,8 @@ function fresh(dir) {
   return dir;
 }
 
-const derived = join(ROOT, 'data', 'derived');
+// OF_DERIVED previews a sandbox bake in development; a release build always copies the committed records
+const derived = process.env.OF_DERIVED || join(ROOT, 'data', 'derived');
 if (!existsSync(join(derived, 'manifests', 'index.json'))) throw new Error('data/derived has no manifests/index.json: run the bake first');
 cpSync(derived, fresh(join(PUB, 'data')), { recursive: true });
 

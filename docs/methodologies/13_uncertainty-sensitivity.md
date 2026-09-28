@@ -20,8 +20,18 @@ so it has three inputs.
 
 ## Uncertainty (Monte Carlo)
 
-A scrambled Latin hypercube of 128 points (SciPy `qmc.LatinHypercube`, seeded) is mapped to the
-factors and each point is simulated. For recovery, concentrate grade, grinding specific energy and
+A Latin hypercube of 128 points is mapped to the factors and each point is simulated. The design
+comes from one generator, SplitMix64 (Steele, Lea and Flood 2014, doi:10.1145/2660193.2660195), as in
+Vigna's reference `splitmix64.c`. It is implemented identically in the bake (`methods/sampling.py`) and in
+the browser (`engine/sampling.ts`):
+- a uniform is the top 53 bits of an output times $2^{-53}$, exact in IEEE doubles;
+- for each input in declared order, a Fisher-Yates permutation of the strata comes first, then one uniform
+  per stratum, and sample $i$ of input $k$ is $u_{ik} = (\pi_k(i) + U_{ik})/n$ (McKay, Beckman and Conover
+  1979, doi:10.1080/00401706.1979.10489755).
+
+Both suites hold the published SplitMix64 vector from seed 1234567 and the same SHA-256 of the bake's
+default design, so the browser draws the bake's factors bit for bit. `scripts/check_artifacts.py`
+recomputes every record's factors from its seed and requires them to be identical. For recovery, concentrate grade, grinding specific energy and
 recovered metal the record gives P05, P50 and P95 (NumPy's linear quantile), the mean and the
 standard deviation, the value at the operating point, and every sampled value, so a histogram can be
 drawn from the record itself. It also gives the probability of meeting each constraint of the
@@ -30,6 +40,14 @@ the count of engine flags over the samples, and the worst balance error over the
 
 A Latin hypercube spreads 128 samples across every input's range more evenly than independent
 draws, so the quantiles settle with fewer samples; the seed makes every record reproducible.
+
+**Live in the workbench.** The Methods view re-runs the record at another seed (0 to $2^{53}-1$) or sample
+count (32 to 512, in steps of 32). Both are method controls the contract declares, and one validator,
+repeated in the browser, accepts or rejects them. The worker runs the engine on every sample of the
+current state, one run per tick with its progress, and a cancel or a newer run stops it between runs.
+Nothing runs without the button. At the baked seed and sample count the browser reproduces every nominal
+record: the factors exactly, and the quantiles, moments and probabilities within 1e-6
+(`frontend/src/test/uncertainty-parity.test.ts`). The Sobol record below stays baked only.
 
 ## Sensitivity (Sobol indices)
 
