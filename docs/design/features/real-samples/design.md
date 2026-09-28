@@ -7,8 +7,8 @@
   - 60 comminution samples with BWI test values;
   - 53 locked-cycle tests, 52 of them usable (the GeoMet lane's ledger).
 
-  A locked-cycle sample takes the work index of the nearest comminution sample in its drill hole along the
-  hole's depth, or else the deposit median. The record says which, and the depth difference.
+  A locked-cycle sample takes the work index of the nearest comminution sample in its drill hole (3-D distance
+  on the samples' X, Y, Z), or else the deposit median. The record says which, and the distance.
 - **Iron plant** (Kaggle 6294 v1, CC0). Hours from the soft-sensor lane's artifact: the hour's sensor medians,
   its lab grades, and the lane's out-of-fold prediction and persistence baseline for the next hour. No raw row is
   committed; the artifact is compact and attributed, as IS-01 to IS-06 require.
