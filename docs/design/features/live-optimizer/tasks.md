@@ -1,6 +1,6 @@
 # Live optimizer tasks
 
-- [ ] T1 (OP-01, OP-02, OP-03, OP-04). Python GPS with the progressive barrier in
+- [x] T1 (OP-02, OP-03, OP-04; OP-01 with T3). Python GPS with the progressive barrier in
   `data-pipeline/pipeline/methods/optimization.py`, with the declared constants in `engine/data/constants.json`,
   and unit tests on analytic problems (a quadratic with a linear constraint, a problem with an infeasible start,
   an infeasible problem).

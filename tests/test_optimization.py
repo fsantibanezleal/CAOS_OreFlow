@@ -79,3 +79,57 @@ def test_off_specification_base_is_restored():
 def test_water_constraint_can_bind():
     record = _record("copper_oxide")
     assert "water" in record["optimum"]["active"]
+
+
+# OP-02 to OP-04: the pattern search with a progressive barrier on analytic problems, before the engine uses it
+
+def _run(evaluate, start, **kw):
+    from pipeline.methods.pattern_search import pattern_search
+
+    options = {"mesh_initial": 0.25, "mesh_minimum": 2.0**-12, "max_evaluations": 2000}
+    options.update(kw)
+    return pattern_search(evaluate, start, **options)
+
+
+def test_poll_mesh_and_stopping():
+    # an unconstrained bowl: the search ends at the minimum within the final mesh, stopping on the mesh size
+    target = (0.3, 0.7)
+    result = _run(lambda x: ((x[0] - target[0]) ** 2 + (x[1] - target[1]) ** 2, 0.0), (0.9, 0.1))
+    assert result.stop == "mesh"
+    assert all(abs(a - b) <= 2.0**-11 for a, b in zip(result.feasible, target))
+    deltas = [it["delta"] for it in result.iterations]
+    assert all(d <= 0.25 for d in deltas) and deltas[-1] < 2.0**-12
+    # every mesh size is a power of two, so the browser's doubles take the same path
+    assert all(float(d).hex().startswith("0x1.0000000000000p") for d in deltas)
+    # the budget stops it too, and no point outside the cube is ever evaluated
+    short = _run(lambda x: (-(x[0] + x[1]), 0.0), (0.5, 0.5), max_evaluations=7)
+    assert short.stop == "budget" and len(short.evaluations) == 7
+    assert all(0.0 <= v <= 1.0 for e in short.evaluations for v in e["x"])
+    # the same inputs give the same run
+    again = _run(lambda x: ((x[0] - target[0]) ** 2 + (x[1] - target[1]) ** 2, 0.0), (0.9, 0.1))
+    assert again.evaluations == result.evaluations and again.iterations == result.iterations
+
+
+def test_progressive_barrier():
+    # maximize x + y inside the disc x^2 + y^2 <= 1/2, starting infeasible at (1, 1): the optimum is (1/2, 1/2)
+    def evaluate(x):
+        return -(x[0] + x[1]), max(0.0, x[0] ** 2 + x[1] ** 2 - 0.5) ** 2
+
+    result = _run(evaluate, (1.0, 1.0))
+    assert result.feasible is not None
+    assert abs(result.feasible[0] + result.feasible[1] - 1.0) < 1e-3
+    assert result.feasible[0] ** 2 + result.feasible[1] ** 2 <= 0.5
+    # the barrier never rises, and every infeasible incumbent lies inside the barrier of its iteration
+    h_max = [it["h_max"] for it in result.iterations]
+    assert all(b <= a for a, b in zip(h_max, h_max[1:]))
+    outcomes = {it["outcome"] for it in result.iterations}
+    assert {"dominating", "improving", "unsuccessful"} <= outcomes  # the barrier path is exercised, not bypassed
+    assert result.feasible == (0.5, 0.5)  # on this mesh the optimum is reached exactly
+
+
+def test_infeasible_reports_least_violating():
+    # the constraint x >= 2 cannot hold in the unit cube: no feasible point, and the infeasible incumbent
+    # is the least-violating face
+    result = _run(lambda x: (x[0], max(0.0, 2.0 - x[0]) ** 2), (0.5,))
+    assert result.feasible is None
+    assert result.infeasible == (1.0,) and result.infeasible_h == 1.0
