@@ -41,22 +41,22 @@ given seed and device.
 
 **The surrogate** is two hidden layers of 64 with SiLU, 22 standardized features in and three
 standardized targets out (5827 parameters). It is scored under the same two protocols as the
-scikit-learn models ([04](../04_scikit-learn.md)): it interpolates best of all five (recovery RMSE 3.07
-points) and transfers worst (42.1 points on average over the held-out cases). The average hides where
-it fails: held out, each of the five copper sulphide cases, which have neighbours in the training set,
-costs it 2.1 to 4.7 points, while the magnetite circuit costs 259 (recoveries predicted far outside 0
-to 100%), free-milling gold 92 and phosphate 78. The final surrogate is trained on all
-3072 states; the committed run stopped at epoch 1954 with its best validation loss at epoch 1804, on
-CUDA.
+scikit-learn models ([04](../04_scikit-learn.md)): it interpolates best of all five (recovery RMSE 3.35
+points) and has the largest transfer errors (55.5 points on average over the held-out cases). The
+average hides where it fails: held out, each of the five copper sulphide cases, which have neighbours
+in the training set, costs it 1.8 to 3.5 points, less than any other model, while the magnetite circuit
+costs 283 (recoveries predicted far outside 0 to 100%), phosphate 242 and free-milling gold 88. The
+final surrogate is trained on all 3072 states; the committed run stopped at epoch 1939 with its best
+validation loss at epoch 1789, on CUDA.
 
 **The guard** is an autoencoder: hidden layers of 16, 6 and 16 with tanh, trained to reproduce its
 own standardized input (956 parameters). Its reconstruction error is small for states like the
 training design and grows for states unlike it. The threshold is the 99th percentile
 (`learning.guard_quantile`) of the reconstruction errors on the validation rows, which only selected
-the best epoch and were never fitted. On the interpolation protocol it flags 1.3% of the held-out
-in-envelope states (false alarms) and accepts 17.0% of 11 016 probes pushed half a training range
+the best epoch and were never fitted. On the interpolation protocol it flags 0.5% of the held-out
+in-envelope states (false alarms) and accepts 18.1% of 11 016 probes pushed half a training range
 past the maximum of one continuous feature at a time (false accepts). The accepts concentrate in
-three features: shifted water (97%), crusher setting (97%) and circulating load (91%) pass almost
+three features: shifted water (98%), circulating load (97%) and crusher setting (95%) pass almost
 always, because a single input that moves without its correlates is exactly what an autoencoder of
 correlated features cannot see. The record keeps the rate per feature, and the Benchmark page prints
 it.

@@ -43,21 +43,21 @@ scored by RMSE).
 
 | Model | Interpolation | Leave one case out, mean | Worst held-out case |
 |---|---|---|---|
-| Ridge | 9.77 | 18.47 | 49.99 |
-| Random forest | 7.00 | 12.08 | 47.02 |
-| Histogram gradient boosting | 5.18 | 11.84 | 58.70 |
-| Gaussian process | 6.95 | 13.28 | 30.27 |
-| MLP (PyTorch, [05](../05_pytorch.md)) | 3.07 | 42.11 | 259.28 |
+| Ridge | 9.68 | 19.28 | 53.97 |
+| Random forest | 6.63 | 13.02 | 50.90 |
+| Histogram gradient boosting | 4.77 | 13.35 | 64.64 |
+| Gaussian process | 6.62 | 14.54 | 44.23 |
+| MLP (PyTorch, [05](../05_pytorch.md)) | 3.35 | 55.51 | 282.84 |
 
 On average every model is worse on an unseen case than inside the cases it trained on, and the
-ranking changes between the protocols: the MLP interpolates best and transfers worst. The loss is
+ranking changes between the protocols: the MLP interpolates best and has the largest transfer errors,
+while by the median held-out R² gradient boosting (0.714) and the MLP (0.638) lead. The loss is
 concentrated, not uniform. A copper sulphide case, with neighbours in the training set, transfers about
-as well as the pooled interpolation (held out, the hard porphyry costs the MLP 2.1 points and ridge 9.4),
-while the three circuits unlike the others fail: for the MLP, 259 points on the magnetite circuit
-(drums instead of flotation), 92 on free-milling gold (a gravity circuit) and 78 on phosphate
-(desliming first). The Gaussian process's 95%
-intervals cover 89.2% of the held-out recoveries (92.0% and 95.6% for the other two targets), so they
-are somewhat too narrow for recovery. The Benchmark page's Learned lane tab shows the full tables and
+as well as the pooled interpolation (held out, the hard porphyry costs the MLP 2.3 points and ridge 9.2),
+while the three circuits unlike the others fail: for the MLP, 283 points on the magnetite circuit
+(drums instead of flotation), 242 on phosphate (desliming first) and 88 on free-milling gold (a
+gravity circuit). The Gaussian process's 95% intervals cover 88.2% of the held-out recoveries (90.0%
+and 91.8% for the other two targets), so they are too narrow for every target. The Benchmark page's Learned lane tab shows the full tables and
 charts.
 
 ## 2. The particle lane (`stages/particle_experiment.py`)

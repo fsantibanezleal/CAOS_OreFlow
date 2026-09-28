@@ -46,7 +46,7 @@ for held_out, train, test in learning.leave_one_case_out(case_of):
 
 A Gaussian process returns a predictive standard deviation with every prediction, and it is tempting to
 read `mean +- 1.96 std` as a 95% interval. Check it: count how often the held-out truth falls inside
-(the record's `coverage_95`). On the learned lane's recovery the coverage is 89.2%, so the intervals are
+(the record's `coverage_95`). On the learned lane's recovery the coverage is 88.2%, so the intervals are
 too narrow by a noticeable margin; on a deterministic engine the fitted noise level goes to its lower
 bound and the intervals only express the kernel's smoothness assumption. Coverage below the nominal
 level is a finding to report, not a setting to tune away.

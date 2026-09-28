@@ -53,5 +53,5 @@ machine that fell back to the CPU.
   grows with the epochs.
 - **Keep the state on the device you trained on**, and move the network to the CPU before exporting
   (`export_onnx` does `model.to("cpu")`).
-- **A surrogate's interpolation score is not its transfer score.** The MLP here interpolates best and
-  transfers worst of five models; report both protocols or neither.
+- **A surrogate's interpolation score is not its transfer score.** The MLP here interpolates best of
+  five models and has the largest mean transfer error; report both protocols or neither.
