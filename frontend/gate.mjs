@@ -6,6 +6,8 @@
  *   OF_MATRIX=full node gate.mjs            (three viewports, both themes, both languages)
  *   OF_MATRIX=none node gate.mjs            (the phone and tablet pass alone)
  *
+ * Every combination also checks the optimizer's controls (a live run once per gate, OP-09), the classifier-cut
+ * mode (CM-07) and the two real sources (RS-07 to RS-10).
  * OF_BASE points it at another host (a public deployment), OF_ONLY names combinations of the full matrix
  * (1280x800-dark-es,...) to re-check after a fix, OF_CASE picks the case, OF_PAGES the content
  * pages (default all five; empty for none). For every combination it:
@@ -342,6 +344,7 @@ async function settleCharts(page, minimum = 1) {
 }
 
 let uncertaintyRerunChecked = false;
+let optimizerRunChecked = false;
 const browser = await chromium.launch();
 for (const { v: [w, h], theme, lang } of COMBOS) {
   const tag = `${w}x${h}-${theme}-${lang}`;
@@ -410,6 +413,25 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           }
           record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false, { ...controls, live });
         }
+        // OP-09: the optimizer carries its weight control and run button in every combination, and once per run of
+        // the gate a live run at 50% completes, replaces the baked record and offers the four charts
+        if (/^(Optimizer|Optimizador)$/.test(name)) {
+          const rerun = page.locator('.of-view-methods .of-rerun');
+          const controls = { box: await rerun.count(), weight: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count(),
+            charts: await page.locator('.of-view-methods .of-aside .of-fields select').last().locator('option').count() };
+          let live = null;
+          if (!optimizerRunChecked && controls.box === 1) {
+            optimizerRunChecked = true;
+            await rerun.locator('select').selectOption('50');
+            await rerun.locator('.of-run').click();
+            live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 600000 }).then(() => true, () => false);
+            if (live) {
+              await page.screenshot({ path: join(OUT, `methods-optimizer-live-${tag}.png`) });
+              await rerun.locator('.of-revert').click();
+            }
+          }
+          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false, { ...controls, live });
+        }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }
       continue;
@@ -420,6 +442,57 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     record(`${tag} ${view}`, ok, m);
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
+
+  // CM-07: the classifier cut in the rail's classification section: on, its slider appears and the target and the
+  // load stay visible and disabled, and the Grinding view says the cut is set; off again, the target mode returns
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
+  await page.locator('.of-rail-sections button').nth(1).click();
+  await page.locator('.of-rail .of-segmented:not(.of-segmented-3) button').last().click();
+  await page.waitForFunction(() => /classifier cut and the installed power|corte del clasificador y la potencia instalada/.test(document.querySelector('.of-view-host')?.textContent ?? ''), null, { timeout: 90000 }).catch(() => undefined);
+  const cut = await page.evaluate(() => ({
+    slider: document.querySelectorAll('.of-rail input[id$="d50c_um"]').length,
+    follows: document.querySelectorAll('.of-rail .of-knob.follows input[disabled]').length,
+    stated: /classifier cut and the installed power|corte del clasificador y la potencia instalada/.test(document.querySelector('.of-view-host')?.textContent ?? ''),
+    url: location.search.includes('d50c_um'),
+  }));
+  await page.screenshot({ path: join(OUT, `cut-mode-${tag}.png`) });
+  record(`${tag} grinding mode`, cut.slider === 1 && cut.follows === 2 && cut.stated && cut.url, cut);
+  await page.locator('.of-rail .of-segmented:not(.of-segmented-3) button').first().click();
+  await page.waitForFunction(() => !location.search.includes('d50c_um'), null, { timeout: 30000 }).catch(() => undefined);
+
+  // RS-07 to RS-10: the two real sources. A sample fixes the head grade and the work index and runs in the engine;
+  // an hour is shown in the Case view, and every engine view says why it does not apply
+  const sourceButton = k => page.locator('.of-rail .of-segmented-3 button').nth(k);
+  await sourceButton(1).click();
+  await page.waitForSelector('.of-rail select option', { timeout: 60000 });
+  await page.locator('.of-rail-sections button').first().click();
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  await page.waitForSelector('.of-view-sample table', { timeout: 90000 });
+  const sampleCheck = await page.evaluate(() => ({
+    fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
+    tables: document.querySelectorAll('.of-view-sample table').length,
+    url: location.search.includes('source=sample'),
+  }));
+  const sampleView = await measure(page);
+  await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
+  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.url && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
+  await settleCharts(page, 1);
+  const sampleGrinding = await measure(page);
+  record(`${tag} source sample grinding`, viewOk(sampleGrinding, lang), sampleGrinding);
+  await sourceButton(2).click();
+  await page.waitForSelector('.of-view-statement .of-note', { timeout: 60000 });
+  const statement = await page.evaluate(() => /reverse cationic|catiónica inversa/.test(document.querySelector('.of-view-statement')?.textContent ?? ''));
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  await page.waitForSelector('.of-view-hour table', { timeout: 90000 });
+  await settleCharts(page, 1);
+  const hourView = await measure(page);
+  const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour') }));
+  await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`) });
+  record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
+  await sourceButton(0).click();
+  await page.waitForFunction(() => !location.search.includes('source='), null, { timeout: 30000 }).catch(() => undefined);
+  await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
 
   await checkArchitecture(page, tag, lang);
 

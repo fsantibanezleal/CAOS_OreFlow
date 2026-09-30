@@ -16,7 +16,7 @@ import type { Scalers } from '../learning/surrogate';
 // OF_DERIVED and OF_MODELS point a development run at a sandbox bake.
 // Every variant is a full optimization (six starts with the screen, six without, three path steps), about a minute
 // each, so CI runs a declared subset (the nominal variants of the magnetite circuit, one decision; the oxide copper,
-// where water binds; the free-milling gold, where the screen rarely passes) and OF_PARITY=full runs all 72 at release
+// where water binds; the free-milling gold, where the screen rarely passes) and OF_PARITY=full runs all 96 at release
 // (docs/release-verification.md).
 const SUBSET = new Set(['iron_magnetite_fine/nominal', 'copper_oxide/nominal', 'gold_free_milling/nominal']);
 const FULL = process.env.OF_PARITY === 'full';

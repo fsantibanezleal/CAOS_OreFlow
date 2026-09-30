@@ -60,19 +60,19 @@ function IronFigure({ lang }: { lang: Lang }) {
       <Arrow id="of-iron-arrow" />
       <Box x={8} y={10} w={128} h={52} title={p('737,453 rows', '737.453 filas')} lines={[p('about 180 per hour', 'unas 180 por hora')]} />
       <Box x={156} y={10} w={128} h={52} title={p('4,097 hours', '4.097 horas')} lines={[p('sensor medians', 'medianas de sensores')]} />
-      <Box x={304} y={10} w={128} h={52} kind="accent" title={p('3,701 pairs', '3.701 pares')} lines={[p('hour t predicts t + 1', 'la hora t predice t + 1')]} />
+      <Box x={304} y={10} w={128} h={52} kind="accent" title={p('3,701 pairs', '3.701 pares')} lines={[p('t predicts t + 1', 't predice t + 1')]} />
       <line className="dg-edge" x1="136" y1="36" x2="155" y2="36" markerEnd={arrow} />
       <line className="dg-edge" x1="284" y1="36" x2="303" y2="36" markerEnd={arrow} />
-      <text className="dg-note" x="220" y="80" textAnchor="middle">{p('310 hours whose silica label changes within the hour are interpolated, and dropped whole', '310 horas cuya etiqueta de sílice cambia dentro de la hora están interpoladas y se descartan completas')}</text>
+      <text className="dg-note" x="220" y="80" textAnchor="middle">{p('310 hours with an interpolated silica label are dropped whole', '310 horas con la sílice interpolada se descartan completas')}</text>
       {[0, 1, 2].map(k => {
         const y = 102 + 40 * k;
         const start = [50, 65, 80][k], end = [65, 80, 100][k];
-        const x = (f: number) => 20 + 4 * f;
+        const x = (f: number) => 20 + 3.4 * f;
         return (
           <g key={k}>
-            <rect className="dg-bar" x={x(0)} y={y} width={4 * start - 6} height="18" />
+            <rect className="dg-bar" x={x(0)} y={y} width={3.4 * start - 6} height="18" />
             <rect className="dg-fill-warn" x={x(start) - 6} y={y} width="6" height="18" opacity="0.7" />
-            <rect className="dg-bar-2" x={x(start)} y={y} width={4 * (end - start)} height="18" />
+            <rect className="dg-bar-2" x={x(start)} y={y} width={3.4 * (end - start)} height="18" />
             <text className="dg-box-sub" x={x(end) + 6} y={y + 13}>{p(`window ${k + 1}`, `ventana ${k + 1}`)}</text>
           </g>
         );

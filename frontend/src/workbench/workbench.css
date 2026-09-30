@@ -366,6 +366,11 @@ input, select, textarea { font: inherit; }
 .of-status-line { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--color-good); }
 .of-status-line.warn { color: var(--color-warn); }
 .of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-faint); }
+/* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
+ * phone never scrolls sideways */
+.of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+.of-sample-text { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--color-fg); }
+.of-view-sample .of-table td, .of-view-sample .of-table th { white-space: normal; overflow-wrap: anywhere; }
 .of-progress { font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg-subtle); white-space: nowrap; }
 .of-failure { margin: 1rem; padding: 12px; border: 1px solid var(--color-bad); border-radius: 8px; color: var(--color-bad); }
 

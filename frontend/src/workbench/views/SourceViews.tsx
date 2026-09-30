@@ -13,6 +13,14 @@ import { formatFixed, formatWithUnit, type Lang } from '../../lib/format';
 import { metricLabel, mineralName } from '../../lib/i18n';
 import { hourOf } from '../SourcePicker';
 
+/** The GeoMet lane's models, as the Benchmark's measured-lanes tab names them. */
+const LANE_MODEL: Record<string, { en: string; es: string }> = {
+  train_mean: { en: 'training mean', es: 'media de entrenamiento' },
+  ridge: { en: 'ridge', es: 'ridge' },
+  random_forest: { en: 'random forest', es: 'bosque aleatorio' },
+  gaussian_process: { en: 'Gaussian process', es: 'proceso gaussiano' },
+};
+
 export const SOURCE_TEXT = {
   notEngine: {
     en: 'This hour comes from an iron-ore plant whose reverse cationic flotation is not an engine family, so nothing of it is simulated here. Its sensors, its assays and the soft sensor\'s forecast are in the Case view.',
@@ -66,6 +74,8 @@ export const SOURCE_TEXT = {
   silicaAxis: { en: 'Silica in the concentrate (%)', es: 'Sílice en el concentrado (%)' },
   observed: { en: 'Measured', es: 'Medida' },
   thisHour: { en: 'this hour', es: 'esta hora' },
+  hourLabel: { en: 'Plant hour', es: 'Hora de planta' },
+  recorded: { en: 'A measured record, shown and not simulated', es: 'Un registro medido, que se muestra y no se simula' },
   laneNote: {
     en: 'An observational forecast from one plant: it says how well the next hour is predicted here, not what a change of any sensor would do.',
     es: 'Un pronóstico observacional de una planta: dice qué tan bien se predice aquí la hora siguiente, no qué haría un cambio de algún sensor.',
@@ -83,7 +93,7 @@ export function SampleView({ record, sample, recovery, lang }: { record: RealSam
   return (
     <div className="of-view of-view-sample">
       <div className="of-split">
-        <div className="of-stack">
+        <div className="of-sample-main">
           <table className="of-table">
             <caption>{SOURCE_TEXT.fixes[lang]}</caption>
             <thead><tr><th scope="col">{SOURCE_TEXT.quantity[lang]}</th><th scope="col">{SOURCE_TEXT.value[lang]}</th><th scope="col">{SOURCE_TEXT.basis[lang]}</th></tr></thead>
@@ -99,7 +109,7 @@ export function SampleView({ record, sample, recovery, lang }: { record: RealSam
             </tbody>
           </table>
           <p className="of-facts-title">{SOURCE_TEXT.authors[lang]}</p>
-          <p className="of-note">{SOURCE_TEXT.authored[lang]}</p>
+          <p className="of-sample-text">{SOURCE_TEXT.authored[lang]}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">
@@ -108,7 +118,7 @@ export function SampleView({ record, sample, recovery, lang }: { record: RealSam
               <tr><th scope="row">{SOURCE_TEXT.engine[lang]}</th><td>{recovery === null ? '-' : `${formatFixed(recovery, lang, 1)}%`}</td></tr>
               <tr><th scope="row">{SOURCE_TEXT.measured[lang]}</th><td>{`${formatFixed(sample.measured_recovery_pct, lang, 1)}%`}</td></tr>
               {Object.entries(lanePredictions).map(([m, v]) => (
-                <tr key={m}><th scope="row">{`${SOURCE_TEXT.lane[lang]}: ${m.replace(/_/g, ' ')}`}</th><td>{`${formatFixed(v, lang, 1)}%`}</td></tr>
+                <tr key={m}><th scope="row">{`${SOURCE_TEXT.lane[lang]}: ${LANE_MODEL[m]?.[lang] ?? m.replace(/_/g, ' ')}`}</th><td>{`${formatFixed(v, lang, 1)}%`}</td></tr>
               ))}
             </tbody>
           </table>
@@ -116,6 +126,23 @@ export function SampleView({ record, sample, recovery, lang }: { record: RealSam
           <p className="of-footnote">{`${record.summary.samples} ${lang === 'es' ? 'muestras' : 'samples'}; ${metricLabel('recovery_pct', lang)} ${lang === 'es' ? 'del motor menos la medida, media' : 'of the engine minus the measured, mean'} ${formatFixed(record.summary.engine_minus_measured_pp.mean, lang, 1)} ${lang === 'es' ? 'puntos' : 'points'}.`}</p>
         </div>
       </div>
+    </div>
+  );
+}
+
+/** The readout row of an hour: the next hour's measured silica and the two baselines, in the readout's place. */
+export function HourReadout({ lane, hourKey, lang, cursor }: { lane: IronPlant; hourKey: string | null; lang: Lang; cursor: string | null }) {
+  const { hour } = hourOf(lane, hourKey);
+  const items: Array<[string, number]> = [[SOURCE_TEXT.next[lang], hour.observed_pct], [IRON_NAME.previous_lab[lang], hour.predictions_pct.previous_lab],
+    [IRON_NAME.ridge[lang], hour.predictions_pct.ridge]];
+  return (
+    <div className="of-readout" role="status" aria-live="polite">
+      <span className="of-readout-item"><span className="of-readout-label">{SOURCE_TEXT.hourLabel[lang]}</span><strong>{hour.sensor_hour.slice(0, 16)}</strong></span>
+      {items.map(([label, v]) => (
+        <span key={label} className="of-readout-item"><span className="of-readout-label">{label}</span><strong>{`${formatFixed(v, lang, 2)}%`}</strong></span>
+      ))}
+      <span className="of-readout-flags" title={SOURCE_TEXT.recorded[lang]}>{SOURCE_TEXT.recorded[lang]}</span>
+      {cursor && <span className="of-readout-cursor" title={cursor}>{cursor}</span>}
     </div>
   );
 }

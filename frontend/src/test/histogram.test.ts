@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { halfSpacing, histogram } from '../lib/histogram';
 
-// The Uncertainty histogram bins every recorded distribution (72 variants, four outputs each). Its x
+// The Uncertainty histogram bins every recorded distribution (96 variants, four outputs each). Its x
 // range is the bar positions widened by half a spacing each side, and that range must be the sampled
 // range itself: ranged on the positions alone, the first and last bars were drawn cut in half.
 const derived = fileURLToPath(new URL('../../../data/derived/cases/', import.meta.url));

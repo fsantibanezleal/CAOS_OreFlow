@@ -20,23 +20,29 @@ far a learned surrogate of a process can be trusted when the ore changes.
 
 - **The engine** (`data-pipeline/pipeline/engine/`): a Whiten crusher; an energy-specific population
   balance ball mill (three mixers, Moly-Cop form) in a closed circuit that meets the target P80 and the
-  design circulating load, at installed power when the target cannot be met; Plitt hydrocyclones with water
+  design circulating load, at installed power when the target cannot be met, or, in the cut mode, holds the
+  cyclone's cut at installed power and lets the P80 and the load follow; Plitt hydrocyclones with water
   bypass and density-corrected cuts per mineral; flotation banks with rates from bubble surface area flux,
   entrainment and cleaner recycles; a gravity unit on the underflow; low-intensity magnetic drums;
   desliming; Bond, Rittinger and Kick energy; an independent audit of every balance.
 - **Method records** for every variant: five lumped kinetic models fitted to a virtual batch test and
-  projected to the bank; a constrained optimizer (COBYLA, six starts) that maximizes recovered metal under
-  grade, power and water constraints; a seeded uncertainty record over four ore properties; Sobol indices
-  at the nominal state.
+  projected to the bank; a constrained optimizer (a pattern search with a progressive barrier from six starts,
+  its search step screened by the learned lane) that weighs recovered metal against energy under grade, power and
+  water constraints, the same in the browser, where the weight is a live control; a seeded uncertainty record over
+  four ore properties, which the browser re-runs at any seed; Sobol indices at the nominal state; mechanism
+  ablations and a seed study.
 - **A learned lane**: ridge, random forest, gradient boosting, a Gaussian process and a PyTorch MLP trained
   on 3072 engine states, scored inside the cases and on held-out cases, with an autoencoder guard; the MLP
   and the guard run in the browser as ONNX.
 - **Two measured lanes**, kept apart from the engine: the HZDR particle dataset (RODARE 336, CC BY 4.0) and
   52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0).
+- **Real sources in the workbench**: the 52 GeoMet samples run on their own assays, a sulphur-limited normative
+  mineralogy (bornite and chalcocite) and their Bond work index in the soft porphyry's circuit, beside the measured
+  recovery; and hours of one iron-ore plant (Kaggle 6294, CC0) with a leakage-safe next-hour silica soft sensor.
 - **Checks against published examples**: the Moly-Cop base case, the GMG Bond worked examples, the Laplante
   gravity example and the Zandrivierspoort magnetite tests.
 
-Twelve cases, six variants each: soft and hard copper porphyry, low-grade copper at high throughput, copper
+Twelve cases, eight variants each (six of the target mode, two of the cut mode): soft and hard copper porphyry, low-grade copper at high throughput, copper
 ore with clay, copper-molybdenum bulk flotation, oxide copper by sulphidisation, zinc sulphide, nickel
 sulphide with serpentine slimes, refractory gold in sulphides, free-milling gold with gravity, fine magnetite,
 and phosphate with clay slimes ([use cases](docs/use-cases.md)).

@@ -28,7 +28,7 @@ import { GrindingView } from './views/GrindingView';
 import { MethodsView } from './views/MethodsView';
 import { ResponseView } from './views/ResponseView';
 import { SeparationView } from './views/SeparationView';
-import { HourView, SampleView, SourceStatement } from './views/SourceViews';
+import { HourReadout, HourView, SampleView, SourceStatement } from './views/SourceViews';
 
 /** The case whose plant and operating point run the GeoMet samples (RS-05). */
 export const SAMPLE_CASE = 'copper_porphyry_soft';
@@ -209,7 +209,8 @@ export default function Workbench() {
     <div className="page-body wide of-bench">
       <Rail index={index} contract={contract} artifact={artifact} lang={lang} errors={errors} onFocus={openFocus} samples={samples} lane={lane} />
       <section className="of-main" aria-label={artifact.title[lang]}>
-        <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} />
+        {source === 'hour' && lane ? <HourReadout lane={lane} hourKey={hourKey} lang={lang} cursor={cursor} />
+          : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} />}
         <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names} />
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>
       </section>

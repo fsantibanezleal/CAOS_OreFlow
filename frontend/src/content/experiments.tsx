@@ -321,7 +321,7 @@ const DESIGN: Topic = {
   ],
   equations: [
     { tex: r`\Delta_v m = m\big(x^{(v)}\big) - m\big(x^{(0)}\big),\qquad \delta_v m = \frac{\Delta_v m}{\big|m\big(x^{(0)}\big)\big|}`, caption: { en: 'The effect of variant v on a metric m: its change from the nominal state, and the relative change used where units differ between cases.', es: 'El efecto de la variante v sobre una métrica m: su cambio respecto del estado nominal, y el cambio relativo que se usa donde las unidades difieren entre casos.' } },
-    { tex: r`N = 12 \times 6 = 72`, caption: { en: 'The design: twelve cases with six states each, every one a full trace with its method records.', es: 'El diseño: doce casos con seis estados cada uno, cada uno una traza completa con sus registros de métodos.' } },
+    { tex: r`N = 12 \times 8 = 96`, caption: { en: 'The design: twelve cases with eight states each, six of the target mode and two of the cut mode, every one a full trace with its method records.', es: 'El diseño: doce casos con ocho estados cada uno, seis del modo objetivo y dos del modo de corte, cada uno una traza completa con sus registros de métodos.' } },
   ],
   limits: [
     { en: 'One factor at a time cannot show interactions between operating inputs; the optimizer and the Response view move several inputs together.', es: 'Un factor a la vez no puede mostrar interacciones entre entradas de operación; el optimizador y la vista de Respuesta mueven varias entradas juntas.' },
@@ -358,7 +358,7 @@ const METRICS: Topic = {
   ],
   figure: { caption: { en: 'Overall recovery is measured on the plant feed, a stage recovery on the stage\'s own feed; an upstream loss separates them.', es: 'La recuperación total se mide sobre la alimentación de planta, una recuperación de etapa sobre la alimentación propia de la etapa; una pérdida aguas arriba las separa.' }, render: lang => <RecoveryFigure lang={lang} /> },
   data: lang => <KpiTable lang={lang} />,
-  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'marquardt1963', 'powell1994'],
+  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'marquardt1963', 'torczon1997'],
 };
 
 const RESULTS: Topic = {
