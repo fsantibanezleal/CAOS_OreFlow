@@ -8,28 +8,9 @@ import type { Trace } from '../engine/trace';
 export type Bilingual = { en: string; es: string };
 
 export type Slacks = Record<string, number>;
-export type OptimumSummary = {
-  decisions: Record<string, number>;
-  recovered_tph: number;
-  recovery_pct: number;
-  values: Record<string, number>;
-  slacks: Slacks;
-  active: string[];
-  feasible: boolean;
-};
-export type OptimizationRecord = {
-  status: 'optimal' | 'infeasible';
-  decisions: string[];
-  bounds: Record<string, [number, number]>;
-  constraints: { grade: { minimum: number; species: string }; power: { maximum_kw: number }; water?: { maximum_m3_t: number } };
-  base: OptimumSummary;
-  optimum: OptimumSummary | null;
-  gain_tph?: number;
-  gain_pct?: number | null;
-  starts: Array<{ start: Record<string, number>; end: OptimumSummary; violation: number; evaluations: number; message: string }>;
-  evaluations: number;
-  least_violating?: OptimumSummary;
-};
+// the optimizer record is the engine's own shape: the browser re-runs it and the parity test compares the two
+export type { OptimizationRecord, Summary as OptimumSummary } from '../engine/optimization-record';
+import type { OptimizationRecord } from '../engine/optimization-record';
 export type OutputDistribution = { p05: number; p50: number; p95: number; mean: number; std: number; base: number; values: number[] };
 export type UncertaintyRecord = {
   status: string;

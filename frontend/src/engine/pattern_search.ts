@@ -78,6 +78,8 @@ export function patternSearch(evaluate: Evaluator, start: Point, options: Patter
     for (const [x, source] of trials) {
       if (!inside(x) || cache.size >= maxEvaluations) continue;
       const [f, h] = value(x, source);
+      // a state the evaluator cannot score (a contract rejection) is an extreme-barrier point: never an incumbent
+      if (!(Number.isFinite(f) && Number.isFinite(h))) continue;
       if (dominates(f, h)) {
         outcome = 'dominating';
         if (h === 0) { xf = x; ff = f; } else { xi = x; hi = h; fi = f; }

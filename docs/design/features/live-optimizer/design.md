@@ -12,13 +12,17 @@ already agree within 1e-6, and the only decisions are comparisons of those resul
 - **State:** the incumbent `x` in the unit cube of the decision bounds, the mesh size `delta` (initial
   `optimization.mesh_initial`, a power of two), the feasible incumbent `x_F`, the infeasible incumbent `x_I` and
   the barrier `h_max` (initially `+inf`).
-- **Search step (optional, the screen).**
-  1. The surrogate predicts the objective at the `2n` mesh neighbours of both incumbents and at `2n` points two
-     mesh steps away.
+- **Search step (the screen).**
+  1. The candidates are the points one and two mesh steps from each incumbent along every coordinate, in a fixed
+     order (feasible incumbent first, one step before two, coordinate by coordinate, `+` before `-`), inside the
+     cube and not yet evaluated by the engine.
   2. A candidate passes if the guard accepts its features and the Gaussian process's 95% half-width on
-     recovery is at most `optimization.screen_half_width_pct`.
-  3. The passing candidates are ranked by the surrogate's objective. The engine evaluates the best one; if it
-     improves the incumbent, the iteration succeeds without a poll.
+     recovery is at most `optimization.screen_half_width_pct` (5 points; the lane's mean held-out half-width was
+     9.3 points in the 0.06.000 learning record).
+  3. The passing candidates are ranked by the surrogate's objective, the first of equals kept. The decisions change
+     neither the throughput nor the head grade, so `M/M0` is predicted as `R/R0` with `R` the surrogate's recovery
+     and `R0` the engine's at the base (the ratio `M/R` is constant across the decisions to 2.2e-16). The engine
+     evaluates the best; if it dominates an incumbent, the iteration succeeds without a poll.
 - **Poll step.** The engine evaluates `x +- delta e_i` for each decision `i`, in a fixed order, around `x_F` and,
   when it exists, around `x_I`, stopping at the first improvement (opportunistic poll).
 - **Improvement.** The definitions below are verified in Hallé-Hannan and Tribes (2026, arXiv:2609.19333,
@@ -41,40 +45,65 @@ already agree within 1e-6, and the only decisions are comparisons of those resul
 
 ## Surrogate and Gaussian process in both languages
 
-- The bake scores the screen with `onnxruntime` on the exported `process_surrogate.onnx` and `process_guard.onnx`,
-  not with torch, so the bake and the browser run the same graph. Where a screen decision's margin to a threshold
-  is below `1e-5`, the record keeps the margin and parity accepts either verdict; everywhere else the verdicts
-  must be equal.
-- The Gaussian process is exported as `models/process_gp.json`: the standardized training rows (500 x 22), the
-  length scales, the amplitude, the noise level, `alpha = K^-1 y` and the lower Cholesky factor `L` of `K`.
-  The variance at a state is `k(x,x) - |L^-1 k_*|^2`, one triangular solve of 500 rows. A Python test compares the
-  export with scikit-learn's `predict(return_std=True)` within 1e-8, and a TypeScript test compares the browser
-  with the Python reference within 1e-6.
+- **Changed during T2: float64 on both sides, not ONNX Runtime.** The browser's onnxruntime-web runs the networks
+  in float32, and the learned-lane test holds it to the bake's ONNX Runtime only within 1e-4. That is enough to
+  reorder two candidates on a fine mesh and send the two searches along different paths. The screen instead reads
+  the exported ONNX weights (a Gemm and SiLU network, a Gemm and tanh autoencoder) and runs them in float64 in both
+  languages (`methods/screen.py`, `frontend/src/learning/screen.ts`). The export checks them against ONNX Runtime
+  within the lane's ONNX tolerance (measured 1.5e-6 and 2.0e-6, the float32 difference). The learned-lane view keeps
+  onnxruntime-web.
+- The Gaussian process is a final fit on 500 rows drawn from all 3,072 design states, on recovery, with the lane's
+  kernel and settings. Its export is `models/process_screen.json` (the networks' weights, the standardized training
+  rows, the length scales, the amplitude, the noise level, the target normalization and `alpha = K^-1 y`) and
+  `models/process_gp_cholesky.bin` (the lower Cholesky factor `L` of `K`, packed by rows, float64 little-endian,
+  125,250 values). The variance at a state is `k(x,x) - |L^-1 k_*|^2`, one forward substitution of 500 rows.
+- Checks: the export against scikit-learn's `predict(return_std=True)` within 1e-8 (measured 5.1e-10), and the
+  browser against the export's reference block (every case's nominal state) within 1e-9 relative
+  (`frontend/src/test/screen.test.ts`).
+- **Changed during T2: the learning stage runs before the cases.** The screened optimizer in the cases stage reads
+  the models this bake exports. The learned lane depends only on the contract and the catalog, so the order is
+  free; a development bake with `--reuse-learning` reads the models directory it is given.
 
 ## Records
 
-`benchmark.optimization[case][variant]` keeps the 0.06 fields and adds:
-- `method: "gps-progressive-barrier"`;
-- `weights`;
-- `evaluations` (engine) and `evaluations_without_screen`;
-- `screen`: every candidate with `features`, `surrogate`, `guard_error`, `gp_half_width`, `accepted`, `reason`
-  and `engine` (for the accepted ones);
-- `path`: the optimum at each recorded weight;
-- `trace`: the incumbent, `delta` and `h_max` per iteration.
+`variants[].methods.optimization` keeps the 0.06 fields and adds:
+- `method: "gps-progressive-barrier"`, `weights`, `screened`, `screen_bound_pct` and `proposal_columns`;
+- per start: `iterations`, `stop` (`mesh` or `budget`) and `screen`, which holds the iteration count, the
+  candidates screened, the rejections by reason (`guard`, `interval`), and every proposal. A proposal row carries
+  the iteration, the surrogate's and the engine's recovery, the surrogate's and the engine's objective, the margin
+  to the runner-up and whether the proposal became an incumbent;
+- `trace`: the best start's incumbent per iteration (outcome, mesh size, barrier, feasible objective, engine
+  evaluations so far);
+- `without_screen`: the same starts and weight on a fresh cache, with its evaluations per start, status and
+  optimum, so the saving is a record;
+- `path`: the optimum at each weight of `optimization.weight_path`, warm-started from the previous one, with each
+  step's evaluations, stop and screen counts.
+
+**Changed during T3:** the record keeps the rejections as counts per start, not every rejected candidate with its
+features. The full table is about 4,800 candidates per variant, some 35 MB per bake across the 72 variants. The counts
+and every proposal are what the saving and the surrogate's disagreement are computed from.
 
 ## Browser
 
-The worker gains an `optimize` request, streamed per iteration like `sweep`, which is cancelled or superseded
-between engine evaluations. The Methods view's optimizer record adds:
-- a weights control (`w_r`, step 0.05);
-- a run button;
-- the iteration trace;
-- the screen table.
+- **Changed during T5: the optimizer has a worker of its own** (`frontend/src/engine/optimizer-worker.ts`). The run
+  is one synchronous computation, so no message can reach it: a cancel or a newer run makes the client terminate
+  that worker, which stops the run at once, and the next run starts a new one. A worker whose run finished is kept,
+  with its screen loaded. Progress is posted after every start, every start without the screen and every path step.
+- **Changed during T5: the weight control is an integer percentage** (`optimizer_weight_pct`, 0 to 100 in steps of
+  5), because the one validator checks steps in integers. The optimizer divides it by 100, which is exact at the
+  recorded weights.
+- The Methods view's optimizer record adds the weight control and a run button, and a chart selector: where each
+  start ended, the incumbent over the evaluations, the optimum as the weight moves, and the surrogate against the
+  engine at the proposals. It also adds the screen table (evaluations per start with and without the screen,
+  proposals, improvements).
 
 Nothing runs without the button, per the no-autoplay rule.
 
 ## Parity
 
-`frontend/src/test/optimizer-parity.test.ts` re-runs the optimizer for every variant at every recorded weight
-from the bake's inputs, and compares the evaluation count, each incumbent and the optimum with the record within
-1e-6 relative. The screen's verdicts are compared as in the section above.
+`frontend/src/test/optimizer-parity.test.ts` re-runs the optimizer with the bake's screen for every variant from
+the bake's inputs. Each start must stop for the same reason after the same iterations and evaluations, and the
+screen must give the same counts and proposals. The run without the screen must spend the same evaluations. The
+optimum, every start's end, every proposal's values and every step of the weight path must agree within 1e-6
+relative. The other weights are exercised by the weight path (0.75, 0.5, 0.25) and, cold-started, by
+`frontend/src/test/worker-optimize.test.ts` at 0.5.

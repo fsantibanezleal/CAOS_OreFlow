@@ -23,10 +23,12 @@ const derived = process.env.OF_DERIVED || join(ROOT, 'data', 'derived');
 if (!existsSync(join(derived, 'manifests', 'index.json'))) throw new Error('data/derived has no manifests/index.json: run the bake first');
 cpSync(derived, fresh(join(PUB, 'data')), { recursive: true });
 
-const models = join(ROOT, 'models');
+// OF_MODELS previews a sandbox bake's exports with its records; a release build copies the committed models
+const models = process.env.OF_MODELS || join(ROOT, 'models');
 const modelsOut = fresh(join(PUB, 'models'));
 for (const file of readdirSync(models)) {
-  if (file.endsWith('.onnx') || file.endsWith('.json')) cpSync(join(models, file), join(modelsOut, file));
+  // the networks, their scalers and the screen's export, and the screen's Cholesky factor (float64)
+  if (file.endsWith('.onnx') || file.endsWith('.json') || file.endsWith('.bin')) cpSync(join(models, file), join(modelsOut, file));
 }
 
 const ort = join(HERE, 'node_modules', 'onnxruntime-web', 'dist');

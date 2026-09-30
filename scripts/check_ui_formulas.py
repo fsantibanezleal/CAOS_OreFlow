@@ -25,7 +25,8 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "frontend" / "src"
 ENGINE = SRC / "engine"
-ALLOWED_ENGINE = {"client", "contract", "model", "trace", "sweep", "circuit", "constants", "ore"}
+# optimization-record holds the optimizer record's types only, so a view reads a record without the solver
+ALLOWED_ENGINE = {"client", "contract", "model", "trace", "sweep", "circuit", "constants", "ore", "optimization-record"}
 FORMULA = re.compile(r"Math\.exp\(|Math\.pow\(|\*\*")
 ENGINE_IMPORT = re.compile(r"""from\s+['"]((?:\.\./)+|\./)engine(?:/([\w-]+))?['"]""")
 COMMENT = re.compile(r"^\s*(//|\*|/\*)")

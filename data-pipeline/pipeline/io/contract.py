@@ -177,9 +177,10 @@ def _case_entry(case: Any) -> dict[str, Any]:
 
 
 def _controls() -> dict[str, Any]:
-    """Controls of the method records, not of the plant: the workbench re-runs a record with them (UQ-07)."""
+    """Controls of the method records, not of the plant: the workbench re-runs a record with them (UQ-07, OP-10)."""
     seed_lo, seed_hi = (int(v) for v in constant("uncertainty.seed_bounds"))
     n_lo, n_hi, n_step = (int(v) for v in constant("uncertainty.samples_bounds"))
+    w_lo, w_hi, w_step = (int(v) for v in constant("optimization.weight_pct_bounds"))
     return {
         "uncertainty_seed": {"min": seed_lo, "max": seed_hi, "step": 1, "integer": True, "unit": "1",
                              "default": int(constant("uncertainty.seed")),
@@ -191,6 +192,14 @@ def _controls() -> dict[str, Any]:
                                 "label": {"en": "Samples", "es": "Muestras"},
                                 "help": {"en": "Engine runs of the design, in steps of 32.",
                                          "es": "Corridas del motor del diseño, en pasos de 32."}},
+        # OP-10: the optimizer's weight on recovered metal; the rest of the objective is the specific energy
+        "optimizer_weight_pct": {"min": w_lo, "max": w_hi, "step": w_step, "integer": True, "unit": "%",
+                                 "default": round(100 * float(constant("optimization.weight_default"))),
+                                 "label": {"en": "Weight on recovered metal", "es": "Peso del metal recuperado"},
+                                 "help": {"en": "The objective's weight on recovered metal, in steps of 5%; the rest weighs "
+                                                "the specific energy. The baked record uses 100%.",
+                                          "es": "El peso del metal recuperado en el objetivo, en pasos de 5%; el resto pondera "
+                                                "la energía específica. El registro horneado usa 100%."}},
     }
 
 

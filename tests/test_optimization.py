@@ -188,3 +188,116 @@ def test_pattern_search_digests():
     for name, (evaluate, start, search) in _pattern_problems().items():
         result = _run(evaluate, start, search=search)
         assert _pattern_digest(result) == PATTERN_SEARCH_DIGESTS[name], name
+
+
+# OP-01, OP-05, OP-06: the weighted objective, the surrogate screen and the screened record. The screen is the
+# export of the learning stage in models/ (OF_MODELS points a development run at a sandbox bake's models).
+
+@lru_cache(maxsize=1)
+def _screen():
+    import os
+    from pathlib import Path
+
+    from pipeline.methods.screen import SCREEN_FILE, Screen
+
+    models = Path(os.environ.get("OF_MODELS", Path(__file__).resolve().parents[1] / "models"))
+    assert (models / SCREEN_FILE).exists(), f"{models} has no {SCREEN_FILE}: bake the learning stage or set OF_MODELS"
+    return Screen(models)
+
+
+@lru_cache(maxsize=None)
+def _screened(case_id: str) -> dict:
+    case = CASE_BY_ID[case_id]
+    return optimize(case, case.nominal, build_contract(), screen=_screen())
+
+
+def test_objective_and_decisions():
+    from pipeline.methods.optimization import Problem
+
+    case = CASE_BY_ID["copper_porphyry_soft"]
+    contract = build_contract()
+    problem = Problem(case, case.nominal, contract)
+    base = problem.evaluate_point(case.nominal)
+    # at the base both terms are 1, so the objective is w - (1 - w)
+    for w in (0.0, 0.25, 0.5, 1.0):
+        assert problem.objective(base, w) == pytest.approx(2.0 * w - 1.0, abs=1e-15)
+    metal = optimize(case, case.nominal, contract, weight=1.0, path=False)
+    energy = optimize(case, case.nominal, contract, weight=0.0, path=False)
+    assert metal["weights"] == {"recovered_metal": 1.0, "energy": 0.0} and energy["weights"] == {"recovered_metal": 0.0, "energy": 1.0}
+    assert metal["decisions"] == list(decisions_for(case.plant.family)) == ["target_p80_um", "collector_gpt", "jg_cm_s"]
+    assert decisions_for("magnetic") == ("target_p80_um",)
+    # each weight's optimum is at least as good as the other's in its own objective
+    assert metal["optimum"]["recovered_tph"] >= energy["optimum"]["recovered_tph"] * (1.0 - 1e-12)
+    assert energy["optimum"]["values"]["energy_kwh_t"] <= metal["optimum"]["values"]["energy_kwh_t"] * (1.0 + 1e-12)
+
+
+def test_screen_accepts_only_inside_envelope():
+    from pipeline.methods.learning import features
+    from pipeline.methods.optimization import Problem, _screen_step
+    from pipeline.methods.pattern_search import SearchState
+
+    case = CASE_BY_ID["copper_porphyry_soft"]
+    screen = _screen()
+    problem = Problem(case, case.nominal, build_contract(), screen)
+    centre = tuple(problem.to_unit(case.nominal))
+    state = SearchState(centre, None, 0.125, float("inf"))
+    log: list = []
+    proposed = _screen_step(problem, 1.0, log)(state)
+    bound = float(constant("optimization.screen_half_width_pct"))
+    passing = []
+    for i in range(len(centre)):
+        for step in (1.0, 2.0):
+            for sign in (1.0, -1.0):
+                x = list(centre)
+                x[i] += sign * step * state.delta
+                if all(0.0 <= v <= 1.0 for v in x):
+                    judged = screen.judge(features(case, problem.from_unit(x), problem.factors))
+                    if judged["guard_error"] <= screen.guard_threshold and judged["half_width"] <= bound:
+                        passing.append((judged["prediction"]["recovery_pct"], tuple(x)))
+    entry = log[0]
+    assert entry["screened"] - entry["guard"] - entry["interval"] == len(passing)
+    if passing:
+        assert proposed == [max(passing)[1]]
+        assert entry["proposal"]["recovery_pct"] == max(passing)[0]
+    else:
+        assert proposed == [] and entry["proposal"] is None
+    # a guard that accepts nothing leaves the search step empty and the poll to the engine
+    strict = Problem(case, case.nominal, build_contract(), screen)
+    original, screen.guard_threshold = screen.guard_threshold, -1.0
+    try:
+        log = []
+        assert _screen_step(strict, 1.0, log)(state) == []
+        assert log[0]["guard"] == log[0]["screened"] > 0
+    finally:
+        screen.guard_threshold = original
+
+
+def test_optimum_is_an_engine_result():
+    case = CASE_BY_ID["copper_porphyry_soft"]
+    record = _screened("copper_porphyry_soft")
+    assert record["screened"] and record["status"] == "optimal"
+    m = simulate(case.ore, case.plant, case.nominal.with_values(**record["optimum"]["decisions"])).metrics
+    assert record["optimum"]["recovered_tph"] == pytest.approx(m["recovered_primary_tph"], rel=1e-12)
+    columns = record["proposal_columns"]
+    for run in record["starts"]:
+        rows = run["screen"]["proposals"]
+        # every proposal the budget did not cut is an engine evaluation, with the engine's value beside the surrogate's
+        for row in rows[:-1] if run["stop"] == "budget" else rows:
+            assert row[columns.index("engine_recovery_pct")] is not None and row[columns.index("engine_objective")] is not None
+
+
+def test_record_fields():
+    record = _screened("copper_oxide")
+    assert record["method"] == "gps-progressive-barrier"
+    assert record["screen_bound_pct"] == float(constant("optimization.screen_half_width_pct"))
+    assert len(record["proposal_columns"]) == 7
+    for run in record["starts"]:
+        s = run["screen"]
+        assert s["iterations"] == run["iterations"]
+        assert s["rejected"]["guard"] + s["rejected"]["interval"] <= s["screened"]
+        assert s["improved"] <= s["proposed"] == len(s["proposals"]) <= s["iterations"]
+    plain = record["without_screen"]
+    assert len(plain["starts"]) == len(record["starts"]) and plain["evaluations"] > 0
+    assert [step["weight"] for step in record["path"]] == constant("optimization.weight_path")
+    assert all("screen" in step and step["stop"] in ("mesh", "budget") for step in record["path"])
+    assert all(len(row) == 5 and row[0] in "diu" for row in record["trace"])

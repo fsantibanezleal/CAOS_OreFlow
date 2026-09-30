@@ -24,6 +24,7 @@ All arithmetic is IEEE doubles in a fixed order, and ``frontend/src/engine/patte
 """
 from __future__ import annotations
 
+import math
 from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from typing import Any
@@ -112,6 +113,9 @@ def pattern_search(evaluate: Evaluator, start: Point, *, mesh_initial: float, me
             if not _inside(x) or len(cache) >= max_evaluations:
                 continue
             f, h = value(x, source)
+            # a state the evaluator cannot score (a contract rejection) is an extreme-barrier point: never an incumbent
+            if not (math.isfinite(f) and math.isfinite(h)):
+                continue
             if dominates(f, h):
                 outcome = "dominating"
                 if h == 0.0:

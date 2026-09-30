@@ -1,4 +1,4 @@
-"""OreFlow bake: contract, cases, learning, benchmark, manifests and validation (design section 11a).
+"""OreFlow bake: contract, learning, cases, benchmark, studies, manifests and validation (design section 11a).
 
 The index and the benchmark are built from this run's records only, never from files already on
 disk, so a partial bake cannot ship as complete; the bake ends by running the artifact checks and
@@ -26,7 +26,8 @@ from .io.contract import export_contract
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DERIVED = REPO_ROOT / "data" / "derived"
 MODELS = REPO_ROOT / "models"
-STAGES = ("contract", "cases", "learning", "benchmark", "studies", "manifests", "validation")
+# learning runs before the cases: the optimizer's screen reads the models this bake exports (OP-05)
+STAGES = ("contract", "learning", "cases", "benchmark", "studies", "manifests", "validation")
 HEADLINE = ("recovery_pct", "concentrate_grade", "specific_energy_total_kwh_t", "p80_um", "mill_power_kw")
 
 
@@ -41,7 +42,7 @@ def write_json(path: Path, document: Any) -> tuple[int, str]:
     return len(data), hashlib.sha256(data).hexdigest()
 
 
-def _bake(args: tuple[str, dict[str, Any], str]) -> dict[str, Any]:
+def _bake(args: tuple[str, dict[str, Any], str, str]) -> dict[str, Any]:
     from .stages.cases import bake_case
 
     return bake_case(*args)
@@ -75,11 +76,28 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     timings["contract"] = time.perf_counter() - t
 
     t = time.perf_counter()
+    if reuse_learning is not None:
+        # a development bake of the case stage: the learned lane depends on the engine and the case envelopes,
+        # not on the method records, so it is taken from an earlier bake (with the models directory it exported)
+        # and marked. check_artifacts.py fails any committed record so marked: release records come from a full bake
+        _log(f"learning: reused from {reuse_learning} (development bake)")
+        record = json.loads(Path(reuse_learning).read_text(encoding="utf-8"))
+        record["reused"] = {"from_contract_digest": record.get("contract_digest"), "from_engine_version": record.get("engine_version")}
+    else:
+        _log("learning: design, protocols and exports")
+        record = learning.run(contract, models_dir)
+    record["engine_version"], record["contract_digest"] = __version__, digest
+    write_json(derived / "learning.json", record)
+    timings["learning"] = time.perf_counter() - t
+
+    _log(f"learning done ({time.perf_counter() - t:.0f}s)")
+
+    t = time.perf_counter()
     ids = [case.id for case in CASES]
     workers = workers or min(len(ids), max(1, (os.cpu_count() or 2) // 2))
     for variable in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "OMP_NUM_THREADS"):
         os.environ.setdefault(variable, "1")   # small dense solves: one thread per worker process
-    jobs = [(case_id, contract, __version__) for case_id in ids]
+    jobs = [(case_id, contract, __version__, str(models_dir)) for case_id in ids]
     _log(f"cases: {len(jobs)} cases on {workers} worker(s)")
     by_id: dict[str, dict[str, Any]] = {}
     if workers > 1:
@@ -95,22 +113,6 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     artifacts = [by_id[case_id] for case_id in ids]     # catalog order, whatever the completion order
     timings["cases"] = time.perf_counter() - t
 
-    t = time.perf_counter()
-    if reuse_learning is not None:
-        # a development bake of the case stage: the learned lane depends on the engine and the case envelopes,
-        # not on the method records, so it is taken from an earlier bake and marked. check_artifacts.py fails any
-        # committed record so marked: release records come from a full bake
-        _log(f"learning: reused from {reuse_learning} (development bake)")
-        record = json.loads(Path(reuse_learning).read_text(encoding="utf-8"))
-        record["reused"] = {"from_contract_digest": record.get("contract_digest"), "from_engine_version": record.get("engine_version")}
-    else:
-        _log("learning: design, protocols and exports")
-        record = learning.run(contract, models_dir)
-    record["engine_version"], record["contract_digest"] = __version__, digest
-    write_json(derived / "learning.json", record)
-    timings["learning"] = time.perf_counter() - t
-
-    _log(f"learning done ({time.perf_counter() - t:.0f}s)")
     t = time.perf_counter()
     bench = benchmark.build(artifacts, oracles.all_oracles(), record, derived, __version__, digest)
     write_json(derived / "benchmark.json", bench)

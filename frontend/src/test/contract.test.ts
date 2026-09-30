@@ -32,7 +32,7 @@ describe('Contract 1 in the browser', () => {
   });
 });
 
-// UQ-07: the method controls. tests/test_contract.py holds the same probe table, so both languages give the same
+// UQ-07, OP-10: the method controls. tests/test_contract.py holds the same probe table, so both languages give the same
 // verdict on every probe.
 const CONTROL_PROBES: Array<[string, unknown, boolean, string | null]> = [
   ['uncertainty_seed', 20260926, true, null], ['uncertainty_seed', 0, true, null],
@@ -42,13 +42,16 @@ const CONTROL_PROBES: Array<[string, unknown, boolean, string | null]> = [
   ['uncertainty_samples', 128, true, null], ['uncertainty_samples', 32, true, null], ['uncertainty_samples', 512, true, null],
   ['uncertainty_samples', 100, false, 'off_step'], ['uncertainty_samples', 16, false, 'out_of_range'],
   ['uncertainty_samples', 544, false, 'out_of_range'], ['uncertainty_bins', 10, false, 'unknown_input'],
+  ['optimizer_weight_pct', 100, true, null], ['optimizer_weight_pct', 0, true, null], ['optimizer_weight_pct', 55, true, null],
+  ['optimizer_weight_pct', 52, false, 'off_step'], ['optimizer_weight_pct', 105, false, 'out_of_range'],
+  ['optimizer_weight_pct', -5, false, 'out_of_range'], ['optimizer_weight_pct', 0.75, false, 'not_integer'],
 ];
 
 describe('the method controls', () => {
   it('are declared with their defaults and validated as the bake validates them', () => {
     const contract = contractDoc as unknown as OperatingContract;
     const controls = contract.controls!;
-    expect(Object.keys(controls).sort()).toEqual(['uncertainty_samples', 'uncertainty_seed']);
+    expect(Object.keys(controls).sort()).toEqual(['optimizer_weight_pct', 'uncertainty_samples', 'uncertainty_seed']);
     for (const [name, spec] of Object.entries(controls)) expect(validateControl(contract, name, spec.default).accepted).toBe(true);
     for (const [name, value, accepted, code] of CONTROL_PROBES) {
       const verdict = validateControl(contract, name, value);

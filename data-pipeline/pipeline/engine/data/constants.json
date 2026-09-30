@@ -405,22 +405,45 @@
         ]
       ],
       "unit": "unit cube of the decision bounds",
-      "source": "Design: five fixed starts that, with the nominal point, make the six COBYLA starts; the magnetite circuit uses the first coordinate of each."
+      "source": "Design: five fixed starts that, with the variant's own point, make the six pattern-search starts; the magnetite circuit uses the first coordinate of each."
     },
-    "optimization.rhobeg": {
+    "optimization.mesh_initial": {
       "value": 0.25,
       "unit": "unit cube of the decision bounds",
-      "source": "Numerics: initial COBYLA trust-region radius (Powell 1994), a quarter of each decision range."
+      "source": "Numerics (OP-02): the pattern search's initial mesh size, a quarter of each decision range; a power of two, so the browser takes the same steps."
     },
-    "optimization.rhoend": {
-      "value": 0.0001,
+    "optimization.mesh_minimum": {
+      "value": 0.0009765625,
       "unit": "unit cube of the decision bounds",
-      "source": "Numerics: final COBYLA trust-region radius (1e-4 of each decision range)."
+      "source": "Numerics (OP-02): the pattern search stops below this mesh size, 2^-10 of each decision range (0.2 um of a 225 um grind range)."
     },
     "optimization.max_evaluations": {
       "value": 200,
       "unit": "1",
-      "source": "Numerics: cap on circuit evaluations per COBYLA start."
+      "source": "Numerics (OP-02): cap on circuit evaluations per pattern-search start."
+    },
+    "optimization.weight_default": {
+      "value": 1.0,
+      "unit": "1",
+      "source": "Design (OP-01): the baked record's weight on recovered metal; 1 is recovered metal alone, the objective since 0.05.000."
+    },
+    "optimization.weight_path": {
+      "value": [
+        0.75,
+        0.5,
+        0.25
+      ],
+      "unit": "1",
+      "source": "Design (OP-07): the weights on recovered metal at which the record keeps the optimum, each warm-started from the previous one."
+    },
+    "optimization.weight_pct_bounds": {
+      "value": [
+        0,
+        100,
+        5
+      ],
+      "unit": "% (minimum, maximum, step)",
+      "source": "Design (OP-10): the workbench's weight on recovered metal, in whole percent so the one validator checks its step in integers; the optimizer divides it by 100, which is exact at the recorded weights."
     },
     "optimization.feasibility_tolerance": {
       "value": 1e-06,
@@ -431,6 +454,11 @@
       "value": 0.001,
       "unit": "1 (relative to each constraint limit)",
       "source": "Design: a constraint whose relative slack at the optimum is below this is reported as active."
+    },
+    "optimization.screen_half_width_pct": {
+      "value": 5.0,
+      "unit": "percentage points of recovery",
+      "source": "Design (OP-05): the screen proposes a candidate only where the Gaussian process's 95% half-width on recovery is at most this; about half the lane's mean held-out half-width (9.3 points in the 0.06.000 learning record), so the surrogate is trusted only where it is more confident than on an average interpolation state."
     },
     "uncertainty.half_widths": {
       "value": {
@@ -628,6 +656,11 @@
       "value": 1e-05,
       "unit": "1 (absolute, standardized outputs)",
       "source": "Numerics: largest difference allowed between PyTorch and ONNX Runtime outputs of an exported model."
+    },
+    "learning.gp_export_tolerance": {
+      "value": 1e-08,
+      "unit": "percentage points of recovery (absolute)",
+      "source": "Numerics (OP-05): largest difference allowed between the screen's float64 Gaussian process and scikit-learn's predict(return_std=True), in mean and standard deviation, at the export check."
     },
     "units.kw_per_mw": {
       "value": 1000.0,

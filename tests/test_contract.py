@@ -115,7 +115,7 @@ def test_contract_file_location():
     assert CONTRACT_PATH.parts[-3:] == ("derived", "contract", "operating_contract.json")
 
 
-# UQ-07: the method controls, and the one validator the browser repeats. frontend/src/test/contract.test.ts holds
+# UQ-07, OP-10: the method controls, and the one validator the browser repeats. frontend/src/test/contract.test.ts holds
 # the same probe table, so the two languages give the same verdict on every probe.
 CONTROL_PROBES = [
     ("uncertainty_seed", 20260926, True, None), ("uncertainty_seed", 0, True, None),
@@ -125,6 +125,9 @@ CONTROL_PROBES = [
     ("uncertainty_samples", 128, True, None), ("uncertainty_samples", 32, True, None), ("uncertainty_samples", 512, True, None),
     ("uncertainty_samples", 100, False, "off_step"), ("uncertainty_samples", 16, False, "out_of_range"),
     ("uncertainty_samples", 544, False, "out_of_range"), ("uncertainty_bins", 10, False, "unknown_input"),
+    ("optimizer_weight_pct", 100, True, None), ("optimizer_weight_pct", 0, True, None), ("optimizer_weight_pct", 55, True, None),
+    ("optimizer_weight_pct", 52, False, "off_step"), ("optimizer_weight_pct", 105, False, "out_of_range"),
+    ("optimizer_weight_pct", -5, False, "out_of_range"), ("optimizer_weight_pct", 0.75, False, "not_integer"),
 ]
 
 
@@ -136,6 +139,8 @@ def test_uncertainty_controls_declared():
     controls = contract["controls"]
     assert controls["uncertainty_seed"]["default"] == int(constant("uncertainty.seed"))
     assert controls["uncertainty_samples"]["default"] == int(constant("uncertainty.samples"))
+    assert controls["optimizer_weight_pct"]["default"] == 100 * constant("optimization.weight_default")
+    assert [controls["optimizer_weight_pct"][k] for k in ("min", "max", "step")] == constant("optimization.weight_pct_bounds")
     for spec in controls.values():
         assert spec["label"]["en"] and spec["label"]["es"] and spec["help"]["en"] and spec["help"]["es"]
         assert validate_control(contract, next(k for k, v in controls.items() if v is spec), spec["default"])["accepted"]
@@ -145,3 +150,18 @@ def test_uncertainty_controls_declared():
         assert verdict["accepted"] == accepted, (name, value, verdict)
         if code:
             assert verdict["errors"][0]["code"] == code, (name, value, verdict)
+
+
+def test_weights_declared():
+    """OP-10: the optimizer's weight control is declared from its constants, and the validator holds its step."""
+    from pipeline.engine.constants import constant
+    from pipeline.io.contract import build_contract, validate_control
+
+    contract = build_contract()
+    spec = contract["controls"]["optimizer_weight_pct"]
+    assert spec["integer"] and spec["unit"] == "%"
+    assert [spec["min"], spec["max"], spec["step"]] == constant("optimization.weight_pct_bounds")
+    # every recorded weight is a value of the control, so the workbench can re-run each step of the path
+    for weight in [constant("optimization.weight_default"), *constant("optimization.weight_path")]:
+        assert validate_control(contract, "optimizer_weight_pct", round(100 * weight))["accepted"]
+        assert round(100 * weight) / 100 == weight

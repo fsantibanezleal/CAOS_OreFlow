@@ -147,6 +147,35 @@ def check_variant(case_id: str, family: str, variant: dict) -> list[str]:
             errors.append(f"{where}: infeasible record shape")
     else:
         errors.append(f"{where}: optimization status {opt.get('status')}")
+    # OP-02, OP-07: the method and its weights are declared, every start says why it stopped, and the weight path
+    # holds the declared weights in order
+    if opt.get("method") != "pattern search with a progressive barrier":
+        errors.append(f"{where}: optimization method {opt.get('method')}")
+    weights = opt.get("weights", {})
+    if weights.get("recovered_metal") != _constant("optimization.weight_default") or abs(weights.get("recovered_metal", 0.0) + weights.get("energy", 0.0) - 1.0) > 1e-12:
+        errors.append(f"{where}: optimization weights")
+    if any(s.get("stop") not in ("mesh", "budget") for s in opt.get("starts", [])):
+        errors.append(f"{where}: a start without a declared stop")
+    if [s.get("weight") for s in opt.get("path", [])] != _constant("optimization.weight_path"):
+        errors.append(f"{where}: optimization weight path")
+    # OP-05, OP-06: the bake's record is screened, every start carries its screen counts and proposals, and the same
+    # starts without the screen are recorded, so the saving is a record
+    if opt.get("screened") is not True or opt.get("screen_bound_pct") != _constant("optimization.screen_half_width_pct"):
+        errors.append(f"{where}: optimization record not screened")
+    else:
+        columns = opt.get("proposal_columns", [])
+        for s in opt.get("starts", []):
+            sc = s.get("screen", {})
+            if (sc.get("iterations") != s.get("iterations") or sc.get("proposed") != len(sc.get("proposals", []))
+                    or sc["rejected"]["guard"] + sc["rejected"]["interval"] > sc.get("screened", -1)
+                    or any(len(row) != len(columns) for row in sc.get("proposals", []))):
+                errors.append(f"{where}: a start's screen record")
+                break
+        plain = opt.get("without_screen") or {}
+        # the starts share one cache, so their evaluations add up to the run's
+        if (len(plain.get("starts", [])) != len(opt.get("starts", [])) or sum(plain.get("starts", [])) != plain.get("evaluations")
+                or sum(s.get("evaluations", 0) for s in opt.get("starts", [])) != opt.get("evaluations")):
+            errors.append(f"{where}: evaluation counts with and without the screen")
     unc = methods.get("uncertainty", {})
     if unc.get("samples") != _constant("uncertainty.samples"):
         errors.append(f"{where}: uncertainty sample count")
@@ -243,6 +272,20 @@ def check_learning(derived: Path, models: Path, version: str, digest: str | None
         file = models / export["path"]
         if not file.is_file() or file.stat().st_size != export["bytes"] or export["max_abs_difference"] > tolerance:
             errors.append(f"ONNX export {export['path']}")
+    # OP-05: the optimizer's screen, exported with the networks and checked against scikit-learn at export
+    screen = record.get("final", {}).get("exports", {}).get("screen")
+    if screen is None and not record.get("reused"):
+        errors.append("the learning record has no screen export")
+    screen_file = models / "process_screen.json"
+    if not screen_file.is_file():
+        errors.append("missing models/process_screen.json")
+    else:
+        gp = json.loads(screen_file.read_text(encoding="utf-8"))["gp"]
+        cholesky = models / gp["cholesky"]["file"]
+        if gp["cholesky"]["values"] != gp["rows"] * (gp["rows"] + 1) // 2 or not cholesky.is_file() or cholesky.stat().st_size != 8 * gp["cholesky"]["values"]:
+            errors.append("screen Cholesky factor size")
+        if screen is not None and (screen["gp_max_abs_difference"] > _constant("learning.gp_export_tolerance") or screen["cholesky"]["bytes"] != cholesky.stat().st_size):
+            errors.append("screen export check")
     return errors
 
 
