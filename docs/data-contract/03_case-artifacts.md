@@ -74,7 +74,11 @@ entry per case (`case_id`, `category`, `family`, `title`, `manifest_path`, `arti
   metrics (recovery, concentrate and head grade, recovered metal, specific energy, mill power, P80,
   process water per tonne, the power-limited state, flags and balance), the published-example oracles recomputed by the engine, kinetic lumping errors, optimizer
   outcomes, uncertainty quantiles with the dominant Sobol input, the learning summary, and pointers
-  to the two measured lanes.
+  to the two measured lanes. Each variant's optimizer row holds its status, whether the base was feasible, the gain,
+  the active constraints, the decisions, the engine evaluations, `screened`, the weight path (`weight`, `status`,
+  `recovered_tph`, `energy_kwh_t` per step) and, for a screened search (OP-11), `evaluations_without_screen`,
+  `screened_candidates`, `proposed`, `improved`, `surrogate_abs_error_pp` (the mean distance of the surrogate's
+  recovery from the engine's where it proposed) and `same_optimum_without_screen`.
 - `data/derived/validation.json` (`oreflow.validation/v2`): whether the in-process run of
   `scripts/check_artifacts.py` passed, its errors, the stages and the seconds each took.
 
@@ -98,8 +102,8 @@ entry per case (`case_id`, `category`, `family`, `title`, `manifest_path`, `arti
   records (sample count, quantile order, probabilities in [0, 1]), the Sobol record on the nominal variant only;
 - the learning record (model classes, twelve leave-one-case-out folds, guard rates, GP coverage,
   ONNX files matching their recorded size and PyTorch parity, the screen's export and its Cholesky factor's size),
-  the benchmark oracle verdicts, the benchmark's variant metrics equal to the case artifacts' own, and the two
-  measured lanes;
+  the benchmark oracle verdicts, the benchmark's variant metrics and optimizer rows (status, evaluations, the
+  screen's counts and the weight path) equal to the case artifacts' own, and the two measured lanes;
 - the real-sample record (the pins, the population, the Bond work index recomputed, the allocation, the balances
   and the lane join) and the iron-plant soft sensor (the pin, the population and exclusions, the features, the
   windows, the embargo and the model matrix).
