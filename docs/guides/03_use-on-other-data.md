@@ -6,7 +6,7 @@ is the engine's answer for the ore and plant you describe, nothing more.
 
 ## 1. Move the controls of a case (no installation)
 
-Open a case in the workbench, change any of its twelve inputs within the contract's bounds, and read the
+Open a case in the workbench, change any of its thirteen inputs within the contract's bounds, and read the
 views. A state is a link: the URL carries the case, the variant, the view and every changed input
 (`?case=copper_porphyry_soft&variant=nominal&set=target_p80_um:120,collector_gpt:30`), so a state can be
 sent to someone else and opens as you left it.

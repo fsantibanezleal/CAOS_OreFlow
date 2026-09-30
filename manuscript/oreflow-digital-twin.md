@@ -103,7 +103,7 @@ magnetite content; desliming cyclones discard slimes ahead of flotation.
 ### 2.4 The audit and the contract
 
 An independent audit recomputes, from the output streams alone, the closure of every mineral, every species
-and the water at every unit and for the circuit. The operating point is twelve inputs declared once, with units,
+and the water at every unit and for the circuit. The operating point is thirteen inputs declared once, with units,
 per-case bounds, steps, the families they apply to, a cross-field rule and bilingual messages; the exported
 declaration is interpreted identically by the engine's validator, the web service and the browser, so a state
 is accepted or rejected with the same code everywhere.

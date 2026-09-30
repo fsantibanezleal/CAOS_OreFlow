@@ -22,7 +22,7 @@ function OverviewFigure({ lang }: { lang: Lang }) {
       {/* inputs */}
       <Box x={12} y={30} w={160} h={86} title={p('Ore', 'Mineral')} lines={[p('minerals and densities', 'minerales y densidades'), p('head grade', 'ley de cabeza'), p('Bond work index', 'índice de Bond'), p('liberation size', 'tamaño de liberación')]} />
       <Box x={12} y={128} w={160} h={72} title={p('Plant', 'Planta')} lines={[p('installed mill power', 'potencia instalada'), p('cyclone cluster', 'batería de ciclones'), p('flotation cells', 'celdas de flotación')]} />
-      <Box x={12} y={212} w={160} h={72} title={p('Operating point', 'Punto de operación')} kind="accent" lines={[p('12 inputs', '12 entradas'), p('bounds per case', 'límites por caso'), p('validated first', 'se valida primero')]} />
+      <Box x={12} y={212} w={160} h={72} title={p('Operating point', 'Punto de operación')} kind="accent" lines={[p('13 inputs', '13 entradas'), p('bounds per case', 'límites por caso'), p('validated first', 'se valida primero')]} />
       {[73, 164, 248].map(y => <line key={y} className="dg-edge" x1="172" y1={y} x2="194" y2={y} markerEnd={arrow} />)}
 
       {/* the circuit */}

@@ -36,7 +36,7 @@ function ArchitectureFigure({ lang }: { lang: Lang }) {
         { y: 292, h: 44, title: p('Benchmark and manifests', 'Benchmark y manifiestos'), lines: [p('and the balance recheck', 'y la verificación de balances')] },
       ])}
       {column(325, p('Committed artifacts', 'Artefactos versionados'), [
-        { y: 48, h: 44, title: p('Operating contract', 'Contrato de operación'), lines: [p('12 inputs, 4 families', '12 entradas, 4 familias')] },
+        { y: 48, h: 44, title: p('Operating contract', 'Contrato de operación'), lines: [p('13 inputs, 4 families', '13 entradas, 4 familias')] },
         { y: 102, h: 58, title: p('12 case artifacts', '12 artefactos de caso'), lines: [p('96 variants with traces', '96 variantes con trazas'), p('and method records', 'y registros de métodos')] },
         { y: 170, h: 44, title: p('Manifests and index', 'Manifiestos e índice'), lines: [p('bytes, SHA-256, digest', 'bytes, SHA-256, huella')] },
         { y: 224, h: 58, title: p('Learning record', 'Registro de aprendizaje'), lines: [p('surrogate and guard ONNX', 'ONNX de sustituto y guardia'), p('scalers, reference', 'escaladores, referencia')] },
