@@ -164,6 +164,8 @@ const MINERALS: Record<string, T> = {
   arsenopyrite: { en: 'Arsenopyrite', es: 'Arsenopirita' },
   calcite: { en: 'Calcite', es: 'Calcita' },
   chalcopyrite: { en: 'Chalcopyrite', es: 'Calcopirita' },
+  bornite: { en: 'Bornite', es: 'Bornita' },
+  chalcocite: { en: 'Chalcocite', es: 'Calcosina' },
   chrysocolla: { en: 'Chrysocolla', es: 'Crisocola' },
   electrum: { en: 'Electrum', es: 'Electrum' },
   fluorapatite: { en: 'Fluorapatite', es: 'Fluorapatita' },

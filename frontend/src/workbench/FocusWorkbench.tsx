@@ -16,7 +16,9 @@ import { flagShort, metricLabel, t, UI } from '../lib/i18n';
 import { OverlayInset, type Inset } from '../components/charts/inset';
 import { ControlList } from './Controls';
 import { FlowsheetDiagram } from './FlowsheetDiagram';
-import { changedInputs, stateQuery, useWorkbench } from './state';
+import { SAMPLE_FIXED } from './Rail';
+import { changedInputs, sourceQuery, stateQuery, useWorkbench } from './state';
+import { SourceStatement } from './views/SourceViews';
 import { useCaseState, useLoaded } from './Workbench';
 import { GRINDING_CHARTS, grindingCharts, type GrindingChart } from './views/GrindingView';
 import { ResponseView } from './views/ResponseView';
@@ -67,35 +69,38 @@ export default function FocusWorkbench() {
     if (pathCase) merged.set('case', pathCase);
     return merged;
   }, [search, pathCase]);
-  const { caseId, variantId, base, point, view, selectedUnit, advanced, setVariant, setAdvanced, selectUnit } = useWorkbench();
+  const { caseId, variantId, base, point, view, selectedUnit, advanced, source, sampleId, hourKey, setVariant, setAdvanced, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
-  const { artifact, variant, trace, accepted, errors } = useCaseState(loaded, params);
+  const { artifact, variant, trace, accepted, errors, sample } = useCaseState(loaded, params);
   const [stage, setStage] = useState<Stage>(() => (search.get('stage') as Stage | null) ?? 'flowsheet');
   const [cursor, setCursor] = useState<string | null>(null);
 
   // the URL mirrors the state, as on the workbench
   useEffect(() => {
     if (!caseId || !base) return;
-    const query = `${stateQuery(caseId, variantId, base, point, view)}&stage=${stage}`;
+    const query = `${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}&stage=${stage}`;
     if (query !== search.toString()) navigate(`/focus/${caseId}?${query}`, { replace: true });
-  }, [caseId, variantId, base, point, view, stage, search, navigate]);
+  }, [caseId, variantId, base, point, view, source, sampleId, hourKey, stage, search, navigate]);
 
   if (failure) return <p className="of-failure" role="alert">{failure}</p>;
   if (!loaded || !artifact || !variant || !point || artifact.case_id !== caseId) return <p className="of-hint" role="status">{t(UI.loading, lang)}</p>;
   const contract = loaded.contract;
   const primary = contract.cases[caseId].primary;
-  const exit = () => navigate(`/?${stateQuery(caseId, variantId, base, point, view)}`);
+  const exit = () => navigate(`/?${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`);
 
   const choices: Array<{ id: Stage; label: string; node: React.ReactNode }> = [];
   if (trace && accepted) {
     choices.push({ id: 'flowsheet', label: TEXT.flowsheet[lang],
       node: <FlowsheetDiagram trace={trace} primary={primary} lang={lang} selected={selectedUnit} onSelect={selectUnit} summary={TEXT.flowsheetSummary[lang]} /> });
-    const grinding = grindingCharts(trace, artifact.definition.ore, lang, setCursor);
+    const grinding = grindingCharts(trace, sample ? sample.ore : artifact.definition.ore, lang, setCursor);
     for (const [id, node] of Object.entries(grinding)) choices.push({ id: id as Stage, label: GRINDING_CHARTS[id as GrindingChart][lang], node });
     const separation = separationCharts(trace, primary, lang, setCursor);
     for (const [id, node] of Object.entries(separation)) choices.push({ id: id as Stage, label: SEPARATION_CHARTS[id as SeparationChart][lang], node });
-    choices.push({ id: 'response', label: TEXT.response[lang],
-      node: <ResponseView contract={contract} artifact={artifact} optimization={variant.methods.optimization} point={accepted} lang={lang} onCursor={setCursor} /> });
+    // a sample's datum lies outside the synthetic envelope the sweeps run over (RS-08)
+    if (source === 'case') {
+      choices.push({ id: 'response', label: TEXT.response[lang],
+        node: <ResponseView contract={contract} artifact={artifact} optimization={variant.methods.optimization} point={accepted} lang={lang} onCursor={setCursor} /> });
+    }
   }
   const current = choices.find(c => c.id === stage) ?? choices[0];
   const modified = Object.keys(changedInputs(base, point)).length > 0;
@@ -107,16 +112,18 @@ export default function FocusWorkbench() {
         <select value={current?.id ?? 'flowsheet'} onChange={e => setStage(e.target.value as Stage)}>
           {choices.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
         </select></label>
-      <label className="of-field"><span>{t(UI.variant, lang)}</span>
+      {source === 'case' && <label className="of-field"><span>{t(UI.variant, lang)}</span>
         <select value={variantId} onChange={e => {
           const next = artifact.variants.find(v => v.id === e.target.value);
           if (next) setVariant(next.id, next.point);
-        }}>{artifact.variants.map(v => <option key={v.id} value={v.id}>{v.label[lang]}</option>)}</select></label>
+        }}>{artifact.variants.map(v => <option key={v.id} value={v.id}>{v.label[lang]}</option>)}</select></label>}
+      {source === 'sample' && sample && <p className="of-rail-question">{sample.id}</p>}
       <div className="of-rail-sections" role="group" aria-label={TEXT.controls[lang]}>
         <button type="button" className={advanced ? '' : 'active'} aria-pressed={!advanced} onClick={() => setAdvanced(false)}>{t(UI.basic, lang)}</button>
         <button type="button" className={advanced ? 'active' : ''} aria-pressed={advanced} onClick={() => setAdvanced(true)}>{t(UI.advanced, lang)}</button>
       </div>
-      <ControlList contract={contract} caseId={caseId} names={advanced ? ALL : BASIC} variantPoint={variant.point} errors={errors} lang={lang} idPrefix="of-focus" />
+      {source !== 'hour' && <ControlList contract={contract} caseId={caseId} names={advanced ? ALL : BASIC} variantPoint={source === 'sample' ? base : variant.point} errors={errors} lang={lang}
+        idPrefix="of-focus" fixed={source === 'sample' ? SAMPLE_FIXED : {}} />}
       {modified && <button type="button" className="of-revert" onClick={() => useWorkbench.getState().reset()}>{t(UI.reset, lang)}</button>}
     </div>
   );
@@ -126,7 +133,7 @@ export default function FocusWorkbench() {
       stage={(
         <OverlayInset.Provider value={FOCUS_INSET}>
           <div className="of-focus-body">
-            {current?.node ?? <p className="of-hint" role="status">{t(UI.loading, lang)}</p>}
+            {source === 'hour' ? <SourceStatement kind="hour" lang={lang} /> : current?.node ?? <p className="of-hint" role="status">{t(UI.loading, lang)}</p>}
             {cursor && <p className="of-focus-cursor" aria-live="polite">{cursor}</p>}
           </div>
         </OverlayInset.Provider>

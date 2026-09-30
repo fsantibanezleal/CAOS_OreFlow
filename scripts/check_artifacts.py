@@ -232,7 +232,8 @@ def check_cases(derived: Path, version: str, digest: str | None) -> list[str]:
                 or artifact.get("contract_digest") != digest:
             errors.append(f"{entry['case_id']}: artifact schema, version or contract")
         variants = artifact.get("variants", [])
-        if len(variants) != 6 or len({v["id"] for v in variants}) != 6 or variants[0]["id"] != "nominal":
+        per_case = N_VARIANTS // N_CASES
+        if len(variants) != per_case or len({v["id"] for v in variants}) != per_case or variants[0]["id"] != "nominal"                 or [v["id"] for v in variants[-2:]] != ["cut_nominal", "cut_finer"]:
             errors.append(f"{entry['case_id']}: variant coverage")
         for variant in variants:
             errors += check_variant(entry["case_id"], artifact["family"], variant)
@@ -451,6 +452,30 @@ def check_geomet(derived: Path) -> list[str]:
     return errors
 
 
+def check_iron_plant(derived: Path) -> list[str]:
+    """IS-01 to IS-04: the soft-sensor lane's committed artifact (the tests hold its rules on synthetic frames)."""
+    path = derived / "source" / "iron_plant_soft_sensor.json"
+    if not path.is_file():
+        return ["missing iron-plant soft-sensor artifact"]
+    a = _load(path)
+    errors: list[str] = []
+    q, s, protocol = a.get("quality", {}), a.get("source", {}), a.get("protocol", {})
+    models = {"train_mean", "previous_lab", "ridge", "random_forest", "hist_gradient_boosting",
+              "ridge_with_previous_lab", "boosting_with_previous_lab"}
+    if a.get("schema") != "oreflow.iron-plant-soft-sensor/v1" or s.get("archive_sha256") != "fa1fb0c928d84366ec1bd315e0ed1380f5d5576525603458b49ea4cfe446d98e":
+        errors.append("iron plant schema or archive pin")
+    if (q.get("source_rows"), q.get("nominal_hours"), q.get("changing_lab_hours_excluded")) != (737453, 4097, 310):
+        errors.append("iron plant population or exclusions")
+    if len(protocol.get("features", [])) != 21 or {"date", "% Iron Concentrate", "% Silica Concentrate"} & set(protocol.get("features", [])):
+        errors.append("iron plant features")
+    folds = a.get("folds", [])
+    if len(folds) != 3 or any(f.get("embargo_hours_min", 0) < 24.0 or set(f.get("scores", {})) != models for f in folds):
+        errors.append("iron plant windows, embargo or model matrix")
+    if set(a.get("pooled_scores", {})) != models:
+        errors.append("iron plant pooled scores")
+    return errors
+
+
 def check_real_samples(derived: Path, version: str, digest: str | None) -> list[str]:
     """RS-01 to RS-05: the GeoMet samples' record, with the Bond work index and the normative allocation recomputed
     here from what the record keeps."""
@@ -492,7 +517,8 @@ def run(derived: Path, models: Path, allow_reused_learning: bool = False) -> lis
     return (contract_errors + check_cases(derived, version, digest)
             + check_learning(derived, models, version, digest, allow_reused_learning)
             + check_benchmark(derived, version, digest) + check_studies(derived, version, digest)
-            + check_particles(derived, models) + check_geomet(derived) + check_real_samples(derived, version, digest))
+            + check_particles(derived, models) + check_geomet(derived) + check_iron_plant(derived)
+            + check_real_samples(derived, version, digest))
 
 
 def main() -> int:

@@ -76,6 +76,8 @@ input, select, textarea { font: inherit; }
 .of-segmented button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
 .of-knob.follows label, .of-knob.follows output { color: var(--color-fg-faint); }
 .of-knob.follows input[type='range'] { opacity: 0.45; }
+.of-knob.fixed label, .of-knob.fixed output { color: var(--color-fg-faint); }
+.of-knob.fixed input[type='range'] { opacity: 0.45; }
 .of-knob-error, .of-rail > .of-knob-error { margin: 0; font-size: 0.72rem; line-height: 1.35; color: var(--color-bad); }
 
 .of-focus-open {

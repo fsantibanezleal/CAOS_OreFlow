@@ -112,3 +112,24 @@ Each variant is a full optimization, about a minute of engine runs, so CI (ADR-0
 nominal variants of three cases that cover one decision, a binding water constraint and a screen that rarely
 passes; `OF_PARITY=full` runs all 72 variants locally at every release, and `docs/release-verification.md`
 records the run.
+
+## Measured on 2026-09-30: the screen does not pay on this engine
+
+`measurements/screen_variants.py` and its JSON ran the 12 nominal states at weight 1 (six starts, no weight path),
+with the screen exported from the committed learning record:
+
+| Search | Engine evaluations | Against no screen |
+| --- | --- | --- |
+| no screen | 3,683 | |
+| the screen as designed (one and two mesh steps) | 3,974 | 7.9% more |
+| the screen limited to one mesh step | 3,753 | 1.9% more |
+
+All three reach the same optimum in every case, to the sixth decimal of recovered metal. Over the 72 variants of the
+first screened development bake (with the weight path) the designed screen spent 8.3% more (23,597 against 21,794).
+Of its 4,812 proposals, 831 (17%) became an incumbent. The surrogate's error on recovery at the proposals had a
+median of 0.59 points. So the surrogate is accurate where it is trusted, but the mesh neighbours differ by less
+than its error, and a failed two-step proposal is an evaluation the poll would not have made.
+
+The design is kept as validated. The screen runs in the bake and the browser, and its cost is the reported
+result (OP-11). The one-step variant, measured and cheaper, is not adopted: it still does not save evaluations, and
+changing the candidates after seeing the numbers would tune the method to the result.

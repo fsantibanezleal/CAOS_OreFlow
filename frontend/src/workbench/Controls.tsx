@@ -25,9 +25,11 @@ export function contractMessage(contract: OperatingContract, error: ContractErro
 /** Inputs the cut mode turns into results: the engine ignores them while the classifier cut is set. */
 const FOLLOW_IN_CUT_MODE = new Set(['target_p80_um', 'circulating_load']);
 
-export function ControlList({ contract, caseId, names, variantPoint, errors, lang, idPrefix = 'of' }: {
+export function ControlList({ contract, caseId, names, variantPoint, errors, lang, idPrefix = 'of', fixed = {} }: {
   contract: OperatingContract; caseId: string; names: Array<keyof OperatingPoint>; variantPoint: OperatingPoint | null;
   errors: ContractError[]; lang: Lang; idPrefix?: string;
+  /** Inputs a real sample fixes (RS-08): shown, disabled, with the reason each is fixed. */
+  fixed?: Partial<Record<keyof OperatingPoint, { en: string; es: string }>>;
 }) {
   const { point, setValue } = useWorkbench();
   const entry = contract.cases[caseId];
@@ -72,6 +74,19 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
           );
         }
         const follows = FOLLOW_IN_CUT_MODE.has(name) && point !== null && point.d50c_um > 0;
+        const fixedBy = fixed[name];
+        if (fixedBy) {
+          return (
+            <div key={name} className="of-knob fixed">
+              <label htmlFor={id} title={spec.help[lang]}>
+                <span>{spec.label[lang]}</span>
+                <output htmlFor={id}>{shown}</output>
+              </label>
+              <input id={id} type="range" min={Math.min(bounds.min, value)} max={Math.max(bounds.max, value)} step={bounds.step} value={value} disabled aria-describedby={`${id}-fixed`} />
+              <small id={`${id}-fixed`} className="of-knob-base">{fixedBy[lang]}</small>
+            </div>
+          );
+        }
         return (
           <div key={name} className={`of-knob${error ? ' invalid' : ''}${follows ? ' follows' : ''}`}>
             <label htmlFor={id} title={spec.help[lang]}>

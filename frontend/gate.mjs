@@ -57,7 +57,9 @@ const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case
 // (both themes and both languages at each size: PE-37 names phone, tablet and desktop in both)
 const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,390x844-dark-es,768x1024-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
-const TAB_CENSUS = { implementation: 9, experiments: 7 };
+// the tab counts the pages must show: Implementation's nine (PG-02), Experiments' seven (PG-01), and Benchmark's five
+// with the industrial-quality lane (IS-05)
+const TAB_CENSUS = { implementation: 9, experiments: 7, benchmark: 5 };
 mkdirSync(OUT, { recursive: true });
 
 const results = [];

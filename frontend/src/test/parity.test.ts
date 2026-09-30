@@ -12,7 +12,8 @@ import type { OperatingPoint, Ore, Plant } from '../engine';
 // valley (a two-rate fit whose second component is nearly empty) a last-bit difference flips one step's
 // acceptance and the stopping test is met a few steps earlier or later, while the fitted parameters, the
 // fit error, the convergence flag and the bank projections still agree within 1e-6.
-const root = fileURLToPath(new URL('../../../data/derived/cases/', import.meta.url));
+// OF_DERIVED points a development run at a sandbox bake; by default the committed records are compared
+const root = process.env.OF_DERIVED ? join(process.env.OF_DERIVED, 'cases') : fileURLToPath(new URL('../../../data/derived/cases/', import.meta.url));
 const files = readdirSync(root).filter(f => f.endsWith('.json')).sort();
 const RELATIVE = 1e-6;
 const ABSOLUTE = 1e-12;

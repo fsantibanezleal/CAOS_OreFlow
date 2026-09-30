@@ -1,0 +1,225 @@
+{
+ "rows": [
+  {
+   "case": "copper_porphyry_soft",
+   "plain": {
+    "evaluations": 266,
+    "recovered_tph": 5.212463783945246,
+    "seconds": 14.98144719999982
+   },
+   "designed": {
+    "evaluations": 288,
+    "recovered_tph": 5.212463783945246,
+    "seconds": 38.74807830003556
+   },
+   "one_step": {
+    "evaluations": 314,
+    "recovered_tph": 5.212463783945246,
+    "seconds": 40.24216200003866
+   }
+  },
+  {
+   "case": "copper_porphyry_hard",
+   "plain": {
+    "evaluations": 415,
+    "recovered_tph": 2.559565897330359,
+    "seconds": 29.438108399976045
+   },
+   "designed": {
+    "evaluations": 487,
+    "recovered_tph": 2.559565897330359,
+    "seconds": 64.58842639997602
+   },
+   "one_step": {
+    "evaluations": 426,
+    "recovered_tph": 2.559565897330359,
+    "seconds": 60.322028299968224
+   }
+  },
+  {
+   "case": "gold_free_milling",
+   "plain": {
+    "evaluations": 266,
+    "recovered_tph": 0.000872788155227421,
+    "seconds": 11.939667400030885
+   },
+   "designed": {
+    "evaluations": 267,
+    "recovered_tph": 0.000872788155227421,
+    "seconds": 24.3790425999905
+   },
+   "one_step": {
+    "evaluations": 267,
+    "recovered_tph": 0.000872788155227421,
+    "seconds": 24.593710299988743
+   }
+  },
+  {
+   "case": "iron_magnetite_fine",
+   "plain": {
+    "evaluations": 57,
+    "recovered_tph": 232.59894856696633,
+    "seconds": 1.2239724000100978
+   },
+   "designed": {
+    "evaluations": 67,
+    "recovered_tph": 232.59894856696633,
+    "seconds": 2.4773699000361376
+   },
+   "one_step": {
+    "evaluations": 57,
+    "recovered_tph": 232.59894856696633,
+    "seconds": 2.3911688999505714
+   }
+  },
+  {
+   "case": "nickel_sulphide",
+   "plain": {
+    "evaluations": 316,
+    "recovered_tph": 4.225903785650404,
+    "seconds": 41.50641559995711
+   },
+   "designed": {
+    "evaluations": 326,
+    "recovered_tph": 4.225903785650404,
+    "seconds": 89.95002319995547
+   },
+   "one_step": {
+    "evaluations": 314,
+    "recovered_tph": 4.225903785650404,
+    "seconds": 116.14344790001633
+   }
+  },
+  {
+   "case": "phosphate_clay",
+   "plain": {
+    "evaluations": 315,
+    "recovered_tph": 40.333144423615344,
+    "seconds": 40.54611659998773
+   },
+   "designed": {
+    "evaluations": 315,
+    "recovered_tph": 40.333144423615344,
+    "seconds": 79.93839979998302
+   },
+   "one_step": {
+    "evaluations": 315,
+    "recovered_tph": 40.333144423615344,
+    "seconds": 83.48686619999353
+   }
+  },
+  {
+   "case": "copper_molybdenum",
+   "plain": {
+    "evaluations": 271,
+    "recovered_tph": 3.8340383464904706,
+    "seconds": 32.89101570000639
+   },
+   "designed": {
+    "evaluations": 371,
+    "recovered_tph": 3.8340383464904706,
+    "seconds": 71.95088039996335
+   },
+   "one_step": {
+    "evaluations": 341,
+    "recovered_tph": 3.8340383464904706,
+    "seconds": 68.28347769996617
+   }
+  },
+  {
+   "case": "copper_oxide",
+   "plain": {
+    "evaluations": 462,
+    "recovered_tph": 5.177272296926886,
+    "seconds": 49.80992209998658
+   },
+   "designed": {
+    "evaluations": 420,
+    "recovered_tph": 5.177272296926886,
+    "seconds": 98.26917949999915
+   },
+   "one_step": {
+    "evaluations": 400,
+    "recovered_tph": 5.177272296926886,
+    "seconds": 92.7312571000075
+   }
+  },
+  {
+   "case": "zinc_sulfide",
+   "plain": {
+    "evaluations": 298,
+    "recovered_tph": 36.57896189936821,
+    "seconds": 30.11504150001565
+   },
+   "designed": {
+    "evaluations": 308,
+    "recovered_tph": 36.57896189936821,
+    "seconds": 56.87407159997383
+   },
+   "one_step": {
+    "evaluations": 264,
+    "recovered_tph": 36.57896189936821,
+    "seconds": 51.81391309999162
+   }
+  },
+  {
+   "case": "mixed_ore_high_clay",
+   "plain": {
+    "evaluations": 334,
+    "recovered_tph": 2.429508887572558,
+    "seconds": 25.99659789999714
+   },
+   "designed": {
+    "evaluations": 359,
+    "recovered_tph": 2.429508887572558,
+    "seconds": 54.807771900028456
+   },
+   "one_step": {
+    "evaluations": 348,
+    "recovered_tph": 2.429508887572558,
+    "seconds": 53.9905948000378
+   }
+  },
+  {
+   "case": "low_grade_copper",
+   "plain": {
+    "evaluations": 417,
+    "recovered_tph": 3.1476270408021882,
+    "seconds": 24.976900800014846
+   },
+   "designed": {
+    "evaluations": 501,
+    "recovered_tph": 3.1472226644056844,
+    "seconds": 56.09528540004976
+   },
+   "one_step": {
+    "evaluations": 443,
+    "recovered_tph": 3.1476270408021882,
+    "seconds": 52.33359769999515
+   }
+  },
+  {
+   "case": "refractory_gold",
+   "plain": {
+    "evaluations": 266,
+    "recovered_tph": 0.0006688465658005421,
+    "seconds": 12.548791699984577
+   },
+   "designed": {
+    "evaluations": 265,
+    "recovered_tph": 0.0006688465658005421,
+    "seconds": 24.85732690000441
+   },
+   "one_step": {
+    "evaluations": 264,
+    "recovered_tph": 0.0006688465658005421,
+    "seconds": 25.129250700003468
+   }
+  }
+ ],
+ "totals": {
+  "plain": 3683,
+  "designed": 3974,
+  "one_step": 3753
+ }
+}
