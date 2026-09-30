@@ -150,17 +150,24 @@ function casePage(entry, n) {
   const primaryUnit = contract.cases[id].primary.unit;
   for (const [name, bounds] of Object.entries(caseInputs)) {
     const ref = nominal.point[name];
-    out.push(`| ${inputSpec[name].label.en} | ${inputValue(name, ref, ref, primaryUnit)} | ${inputValue(name, bounds.min, ref, primaryUnit)} to ${inputValue(name, bounds.max, ref, primaryUnit)} |`);
+    // the classifier cut's nominal is its off value, the target mode; the contract accepts it beside the range
+    const off = 'off' in bounds && ref === bounds.off;
+    const nominalText = off ? 'off (target mode)' : inputValue(name, ref, ref, primaryUnit);
+    out.push(`| ${inputSpec[name].label.en} | ${nominalText} | ${inputValue(name, bounds.min, off ? bounds.min : ref, primaryUnit)} to ${inputValue(name, bounds.max, off ? bounds.max : ref, primaryUnit)}${off ? ', or off' : ''} |`);
   }
   out.push('');
 
   const cutVariants = artifact.variants.filter(v => 'd50c_um' in v.change).length;
   out.push('## The variants', '');
-  out.push(`Each variant changes exactly one input of the nominal state; the last ${cutVariants} run the grinding circuit in the cut mode, where the classifier's cut is set and the grind and the circulating load follow.`, '');
+  const count = { 1: 'one', 2: 'two', 3: 'three', 4: 'four' }[cutVariants] ?? String(cutVariants);
+  out.push(`Each variant changes exactly one input of the nominal state; the last ${count} run the grinding circuit in the cut mode, where the classifier's cut is set and the grind and the circulating load follow.`, '');
   const head = ['recovery_pct', 'concentrate_grade', 'specific_energy_total_kwh_t', 'p80_um', 'mill_power_kw'];
   out.push(`| Variant | Change | ${head.map(k => label(k, units)).join(' | ')} | Flags |`, `|---|---|${head.map(() => '---|').join('')}---|`);
   for (const v of artifact.variants) {
-    const change = Object.entries(v.change).map(([name, factor]) => `${inputSpec[name].label.en}: ${inputValue(name, nominal.point[name], nominal.point[name], primaryUnit)} to ${inputValue(name, v.point[name], nominal.point[name], primaryUnit)} (x${number(factor, 2)})`).join('; ') || '-';
+    // an input whose nominal is its off value (the classifier cut) scales the nominal state's solved value instead
+    const change = Object.entries(v.change).map(([name, factor]) => (inputSpec[name].bounds === 'solved' && nominal.point[name] === 0
+      ? `${inputSpec[name].label.en}: off to ${inputValue(name, v.point[name], v.point[name], primaryUnit)} (x${number(factor, 2)} the nominal state's solved cut)`
+      : `${inputSpec[name].label.en}: ${inputValue(name, nominal.point[name], nominal.point[name], primaryUnit)} to ${inputValue(name, v.point[name], nominal.point[name], primaryUnit)} (x${number(factor, 2)})`)).join('; ') || '-';
     const flags = v.trace.flags.map(fl => `\`${fl.code}\``).join(', ') || '-';
     out.push(`| ${v.label.en} | ${cell(change)} | ${head.map(k => metric(k, v.trace.metrics[k], v.trace.metric_units)).join(' | ')} | ${flags} |`);
   }
