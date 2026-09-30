@@ -1,4 +1,4 @@
-"""OreFlow bake: contract, learning, cases, benchmark, studies, manifests and validation (design section 11a).
+"""OreFlow bake: contract, learning, cases, benchmark, studies, real samples, manifests and validation (design section 11a).
 
 The index and the benchmark are built from this run's records only, never from files already on
 disk, so a partial bake cannot ship as complete; the bake ends by running the artifact checks and
@@ -27,7 +27,7 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 DERIVED = REPO_ROOT / "data" / "derived"
 MODELS = REPO_ROOT / "models"
 # learning runs before the cases: the optimizer's screen reads the models this bake exports (OP-05)
-STAGES = ("contract", "learning", "cases", "benchmark", "studies", "manifests", "validation")
+STAGES = ("contract", "learning", "cases", "benchmark", "studies", "real_samples", "manifests", "validation")
 HEADLINE = ("recovery_pct", "concentrate_grade", "specific_energy_total_kwh_t", "p80_um", "mill_power_kw")
 
 
@@ -133,6 +133,13 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     write_json(derived / "studies.json", studies.build([studied[case_id] for case_id in ids], __version__, digest))
     timings["studies"] = time.perf_counter() - t
     _log(f"studies done ({timings['studies']:.0f}s)")
+
+    t = time.perf_counter()
+    from .stages import real_samples
+    # RS-05: the GeoMet samples in the soft porphyry's circuit, from the pinned tables in data/raw
+    write_json(derived / "real_samples.json", real_samples.build(derived, __version__, digest))
+    timings["real_samples"] = time.perf_counter() - t
+    _log(f"real samples done ({timings['real_samples']:.0f}s)")
 
     t = time.perf_counter()
     # every catalog case is rewritten below; a case the catalog no longer has must not ship from an older bake

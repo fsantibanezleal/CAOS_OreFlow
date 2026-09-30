@@ -53,7 +53,8 @@ export function toSpecies(stream: Stream, ore: ResolvedOre, defs: SpeciesDef[]):
   const totalDemand = new Float64Array(n);
   for (const v of Object.values(demand)) for (let i = 0; i < n; i += 1) totalDemand[i] += v[i];
   const scale = new Float64Array(n).fill(1.0);
-  for (let i = 0; i < n; i += 1) if (totalDemand[i] > host[i]) scale[i] = host[i] / totalDemand[i];
+  // the host is clipped at 0 before it limits, as in species.py
+  for (let i = 0; i < n; i += 1) if (totalDemand[i] > Math.max(host[i], 0.0)) scale[i] = Math.max(host[i], 0.0) / totalDemand[i];
   const locked = new Float64Array(n);
   for (const m of ore.valuable) {
     const mass = stream.solids[m] ?? zeros;

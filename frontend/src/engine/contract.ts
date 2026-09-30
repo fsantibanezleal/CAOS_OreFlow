@@ -7,7 +7,8 @@ export type ContractInput = {
   name: string; unit: string; bounds: string; low: number; high: number; step: number; integer: boolean; families: string[];
   label: { en: string; es: string }; help: { en: string; es: string }; display_scale: number; display_unit: string;
 };
-export type CaseBounds = { min: number; max: number; step: number; unit: string };
+/** A case's bounds of one input; `off` is the value that turns the input off (the classifier cut's target mode). */
+export type CaseBounds = { min: number; max: number; step: number; unit: string; off?: number; reference?: number };
 export type ContractCase = {
   family: string;
   primary: { species: string; unit: string };
@@ -55,6 +56,8 @@ export function validate(contract: OperatingContract, caseId: string, values: Re
     if (!Number.isFinite(value)) { errors.push({ code: 'not_finite', input: name }); continue; }
     if (declared[name].integer && value !== Math.floor(value)) { errors.push({ code: 'not_integer', input: name, value }); continue; }
     const bounds = entry.inputs[name];
+    // an input with an off value (the classifier cut) takes it as its own state, outside its range
+    if (bounds.off !== undefined && value === bounds.off) { point[name] = value; continue; }
     if (value < bounds.min || value > bounds.max) {
       errors.push({ code: 'out_of_range', input: name, value, min: bounds.min, max: bounds.max });
       continue;

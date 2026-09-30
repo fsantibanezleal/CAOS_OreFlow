@@ -65,6 +65,17 @@ input, select, textarea { font: inherit; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
 .of-knob-base { font-size: 0.68rem; color: var(--color-fg-faint); }
+/* CM-07: the classifier cut is a mode switch; the inputs it replaces stay visible, disabled, as results */
+.of-knob-title { font-size: 0.8rem; color: var(--color-fg); }
+.of-segmented { display: flex; gap: 4px; }
+.of-segmented button {
+  flex: 1 1 0; min-width: 0; padding: 4px 6px; border: 1px solid var(--color-border); border-radius: 6px;
+  background: transparent; color: var(--color-fg-subtle); font: inherit; font-size: 0.74rem; cursor: pointer; overflow-wrap: anywhere;
+}
+.of-segmented button:hover { color: var(--color-fg); }
+.of-segmented button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
+.of-knob.follows label, .of-knob.follows output { color: var(--color-fg-faint); }
+.of-knob.follows input[type='range'] { opacity: 0.45; }
 .of-knob-error, .of-rail > .of-knob-error { margin: 0; font-size: 0.72rem; line-height: 1.35; color: var(--color-bad); }
 
 .of-focus-open {
@@ -343,6 +354,8 @@ input, select, textarea { font: inherit; }
 .of-facts > div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--color-border); }
 .of-facts dt { color: var(--color-fg-subtle); }
 .of-facts dd { margin: 0; font-family: var(--font-mono); color: var(--color-fg); white-space: nowrap; }
+.of-facts > .of-facts-wide { grid-column: 1 / -1; flex-direction: column; gap: 2px; }
+.of-facts > .of-facts-wide dd { font-family: inherit; white-space: normal; }
 .of-facts.of-grid-facts { align-content: start; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); overflow: hidden; }
 .of-facts-title { margin: 4px 0 0; font-size: 0.74rem; font-weight: 600; color: var(--color-fg-subtle); }
 

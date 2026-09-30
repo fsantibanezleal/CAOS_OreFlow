@@ -19,7 +19,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONSTANTS = ROOT / "data-pipeline" / "pipeline" / "engine" / "data" / "constants.json"
-N_CASES, N_VARIANTS = 12, 72
+# eight variants per case: six of the target mode and two of the cut mode (CM-06)
+N_CASES, N_VARIANTS = 12, 96
 BALANCE_TOLERANCE = 1e-9          # PE-02
 KINETIC_MODELS = ["first_order", "kelsall", "klimpel", "gamma", "stretched_exponential"]
 LEARNING_MODELS = ["ridge", "random_forest", "hist_gradient_boosting", "gaussian_process", "mlp"]
@@ -149,7 +150,7 @@ def check_variant(case_id: str, family: str, variant: dict) -> list[str]:
         errors.append(f"{where}: optimization status {opt.get('status')}")
     # OP-02, OP-07: the method and its weights are declared, every start says why it stopped, and the weight path
     # holds the declared weights in order
-    if opt.get("method") != "pattern search with a progressive barrier":
+    if opt.get("method") != "gps-progressive-barrier":
         errors.append(f"{where}: optimization method {opt.get('method')}")
     weights = opt.get("weights", {})
     if weights.get("recovered_metal") != _constant("optimization.weight_default") or abs(weights.get("recovered_metal", 0.0) + weights.get("energy", 0.0) - 1.0) > 1e-12:
@@ -160,7 +161,11 @@ def check_variant(case_id: str, family: str, variant: dict) -> list[str]:
         errors.append(f"{where}: optimization weight path")
     # OP-05, OP-06: the bake's record is screened, every start carries its screen counts and proposals, and the same
     # starts without the screen are recorded, so the saving is a record
-    if opt.get("screened") is not True or opt.get("screen_bound_pct") != _constant("optimization.screen_half_width_pct"):
+    cut_mode = float(variant.get("point", {}).get("d50c_um", 0.0)) > 0.0
+    if cut_mode:
+        if opt.get("screened") is not False or opt.get("unscreened_reason") != "cut_mode":
+            errors.append(f"{where}: a cut-mode record must run without the screen and say why")
+    elif opt.get("screened") is not True or opt.get("screen_bound_pct") != _constant("optimization.screen_half_width_pct"):
         errors.append(f"{where}: optimization record not screened")
     else:
         columns = opt.get("proposal_columns", [])
@@ -446,13 +451,48 @@ def check_geomet(derived: Path) -> list[str]:
     return errors
 
 
+def check_real_samples(derived: Path, version: str, digest: str | None) -> list[str]:
+    """RS-01 to RS-05: the GeoMet samples' record, with the Bond work index and the normative allocation recomputed
+    here from what the record keeps."""
+    path = derived / "real_samples.json"
+    if not path.is_file():
+        return ["missing real_samples.json"]
+    r = _load(path)
+    errors: list[str] = []
+    if r.get("schema") != "oreflow.real_samples/v1" or r.get("engine_version") != version or r.get("contract_digest") != digest:
+        errors.append("real samples schema, engine version or contract digest")
+    tables = r.get("source", {}).get("tables", {})
+    if tables.get("comminution", {}).get("sha256") != "972ebf9ebb2e3309280abb72ca142062bc0115281a0340eb1e8a5ceb97237527"             or tables.get("flotation", {}).get("sha256") != "e7968c250c1ccc17b63da6d9624473dd92b32a7ba8d8772e70070a0115e42eda":
+        errors.append("real samples source pins")
+    if (len(r.get("comminution", [])), len(r.get("samples", []))) != (60, 52) or len(r.get("excluded", [])) != 1:
+        errors.append("real samples population")
+    lab = _constant("bond.lab_constant")
+    a, b = _constant("bond.lab_screen_exponent"), _constant("bond.lab_grindability_exponent")
+    k, st = _constant("bond.coefficient"), _constant("units.short_ton_per_tonne")
+    for c in r.get("comminution", []):
+        wi = st * lab / (c["screen_um"] ** a * c["grindability_g_rev"] ** b * (k / math.sqrt(c["p80_um"]) - k / math.sqrt(c["f80_um"])))
+        if abs(wi - c["work_index_kwh_t"]) > 1e-9 * wi:
+            errors.append(f"real samples: Bond work index of comminution row {c['source_row']}")
+            break
+    for s in r.get("samples", []):
+        where = f"real sample {s.get('id')}"
+        shares = s.get("allocation", {}).get("copper_shares", {})
+        if abs(sum(shares.values()) - 1.0) > 1e-12 or any(v < -1e-15 for v in s.get("allocation", {}).get("fractions", {}).values()):
+            errors.append(f"{where}: allocation")
+        if s.get("balance_error", 1.0) >= 1e-9:
+            errors.append(f"{where}: balance")
+        if s.get("point", {}).get("head_grade") != s.get("assays_pct", {}).get("Cu") or s.get("geomet_lane") is None:
+            errors.append(f"{where}: point or lane join")
+    return errors
+
+
 def run(derived: Path, models: Path, allow_reused_learning: bool = False) -> list[str]:
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     contract_errors, digest = check_contract(derived)
     return (contract_errors + check_cases(derived, version, digest)
             + check_learning(derived, models, version, digest, allow_reused_learning)
             + check_benchmark(derived, version, digest) + check_studies(derived, version, digest)
-            + check_particles(derived, models) + check_geomet(derived))
+            + check_particles(derived, models) + check_geomet(derived) + check_real_samples(derived, version, digest))
 
 
 def main() -> int:
@@ -466,7 +506,7 @@ def main() -> int:
         print("\n".join(f"  - {error}" for error in errors[:200]))
         return 1
     print(f"ARTIFACTS OK: contract, {N_CASES} cases, {N_VARIANTS} variants with recomputed balances and method records; "
-          "learning, benchmark, studies, HZDR particle and GeoMet lanes.")
+          "learning, benchmark, studies, HZDR particle and GeoMet lanes, real samples.")
     return 0
 
 

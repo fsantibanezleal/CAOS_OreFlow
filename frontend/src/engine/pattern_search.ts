@@ -17,13 +17,19 @@ export type PatternSearchResult = {
   feasible: Point | null; feasibleF: number | null; infeasible: Point | null; infeasibleH: number | null; infeasibleF: number | null;
   stop: 'mesh' | 'budget'; evaluations: Evaluation[]; iterations: Iteration[];
 };
-export type PatternSearchOptions = { meshInitial: number; meshMinimum: number; maxEvaluations: number; search?: Search };
+/** `decrease` > 0 asks every comparison for more than round-off (see the Python module); the analytic tests use 0. */
+export type PatternSearchOptions = { meshInitial: number; meshMinimum: number; maxEvaluations: number; search?: Search; decrease?: number };
 
 const inside = (x: Point) => x.every(v => v >= 0 && v <= 1);
 const key = (x: Point) => x.map(v => v.toString()).join(',');
 
 export function patternSearch(evaluate: Evaluator, start: Point, options: PatternSearchOptions): PatternSearchResult {
   const { meshInitial, meshMinimum, maxEvaluations, search } = options;
+  const decrease = options.decrease ?? 0;
+  const below = (a: number, b: number) => a < b - decrease * Math.max(1.0, Math.abs(b));
+  const noWorse = (a: number, b: number) => a <= b + decrease * Math.max(1.0, Math.abs(b));
+  const hBelow = (a: number, b: number) => a < b * (1.0 - decrease);
+  const hWithin = (a: number, b: number) => a <= b * (1.0 + decrease);
   if (!inside(start)) throw new RangeError(`the start must lie in the unit cube, got ${start}`);
   if (!(meshMinimum > 0 && meshMinimum <= meshInitial)) throw new RangeError(`need 0 < mesh_minimum <= mesh_initial, got ${meshMinimum} and ${meshInitial}`);
   const cache = new Map<string, [number, number]>();
@@ -51,9 +57,9 @@ export function patternSearch(evaluate: Evaluator, start: Point, options: Patter
   const iterations: Iteration[] = [];
 
   const dominates = (f: number, h: number): boolean => {
-    if (h === 0) return ff === null || f < ff;
-    if (h > hMax) return false;
-    return xi !== null && h <= (hi as number) && f <= (fi as number) && (h < (hi as number) || f < (fi as number));
+    if (h === 0) return ff === null || below(f, ff);
+    if (!hWithin(h, hMax)) return false;
+    return xi !== null && hWithin(h, hi as number) && noWorse(f, fi as number) && (hBelow(h, hi as number) || below(f, fi as number));
   };
 
   let stop: PatternSearchResult['stop'];
@@ -85,10 +91,11 @@ export function patternSearch(evaluate: Evaluator, start: Point, options: Patter
         if (h === 0) { xf = x; ff = f; } else { xi = x; hi = h; fi = f; }
         break;
       }
-      if (h > 0 && h <= hMax) {
+      if (h > 0 && hWithin(h, hMax)) {
         if (xi === null) {
-          if (firstInfeasible === null || f < firstInfeasible[2]) firstInfeasible = [x, h, f];
-        } else if (h < (hi as number) && (bestImproving === null || h < bestImproving[1] || (h === bestImproving[1] && f < bestImproving[2]))) {
+          if (firstInfeasible === null || below(f, firstInfeasible[2])) firstInfeasible = [x, h, f];
+        } else if (hBelow(h, hi as number) && (bestImproving === null || hBelow(h, bestImproving[1])
+          || (hWithin(h, bestImproving[1]) && below(f, bestImproving[2])))) {
           bestImproving = [x, h, f];
         }
       }

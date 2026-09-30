@@ -15,7 +15,7 @@ import { changedInputs, useWorkbench, type Section } from './state';
 
 export const SECTION_INPUTS: Record<Section, Array<keyof OperatingPoint>> = {
   feed: ['throughput_tph', 'work_index_kwh_t', 'head_grade', 'crusher_css_mm'],
-  classification: ['target_p80_um', 'circulating_load', 'water_m3_t'],
+  classification: ['d50c_um', 'target_p80_um', 'circulating_load', 'water_m3_t'],
   separation: ['collector_gpt', 'jg_cm_s', 'rougher_cells', 'gravity_bleed', 'deslime_cut_um'],
 };
 

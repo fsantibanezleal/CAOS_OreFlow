@@ -58,8 +58,9 @@ def to_species(stream: Stream, ore: ResolvedOre, defs: list[SpeciesDef], flags: 
     for value in demand.values():
         total_demand += value
     scale = np.ones(n)
-    short = total_demand > host
-    scale[short] = host[short] / total_demand[short]
+    # as in the grinding circuit: an empty class carries round-off, so the host is clipped at 0 before it limits
+    short = total_demand > np.maximum(host, 0.0)
+    scale[short] = np.maximum(host[short], 0.0) / total_demand[short]
     locked = np.zeros(n)
     for m in ore.valuable:
         mass = stream.solids.get(m, np.zeros(n))

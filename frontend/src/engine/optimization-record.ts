@@ -31,7 +31,7 @@ export type PathStep = {
 export type OptimizationRecord = {
   method: string; weights: { recovered_metal: number; energy: number }; decisions: string[]; bounds: Record<string, [number, number]>;
   constraints: { grade: { minimum: number; species: string }; power: { maximum_kw: number }; water?: { maximum_m3_t: number } };
-  screened: boolean; base: Summary; starts: StartRecord[];
+  screened: boolean; unscreened_reason?: string; base: Summary; starts: StartRecord[];
   evaluations: number; status: 'optimal' | 'infeasible'; optimum: Summary | null; screen_bound_pct?: number; proposal_columns?: string[];
   trace?: TraceRow[]; gain_tph?: number; gain_pct?: number | null; least_violating?: Summary;
   without_screen?: { evaluations: number; starts: number[]; status: string; decisions: Record<string, number> | null; recovered_tph: number | null };

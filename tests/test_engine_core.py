@@ -33,3 +33,10 @@ def test_stoichiometry_from_atomic_weights():
     assert species_content(mineral_composition("lizardite"), "MgO") == pytest.approx(0.4362, abs=2e-3)
     assert oxide_factor("P2O5") == pytest.approx(2.2914, abs=1e-3)
     assert mineral_composition("sphalerite")["Zn"] == pytest.approx(0.622, abs=2e-3)
+    # RS-03b: the real-sample mode's copper minerals, against the ideal compositions of the Handbook of Mineralogy
+    # (bornite Cu 63.33, Fe 11.12, S 25.55; chalcocite Cu 79.86, S 20.14 wt%)
+    for mineral, ideal in (("bornite", {"Cu": 0.6333, "Fe": 0.1112, "S": 0.2555}), ("chalcocite", {"Cu": 0.7986, "S": 0.2014})):
+        composition = mineral_composition(mineral)
+        assert set(composition) == set(ideal)
+        for element, value in ideal.items():
+            assert composition[element] == pytest.approx(value, abs=2e-4), (mineral, element)   # the Handbook used older atomic weights

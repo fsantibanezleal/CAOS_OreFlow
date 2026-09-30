@@ -13,7 +13,8 @@ def test_catalog_shape():
     assert len(CASES) == 12
     assert len({c.id for c in CASES}) == 12
     assert {c.category for c in CASES} == {"liberation", "classification", "flotation", "integration"}
-    assert all(len(c.variants) == 6 for c in CASES)
+    # six target-mode variants and the two cut-mode variants of CM-06
+    assert all(len(c.variants) == 8 and [v["id"] for v in c.variants[-2:]] == ["cut_nominal", "cut_finer"] for c in CASES)
 
 
 @pytest.mark.parametrize("case", CASES, ids=[c.id for c in CASES])

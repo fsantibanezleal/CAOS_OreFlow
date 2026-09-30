@@ -2,7 +2,10 @@
  * Closed ball-mill circuit: energy-specific population balance, cyclone, gravity bleed, water (port of
  * engine/grinding.py; theory in docs/methodologies/03_grinding-circuit.md). For each mineral the steady
  * state satisfies (T^-1(e) - diag(r)) p = f + s; valuable minerals are solved first because their
- * composites define the host-gangue source; composites are host-limited as a fixed point.
+ * composites define the host-gangue source; composites are host-limited as a fixed point. Two modes: the target
+ * mode meets the grind target at the design circulating load; the cut mode (d50c_um > 0, CM-02) holds the given
+ * host cut, draws the installed power, and the P80 and the circulating load follow, with the underflow water
+ * following the achieved load (a fixed point per energy).
  */
 import { bondEnergy, breakageMatrix, MillOperator, selectionEnergy } from './comminution';
 import { constant } from './constants';
@@ -40,6 +43,8 @@ export type GrindingResult = {
   overflow_species: Species;
   species_consistency: number;
   composite_scale: Vec;
+  /** The cut was given and the P80 and the load follow (CM-03). */
+  cut_mode: boolean;
 };
 
 const vsum = (v: Vec) => { let s = 0.0; for (let i = 0; i < v.length; i += 1) s += v[i]; return s; };
@@ -49,12 +54,13 @@ export class GrindingCircuit {
   readonly operators: Record<string, MillOperator> = {};
   readonly newFeedTph: number;
   readonly waterOver: number;
-  readonly waterUnder: number;
-  readonly bypass: number;
+  waterUnder: number;
+  bypass: number;
   readonly bleed: number;
   readonly rhoHost: number;
   readonly meanGrindability: number;
   private cutGuess: number;
+  private loadGuess: number;
   compositeScale: Vec;
 
   constructor(readonly ore: ResolvedOre, readonly plant: Plant, readonly op: OperatingPoint, readonly feed: ByMineral, readonly flags: Flags) {
@@ -96,6 +102,7 @@ export class GrindingCircuit {
     this.bleed = plant.gravity !== null ? op.gravity_bleed : 0.0;
     this.rhoHost = ore.density[ore.host];
     this.cutGuess = Math.log(Math.max(op.target_p80_um, 1.0));
+    this.loadGuess = op.circulating_load;
     this.compositeScale = new Float64Array(this.g.n).fill(1.0);
     for (const m of ore.valuable) {
       const host = ore.spec[m].host;
@@ -211,7 +218,8 @@ export class GrindingCircuit {
       const limited = new Float64Array(n).fill(1.0);
       let change = 0.0;
       for (let i = 0; i < n; i += 1) {
-        if (demand[i] > host[i]) limited[i] = Math.max(host[i], 0.0) / demand[i];
+        // an empty class carries round-off, which must not divide 0 by 0 (as in grinding.py)
+        if (demand[i] > Math.max(host[i], 0.0)) limited[i] = Math.max(host[i], 0.0) / demand[i];
         change = Math.max(change, Math.abs(limited[i] - scale[i]));
       }
       if (change <= tolerance) { this.compositeScale = limited; return r; }
@@ -248,6 +256,51 @@ export class GrindingCircuit {
     return Math.exp(x);
   }
 
+  /** Underflow water and bypass for a circulating load (the design one in the target mode). */
+  private setLoad(load: number): void {
+    const su = this.plant.cyclone.underflow_solids;
+    this.waterUnder = load * this.newFeedTph * (1.0 - su) / su;
+    this.bypass = this.waterUnder / (this.waterUnder + this.waterOver);
+  }
+
+  /** The cut mode's pass: the bypass follows the achieved circulating load, a fixed point from the last load found. */
+  runAtCut(energyPerPass: number, cut: number): PassResult {
+    const tolerance = constant('numerics.cut_mode_load_tolerance');
+    let load = this.loadGuess;
+    let result: PassResult | null = null;
+    for (let k = 0; k < constant('numerics.cut_mode_load_max_iterations'); k += 1) {
+      this.setLoad(load);
+      result = this.run(energyPerPass, cut);
+      if (Math.abs(result.circulatingLoad - load) <= tolerance * Math.max(1.0, load)) {
+        this.loadGuess = result.circulatingLoad;
+        return result;
+      }
+      load = result.circulatingLoad;
+    }
+    this.flags.add('cut_mode_load_not_converged', 'The circulating load of the cut mode did not settle; the last pass is reported.');
+    return result as PassResult;
+  }
+
+  /** The energy per pass at which the mill draws `powerKw` with the host cut held at `cut` (CM-02). */
+  solveAtCut(cut: number, powerKw: number): [number, PassResult] {
+    const [lo, hi] = constant<number[]>('grinding.energy_bracket_kwh_t').map(v => Math.log(v));
+    const f = (x: number) => {
+      const e = Math.exp(x);
+      const load = this.runAtCut(e, cut).circulatingLoad;
+      return Math.log(powerKw) - Math.log(e * (1.0 + load) * this.newFeedTph);
+    };
+    const guess = Math.log(powerKw / ((1.0 + this.loadGuess) * this.newFeedTph));
+    let energy: number;
+    try {
+      energy = Math.exp(solveDecreasing(f, Math.min(Math.max(guess, lo), hi), Math.log(2.0), lo, hi));
+    } catch (error) {
+      if (!(error instanceof RootError)) throw error;
+      this.flags.add('power_unreachable_at_cut', 'The installed power cannot be drawn at this cut within the energy search range; the mill runs at the nearest end of it.');
+      energy = f(hi) > 0.0 ? Math.exp(hi) : Math.exp(lo);
+    }
+    return [energy, this.runAtCut(energy, cut)];
+  }
+
   overflowP80(energyPerPass: number): number {
     const cut = this.solveCut(energyPerPass);
     const result = this.run(energyPerPass, cut);
@@ -261,6 +314,7 @@ export class GrindingCircuit {
     const feedTotal = g.zeros();
     for (const mass of Object.values(this.feed)) for (let i = 0; i < feedTotal.length; i += 1) feedTotal[i] += mass[i];
     const f80 = g.p80(feedTotal);
+    if (op.d50c_um > 0.0) return this.solveCutMode(f80);
     const [lo, hi] = constant<number[]>('grinding.energy_bracket_kwh_t').map(v => Math.log(v));
     const guess = Math.max(bondEnergy(op.work_index_kwh_t, f80, op.target_p80_um), constant('numerics.energy_guess_floor_kwh_t'))
       / (1.0 + op.circulating_load);
@@ -288,10 +342,25 @@ export class GrindingCircuit {
       cut = constant<number[]>('grinding.cut_bracket_um')[1];
     }
     const result = this.run(energy, cut);
-    return this.report(energy, cut, result, f80, required, limited);
+    return this.report(energy, cut, result, f80, required, limited, op.circulating_load);
   }
 
-  private report(energy: number, cut: number, r: PassResult, f80: number, required: number, limited: boolean): GrindingResult {
+  /** The cut mode at installed power (CM-02, CM-03): the P80 and the circulating load are results. */
+  private solveCutMode(f80: number): GrindingResult {
+    const cut = this.op.d50c_um;
+    const [energy, result] = this.solveAtCut(cut, this.plant.mill.installed_power_kw);
+    const load = result.circulatingLoad;
+    const [low, high] = constant<number[]>('grinding.cut_mode_load_range');
+    if (!(low <= load && load <= high)) {
+      this.flags.add('circulating_load_out_of_range',
+        `The cut sets a circulating load of ${(100.0 * load).toFixed(0)}%, outside the ${(100.0 * low).toFixed(0)} to ${(100.0 * high).toFixed(0)}% the target mode accepts.`);
+    }
+    const required = energy * (1.0 + load) * this.newFeedTph;
+    return this.report(energy, cut, result, f80, required, false, load, true);
+  }
+
+  private report(energy: number, cut: number, r: PassResult, f80: number, required: number, limited: boolean, load: number,
+    cutMode = false): GrindingResult {
     const { ore, op, plant, g } = this;
     const n = g.n;
     const waterDensity = constant('water.density_t_m3');
@@ -364,16 +433,18 @@ export class GrindingCircuit {
         worst = Math.max(worst, Math.abs(rebuilt[m][i] - r.overflow[m][i]));
       }
     }
-    const specific = energy * (1.0 + op.circulating_load);
+    const specific = energy * (1.0 + load);
+    const p80 = g.p80(totalOver);
     return {
       energy_per_pass_kwh_t: energy, specific_energy_kwh_t: specific, power_kw: specific * this.newFeedTph,
       required_power_kw: required, power_limited: limited, cut_um: cut, bypass: this.bypass,
-      circulating_load: r.circulatingLoad, target_p80_um: op.target_p80_um, p80_um: g.p80(totalOver), feed_f80_um: f80,
+      // in the cut mode nothing targets the P80: the achieved one is reported in its place
+      circulating_load: r.circulatingLoad, target_p80_um: cutMode ? p80 : op.target_p80_um, p80_um: p80, feed_f80_um: f80,
       streams, partition, sizing,
       water: { overflow_tph: this.waterOver, underflow_tph: this.waterUnder, mill_discharge_tph: waterMillDischarge,
         mill_addition_tph: millAddition, sump_addition_tph: sumpAddition },
       gold_circulating_load: goldCl, defs, overflow_species: overflowSpecies, species_consistency: worst / scale,
-      composite_scale: Float64Array.from(this.compositeScale),
+      composite_scale: Float64Array.from(this.compositeScale), cut_mode: cutMode,
     };
   }
 }

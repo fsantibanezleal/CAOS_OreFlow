@@ -78,7 +78,9 @@ def _ore_factors(case: CaseDef) -> tuple[str, ...]:
 
 def design_states(case: CaseDef, contract: dict[str, Any], count: int, seed: int) -> list[dict[str, Any]]:
     inputs = contract["cases"][case.id]["inputs"]
-    names = list(inputs)
+    # the lane learns the target mode: an input with an off value (the classifier cut) keeps it, so the design is
+    # the one of 0.06 and the cut mode stays the engine's alone (CM-01)
+    names = [name for name, bounds in inputs.items() if "off" not in bounds]
     factors = _ore_factors(case)
     widths = constant("uncertainty.half_widths")
     sampler = qmc.Sobol(d=len(names) + len(factors), scramble=True, rng=np.random.default_rng(seed))

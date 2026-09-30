@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from ..cases.catalog import CASES
+from ..cases.catalog import CASES, nominal_cut
 from ..engine.constants import constant
 from ..engine.grid import grid
 from ..engine.model import OPERATING_FIELDS
@@ -36,7 +36,8 @@ PROBES_PATH = CONTRACT_PATH.with_name("contract_probes.json")
 class InputSpec:
     name: str
     unit: str                      # "case" means the unit of the case's primary payable
-    bounds: str                    # "relative" (factors of the case nominal) or "absolute"
+    bounds: str                    # "relative" (factors of the case nominal), "absolute", or "solved" (factors of an
+                                   # engine result at the nominal state, with 0 accepted as off)
     low: float
     high: float
     step: float                    # absolute step, or a factor of the nominal for relative bounds
@@ -125,6 +126,18 @@ INPUTS: tuple[InputSpec, ...] = (
                "flotation feed and loses more of the fine valuable mineral.",
                "Tamaño de corte del ciclón de deslamado. Las partículas más finas van a relaves como lamas: un corte más "
                "grueso limpia la alimentación a flotación y pierde más mineral valioso fino.")),
+    # CM-01: bounds are factors of the cut the target mode solves at the case's nominal state, and 0 (the nominal)
+    # is the target mode itself
+    InputSpec("d50c_um", "um", "solved", 0.8, 1.6, 0.01, False, FAMILIES,
+              ("Classifier cut (d50c)", "Corte del clasificador (d50c)"),
+              ("Corrected cut of the host gangue in the cyclone, set by its hardware and pressure. Off (0), the solver "
+               "finds the cut that holds the circulating load and the energy that meets the grind target. On, the mill "
+               "draws its installed power, and the P80 and the circulating load follow: a finer cut returns more to the "
+               "mill and grinds finer.",
+               "Corte corregido de la ganga huésped en el ciclón, fijado por su equipo y su presión. Apagado (0), el "
+               "solver busca el corte que sostiene la carga circulante y la energía que cumple el objetivo de molienda. "
+               "Encendido, el molino consume su potencia instalada, y el P80 y la carga circulante resultan: un corte "
+               "más fino devuelve más al molino y muele más fino.")),
 )
 INPUT_BY_NAME = {spec.name: spec for spec in INPUTS}
 
@@ -157,6 +170,11 @@ def _case_entry(case: Any) -> dict[str, Any]:
         if family not in spec.families:
             continue
         base = float(nominal[spec.name])
+        if spec.bounds == "solved":
+            reference = nominal_cut(case.id)
+            low, high, step = (float(f"{f * reference:.12g}") for f in (spec.low, spec.high, spec.step))
+            inputs[spec.name] = {"min": low, "max": high, "step": step, "unit": spec.unit, "off": 0.0, "reference": reference}
+            continue
         if spec.bounds == "relative":
             if base <= 0.0:
                 raise ValueError(f"{case.id}: relative input {spec.name} needs a positive nominal")
@@ -287,6 +305,10 @@ def validate(contract: dict[str, Any], case_id: str, values: dict[str, Any]) -> 
             errors.append({"code": "not_integer", "input": name, "value": value})
             continue
         bounds = case["inputs"][name]
+        # an input with an off value (the classifier cut) takes it as its own state, outside its range
+        if "off" in bounds and value == bounds["off"]:
+            point[name] = float(value)
+            continue
         if value < bounds["min"] or value > bounds["max"]:
             errors.append({"code": "out_of_range", "input": name, "value": value, "min": bounds["min"], "max": bounds["max"]})
             continue
@@ -320,6 +342,8 @@ def probe_states(contract: dict[str, Any]) -> list[dict[str, Any]]:
             probes.append({"case_id": case_id, "values": {name: bounds["min"] - outside}})
             probes.append({"case_id": case_id, "values": {name: bounds["max"] + outside}})
             probes.append({"case_id": case_id, "values": {name: math.nan}})
+            if "off" in bounds:
+                probes.append({"case_id": case_id, "values": {name: bounds["off"]}})
             if integer:
                 probes.append({"case_id": case_id, "values": {name: bounds["min"] + 0.5}})
         for spec in contract["inputs"]:

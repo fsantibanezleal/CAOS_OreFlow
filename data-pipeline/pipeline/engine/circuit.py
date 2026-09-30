@@ -194,6 +194,7 @@ def _metrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, streams: dict[str
     put("required_mill_power_kw", grinding.required_power_kw, "kW")
     put("installed_mill_power_kw", plant.mill.installed_power_kw, "kW")
     put("power_limited", 1.0 if grinding.power_limited else 0.0, "flag")
+    put("cut_mode", 1.0 if grinding.cut_mode else 0.0, "flag")
     energy = energy_report(op.work_index_kwh_t, r.crushing_work_index, streams["crusher_feed"].p80(), grinding.feed_f80_um,
                            grinding.specific_energy_kwh_t, grinding.feed_f80_um, grinding.p80_um)
     for key, value in energy.items():

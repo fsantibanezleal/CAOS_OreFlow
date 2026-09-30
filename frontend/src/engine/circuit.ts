@@ -191,6 +191,7 @@ function computeMetrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, stream
   put('required_mill_power_kw', grinding.required_power_kw, 'kW');
   put('installed_mill_power_kw', plant.mill.installed_power_kw, 'kW');
   put('power_limited', grinding.power_limited ? 1.0 : 0.0, 'flag');
+  put('cut_mode', grinding.cut_mode ? 1.0 : 0.0, 'flag');
   const energy = energyReport(op.work_index_kwh_t, r.crushingWorkIndex, streams.crusher_feed.p80(), grinding.feed_f80_um,
     grinding.specific_energy_kwh_t, grinding.feed_f80_um, grinding.p80_um);
   for (const [key, value] of Object.entries(energy)) put(key, value, key === 'bond_efficiency_ratio' ? '1' : 'kWh/t');

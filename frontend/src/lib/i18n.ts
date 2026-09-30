@@ -212,6 +212,10 @@ export function speciesName(key: string, lang: Lang): string {
 }
 
 export const UI = {
+  grindControl: { en: 'Grind set by', es: 'Molienda fijada por' },
+  grindTarget: { en: 'Target P80 and load', es: 'P80 objetivo y carga' },
+  grindCut: { en: 'Classifier cut', es: 'Corte del clasificador' },
+  follows: { en: 'follows the cut', es: 'resulta del corte' },
   views: {
     circuit: { en: 'Circuit', es: 'Circuito' },
     grinding: { en: 'Grinding', es: 'Molienda' },

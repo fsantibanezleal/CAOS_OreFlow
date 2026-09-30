@@ -26,7 +26,7 @@ type Stage = 'flowsheet' | GrindingChart | SeparationChart | 'response';
 
 /** The inputs a first look needs; the advanced set is every input the case's contract declares. */
 const BASIC: Array<keyof OperatingPoint> = ['throughput_tph', 'target_p80_um', 'collector_gpt', 'gravity_bleed', 'deslime_cut_um'];
-const ALL: Array<keyof OperatingPoint> = ['throughput_tph', 'work_index_kwh_t', 'head_grade', 'crusher_css_mm', 'target_p80_um', 'circulating_load',
+const ALL: Array<keyof OperatingPoint> = ['throughput_tph', 'work_index_kwh_t', 'head_grade', 'crusher_css_mm', 'd50c_um', 'target_p80_um', 'circulating_load',
   'water_m3_t', 'collector_gpt', 'jg_cm_s', 'rougher_cells', 'gravity_bleed', 'deslime_cut_um'];
 const HUD = ['recovery_pct', 'concentrate_grade', 'specific_energy_total_kwh_t', 'p80_um'];
 /** Room the FocusShell overlays take on the stage: the label and actions along the top, the HUD on the left. */

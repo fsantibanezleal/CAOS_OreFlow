@@ -14,6 +14,12 @@ import type { Scalers } from '../learning/surrogate';
 // evaluations, and the optimum, every start's end, every proposal's values and every step of the weight path agree
 // within 1e-6 relative, because each evaluation is an engine run and the engines agree to that tolerance.
 // OF_DERIVED and OF_MODELS point a development run at a sandbox bake.
+// Every variant is a full optimization (six starts with the screen, six without, three path steps), about a minute
+// each, so CI runs a declared subset (the nominal variants of the magnetite circuit, one decision; the oxide copper,
+// where water binds; the free-milling gold, where the screen rarely passes) and OF_PARITY=full runs all 72 at release
+// (docs/release-verification.md).
+const SUBSET = new Set(['iron_magnetite_fine/nominal', 'copper_oxide/nominal', 'gold_free_milling/nominal']);
+const FULL = process.env.OF_PARITY === 'full';
 const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
 const models = process.env.OF_MODELS ?? fileURLToPath(new URL('../../../models/', import.meta.url));
 const contract = JSON.parse(readFileSync(join(derived, 'contract', 'operating_contract.json'), 'utf-8')) as OperatingContract;
@@ -54,6 +60,7 @@ describe('the browser reproduces the baked optimization records', () => {
   for (const file of files) {
     const artifact = JSON.parse(readFileSync(join(derived, 'cases', file), 'utf-8')) as Baked;
     for (const variant of artifact.variants) {
+      if (!FULL && !SUBSET.has(`${artifact.case_id}/${variant.id}`)) continue;
       it(`${artifact.case_id}/${variant.id}`, () => {
         const baked = variant.methods.optimization;
         const { ore, plant } = artifact.definition;

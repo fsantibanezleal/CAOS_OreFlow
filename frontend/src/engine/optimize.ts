@@ -28,7 +28,9 @@ type Evaluation = {
 /** Progress of a live run: called after every pattern-search start or path step; returning false stops the run. */
 export type Progress = (done: number, total: number) => boolean;
 
-export const decisionsFor = (plant: Plant): readonly string[] => (plant.family === 'magnetic' ? MAGNETIC_DECISIONS : FLOTATION_DECISIONS);
+/** The decisions an operator controls; in the cut mode the classifier cut replaces the grind target (CM-02). */
+export const decisionsFor = (plant: Plant, cutMode = false): readonly string[] =>
+  (plant.family === 'magnetic' ? MAGNETIC_DECISIONS : FLOTATION_DECISIONS).map(n => (cutMode && n === 'target_p80_um' ? 'd50c_um' : n));
 const clip = (v: number) => Math.min(1, Math.max(0, v));
 const keyOf = (x: number[]) => x.map(v => clip(v).toString()).join(',');
 
@@ -46,7 +48,7 @@ class Problem {
 
   constructor(readonly caseId: string, readonly ore: Ore, readonly plant: Plant, readonly base: OperatingPoint, readonly contract: OperatingContract,
               readonly screen: PointScreen | null) {
-    this.names = decisionsFor(plant);
+    this.names = decisionsFor(plant, base.d50c_um > 0);
     const inputs = contract.cases[caseId].inputs;
     this.bounds = this.names.map(n => [Number(inputs[n].min), Number(inputs[n].max)]);
     const b = this.evaluatePoint(base);
@@ -129,12 +131,14 @@ type LogEntry = { screened: number; guard: number; interval: number; proposal: {
 function screenStep(problem: Problem, weight: number, log: LogEntry[]) {
   const screen = problem.screen!;
   const bound = constant<number>('optimization.screen_half_width_pct');
+  const steps = constant<number[]>('optimization.screen_steps').map(Number);
+  const tol = constant<number>('optimization.decrease_tolerance');
   return (state: SearchState): Point[] => {
     const rows: number[][] = [];
     const seen = new Set<string>();
     for (const center of [state.feasible, state.infeasible]) {
       if (center === null) continue;
-      for (const step of [1, 2]) {
+      for (const step of steps) {
         for (let i = 0; i < center.length; i += 1) {
           for (const sign of [1, -1]) {
             const x = [...center];
@@ -154,7 +158,8 @@ function screenStep(problem: Problem, weight: number, log: LogEntry[]) {
       if (judged.halfWidth > bound) { entry.interval += 1; continue; }
       const p = judged.prediction;
       const objective = weight * p.recovery_pct / problem.recoveryScale - (1 - weight) * p.specific_energy_total_kwh_t / problem.energyScale;
-      if (best === null || objective > best[1]) {
+      // better only by more than round-off, so both languages rank alike; the first of equals is kept
+      if (best === null || objective > best[1] + tol * Math.max(1.0, Math.abs(best[1]))) {
         if (best !== null) runnerUp = best[1];
         best = [x, objective, p.recovery_pct];
       } else if (runnerUp === null || objective > runnerUp) {
@@ -198,6 +203,7 @@ function search(problem: Problem, start: number[], weight: number, tolerance: nu
     meshInitial: constant<number>('optimization.mesh_initial'), meshMinimum: constant<number>('optimization.mesh_minimum'),
     maxEvaluations: constant<number>('optimization.max_evaluations'),
     search: problem.screen !== null ? screenStep(problem, weight, log) : undefined,
+    decrease: constant<number>('optimization.decrease_tolerance'),
   });
   const x = result.feasible ?? result.infeasible ?? start;
   const run: Run = {
@@ -224,9 +230,16 @@ function multistart(problem: Problem, weight: number, tolerance: number, tick: T
 }
 
 function bestOf(problem: Problem, runs: Array<StartRecord & { trace: TraceRow[] }>, weight: number) {
-  const feasible = runs.filter(r => r.end.feasible);
-  // the first of the best, as Python's max keeps
-  return feasible.length ? feasible.reduce((a, b) => (problem.objective(b.end, weight) > problem.objective(a.end, weight) ? b : a)) : null;
+  const tol = constant<number>('optimization.decrease_tolerance');
+  let best: (StartRecord & { trace: TraceRow[] }) | null = null;
+  let score = 0;
+  for (const r of runs) {
+    if (!r.end.feasible) continue;
+    const value = problem.objective(r.end, weight);
+    // starts that end at one optimum agree to round-off: the first of them is kept, in both languages
+    if (best === null || value > score + tol * Math.max(1.0, Math.abs(score))) { best = r; score = value; }
+  }
+  return best;
 }
 
 export type OptimizeOptions = { weight?: number; path?: boolean; screen?: PointScreen | null; compare?: boolean; progress?: Progress };
@@ -236,7 +249,9 @@ export type OptimizeOptions = { weight?: number; path?: boolean; screen?: PointS
  * screen, `compare` (on by default, as in the bake) re-runs the starts without it to measure the saving.
  */
 export function optimize(caseId: string, ore: Ore, plant: Plant, base: OperatingPoint, contract: OperatingContract, options: OptimizeOptions = {}): OptimizationRecord {
-  const screen = options.screen ?? null;
+  // the learned lane describes the target mode, so a cut-mode search runs without the screen and says so
+  const unscreenedReason = options.screen && base.d50c_um > 0 ? 'cut_mode' : null;
+  const screen = unscreenedReason ? null : options.screen ?? null;
   const withPath = options.path ?? true;
   const compare = screen !== null && (options.compare ?? true);
   const problem = new Problem(caseId, ore, plant, base, contract, screen);
@@ -256,7 +271,7 @@ export function optimize(caseId: string, ore: Ore, plant: Plant, base: Operating
     bounds: Object.fromEntries(problem.names.map((n, k) => [n, problem.bounds[k]])),
     constraints: { grade: { minimum: spec.minimum, species: spec.species }, power: { maximum_kw: plant.mill.installed_power_kw },
       ...(plant.water_limit_m3_t > 0 ? { water: { maximum_m3_t: plant.water_limit_m3_t } } : {}) },
-    screened: screen !== null, base: baseSummary, starts: runs.map(({ trace: _trace, ...r }) => r), evaluations: problem.cache.size,
+    screened: screen !== null, ...(unscreenedReason ? { unscreened_reason: unscreenedReason } : {}), base: baseSummary, starts: runs.map(({ trace: _trace, ...r }) => r), evaluations: problem.cache.size,
     status: 'infeasible', optimum: null,
   };
   if (screen !== null) {

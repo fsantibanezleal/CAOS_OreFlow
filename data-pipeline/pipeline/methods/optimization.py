@@ -53,8 +53,10 @@ PROPOSAL_COLUMNS = ("iteration", "surrogate_recovery_pct", "engine_recovery_pct"
                     "runner_up_margin", "improved")
 
 
-def decisions_for(family: str) -> tuple[str, ...]:
-    return MAGNETIC_DECISIONS if family == "magnetic" else FLOTATION_DECISIONS
+def decisions_for(family: str, cut_mode: bool = False) -> tuple[str, ...]:
+    """The decisions an operator controls; in the cut mode the classifier cut replaces the grind target (CM-02)."""
+    names = MAGNETIC_DECISIONS if family == "magnetic" else FLOTATION_DECISIONS
+    return tuple("d50c_um" if cut_mode and n == "target_p80_um" else n for n in names)
 
 
 class Problem:
@@ -63,7 +65,7 @@ class Problem:
     def __init__(self, case: CaseDef, base: OperatingPoint, contract: dict[str, Any], screen: Screen | None = None) -> None:
         self.case, self.base, self.contract, self.screen = case, base, contract, screen
         self.factors = {name: 1.0 for name in _ore_factors(case)}
-        self.names = decisions_for(case.plant.family)
+        self.names = decisions_for(case.plant.family, base.d50c_um > 0.0)
         inputs = contract["cases"][case.id]["inputs"]
         self.bounds = [(float(inputs[n]["min"]), float(inputs[n]["max"])) for n in self.names]
         self.spec = case.plant.grade_spec
@@ -167,11 +169,13 @@ def _screen_step(problem: Problem, weight: float, log: list[dict[str, Any]]):
     """The screen as the pattern search's search step (OP-05); every iteration appends its counts to ``log``."""
     screen = problem.screen
     bound = float(constant("optimization.screen_half_width_pct"))
+    steps = [float(s) for s in constant("optimization.screen_steps")]
+    tol = float(constant("optimization.decrease_tolerance"))
 
     def search(state) -> list[tuple[float, ...]]:
         rows: list[tuple[float, ...]] = []
         for center in (c for c in (state.feasible, state.infeasible) if c is not None):
-            for step in (1.0, 2.0):
+            for step in steps:
                 for i in range(len(center)):
                     for sign in (1.0, -1.0):
                         x = list(center)
@@ -192,7 +196,8 @@ def _screen_step(problem: Problem, weight: float, log: list[dict[str, Any]]):
             p = judged["prediction"]
             objective = (weight * p["recovery_pct"] / problem.recovery_scale
                          - (1.0 - weight) * p["specific_energy_total_kwh_t"] / problem.energy_scale)
-            if best is None or objective > best[1]:
+            # better only by more than round-off, so both languages rank alike; the first of equals is kept
+            if best is None or objective > best[1] + tol * max(1.0, abs(best[1])):
                 if best is not None:
                     runner_up = best[1]
                 best = (x, objective, p["recovery_pct"])
@@ -236,7 +241,8 @@ def _search(problem: Problem, start: list[float], weight: float, tolerance: floa
                             mesh_initial=float(constant("optimization.mesh_initial")),
                             mesh_minimum=float(constant("optimization.mesh_minimum")),
                             max_evaluations=int(constant("optimization.max_evaluations")),
-                            search=_screen_step(problem, weight, log) if problem.screen is not None else None)
+                            search=_screen_step(problem, weight, log) if problem.screen is not None else None,
+                            decrease=float(constant("optimization.decrease_tolerance")))
     x = result.feasible if result.feasible is not None else result.infeasible if result.infeasible is not None else tuple(start)
     end = problem.evaluate(x)
     run: dict[str, Any] = {"evaluations": len(problem.cache) - before, "iterations": len(result.iterations), "stop": result.stop,
@@ -259,14 +265,25 @@ def _multistart(problem: Problem, weight: float, tolerance: float) -> list[dict[
 
 
 def _best(problem: Problem, runs: list[dict[str, Any]], weight: float) -> dict[str, Any] | None:
-    feasible_runs = [r for r in runs if r["end"]["feasible"]]
-    if not feasible_runs:
-        return None
-    return max(feasible_runs, key=lambda r: problem.objective({"recovered_tph": r["end"]["recovered_tph"], "values": r["end"]["values"]}, weight))
+    tol = float(constant("optimization.decrease_tolerance"))
+    best, score = None, None
+    for r in runs:
+        if not r["end"]["feasible"]:
+            continue
+        value = problem.objective({"recovered_tph": r["end"]["recovered_tph"], "values": r["end"]["values"]}, weight)
+        # starts that end at one optimum agree to round-off: the first of them is kept, in both languages
+        if best is None or value > score + tol * max(1.0, abs(score)):
+            best, score = r, value
+    return best
 
 
 def optimize(case: CaseDef, base: OperatingPoint, contract: dict[str, Any], weight: float | None = None,
              path: bool = True, screen: Screen | None = None) -> dict[str, Any]:
+    # the learned lane describes the target mode: its features are the grind target and the design load, which
+    # the cut mode turns into results, so a cut-mode search runs without the screen and says so
+    unscreened_reason = "cut_mode" if screen is not None and base.d50c_um > 0.0 else None
+    if unscreened_reason:
+        screen = None
     problem = Problem(case, base, contract, screen)
     tolerance = float(constant("optimization.feasibility_tolerance"))
     weight = float(constant("optimization.weight_default")) if weight is None else float(weight)
@@ -281,6 +298,7 @@ def optimize(case: CaseDef, base: OperatingPoint, contract: dict[str, Any], weig
                         "power": {"maximum_kw": case.plant.mill.installed_power_kw},
                         **({"water": {"maximum_m3_t": problem.water_limit}} if problem.water_limit > 0.0 else {})},
         "screened": screen is not None,
+        **({"unscreened_reason": unscreened_reason} if unscreened_reason else {}),
         "base": base_summary,
         "starts": [{k: v for k, v in r.items() if k != "trace"} for r in runs],
         "evaluations": len(problem.cache),

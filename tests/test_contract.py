@@ -48,7 +48,8 @@ def test_declaration_covers_the_operating_point():
         assert set(entry["inputs"]) == {s.name for s in INPUTS if case.plant.family in s.families}
         assert validate(document, case.id, {})["accepted"], case.id
         for name, bounds in entry["inputs"].items():
-            assert bounds["min"] <= entry["nominal"][name] <= bounds["max"]
+            # the classifier cut's nominal is its off value, the target mode (CM-01)
+            assert bounds["min"] <= entry["nominal"][name] <= bounds["max"] or entry["nominal"][name] == bounds.get("off")
 
 
 def test_validator_branches():
@@ -165,3 +166,26 @@ def test_weights_declared():
     for weight in [constant("optimization.weight_default"), *constant("optimization.weight_path")]:
         assert validate_control(contract, "optimizer_weight_pct", round(100 * weight))["accepted"]
         assert round(100 * weight) / 100 == weight
+
+
+def test_cut_mode_declared():
+    """CM-01: the classifier cut is declared for every case, bounded by factors of the cut the target mode solves at
+    the nominal state, with 0 (the nominal) as the target mode; the learned lane keeps sampling the target mode."""
+    from pipeline.cases.catalog import CASES, nominal_cut
+    from pipeline.io.contract import INPUT_BY_NAME, build_contract, validate
+
+    contract = build_contract()
+    spec = INPUT_BY_NAME["d50c_um"]
+    assert spec.bounds == "solved" and (spec.low, spec.high) == (0.8, 1.6)
+    for case in CASES:
+        bounds = contract["cases"][case.id]["inputs"]["d50c_um"]
+        cut = nominal_cut(case.id)
+        assert bounds["reference"] == cut and bounds["off"] == 0.0
+        assert bounds["min"] == pytest.approx(0.8 * cut, rel=1e-11) and bounds["max"] == pytest.approx(1.6 * cut, rel=1e-11)
+        assert contract["cases"][case.id]["nominal"]["d50c_um"] == 0.0
+        assert validate(contract, case.id, {"d50c_um": 0.0})["accepted"]
+        assert validate(contract, case.id, {"d50c_um": bounds["min"]})["accepted"]
+        assert validate(contract, case.id, {"d50c_um": 0.5 * cut})["errors"][0]["code"] == "out_of_range"
+    from pipeline.methods.learning import design_states
+    states = design_states(CASES[0], contract, 8, 1)
+    assert all(s["point"]["d50c_um"] == 0.0 for s in states)

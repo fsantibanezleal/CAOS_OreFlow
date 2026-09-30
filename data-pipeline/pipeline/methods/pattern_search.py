@@ -20,7 +20,10 @@ the mesh size halves. After every iteration the barrier ``h_max`` is set to the 
 never rises, which the progressive barrier requires. That update is a declared simplification of the rules in
 Audet and Hare (2017, chapter 12), which were not read.
 
-All arithmetic is IEEE doubles in a fixed order, and ``frontend/src/engine/pattern_search.ts`` repeats it.
+All arithmetic is IEEE doubles in a fixed order, and ``frontend/src/engine/pattern_search.ts`` repeats it. With
+``decrease > 0`` every comparison asks for more than round-off: ``f`` must fall by more than ``decrease`` times
+``max(1, |f|)`` and ``h`` by more than ``decrease`` relative, and "no worse" allows as much. Two evaluators that
+agree to round-off (the engine in Python and in TypeScript) then take the same decisions; the analytic tests use 0.
 """
 from __future__ import annotations
 
@@ -61,7 +64,7 @@ def _inside(x: Point) -> bool:
 
 
 def pattern_search(evaluate: Evaluator, start: Point, *, mesh_initial: float, mesh_minimum: float, max_evaluations: int,
-                   search: Search | None = None) -> Result:
+                   search: Search | None = None, decrease: float = 0.0) -> Result:
     if not _inside(start):
         raise ValueError(f"the start must lie in the unit cube, got {start}")
     if not 0.0 < mesh_minimum <= mesh_initial:
@@ -85,12 +88,24 @@ def pattern_search(evaluate: Evaluator, start: Point, *, mesh_initial: float, me
     delta = mesh_initial
     iterations: list[dict[str, Any]] = []
 
+    def below(a: float, b: float) -> bool:          # a lower than b by more than the declared decrease
+        return a < b - decrease * max(1.0, abs(b))
+
+    def no_worse(a: float, b: float) -> bool:
+        return a <= b + decrease * max(1.0, abs(b))
+
+    def h_below(a: float, b: float) -> bool:
+        return a < b * (1.0 - decrease)
+
+    def h_within(a: float, b: float) -> bool:
+        return a <= b * (1.0 + decrease)
+
     def dominates(f: float, h: float) -> bool:
         if h == 0.0:
-            return ff is None or f < ff
-        if h > h_max:
+            return ff is None or below(f, ff)
+        if not h_within(h, h_max):
             return False
-        return xi is not None and h <= hi and f <= fi and (h < hi or f < fi)
+        return xi is not None and h_within(h, hi) and no_worse(f, fi) and (h_below(h, hi) or below(f, fi))
 
     while True:
         if delta < mesh_minimum:
@@ -123,13 +138,14 @@ def pattern_search(evaluate: Evaluator, start: Point, *, mesh_initial: float, me
                 else:
                     xi, hi, fi = x, h, f
                 break
-            if 0.0 < h <= h_max:
+            if h > 0.0 and h_within(h, h_max):
                 if xi is None:
                     # no infeasible incumbent yet: the best f among the infeasible points inside the barrier
                     # becomes one (eq. 13), without counting as a success
-                    if first_infeasible is None or f < first_infeasible[2]:
+                    if first_infeasible is None or below(f, first_infeasible[2]):
                         first_infeasible = (x, h, f)
-                elif h < hi and (best_improving is None or (h, f) < (best_improving[1], best_improving[2])):
+                elif h_below(h, hi) and (best_improving is None or h_below(h, best_improving[1])
+                                         or (h_within(h, best_improving[1]) and below(f, best_improving[2]))):
                     best_improving = (x, h, f)
         if outcome != "dominating" and best_improving is not None:
             outcome = "improving"

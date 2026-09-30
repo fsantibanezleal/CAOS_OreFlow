@@ -107,3 +107,8 @@ screen must give the same counts and proposals. The run without the screen must 
 optimum, every start's end, every proposal's values and every step of the weight path must agree within 1e-6
 relative. The other weights are exercised by the weight path (0.75, 0.5, 0.25) and, cold-started, by
 `frontend/src/test/worker-optimize.test.ts` at 0.5.
+
+Each variant is a full optimization, about a minute of engine runs, so CI (ADR-0074, cheap checks) runs the
+nominal variants of three cases that cover one decision, a binding water constraint and a screen that rarely
+passes; `OF_PARITY=full` runs all 72 variants locally at every release, and `docs/release-verification.md`
+records the run.

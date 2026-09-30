@@ -85,6 +85,8 @@ export type OperatingPoint = {
   rougher_cells: number;
   gravity_bleed: number;
   deslime_cut_um: number;
+  /** The host's corrected cut in the cut mode (CM-01); 0 is the target mode. */
+  d50c_um: number;
 };
 
 export type Flag = { code: string; message: string };
