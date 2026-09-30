@@ -26,7 +26,7 @@ port has to reproduce it.
 
 ## Gates
 
-- `frontend/src/test/parity.test.ts` (PE-31): for every one of the 72 baked variants, the port
+- `frontend/src/test/parity.test.ts` (PE-31): for every one of the 96 baked variants, the port
   re-simulates the case from the artifact's own definition and point and must match the baked trace
   within 1e-6 relative in every metric, stream record, curve and kinetic record, with the same flag
   codes. Audit residuals, which are round-off magnitudes, are held below 1e-9 instead; the engine's

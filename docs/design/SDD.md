@@ -33,7 +33,7 @@ Non-goals, stated so they cannot be implied:
   controls and the browser engine all read that file. A state is either valid everywhere or
   rejected everywhere with the same error code, and every state it accepts is solved by the
   engine with closed balances.
-- **Contract 2, the artifacts.** Per case, `data/derived/cases/<id>.json` holds six variants, each
+- **Contract 2, the artifacts.** Per case, `data/derived/cases/<id>.json` holds eight variants, each
   with its full operating point, named streams (solids, water, assays, size distribution for the
   key streams), unit curves (partition, recovery by size, bank profile, batch kinetics, energy
   laws), metrics with explicit units, method records and provenance. Manifests, the index, the
@@ -84,8 +84,8 @@ applicable variant, tests, documentation and an honest lane label.
 
 ## 5. Cases
 
-Twelve authored cases in four categories. Each has six variants; each variant changes exactly one
-declared input.
+Twelve authored cases in four categories. Each has eight variants; each variant changes exactly one
+declared input, and the last two run the grinding circuit in the cut mode (since 0.07.000).
 
 | Category | Cases | Why the category exists |
 |---|---|---|

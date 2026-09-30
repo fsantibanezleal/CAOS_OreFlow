@@ -119,6 +119,15 @@ const TEXT = {
   ownCaption: { en: 'The optimum against the families\' own levers, with the same marks.', es: 'El óptimo frente a las palancas propias de las familias, con las mismas marcas.' },
   optCaption: { en: 'The gain of the optimum over each variant, and the constraints active at it: {codes}; * the variant\'s own state broke a constraint.', es: 'La ganancia del óptimo sobre cada variante, y las restricciones activas en él: {codes}; * el estado propio de la variante violaba una restricción.' },
   activeCodes: { en: 'P power, G grade, W water', es: 'P potencia, L ley, A agua' },
+  cutCaption: { en: 'The optimum in the cut mode, where the grind decision is the classifier cut instead of the grind target, with the same marks; these searches run without the screen.', es: 'El óptimo en el modo de corte, donde la decisión de molienda es el corte del clasificador en vez del objetivo de molienda, con las mismas marcas; estas búsquedas corren sin el filtro.' },
+  screenCaption: { en: 'What the screen cost or saved, per case over its {n} screened variants: the engine evaluations with and without the screen for the same starts and weight, the candidates the screen proposed and the ones that improved the incumbent, the surrogate\'s mean distance from the engine where it proposed, and how many variants reach the same optimum without it.', es: 'Lo que costó o ahorró el filtro, por caso sobre sus {n} variantes filtradas: las evaluaciones del motor con y sin el filtro para los mismos inicios y peso, los candidatos que propuso el filtro y los que mejoraron al incumbente, la distancia media del sustituto al motor donde propuso, y cuántas variantes llegan al mismo óptimo sin él.' },
+  evalsScreened: { en: 'Evaluations, screened', es: 'Evaluaciones, con filtro' },
+  evalsPlain: { en: 'Evaluations, unscreened', es: 'Evaluaciones, sin filtro' },
+  evalsChange: { en: 'Change', es: 'Cambio' },
+  proposedShort: { en: 'Proposed / improved', es: 'Propuestos / mejoraron' },
+  surrogateError: { en: 'Surrogate error (points)', es: 'Error del sustituto (puntos)' },
+  sameOptimum: { en: 'Same optimum', es: 'Mismo óptimo' },
+  total: { en: 'All cases', es: 'Todos los casos' },
   p05: { en: 'P05', es: 'P05' },
   p50: { en: 'P50', es: 'P50' },
   p95: { en: 'P95', es: 'P95' },
@@ -357,9 +366,11 @@ function OptimizerTable({ lang }: { lang: Lang }) {
         const title = (id: string) => index.value!.cases.find(c => c.case_id === id)?.title[lang] ?? id;
         const label = (v: string) => (v === 'nominal' ? 'nominal' : VARIANT_KINDS.find(k => k.id === v)?.label[lang] ?? v);
         const cases = bench.cases.map(c => c.case_id);
-        // the nominal and the five common variants in one table; the families' own levers in a second
+        // the nominal and the five common variants in one table, the families' own levers in a second, the cut
+        // mode's two variants in a third
         const common = ['nominal', ...VARIANT_KINDS.slice(0, 5).map(k => k.id)];
-        const own = VARIANT_KINDS.slice(5).flatMap(k => cases.filter(id => bench.optimization[id][k.id]).map(id => ({ id, v: k.id })));
+        const cut = VARIANT_KINDS.filter(k => k.input === 'd50c_um').map(k => k.id);
+        const own = VARIANT_KINDS.slice(5).filter(k => !cut.includes(k.id)).flatMap(k => cases.filter(id => bench.optimization[id][k.id]).map(id => ({ id, v: k.id })));
         const cell = (id: string, v: string) => {
           const rec = bench.optimization[id][v];
           if (!rec) return <td key={v}>-</td>;
@@ -381,10 +392,47 @@ function OptimizerTable({ lang }: { lang: Lang }) {
               <thead><tr>{[TEXT.case, TEXT.variant, TEXT.gainShort].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
               <tbody>{own.map(({ id, v }) => <tr key={`${id}-${v}`}><th scope="row">{`${code[id]} ${title(id)}`}</th><td>{label(v)}</td>{cell(id, v)}</tr>)}</tbody>
             </table>
+            <div className="of-doc-scroll">
+              <table className="of-doc-table of-doc-table-data">
+                <caption>{TEXT.cutCaption[lang]}</caption>
+                <thead><tr><th scope="col">{TEXT.case[lang]}</th>{cut.map(v => <th scope="col" key={v}>{label(v)}</th>)}</tr></thead>
+                <tbody>{cases.map(id => <tr key={id}><th scope="row">{`${code[id]} ${title(id)}`}</th>{cut.map(v => cell(id, v))}</tr>)}</tbody>
+              </table>
+            </div>
+            <ScreenTable bench={bench} cases={cases} name={id => `${code[id]} ${title(id)}`} lang={lang} />
           </div>
         );
       }}
     </Loaded>
+  );
+}
+
+/** OP-11: the screen's measured cost or saving and the surrogate's disagreement, per case and over all cases. */
+function ScreenTable({ bench, cases, name, lang }: { bench: Benchmark; cases: string[]; name: (id: string) => string; lang: Lang }) {
+  const rows = cases.map(id => ({ id, recs: Object.values(bench.optimization[id]).filter(r => r.screened) }));
+  const all = rows.flatMap(r => r.recs);
+  const line = (recs: typeof all) => {
+    const screened = recs.reduce((a, r) => a + r.evaluations, 0), plain = recs.reduce((a, r) => a + (r.evaluations_without_screen ?? 0), 0);
+    const errors = recs.map(r => r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
+    return [
+      formatFixed(screened, lang, 0), formatFixed(plain, lang, 0), plain > 0 ? `${signed(100 * (screened / plain - 1), lang, 1)}%` : '-',
+      `${formatFixed(recs.reduce((a, r) => a + (r.proposed ?? 0), 0), lang, 0)} / ${formatFixed(recs.reduce((a, r) => a + (r.improved ?? 0), 0), lang, 0)}`,
+      errors.length ? formatFixed(errors.reduce((a, e) => a + e, 0) / errors.length, lang, 2) : '-',
+      `${recs.filter(r => r.same_optimum_without_screen).length} / ${recs.length}`,
+    ];
+  };
+  const heads = [TEXT.case, TEXT.evalsScreened, TEXT.evalsPlain, TEXT.evalsChange, TEXT.proposedShort, TEXT.surrogateError, TEXT.sameOptimum];
+  return (
+    <div className="of-doc-scroll">
+      <table className="of-doc-table of-doc-table-data">
+        <caption>{fill(TEXT.screenCaption[lang], { n: formatFixed(all.length, lang, 0) })}</caption>
+        <thead><tr>{heads.map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+        <tbody>
+          {rows.filter(r => r.recs.length).map(r => <tr key={r.id}><th scope="row">{name(r.id)}</th>{line(r.recs).map((v, k) => <td key={k}>{v}</td>)}</tr>)}
+          <tr><th scope="row">{TEXT.total[lang]}</th>{line(all).map((v, k) => <td key={k}><strong>{v}</strong></td>)}</tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -599,7 +647,7 @@ const OPTIMIZATION: Topic = {
   ],
   figure: { caption: { en: 'The optimizer\'s gain over every variant of every case, by whether the variant\'s own state met every constraint.', es: 'La ganancia del optimizador sobre cada variante de cada caso, según si el estado propio de la variante cumplía cada restricción.' }, render: lang => <OptimizerChart lang={lang} /> },
   data: lang => <OptimizerTable lang={lang} />,
-  refs: ['powell1994', 'prima2023', 'scipy2020'],
+  refs: ['torczon1997', 'audet2006', 'audet2009', 'booker1999'],
 };
 
 const UNCERTAINTY: Topic = {

@@ -56,7 +56,7 @@ writes artifacts; CI and deployment never train and never rewrite an artifact (A
 |---|---|---|
 | The operating contract: every input's unit, bounds per case, step, families, the cross-field rule, bilingual messages, the size grid, the quadrature table and a SHA-256 digest | `oreflow.contract/v1` | [data contract 01](../data-contract/01_operating-contract.md) |
 | The trace of one evaluation: point, metrics with units, topology, streams, curves, balances, the kinetic record and flags | `oreflow.trace/v2` | [data contract 02](../data-contract/02_trace-and-live-api.md) |
-| The case artifact (definitions and six variants with traces and method records), its manifest and the index | `oreflow.case/v2`, `oreflow.manifest/v2`, `oreflow.index/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
+| The case artifact (definitions and eight variants with traces and method records), its manifest and the index | `oreflow.case/v2`, `oreflow.manifest/v2`, `oreflow.index/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
 | The learning record and the exported networks with their scalers and reference block | `oreflow.learning/v1` | [data contract 03](../data-contract/03_case-artifacts.md), [methodology 14](../methodologies/14_learned-lane.md) |
 | The benchmark and the validation record | `oreflow.benchmark/v2`, `oreflow.validation/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
 | The measured lanes | `oreflow.particle-benchmark/v1`, `oreflow.geomet-lct/v1` | [data contract 04](../data-contract/04_particle-lane.md), [05](../data-contract/05_geomet-lane.md) |

@@ -36,7 +36,7 @@ branch is kept (a newer push cancels the older run), and every job stops after 3
 |---|---|
 | `scientific` | Python 3.12 with `requirements-dev.txt` (pytest, ruff, httpx and the API lane); ruff over `data-pipeline` and `tests`; `check_ci_budget.py` |
 | `contracts` | Python 3.12 with nothing installed: the standard-library guards (template residue, content standards, units, interface formulas, diagram languages and colours, the design document, the artifacts) |
-| `frontend` | Node 22: `npm ci`, the typecheck, the Vitest suites (the parity of the 72 variants, the contract probes, the trace curves, the worker, the flowsheet, the locale, the surrogate and the claims tests) and the production build |
+| `frontend` | Node 22: `npm ci`, the typecheck, the Vitest suites (the parity of the 96 variants, the contract probes, the trace curves, the worker, the flowsheet, the locale, the surrogate and the claims tests) and the production build |
 
 What CI never does is enforced by `scripts/check_ci_budget.py`: it rejects a workflow that triggers on
 pull requests, on a schedule or off the trunks, lacks a concurrency group or a job timeout, installs the
@@ -114,7 +114,7 @@ A release is checked from outside the machine that built it, on the public names
 have deployed the same commit:
 
 1. `/healthz` on the VPS reports the new `VERSION`.
-2. `/api/cases` lists 12 cases and 72 variants, and `/api/benchmark` answers the benchmark of the same
+2. `/api/cases` lists 12 cases and 96 variants, and `/api/benchmark` answers the benchmark of the same
    version.
 3. A representative `POST /api/simulate` answers `oreflow.live/v2` with a trace whose balance closes;
    a state outside the contract answers 422 with its code.
