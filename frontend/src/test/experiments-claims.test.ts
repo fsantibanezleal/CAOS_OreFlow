@@ -60,7 +60,7 @@ describe('the Experiments page says what the bake did', () => {
 
   it('matches the coverage and protocol numbers it quotes', () => {
     for (const record of Object.values(benchmark.kinetics)) {
-      expect(record.fits).toBe(66); // every variant of the eleven cases with flotation
+      expect(record.fits).toBe(88); // every variant of the eleven cases with flotation
       expect(record.converged_share).toBe(1);
     }
     for (const c of benchmark.cases) {

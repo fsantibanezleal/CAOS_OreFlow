@@ -12,7 +12,17 @@ const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/d
 const read = <T>(path: string): T => JSON.parse(readFileSync(join(derived, path), 'utf-8')) as T;
 const round = (value: number, decimals: number) => Number(value.toFixed(decimals));
 
-type Opt = { status: string; base_feasible: boolean; gain_pct: number | null; active: string[] };
+type Opt = {
+  status: string; base_feasible: boolean; gain_pct: number | null; active: string[]; evaluations: number; screened: boolean;
+  evaluations_without_screen?: number; screened_candidates?: number; proposed?: number; improved?: number;
+  surrogate_abs_error_pp?: number | null; same_optimum_without_screen?: boolean;
+  path: Array<{ weight: number; status: string; recovered_tph: number; energy_kwh_t: number | null }>;
+};
+type OptimizationRecord = {
+  decisions: string[]; bounds: Record<string, [number, number]>;
+  optimum: { decisions: Record<string, number>; recovered_tph: number; values: Record<string, number> } | null;
+  without_screen?: { decisions: Record<string, number> | null; recovered_tph: number | null };
+};
 const benchmark = read<{
   oracles: {
     molycop: { published: Record<string, number>; engine: Record<string, number>; relative_error: Record<string, number>; tolerance: Record<string, number> };
@@ -65,14 +75,14 @@ describe('the Benchmark page says what the records hold', () => {
     expect(z.engine.magnetite_recovery_pct.map(v => round(v, 1))).toEqual([94.9, 93.5]);
   });
 
-  it('kinetic lumping: 66 converged fits a model, first order worst, gamma then Kelsall best', () => {
+  it('kinetic lumping: 88 converged fits a model, first order worst, gamma then Kelsall best', () => {
     const k = benchmark.kinetics;
-    for (const record of Object.values(k)) expect([record.fits, record.converged_share]).toEqual([66, 1]);
+    for (const record of Object.values(k)) expect([record.fits, record.converged_share]).toEqual([88, 1]);
     const mean = (id: string) => round(k[id].mean_abs_lumping_error_pct, 1), worst = (id: string) => round(k[id].worst_abs_lumping_error_pct, 1);
-    expect([mean('first_order'), worst('first_order')]).toEqual([5.1, 8.2]);
-    expect([round(k.gamma.mean_abs_lumping_error_pct, 2), round(k.kelsall.mean_abs_lumping_error_pct, 2)]).toEqual([0.75, 0.85]);
+    expect([mean('first_order'), worst('first_order')]).toEqual([5.0, 8.2]);
+    expect([round(k.gamma.mean_abs_lumping_error_pct, 2), round(k.kelsall.mean_abs_lumping_error_pct, 2)]).toEqual([0.73, 0.80]);
     expect([worst('gamma'), worst('kelsall')]).toEqual([1.9, 1.9]);
-    expect([mean('klimpel'), mean('stretched_exponential')]).toEqual([1.7, 2.9]);
+    expect([mean('klimpel'), mean('stretched_exponential')]).toEqual([1.8, 2.8]);
     // the first-order model's bank: residence past the 16-minute test, and an underestimate at every nominal state
     const index = read<{ cases: Array<{ case_id: string }> }>('manifests/index.json');
     const nominal = index.cases.map(c => read<{ variants: Array<{ trace: { metrics: Record<string, number>; methods: { kinetics: { status?: string; models?: Array<{ id: string; lumping_error_pct: number }> } } } }> }>(`cases/${c.case_id}.json`).variants[0].trace)
@@ -86,36 +96,95 @@ describe('the Benchmark page says what the records hold', () => {
     expect(order.at(-1)).toBe('first_order');
   });
 
-  it('optimization: 70 of 72 feasible, 28 variants break a constraint, the one loss from one, power most often active', () => {
+  it('optimization: 94 of 96 feasible, 28 target-mode variants break a constraint, the one loss from one, power most often active', () => {
     const records = Object.entries(benchmark.optimization).flatMap(([id, variants]) => Object.entries(variants).map(([v, r]) => ({ id, v, r })));
-    expect(records).toHaveLength(72);
-    expect(records.filter(x => x.r.status === 'optimal')).toHaveLength(70);
+    expect(records).toHaveLength(96);
+    expect(records.filter(x => x.r.status === 'optimal')).toHaveLength(94);
     expect(records.filter(x => x.r.status !== 'optimal').map(x => `${x.id}:${x.v}`).sort()).toEqual(['iron_magnetite_fine:harder_ore', 'iron_magnetite_fine:higher_throughput']);
-    expect(records.filter(x => !x.r.base_feasible)).toHaveLength(28);
+    const cut = records.filter(x => x.v.startsWith('cut_')), target = records.filter(x => !x.v.startsWith('cut_'));
+    expect([target.length, target.filter(x => !x.r.base_feasible).length]).toEqual([72, 28]);
+    expect([cut.length, cut.filter(x => !x.r.base_feasible).length, cut.filter(x => x.r.status === 'optimal').length]).toEqual([24, 0, 24]);
     const gains = records.filter(x => x.r.gain_pct !== null).sort((a, b) => (a.r.gain_pct as number) - (b.r.gain_pct as number));
     expect([gains[0].id, gains[0].v, round(gains[0].r.gain_pct as number, 1)]).toEqual(['iron_magnetite_fine', 'coarser_grind', -0.8]);
-    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 18.2]);
+    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 18.1]);
     const losses = gains.filter(x => (x.r.gain_pct as number) < 0);
     expect(losses).toHaveLength(1);
     expect(losses.every(x => !x.r.base_feasible)).toBe(true);
-    const count = (name: string) => records.filter(x => x.r.active.includes(name)).length;
-    expect([count('power'), count('grade'), count('water')]).toEqual([58, 17, 6]);
+    const count = (name: string, set = records) => set.filter(x => x.r.active.includes(name)).length;
+    expect([count('power'), count('grade'), count('water')]).toEqual([81, 23, 10]);
+    expect(count('power', cut)).toBe(24);
     const nominal = Object.entries(benchmark.optimization).map(([id, v]) => ({ id, gain: v.nominal.gain_pct as number })).sort((a, b) => a.gain - b.gain);
     expect([nominal[0].id, round(nominal[0].gain, 1)]).toEqual(['iron_magnetite_fine', 0.3]);
     expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 7.6]);
+    const cutGains = cut.map(x => ({ id: x.id, gain: x.r.gain_pct as number })).sort((a, b) => a.gain - b.gain);
+    expect([cutGains[0].id, round(cutGains[0].gain, 1), cutGains.at(-1)!.id, round(cutGains.at(-1)!.gain, 1)]).toEqual(['iron_magnetite_fine', 0.3, 'zinc_sulfide', 5.1]);
+    const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
+    expect(text).toMatch(/94 of the 96 variants/);
+    expect(text).toMatch(/Twenty-eight of the 72 target-mode variants/);
+    expect(text).toMatch(/active at 81 of the 94 optima and at all 24 in the cut mode, then the grade specification at 23 and the water capacity at 10/);
+  });
+
+  it('optimization: what the screen cost, the surrogate\'s error, the unscreened optima and the weight path (OP-07, OP-11)', () => {
+    const records = Object.entries(benchmark.optimization).flatMap(([id, variants]) => Object.entries(variants).map(([v, r]) => ({ id, v, r })));
+    const screened = records.filter(x => x.r.screened);
+    // the learned lane describes the target mode, so exactly the target-mode variants are screened
+    expect(screened.map(x => `${x.id}:${x.v}`).sort()).toEqual(records.filter(x => !x.v.startsWith('cut_')).map(x => `${x.id}:${x.v}`).sort());
+    const sum = (f: (r: Opt) => number) => screened.reduce((a, x) => a + f(x.r), 0);
+    const withScreen = sum(r => r.evaluations), without = sum(r => r.evaluations_without_screen!);
+    expect([withScreen, without, round(100 * (withScreen / without - 1), 1)]).toEqual([23535, 21692, 8.5]);
+    const change = screened.map(x => x.r.evaluations - x.r.evaluations_without_screen!);
+    expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([9, 54, 9]);
+    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([4838, 73897, 828]);
+    const errors = screened.map(x => x.r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
+    expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.64);
+    const differ = screened.filter(x => !x.r.same_optimum_without_screen);
+    expect([screened.length - differ.length, differ.length]).toEqual([63, 9]);
+    // the nine that differ: within 0.02% of the unscreened metal and at most five finest mesh steps in any decision
+    const artifact = (id: string) => read<{ variants: Array<{ id: string; methods: { optimization: OptimizationRecord } }> }>(`cases/${id}.json`);
+    const meshMinimum = 2 ** -10;
+    for (const x of differ) {
+      const rec = artifact(x.id).variants.find(v => v.id === x.v)!.methods.optimization;
+      const plain = rec.without_screen!;
+      expect(Math.abs(rec.optimum!.recovered_tph / plain.recovered_tph! - 1)).toBeLessThan(2e-4);
+      for (const n of rec.decisions) expect(Math.abs(rec.optimum!.decisions[n] - plain.decisions![n]) / ((rec.bounds[n][1] - rec.bounds[n][0]) * meshMinimum)).toBeLessThanOrEqual(5);
+    }
+    // OP-07: at a quarter of the weight on metal the nominal optima trade metal for energy, except magnetite's
+    const trade = Object.keys(benchmark.optimization).map(id => {
+      const opt = artifact(id).variants[0].methods.optimization.optimum!, last = benchmark.optimization[id].nominal.path.at(-1)!;
+      expect([last.weight, last.status]).toEqual([0.25, 'optimal']);
+      return { id, energy: 100 * (1 - last.energy_kwh_t! / opt.values.energy_kwh_t), metal: 100 * (1 - last.recovered_tph / opt.recovered_tph) };
+    });
+    const moved = trade.filter(x => x.id !== 'iron_magnetite_fine');
+    expect([Math.round(Math.min(...moved.map(x => x.energy))), Math.round(Math.max(...moved.map(x => x.energy)))]).toEqual([31, 46]);
+    expect([Math.round(Math.min(...moved.map(x => x.metal))), Math.round(Math.max(...moved.map(x => x.metal)))]).toEqual([10, 35]);
+    const magnetite = trade.find(x => x.id === 'iron_magnetite_fine')!;
+    expect([Math.abs(magnetite.energy) < 1e-9, Math.abs(magnetite.metal) < 1e-9]).toEqual([true, true]);
+    expect(benchmark.optimization.iron_magnetite_fine.nominal.active).toContain('grade');
+    // along every full path neither energy nor metal rises as the weight falls, beyond the mesh's resolution
+    let worst = 0;
+    for (const x of records.filter(r => r.r.status === 'optimal' && r.r.path.every(s => s.status === 'optimal'))) {
+      const opt = artifact(x.id).variants.find(v => v.id === x.v)!.methods.optimization.optimum!;
+      const energy = [opt.values.energy_kwh_t, ...x.r.path.map(s => s.energy_kwh_t!)], metal = [opt.recovered_tph, ...x.r.path.map(s => s.recovered_tph)];
+      for (const series of [energy, metal]) for (let k = 1; k < series.length; k += 1) worst = Math.max(worst, series[k] / series[k - 1] - 1);
+    }
+    expect(worst).toBeLessThan(4e-5);
+    const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
+    expect(text).toMatch(/23,535 engine evaluations, against 21,692/);
+    expect(text).toMatch(/0\.64 points from the engine/);
+    expect(text).toMatch(/same optimum in 63 of the 72 variants/);
   });
 
   it('uncertainty: the spreads, the joint probabilities and the dominant inputs as quoted', () => {
     const u = benchmark.uncertainty;
     const width = Object.entries(u).map(([id, r]) => ({ id, w: r.recovery_pct.p95 - r.recovery_pct.p05 })).sort((a, b) => a.w - b.w);
-    expect([width[0].id, round(width[0].w, 1)]).toEqual(['gold_free_milling', 3.7]);
-    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 9.1]);
+    expect([width[0].id, round(width[0].w, 1)]).toEqual(['gold_free_milling', 2.9]);
+    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 7.7]);
     const joint = Object.entries(u).map(([id, r]) => ({ id, p: r.probabilities.all_constraints })).sort((a, b) => a.p - b.p);
-    expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['iron_magnetite_fine', 53]);
+    expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['iron_magnetite_fine', 52]);
     const m = u.iron_magnetite_fine.probabilities;
-    expect([Math.round(100 * m.grade_meets_spec), Math.round(100 * m.power_within_installed)]).toEqual([65, 79]);
+    expect([Math.round(100 * m.grade_meets_spec), Math.round(100 * m.power_within_installed)]).toEqual([66, 79]);
     const top = joint.filter(x => x.p === joint.at(-1)!.p).map(x => x.id).sort();
-    expect([top, Math.round(100 * joint.at(-1)!.p)]).toEqual([['copper_porphyry_soft', 'gold_free_milling'], 82]);
+    expect([top, Math.round(100 * joint.at(-1)!.p)]).toEqual([['phosphate_clay'], 83]);
     const not = (key: string, value: string) => Object.entries(u).filter(([, r]) => r.dominant_input[key] !== value).map(([id]) => id).sort();
     expect(not('recovery_pct', 'floatability')).toEqual(['copper_porphyry_hard', 'iron_magnetite_fine']);
     expect(u.copper_porphyry_hard.dominant_input.recovery_pct).toBe('work_index');

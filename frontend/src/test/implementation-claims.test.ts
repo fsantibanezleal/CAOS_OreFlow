@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { IMPLEMENTATION } from '../content/implementation';
 import { DEPLOY, GPU, MODELS } from '../content/implementation-models';
 
 // PG-03: the numbers the Implementation page's registry, GPU and deployment tabs write in their prose are held
@@ -8,6 +9,9 @@ import { DEPLOY, GPU, MODELS } from '../content/implementation-models';
 const read = <T,>(path: string) => JSON.parse(readFileSync(fileURLToPath(new URL(`../../../${path}`, import.meta.url)), 'utf-8')) as T;
 const learning = read<{ features: string[]; design: { rows: number }; settings: Record<string, unknown>; leave_one_case_out: unknown[]; final: { exports: Record<string, { max_abs_difference: number }> } }>('data/derived/learning.json');
 const text = (topic: { paragraphs: Array<{ en: string }> }) => topic.paragraphs.map(p => p.en).join(' ');
+// the bake's own records: OF_DERIVED points a development run at a sandbox bake
+const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
+const readDerived = <T,>(path: string) => JSON.parse(readFileSync(`${derived}/${path}`, 'utf-8')) as T;
 
 describe('the Implementation page says what the records and environments hold', () => {
   it('model registry: four models, 22 features, the export tolerance', () => {
@@ -27,6 +31,19 @@ describe('the Implementation page says what the records and environments hold', 
     const gpu = readFileSync(fileURLToPath(new URL('../../../requirements-gpu.txt', import.meta.url)), 'utf-8');
     expect(gpu).toMatch(/torch==[\d.]+\+cu126/);
     expect(t).toMatch(/pins the CUDA build of PyTorch/);
+  });
+
+  it('the bake: the optimizer run twice, and what the screen cost in this bake (OP-11)', () => {
+    type Row = { screened: boolean; evaluations: number; evaluations_without_screen?: number; surrogate_abs_error_pp?: number | null };
+    const bench = readDerived<{ optimization: Record<string, Record<string, Row>> }>('benchmark.json');
+    const screened = Object.values(bench.optimization).flatMap(v => Object.values(v)).filter(r => r.screened);
+    const withScreen = screened.reduce((a, r) => a + r.evaluations, 0), without = screened.reduce((a, r) => a + r.evaluations_without_screen!, 0);
+    const errors = screened.map(r => r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
+    const bake = IMPLEMENTATION.find(g => g.id === 'bake')!.topics[0];
+    const t = text(bake);
+    const n = (v: number) => v.toLocaleString('en-US');
+    expect(t).toMatch(new RegExp(`the screened searches spent ${n(withScreen)} engine evaluations against ${n(without)} without the screen, ${Number((100 * (withScreen / without - 1)).toFixed(1))}% more`));
+    expect(t).toMatch(new RegExp(`the surrogate's recovery was ${Number((errors.reduce((a, e) => a + e, 0) / errors.length).toFixed(2))} points from the engine's on average`));
   });
 
   it('deployment: the routes the service answers', () => {
