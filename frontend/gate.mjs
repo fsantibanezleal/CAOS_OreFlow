@@ -31,7 +31,7 @@
  *   page offers it;
  * - at 390x844 and 768x1024 in both themes and languages (OF_SMALL), where the rail stacks and the page body scrolls, visits every
  *   view: the rail whole and clear of the readout, no sideways document scroll, and no flowsheet unit
- *   box over another;
+ *   box over another; and every tab and sub-tab of every content page, none scrolling the document sideways;
  * - fails on any console error.
  *
  * A screenshot of every state lands in OF_QA (default `qa-output/`, ignored by git); the measurements
@@ -609,6 +609,34 @@ for (const tag of SMALL) {
     });
     record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText });
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
+  }
+  // the content pages at a phone's and a tablet's width (ADR-0071): no tab or sub-tab scrolls the document
+  // sideways. Until 0.07.000 this pass visited the App route only, and 16 content tabs overflowed a phone, their
+  // wide tables and the charts beside them past the edge; a wide table now scrolls inside its own box
+  for (const route of PAGES) {
+    await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle', timeout: 90000 });
+    await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
+    const topTabs = page.locator('.page-body .tablist [role=tab]');
+    const groups = await topTabs.count();
+    const over = [];
+    let visited = 0;
+    for (let g = 0; g < Math.max(1, groups); g += 1) {
+      if (groups) await topTabs.nth(g).click();
+      const subTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
+      const count = Math.max(1, await subTabs.count());
+      for (let k = 0; k < count; k += 1) {
+        if (await subTabs.count()) await subTabs.nth(k).click();
+        await page.waitForTimeout(400);
+        visited += 1;
+        const state = await page.evaluate(() => ({
+          overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+          tab: [...document.querySelectorAll('.page-body [role=tab][aria-selected=true]')].map(t => t.textContent.trim()).join(' / '),
+        }));
+        if (state.overX) over.push(state.tab);
+      }
+    }
+    await page.screenshot({ path: join(OUT, `${route}-${tag}.png`) });
+    record(`${tag} ${route} page`, over.length === 0, { visited, over });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();
