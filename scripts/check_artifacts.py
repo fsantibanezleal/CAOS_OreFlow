@@ -334,6 +334,34 @@ def check_benchmark(derived: Path, version: str, digest: str | None) -> list[str
             for key in BENCHMARK_METRICS:
                 if row.get(key) != v["trace"]["metrics"].get(key):
                     errors.append(f"benchmark {case['case_id']}:{v['id']} {key} differs from the case artifact")
+            errors.extend(_benchmark_optimization(b, case["case_id"], v))
+    return errors
+
+
+def _benchmark_optimization(b: dict, case_id: str, variant: dict) -> list[str]:
+    """OP-11: the optimizer summary the pages quote is the case record's own: its status, evaluations, the screen's
+    counts and the weight path."""
+    row = (b.get("optimization") or {}).get(case_id, {}).get(variant["id"])
+    record = variant["methods"]["optimization"]
+    where = f"benchmark optimization {case_id}:{variant['id']}"
+    if row is None:
+        return [f"{where} is missing"]
+    errors = []
+    if (row.get("status"), row.get("evaluations"), row.get("screened")) != (record["status"], record["evaluations"], bool(record.get("screened"))):
+        errors.append(f"{where}: status, evaluations or screened differ from the case record")
+    if record.get("screened"):
+        columns = record["proposal_columns"]
+        engine = columns.index("engine_recovery_pct")
+        proposed = sum(1 for start in record["starts"] for p in start["screen"]["proposals"] if p[engine] is not None)
+        expected = (record["without_screen"]["evaluations"], sum(start["screen"]["screened"] for start in record["starts"]), proposed,
+                    sum(start["screen"]["improved"] for start in record["starts"]))
+        if (row.get("evaluations_without_screen"), row.get("screened_candidates"), row.get("proposed"), row.get("improved")) != expected:
+            errors.append(f"{where}: the screen's counts differ from the case record")
+    elif any(key in row for key in ("evaluations_without_screen", "screened_candidates", "proposed", "improved")):
+        errors.append(f"{where}: an unscreened search carries screen counts")
+    path = [(s["weight"], s["status"], s["recovered_tph"], s["energy_kwh_t"]) for s in record.get("path", [])]
+    if [(s.get("weight"), s.get("status"), s.get("recovered_tph"), s.get("energy_kwh_t")) for s in row.get("path", [])] != path:
+        errors.append(f"{where}: the weight path differs from the case record")
     return errors
 
 
