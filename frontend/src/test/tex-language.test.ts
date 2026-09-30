@@ -14,6 +14,7 @@ const { IMPLEMENTATION } = await import('../content/implementation');
 const { EXPERIMENTS } = await import('../content/experiments');
 const { ENGINE_BENCHMARK } = await import('../content/benchmark');
 const { MEASURED_LANES } = await import('../content/lanes');
+const { INDUSTRIAL } = await import('../content/industrial');
 const { STREAMS } = await import('../content/methodology/streams');
 const { COMMINUTION } = await import('../content/methodology/comminution');
 const { SEPARATION } = await import('../content/methodology/separation');
@@ -23,6 +24,7 @@ const { CIRCUIT, FLOTATION, GRAVITY, MAGNETIC, DESLIME } = await import('../cont
 const topics: Topic[] = [
   ...[INTRODUCTION, IMPLEMENTATION, EXPERIMENTS].flatMap(groups => (groups as Group[]).flatMap(g => g.topics)),
   ...Object.values(ENGINE_BENCHMARK as Record<string, Topic>), ...Object.values(MEASURED_LANES as Record<string, Topic>),
+  ...Object.values(INDUSTRIAL as Record<string, Topic>),
   ...(STREAMS as Topic[]), ...(COMMINUTION as Topic[]), ...(SEPARATION as Topic[]), ...(METHODS as Topic[]),
 ];
 const formulas: Array<{ where: string; tex: string | Bi }> = [
@@ -30,9 +32,9 @@ const formulas: Array<{ where: string; tex: string | Bi }> = [
   ...[CIRCUIT, FLOTATION, GRAVITY, MAGNETIC, DESLIME].flat().map(f => ({ where: 'case view', tex: (f as { tex: string }).tex })),
 ];
 
-// what reads the same in both languages: units, the RMSE acronym (kept in Spanish technical writing) and
-// operator names that are notation, not words
-const NEUTRAL = new Set(['RMSE', 'diag', 'kPa', 't/h', 'kWh', 'kW', 'MW', 'ppm', 'g/t']);
+// what reads the same in both languages: units, the RMSE and MAE acronyms (kept in Spanish technical writing),
+// operator names that are notation, not words, and the two runtimes' proper names
+const NEUTRAL = new Set(['RMSE', 'MAE', 'diag', 'kPa', 't/h', 'kWh', 'kW', 'MW', 'ppm', 'g/t', 'ONNX', 'PyTorch']);
 const WORDS = /\\(?:text|mathrm|operatorname|textrm|textit|mathit)\{([^}]*)\}/g;
 
 describe('formulas in two languages', () => {

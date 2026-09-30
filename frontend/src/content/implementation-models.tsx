@@ -193,7 +193,7 @@ export const GPU: Topic = {
   ],
   equations: [
     { tex: r`\theta_{t+1} = \theta_t - \eta\left(\frac{\hat m_t}{\sqrt{\hat v_t} + \epsilon} + \lambda\,\theta_t\right)`, caption: { en: 'AdamW: the Adam step with the weight decay λ applied to the weights directly (Loshchilov and Hutter 2019).', es: 'AdamW: el paso de Adam con el decaimiento de pesos λ aplicado directamente a los pesos (Loshchilov y Hutter 2019).' } },
-    { tex: r`t^{*} = \arg\min_{t \le T}\ L_{\mathrm{val}}(t),\qquad \text{stop at } t^{*} + P`, caption: { en: 'Early stopping: the best epoch t* by validation loss, with patience P and the cap T.', es: 'Parada temprana: la mejor época t* por pérdida de validación, con paciencia P y tope T.' } },
+    { tex: { en: r`t^{*} = \arg\min_{t \le T}\ L_{\mathrm{val}}(t),\qquad \text{stop at } t^{*} + P`, es: r`t^{*} = \arg\min_{t \le T}\ L_{\mathrm{val}}(t),\qquad \text{detener en } t^{*} + P` }, caption: { en: 'Early stopping: the best epoch t* by validation loss, with patience P and the cap T.', es: 'Parada temprana: la mejor época t* por pérdida de validación, con paciencia P y tope T.' } },
   ],
   limits: [
     { en: 'A bake on another device gives numbers equal within round-off, not bit for bit; the release compares a new bake with the committed records file by file before adopting it.', es: 'Un horneado en otro dispositivo da números iguales al redondeo, no bit a bit; la publicación compara un horneado nuevo con los registros versionados archivo por archivo antes de adoptarlo.' },

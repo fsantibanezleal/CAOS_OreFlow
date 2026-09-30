@@ -90,7 +90,7 @@ export const DATA: Topic = {
       es: 'Ningún conjunto medido calibra el motor. Los ensayos GeoMet no tienen molienda, reactivos ni residencia, así que no pueden fijar los controles del motor, y las probabilidades HZDR son construidas, no recuperaciones observadas. Prueban los métodos aprendidos sobre datos reales, lo que los casos de autor no pueden hacer.' },
   ],
   equations: [
-    { tex: r`h = \mathrm{SHA\text{-}256}(\text{file}),\qquad h \ne h_{\text{published}} \;\Rightarrow\; \text{stop}`, caption: { en: 'A measured source is read only when its hash is the published one.', es: 'Una fuente medida se lee solo cuando su huella es la publicada.' } },
+    { tex: { en: r`h = \mathrm{SHA\text{-}256}(\text{file}),\qquad h \ne h_{\text{published}} \;\Rightarrow\; \text{stop}`, es: r`h = \mathrm{SHA\text{-}256}(\text{archivo}),\qquad h \ne h_{\text{publicada}} \;\Rightarrow\; \text{detener}` }, caption: { en: 'A measured source is read only when its hash is the published one.', es: 'Una fuente medida se lee solo cuando su huella es la publicada.' } },
   ],
   limits: [
     { en: 'The measured lanes are one deposit and one constructed workbook; they say how the learned methods behave on real rows, not how a plant runs.', es: 'Las vías medidas son un yacimiento y un libro de trabajo construido; dicen cómo se comportan los métodos aprendidos sobre filas reales, no cómo opera una planta.' },
@@ -167,7 +167,7 @@ export const SPLITS: Topic = {
       es: 'En cada partición el preprocesamiento se ajusta solo con las filas de entrenamiento: los escaladores de la vía aprendida, la imputación y el escalado de los modelos GeoMet, y las filas de parada temprana de las redes, que salen del lado de entrenamiento. Una partición que dejara a una fila de prueba dar forma al escalador la filtraría en el puntaje.' },
   ],
   equations: [
-    { tex: r`\mathcal{D}_{\text{train}}^{(c)} = \mathcal{D} \setminus \mathcal{D}_c,\qquad \mathcal{D}_{\text{test}}^{(c)} = \mathcal{D}_c`, caption: { en: 'Leave one case out: fold c trains on every state outside case c and tests on case c.', es: 'Dejar un caso fuera: la partición c entrena con cada estado fuera del caso c y prueba en el caso c.' } },
+    { tex: { en: r`\mathcal{D}_{\text{train}}^{(c)} = \mathcal{D} \setminus \mathcal{D}_c,\qquad \mathcal{D}_{\text{test}}^{(c)} = \mathcal{D}_c`, es: r`\mathcal{D}_{\text{entrenamiento}}^{(c)} = \mathcal{D} \setminus \mathcal{D}_c,\qquad \mathcal{D}_{\text{prueba}}^{(c)} = \mathcal{D}_c` }, caption: { en: 'Leave one case out: fold c trains on every state outside case c and tests on case c.', es: 'Dejar un caso fuera: la partición c entrena con cada estado fuera del caso c y prueba en el caso c.' } },
     { tex: r`\alpha = \Pr\left[e(z) > q_{0.99}\mid z \in U\right],\qquad \beta = \Pr\left[e(z) \le q_{0.99}\mid z \notin U\right]`, caption: { en: 'The guard\'s false-alarm rate α on in-envelope states U, and its false-accept rate β on out-of-envelope probes.', es: 'La tasa de falsas alarmas α del guardia sobre estados de la envolvente U, y su tasa de falsas aceptaciones β sobre sondas fuera de ella.' } },
   ],
   limits: [

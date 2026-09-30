@@ -7,7 +7,8 @@ import { ENGINE_BENCHMARK } from '../content/benchmark';
 // The Benchmark page states the published-example checks, the method records' findings, the learned
 // lane's scores and the measured lanes' results in its prose; every number and direction it states is
 // held here to the committed records, so a bake that changes one fails instead of shipping stale text.
-const derived = fileURLToPath(new URL('../../../data/derived/', import.meta.url));
+// OF_DERIVED points a development run at a sandbox bake; by default the committed records are read
+const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
 const read = <T>(path: string): T => JSON.parse(readFileSync(join(derived, path), 'utf-8')) as T;
 const round = (value: number, decimals: number) => Number(value.toFixed(decimals));
 

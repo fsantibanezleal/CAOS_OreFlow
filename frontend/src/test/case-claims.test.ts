@@ -7,7 +7,8 @@ import { CASE_CONTEXT, VARIANT_NOTES } from '../content/cases';
 // The Case view's authored context makes qualitative claims about each case; every one of them is
 // checked here against the baked results, so a bake that contradicts the text fails instead of
 // shipping prose the engine does not support.
-const derived = fileURLToPath(new URL('../../../data/derived/', import.meta.url));
+// OF_DERIVED points a development run at a sandbox bake; by default the committed records are read
+const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
 type Variant = { id: string; trace: { metrics: Record<string, number>; flags: Array<{ code: string }> } };
 const variants = (id: string) => Object.fromEntries((JSON.parse(readFileSync(join(derived, 'cases', `${id}.json`), 'utf-8')) as { variants: Variant[] })
   .variants.map(v => [v.id, v.trace]));
