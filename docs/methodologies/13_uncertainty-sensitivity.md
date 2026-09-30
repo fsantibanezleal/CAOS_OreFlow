@@ -84,14 +84,14 @@ the Sensitivity view says so instead of drawing indices.
 
 ## What the nominal cases show
 
-Measured on the 0.06.000 records of 2026-09-28, on two cases (the baked records for every case are on the
-Experiments page):
+Measured on the 0.07.000 records of 2026-09-30, the first drawn with the SplitMix64 design, on two cases (the
+baked records for every case are on the Experiments page):
 
-- Soft copper porphyry: recovery P05 to P95 of 89.7 to 94.6%; the mill stays within installed power
+- Soft copper porphyry: recovery P05 to P95 of 90.2 to 94.5%; the mill stays within installed power
   in 82% of the samples, because a harder ore trips the power limit. Floatability drives recovery
   (total index about 0.8), liberation size drives grade (about 0.8), the work index drives grinding
   energy (about 0.99) and head grade drives recovered metal (about 0.98).
-- Magnetite: the concentrate meets its 65% Fe specification in 65% of the samples, because its
+- Magnetite: the concentrate meets its 65% Fe specification in 66% of the samples, because its
   nominal grade (65.7%) sits close to the specification and liberation size moves it across.
 
 ## Verification

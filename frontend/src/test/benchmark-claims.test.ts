@@ -135,6 +135,14 @@ describe('the Benchmark page says what the records hold', () => {
     const change = screened.map(x => x.r.evaluations - x.r.evaluations_without_screen!);
     expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([9, 54, 9]);
     expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([4838, 73897, 828]);
+    // the rejections by reason are in the case records' per-start screen counts
+    const rejected = { guard: 0, interval: 0 };
+    for (const x of screened) {
+      const starts = read<{ variants: Array<{ id: string; methods: { optimization: { starts: Array<{ screen: { rejected: Record<string, number> } }> } } }> }>(`cases/${x.id}.json`)
+        .variants.find(v => v.id === x.v)!.methods.optimization.starts;
+      for (const s of starts) { rejected.guard += s.screen.rejected.guard; rejected.interval += s.screen.rejected.interval; }
+    }
+    expect([rejected.guard, rejected.interval]).toEqual([3962, 44511]);
     const errors = screened.map(x => x.r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
     expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.64);
     const differ = screened.filter(x => !x.r.same_optimum_without_screen);
@@ -170,6 +178,7 @@ describe('the Benchmark page says what the records hold', () => {
     expect(worst).toBeLessThan(4e-5);
     const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
     expect(text).toMatch(/23,535 engine evaluations, against 21,692/);
+    expect(text).toMatch(/Of the 73,897 candidates it screened, the guard rejected 3,962 and the interval 44,511; the engine evaluated the best passing candidate 4,838 times, and 828 of those improved/);
     expect(text).toMatch(/0\.64 points from the engine/);
     expect(text).toMatch(/same optimum in 63 of the 72 variants/);
   });

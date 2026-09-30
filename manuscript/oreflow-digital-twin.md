@@ -2,7 +2,7 @@
 
 Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research programme, Santiago, Chile
 
-Draft of 2026-09-28, written against OreFlow 0.06.000. Not deposited; no DOI. Every number below is read
+Draft of 2026-09-30, written against OreFlow 0.07.000. Not deposited; no DOI. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
 `data/derived/source/*.json`, the twelve case artifacts), and `tests/test_manuscript_claims.py` fails if a
 number here and the records disagree.
@@ -16,7 +16,7 @@ use an open steady-state flowsheet engine that carries every stream as the mass 
 size classes plus water, solves closed grinding circuits with an energy-specific population balance and
 Plitt hydrocyclones, separates by flotation banks, gravity, magnetic drums or desliming, and closes the
 balance of every unit within 1e-9. The engine is checked against four published examples and is reproduced
-by an independent browser implementation within 1e-6 on all 72 committed states. On a 3072-state design over
+by an independent browser implementation within 1e-6 on all 96 committed states. On a 3072-state design over
 twelve authored plants, five surrogates (ridge, random forest, histogram gradient boosting, a Gaussian
 process and a multilayer perceptron) are scored by interpolation inside the cases and by leave one case out.
 The protocols rank the models differently: the perceptron interpolates recovery best (RMSE 3.35 points) and
@@ -110,7 +110,7 @@ is accepted or rejected with the same code everywhere.
 
 ## 3. Verification
 
-**Balances.** All 72 committed states close within 1e-9 relative at every unit and for the circuit, as
+**Balances.** All 96 committed states close within 1e-9 relative at every unit and for the circuit, as
 recomputed from the stored streams by the artifact checks.
 
 **The second implementation.** A line-by-line TypeScript port runs the engine in the browser. Re-simulating
@@ -241,22 +241,28 @@ The engine produces, for each variant, records that do not depend on learning:
 
 - **Kinetic lumping.** Five lumped models fitted to a virtual batch test of the rougher feed, projected to
   the bank under the same residence distribution and compared with the exact bank recovery by true flotation,
-  over 66 flotation states: mean absolute projection errors of 0.75 points for the gamma model, 0.85 for
-  Kelsall, 1.75 for Klimpel, 2.90 for the stretched exponential and 5.12 for first order (Polat and Chander
+  over 88 flotation states: mean absolute projection errors of 0.73 points for the gamma model, 0.80 for
+  Kelsall, 1.81 for Klimpel, 2.82 for the stretched exponential and 4.97 for first order (Polat and Chander
   2000; Vinnett and Waters 2025). The first-order projection falls below the exact result at every nominal
   state: a batch curve that is a mixture of rates is not one exponential.
-- **Constrained optimization.** COBYLA from six starts (Powell 1994; Zhang et al. 2023) finds a point within
-  the grade, power and water constraints for 70 of the 72 variants; the two exceptions are the magnetite
-  circuit's harder ore and higher throughput, where the grind is the only decision and the mill is already at
-  installed power.
+- **Constrained optimization.** A generalized pattern search with a progressive barrier from six starts
+  (Torczon 1997; Audet and Dennis 2006, 2009) finds a point within the grade, power and water constraints for
+  94 of the 96 variants; the two exceptions are the magnetite circuit's harder ore and higher throughput, where
+  the grind is the only decision and the mill is already at installed power. The learned lane screens the search
+  step (Booker et al. 1999): a candidate reaches the engine only where the guard accepts its state and the
+  Gaussian process's 95% interval on recovery is within 5 points, and the poll and the optimum stay engine
+  results. The screen did not save engine work: over the 72 screened variants it cost 8.5% more engine
+  evaluations than the same starts without it, although where it proposed the surrogate's recovery was 0.64
+  points from the engine's on average, and the unscreened search reaches the same optimum in 63 of the 72.
 - **Sensitivity.** Sobol indices of four uncertain ore properties at each nominal state (Saltelli et al. 2010;
   Herman and Usher 2017): floatability drives recovery in ten cases, liberation size drives concentrate grade
   in eight and the head grade in the other four, the work index drives grinding energy and the head grade
   drives recovered metal in all twelve.
 
-## 7. Two measured lanes, kept apart
+## 7. Measured data, kept apart
 
-The engine calibrates nothing and is calibrated by nothing; two lanes of measured data sit beside it.
+The engine calibrates nothing and is calibrated by nothing. Measured data sit beside it in three lanes, and one
+of them also runs through it.
 
 **Particles.** The HZDR constructed-case workbook (Pereira et al. 2021; RODARE 336, CC BY 4.0) keeps its
 training sheet (68 008 particles with A/B labels) and its test sheet (29 147 particles with constructed
@@ -280,6 +286,23 @@ from 5.09 to 5.51 points (whole holes) and 5.15 to 5.69 (zones). A paired bootst
 with an interval that excludes zero (0.42 points, 95% interval 0.02 to 0.82), and under spatial zones no model
 does. The source has no grind, reagent or residence information, so it cannot calibrate the engine's controls.
 
+**The engine on the same samples.** The 52 samples also run through the engine, each on its own assays in the
+soft copper porphyry's circuit at that case's operating point. The work index comes from the nearest comminution
+sample in the hole (42 samples) or the deposit median (10), and spans 15.2 to 26.1 kWh/t against the case's 11.0.
+Most of the copper is bornite and chalcocite, allocated by a sulphur-limited normative mineralogy; the two
+minerals float at declared ratios to chalcopyrite (0.8, and chalcocite at 1.5 times bornite). Every sample runs
+the mill at installed power, and the engine's recovery falls short of the locked-cycle test by 20.4 points on
+average (RMSE 22.2 points; 0.3 to 39.9 points below), against an RMSE of 5.09 to 5.51 points for the lane's
+models on the same samples. It is a comparison, not a calibration: the circuit, the breakage, the liberation and
+the flotation are authored for another ore, and a locked-cycle test is not a plant.
+
+**Plant hours.** One iron-ore plant's reverse flotation record (Kaggle dataset 6294, CC0; 737,453 rows) gives
+hourly laboratory silica beside 21 feed, reagent, pulp and column sensors. Dropping the 310 hours whose silica
+label was interpolated leaves 3,701 pairs of consecutive hours. Scored on three future windows after at least 24
+hours of embargo, the previous assay alone forecasts the next hour's silica with a mean absolute error of 0.464
+points, and the best sensor-only model, ridge, is 0.001 points below the training mean's 0.766. The engine has no
+reverse cationic flotation family, so these hours are shown and never simulated.
+
 ## 8. Discussion and limitations
 
 The test bounds transfer between authored plants. A thirteenth authored plant is not a real one: the engine
@@ -301,7 +324,7 @@ surrogate preserves the ranking of operating decisions.
 ## 9. Reproducibility
 
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
-the browser port, the service and the documentation are versioned together; this draft describes 0.06.000.
+the browser port, the service and the documentation are versioned together; this draft describes 0.07.000.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
 workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed bake took 517 s for the cases on 12
 workers and 3180 s for the learned lane, while another job shared the machine; the two measured lanes follow it.
@@ -310,7 +333,10 @@ https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of 
 
 ## References
 
+- Audet, C. and Dennis, J.E. (2006). Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization 17(1):188-217. doi:10.1137/040603371
+- Audet, C. and Dennis, J.E. (2009). A progressive barrier for derivative-free nonlinear programming. SIAM Journal on Optimization 20(1):445-472. doi:10.1137/070692662
 - Bond, F.C. (1952). The third theory of comminution. Transactions AIME 193:484-494.
+- Booker, A.J., Dennis, J.E., Frank, P.D., Serafini, D.B., Torczon, V. and Trosset, M.W. (1999). A rigorous framework for optimization of expensive functions by surrogates. Structural Optimization 17(1):1-13. doi:10.1007/BF01197708
 - Breiman, L. (2001). Random forests. Machine Learning 45:5-32. doi:10.1023/A:1010933404324
 - Duarte, R., Yamashita, A., da Silva, M., Cota, L. and Euzébio, T. (2021). Calibration and validation of a cone crusher model with industrial data. Minerals 11(11):1256. doi:10.3390/min11111256
 - Friedman, J.H. (2001). Greedy function approximation: a gradient boosting machine. Annals of Statistics 29(5):1189-1232. doi:10.1214/aos/1013203451
@@ -326,13 +352,13 @@ https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of 
 - Loshchilov, I. and Hutter, F. (2019). Decoupled weight decay regularization. arXiv:1711.05101.
 - Moly-Cop Tools (Sepúlveda). BallSim_Direct and BallParam_Direct spreadsheets and documentation.
 - Muthaphuli, P. (2014). Production of pelletizing concentrates from Zandrivierspoort magnetite/haematite ore by magnetic separation. Journal of the Southern African Institute of Mining and Metallurgy 114(7).
+- Oliveira, E.M. Quality prediction in a mining process: one iron-ore flotation plant, March to September 2017 (CC0). Kaggle dataset 6294, version 1. https://www.kaggle.com/datasets/edumagalhaes/quality-prediction-in-a-mining-process
 - Pereira, L., Frenzel, M., Khodadadzadeh, M., Tolosana-Delgado, R. and Gutzmer, J. (2021). A self-adaptive particle-tracking method for minerals processing. Journal of Cleaner Production 279:123711. doi:10.1016/j.jclepro.2020.123711
 - Plitt, L.R. (1976). A mathematical model of the hydrocyclone classifier. CIM Bulletin 69(776):114-123.
 - Polat, M. and Chander, S. (2000). First-order flotation kinetics models and methods for estimation of the true distribution of flotation rate constants. International Journal of Mineral Processing 58:145-166. doi:10.1016/S0301-7516(99)00069-1
-- Powell, M.J.D. (1994). A direct search optimization method that models the objective and constraint functions by linear interpolation. In Advances in Optimization and Numerical Analysis, 51-67. doi:10.1007/978-94-015-8330-5_4
 - Rasmussen, C.E. and Williams, C.K.I. (2006). Gaussian Processes for Machine Learning. MIT Press.
 - Saltelli, A., Annoni, P., Azzini, I., Campolongo, F., Ratto, M. and Tarantola, S. (2010). Variance based sensitivity analysis of model output. Design and estimator for the total sensitivity index. Computer Physics Communications 181(2):259-270. doi:10.1016/j.cpc.2009.09.018
 - Savassi, O.N., Alexander, D.J., Franzidis, J.P. and Manlapig, E.V. (1998). An empirical model for entrainment in industrial flotation plants. Minerals Engineering 11(3):243-256. doi:10.1016/S0892-6875(98)00003-X
+- Torczon, V. (1997). On the convergence of pattern search algorithms. SIAM Journal on Optimization 7(1):1-25. doi:10.1137/S1052623493250780
 - Trahar, W.J. (1981). A rational interpretation of the role of particle size in flotation. International Journal of Mineral Processing 8(4):289-327. doi:10.1016/0301-7516(81)90019-3
 - Vinnett, L. and Waters, K.E. (2025). The use of compressed exponentials for kinetic modelling of batch flotation. Minerals Engineering 226:109246. doi:10.1016/j.mineng.2025.109246
-- Zhang, Z., Ragonneau, T.M. and Schueller, J. (2023). PRIMA, version 0.5: reference implementation of Powell's derivative-free optimization methods. doi:10.5281/zenodo.8052654
