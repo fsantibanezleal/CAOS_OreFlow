@@ -13,9 +13,12 @@ const distributions = readdirSync(derived).filter(f => f.endsWith('.json')).flat
   (JSON.parse(readFileSync(join(derived, f), 'utf-8')) as { variants: Variant[] }).variants.flatMap(v =>
     Object.entries(v.methods.uncertainty?.outputs ?? {}).map(([k, o]) => ({ id: `${f}:${v.id}:${k}`, values: o.values }))));
 
+// four outputs per uncertainty record, one record per variant: the count follows the index, not a typed number
+const variants = (JSON.parse(readFileSync(fileURLToPath(new URL('../../../data/derived/manifests/index.json', import.meta.url)), 'utf-8')) as { n_variants: number }).n_variants;
+
 describe('the Uncertainty histogram', () => {
-  it('bins all 288 recorded distributions', () => {
-    expect(distributions.length).toBe(288);
+  it('bins every recorded distribution, four per variant', () => {
+    expect(distributions.length).toBe(4 * variants);
   });
 
   it('counts every value once, the largest in the last bin', () => {
