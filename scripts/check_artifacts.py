@@ -19,7 +19,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 CONSTANTS = ROOT / "data-pipeline" / "pipeline" / "engine" / "data" / "constants.json"
-N_CASES, N_VARIANTS = 12, 72
+# eight variants per case: six of the target mode and two of the cut mode (CM-06)
+N_CASES, N_VARIANTS = 12, 96
 BALANCE_TOLERANCE = 1e-9          # PE-02
 KINETIC_MODELS = ["first_order", "kelsall", "klimpel", "gamma", "stretched_exponential"]
 LEARNING_MODELS = ["ridge", "random_forest", "hist_gradient_boosting", "gaussian_process", "mlp"]
@@ -29,6 +30,16 @@ BENCHMARK_METRICS = ("recovery_pct", "concentrate_grade", "head_grade", "recover
 
 def _load(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def _sampling():
+    """The bake's own generator and design (stdlib only), loaded from its file, not through the numpy package."""
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("oreflow_sampling", ROOT / "data-pipeline" / "pipeline" / "methods" / "sampling.py")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def _constant(key: str):
@@ -137,9 +148,51 @@ def check_variant(case_id: str, family: str, variant: dict) -> list[str]:
             errors.append(f"{where}: infeasible record shape")
     else:
         errors.append(f"{where}: optimization status {opt.get('status')}")
+    # OP-02, OP-07: the method and its weights are declared, every start says why it stopped, and the weight path
+    # holds the declared weights in order
+    if opt.get("method") != "gps-progressive-barrier":
+        errors.append(f"{where}: optimization method {opt.get('method')}")
+    weights = opt.get("weights", {})
+    if weights.get("recovered_metal") != _constant("optimization.weight_default") or abs(weights.get("recovered_metal", 0.0) + weights.get("energy", 0.0) - 1.0) > 1e-12:
+        errors.append(f"{where}: optimization weights")
+    if any(s.get("stop") not in ("mesh", "budget") for s in opt.get("starts", [])):
+        errors.append(f"{where}: a start without a declared stop")
+    if [s.get("weight") for s in opt.get("path", [])] != _constant("optimization.weight_path"):
+        errors.append(f"{where}: optimization weight path")
+    # OP-05, OP-06: the bake's record is screened, every start carries its screen counts and proposals, and the same
+    # starts without the screen are recorded, so the saving is a record
+    cut_mode = float(variant.get("point", {}).get("d50c_um", 0.0)) > 0.0
+    if cut_mode:
+        if opt.get("screened") is not False or opt.get("unscreened_reason") != "cut_mode":
+            errors.append(f"{where}: a cut-mode record must run without the screen and say why")
+    elif opt.get("screened") is not True or opt.get("screen_bound_pct") != _constant("optimization.screen_half_width_pct"):
+        errors.append(f"{where}: optimization record not screened")
+    else:
+        columns = opt.get("proposal_columns", [])
+        for s in opt.get("starts", []):
+            sc = s.get("screen", {})
+            if (sc.get("iterations") != s.get("iterations") or sc.get("proposed") != len(sc.get("proposals", []))
+                    or sc["rejected"]["guard"] + sc["rejected"]["interval"] > sc.get("screened", -1)
+                    or any(len(row) != len(columns) for row in sc.get("proposals", []))):
+                errors.append(f"{where}: a start's screen record")
+                break
+        plain = opt.get("without_screen") or {}
+        # the starts share one cache, so their evaluations add up to the run's
+        if (len(plain.get("starts", [])) != len(opt.get("starts", [])) or sum(plain.get("starts", [])) != plain.get("evaluations")
+                or sum(s.get("evaluations", 0) for s in opt.get("starts", [])) != opt.get("evaluations")):
+            errors.append(f"{where}: evaluation counts with and without the screen")
     unc = methods.get("uncertainty", {})
     if unc.get("samples") != _constant("uncertainty.samples"):
         errors.append(f"{where}: uncertainty sample count")
+    # UQ-04: the factors are the SplitMix64 Latin hypercube of the declared seed, reproduced bit for bit
+    if unc.get("design") != "Latin hypercube" or unc.get("generator") != "SplitMix64" or unc.get("seed") != _constant("uncertainty.seed"):
+        errors.append(f"{where}: uncertainty design, generator or seed")
+    else:
+        widths = [float(v["half_width"]) for v in unc["inputs"].values()]
+        unit = _sampling().latin_hypercube(int(unc["samples"]), len(widths), int(unc["seed"]))
+        expected = [[(1.0 - w) + (2.0 * w) * u for w, u in zip(widths, row)] for row in unit]
+        if expected != unc.get("factors"):
+            errors.append(f"{where}: uncertainty factors are not the declared design")
     for name, out in unc.get("outputs", {}).items():
         if not out["p05"] <= out["p50"] <= out["p95"]:
             errors.append(f"{where}: quantile order {name}")
@@ -179,7 +232,8 @@ def check_cases(derived: Path, version: str, digest: str | None) -> list[str]:
                 or artifact.get("contract_digest") != digest:
             errors.append(f"{entry['case_id']}: artifact schema, version or contract")
         variants = artifact.get("variants", [])
-        if len(variants) != 6 or len({v["id"] for v in variants}) != 6 or variants[0]["id"] != "nominal":
+        per_case = N_VARIANTS // N_CASES
+        if len(variants) != per_case or len({v["id"] for v in variants}) != per_case or variants[0]["id"] != "nominal"                 or [v["id"] for v in variants[-2:]] != ["cut_nominal", "cut_finer"]:
             errors.append(f"{entry['case_id']}: variant coverage")
         for variant in variants:
             errors += check_variant(entry["case_id"], artifact["family"], variant)
@@ -193,7 +247,7 @@ def check_cases(derived: Path, version: str, digest: str | None) -> list[str]:
     return errors
 
 
-def check_learning(derived: Path, models: Path, version: str, digest: str | None) -> list[str]:
+def check_learning(derived: Path, models: Path, version: str, digest: str | None, allow_reused: bool = False) -> list[str]:
     path = derived / "learning.json"
     if not path.is_file():
         return ["missing learning.json"]
@@ -203,6 +257,9 @@ def check_learning(derived: Path, models: Path, version: str, digest: str | None
         errors.append("learning schema or model set")
     if record.get("engine_version") != version or record.get("contract_digest") != digest:
         errors.append("learning record belongs to another engine version or contract")
+    # a development bake reuses an earlier learned lane (pipeline --reuse-learning); only a full bake may ship
+    if record.get("reused") and not allow_reused:
+        errors.append("learning record was reused by a development bake; committed records come from a full bake")
     if not record.get("identity", {}).get("hist_gradient_boosting", "").endswith("HistGradientBoostingRegressor"):
         errors.append("gradient boosting is not HistGradientBoostingRegressor")
     folds = record.get("leave_one_case_out", [])
@@ -221,6 +278,20 @@ def check_learning(derived: Path, models: Path, version: str, digest: str | None
         file = models / export["path"]
         if not file.is_file() or file.stat().st_size != export["bytes"] or export["max_abs_difference"] > tolerance:
             errors.append(f"ONNX export {export['path']}")
+    # OP-05: the optimizer's screen, exported with the networks and checked against scikit-learn at export
+    screen = record.get("final", {}).get("exports", {}).get("screen")
+    if screen is None and not record.get("reused"):
+        errors.append("the learning record has no screen export")
+    screen_file = models / "process_screen.json"
+    if not screen_file.is_file():
+        errors.append("missing models/process_screen.json")
+    else:
+        gp = json.loads(screen_file.read_text(encoding="utf-8"))["gp"]
+        cholesky = models / gp["cholesky"]["file"]
+        if gp["cholesky"]["values"] != gp["rows"] * (gp["rows"] + 1) // 2 or not cholesky.is_file() or cholesky.stat().st_size != 8 * gp["cholesky"]["values"]:
+            errors.append("screen Cholesky factor size")
+        if screen is not None and (screen["gp_max_abs_difference"] > _constant("learning.gp_export_tolerance") or screen["cholesky"]["bytes"] != cholesky.stat().st_size):
+            errors.append("screen export check")
     return errors
 
 
@@ -263,6 +334,85 @@ def check_benchmark(derived: Path, version: str, digest: str | None) -> list[str
             for key in BENCHMARK_METRICS:
                 if row.get(key) != v["trace"]["metrics"].get(key):
                     errors.append(f"benchmark {case['case_id']}:{v['id']} {key} differs from the case artifact")
+            errors.extend(_benchmark_optimization(b, case["case_id"], v))
+    return errors
+
+
+def _benchmark_optimization(b: dict, case_id: str, variant: dict) -> list[str]:
+    """OP-11: the optimizer summary the pages quote is the case record's own: its status, evaluations, the screen's
+    counts and the weight path."""
+    row = (b.get("optimization") or {}).get(case_id, {}).get(variant["id"])
+    record = variant["methods"]["optimization"]
+    where = f"benchmark optimization {case_id}:{variant['id']}"
+    if row is None:
+        return [f"{where} is missing"]
+    errors = []
+    if (row.get("status"), row.get("evaluations"), row.get("screened")) != (record["status"], record["evaluations"], bool(record.get("screened"))):
+        errors.append(f"{where}: status, evaluations or screened differ from the case record")
+    if record.get("screened"):
+        columns = record["proposal_columns"]
+        engine = columns.index("engine_recovery_pct")
+        proposed = sum(1 for start in record["starts"] for p in start["screen"]["proposals"] if p[engine] is not None)
+        expected = (record["without_screen"]["evaluations"], sum(start["screen"]["screened"] for start in record["starts"]), proposed,
+                    sum(start["screen"]["improved"] for start in record["starts"]))
+        if (row.get("evaluations_without_screen"), row.get("screened_candidates"), row.get("proposed"), row.get("improved")) != expected:
+            errors.append(f"{where}: the screen's counts differ from the case record")
+    elif any(key in row for key in ("evaluations_without_screen", "screened_candidates", "proposed", "improved")):
+        errors.append(f"{where}: an unscreened search carries screen counts")
+    path = [(s["weight"], s["status"], s["recovered_tph"], s["energy_kwh_t"]) for s in record.get("path", [])]
+    if [(s.get("weight"), s.get("status"), s.get("recovered_tph"), s.get("energy_kwh_t")) for s in row.get("path", [])] != path:
+        errors.append(f"{where}: the weight path differs from the case record")
+    return errors
+
+
+def check_studies(derived: Path, version: str, digest: str | None) -> list[str]:
+    """AB-01 to AB-03: the ablations and the uncertainty seed study of every nominal state."""
+    path = derived / "studies.json"
+    if not path.is_file():
+        return ["missing studies.json"]
+    st = _load(path)
+    errors: list[str] = []
+    if st.get("schema") != "oreflow.studies/v1" or st.get("engine_version") != version or st.get("contract_digest") != digest:
+        errors.append("studies schema, engine version or contract digest")
+    switches = list(st.get("switches", {}))
+    if switches != ["entrainment", "composite_classes", "cleaner_recirculation", "regrind", "gravity_bleed"]:
+        errors.append(f"studies switches {switches}")
+    index = _load(derived / "manifests" / "index.json")
+    seeds = _constant("studies.seed_study_seeds")
+    for case in index.get("cases", []):
+        cid = case["case_id"]
+        entry = st.get("cases", {}).get(cid)
+        if entry is None:
+            errors.append(f"studies: no entry for {cid}")
+            continue
+        # every switch is on in the committed case record: the flag of the one engine switch is at its default
+        flotation = _load(derived / "cases" / f"{cid}.json")["definition"]["plant"].get("flotation")
+        if flotation is not None and flotation.get("cleaner_tail_to_rougher") is not True:
+            errors.append(f"studies: {cid} case record has cleaner recirculation off")
+        ablations = entry.get("ablations", {})
+        if list(ablations) != switches:
+            errors.append(f"studies: {cid} ablations {list(ablations)}")
+        for name, rec in ablations.items():
+            if rec.get("status") == "not_applicable":
+                if set(rec) != {"status"}:
+                    errors.append(f"studies: {cid}:{name} not applicable but carries values")
+                continue
+            if rec.get("status") != "computed" or not rec.get("balance", 1.0) <= BALANCE_TOLERANCE:
+                errors.append(f"studies: {cid}:{name} status or balance")
+                continue
+            for key, delta in rec["delta"].items():
+                if abs(delta - (rec["off"][key] - rec["on"][key])) > 1e-9 * max(1.0, abs(rec["on"][key])):
+                    errors.append(f"studies: {cid}:{name} delta of {key}")
+        seed_study = entry.get("seed_study", {})
+        per_seed = seed_study.get("per_seed", [])
+        if seed_study.get("seeds") != seeds or [r.get("seed") for r in per_seed] != seeds or len(set(seeds)) != len(seeds):
+            errors.append(f"studies: {cid} seed study seeds")
+        if seed_study.get("samples") != _constant("uncertainty.samples") or seed_study.get("generator") != "SplitMix64":
+            errors.append(f"studies: {cid} seed study design")
+        if per_seed:
+            p = [r["all_constraints"] for r in per_seed]
+            if abs(seed_study["spread"]["all_constraints"] - (max(p) - min(p))) > 1e-12:
+                errors.append(f"studies: {cid} seed study spread")
     return errors
 
 
@@ -330,11 +480,73 @@ def check_geomet(derived: Path) -> list[str]:
     return errors
 
 
-def run(derived: Path, models: Path) -> list[str]:
+def check_iron_plant(derived: Path) -> list[str]:
+    """IS-01 to IS-04: the soft-sensor lane's committed artifact (the tests hold its rules on synthetic frames)."""
+    path = derived / "source" / "iron_plant_soft_sensor.json"
+    if not path.is_file():
+        return ["missing iron-plant soft-sensor artifact"]
+    a = _load(path)
+    errors: list[str] = []
+    q, s, protocol = a.get("quality", {}), a.get("source", {}), a.get("protocol", {})
+    models = {"train_mean", "previous_lab", "ridge", "random_forest", "hist_gradient_boosting",
+              "ridge_with_previous_lab", "boosting_with_previous_lab"}
+    if a.get("schema") != "oreflow.iron-plant-soft-sensor/v1" or s.get("archive_sha256") != "fa1fb0c928d84366ec1bd315e0ed1380f5d5576525603458b49ea4cfe446d98e":
+        errors.append("iron plant schema or archive pin")
+    if (q.get("source_rows"), q.get("nominal_hours"), q.get("changing_lab_hours_excluded")) != (737453, 4097, 310):
+        errors.append("iron plant population or exclusions")
+    if len(protocol.get("features", [])) != 21 or {"date", "% Iron Concentrate", "% Silica Concentrate"} & set(protocol.get("features", [])):
+        errors.append("iron plant features")
+    folds = a.get("folds", [])
+    if len(folds) != 3 or any(f.get("embargo_hours_min", 0) < 24.0 or set(f.get("scores", {})) != models for f in folds):
+        errors.append("iron plant windows, embargo or model matrix")
+    if set(a.get("pooled_scores", {})) != models:
+        errors.append("iron plant pooled scores")
+    return errors
+
+
+def check_real_samples(derived: Path, version: str, digest: str | None) -> list[str]:
+    """RS-01 to RS-05: the GeoMet samples' record, with the Bond work index and the normative allocation recomputed
+    here from what the record keeps."""
+    path = derived / "real_samples.json"
+    if not path.is_file():
+        return ["missing real_samples.json"]
+    r = _load(path)
+    errors: list[str] = []
+    if r.get("schema") != "oreflow.real_samples/v1" or r.get("engine_version") != version or r.get("contract_digest") != digest:
+        errors.append("real samples schema, engine version or contract digest")
+    tables = r.get("source", {}).get("tables", {})
+    if tables.get("comminution", {}).get("sha256") != "972ebf9ebb2e3309280abb72ca142062bc0115281a0340eb1e8a5ceb97237527"             or tables.get("flotation", {}).get("sha256") != "e7968c250c1ccc17b63da6d9624473dd92b32a7ba8d8772e70070a0115e42eda":
+        errors.append("real samples source pins")
+    if (len(r.get("comminution", [])), len(r.get("samples", []))) != (60, 52) or len(r.get("excluded", [])) != 1:
+        errors.append("real samples population")
+    lab = _constant("bond.lab_constant")
+    a, b = _constant("bond.lab_screen_exponent"), _constant("bond.lab_grindability_exponent")
+    k, st = _constant("bond.coefficient"), _constant("units.short_ton_per_tonne")
+    for c in r.get("comminution", []):
+        wi = st * lab / (c["screen_um"] ** a * c["grindability_g_rev"] ** b * (k / math.sqrt(c["p80_um"]) - k / math.sqrt(c["f80_um"])))
+        if abs(wi - c["work_index_kwh_t"]) > 1e-9 * wi:
+            errors.append(f"real samples: Bond work index of comminution row {c['source_row']}")
+            break
+    for s in r.get("samples", []):
+        where = f"real sample {s.get('id')}"
+        shares = s.get("allocation", {}).get("copper_shares", {})
+        if abs(sum(shares.values()) - 1.0) > 1e-12 or any(v < -1e-15 for v in s.get("allocation", {}).get("fractions", {}).values()):
+            errors.append(f"{where}: allocation")
+        if s.get("balance_error", 1.0) >= 1e-9:
+            errors.append(f"{where}: balance")
+        if s.get("point", {}).get("head_grade") != s.get("assays_pct", {}).get("Cu") or s.get("geomet_lane") is None:
+            errors.append(f"{where}: point or lane join")
+    return errors
+
+
+def run(derived: Path, models: Path, allow_reused_learning: bool = False) -> list[str]:
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     contract_errors, digest = check_contract(derived)
-    return (contract_errors + check_cases(derived, version, digest) + check_learning(derived, models, version, digest)
-            + check_benchmark(derived, version, digest) + check_particles(derived, models) + check_geomet(derived))
+    return (contract_errors + check_cases(derived, version, digest)
+            + check_learning(derived, models, version, digest, allow_reused_learning)
+            + check_benchmark(derived, version, digest) + check_studies(derived, version, digest)
+            + check_particles(derived, models) + check_geomet(derived) + check_iron_plant(derived)
+            + check_real_samples(derived, version, digest))
 
 
 def main() -> int:
@@ -348,7 +560,7 @@ def main() -> int:
         print("\n".join(f"  - {error}" for error in errors[:200]))
         return 1
     print(f"ARTIFACTS OK: contract, {N_CASES} cases, {N_VARIANTS} variants with recomputed balances and method records; "
-          "learning, benchmark, HZDR particle and GeoMet lanes.")
+          "learning, benchmark, studies, HZDR particle and GeoMet lanes, real samples.")
     return 0
 
 

@@ -210,10 +210,11 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
     tol = float(constant("numerics.recycle_tolerance_tph"))
     rtol = float(constant("numerics.recycle_rel_tolerance"))
     iterations, residual, relative = 0, math.inf, math.inf
+    recirculate = plant.cleaner_tail_to_rougher
     for iterations in range(1, int(constant("numerics.recycle_max_iterations")) + 1):
         state = pass_once(x, water_x, t_rc, water_t_rc)
-        x_new = {k: fo[k] + state["tail_c"][k] for k in x}
-        water_x_new = feed_water + state["water_tail_c"]
+        x_new = {k: fo[k] + state["tail_c"][k] for k in x} if recirculate else {k: fo[k].copy() for k in x}
+        water_x_new = feed_water + state["water_tail_c"] if recirculate else feed_water
         t_rc_new = state["tail_rc"]
         water_t_rc_new = state["water_tail_rc"]
         residual = (max(float(np.max(np.abs(x_new[k] - x[k]))) for k in x) + abs(water_x_new - water_x)

@@ -62,6 +62,25 @@ def _optimization(artifacts: list[dict[str, Any]]) -> dict[str, Any]:
             rows[v["id"]] = {"status": record["status"], "base_feasible": record["base"]["feasible"],
                              "gain_pct": record.get("gain_pct"), "active": optimum["active"] if optimum else [],
                              "decisions": optimum["decisions"] if optimum else None, "evaluations": record["evaluations"]}
+            # OP-11: what the screen cost or saved, and how far the surrogate was from the engine where it proposed
+            rows[v["id"]]["screened"] = bool(record.get("screened"))
+            if record.get("screened"):
+                columns = record["proposal_columns"]
+                s_col, e_col = columns.index("surrogate_recovery_pct"), columns.index("engine_recovery_pct")
+                proposals = [row for start in record["starts"] for row in start["screen"]["proposals"] if row[e_col] is not None]
+                rows[v["id"]].update({
+                    "evaluations_without_screen": record["without_screen"]["evaluations"],
+                    "screened_candidates": sum(start["screen"]["screened"] for start in record["starts"]),
+                    "proposed": len(proposals),
+                    "improved": sum(start["screen"]["improved"] for start in record["starts"]),
+                    "surrogate_abs_error_pp": float(np.mean([abs(row[s_col] - row[e_col]) for row in proposals])) if proposals else None,
+                    "same_optimum_without_screen": (record["without_screen"]["status"] == record["status"]
+                                                    and (optimum is None or all(abs(optimum["decisions"][n] - record["without_screen"]["decisions"][n])
+                                                                                <= 1e-6 * max(1.0, abs(optimum["decisions"][n])) for n in record["decisions"]))),
+                })
+            # OP-07: the optimum as the weight on metal falls
+            rows[v["id"]]["path"] = [{"weight": s["weight"], "status": s["status"], "recovered_tph": s["recovered_tph"],
+                                      "energy_kwh_t": s["energy_kwh_t"]} for s in record.get("path", [])]
         out[artifact["case_id"]] = rows
     return out
 

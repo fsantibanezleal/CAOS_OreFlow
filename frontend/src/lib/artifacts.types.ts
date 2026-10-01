@@ -8,27 +8,16 @@ import type { Trace } from '../engine/trace';
 export type Bilingual = { en: string; es: string };
 
 export type Slacks = Record<string, number>;
-export type OptimumSummary = {
-  decisions: Record<string, number>;
-  recovered_tph: number;
-  recovery_pct: number;
-  values: Record<string, number>;
-  slacks: Slacks;
-  active: string[];
-  feasible: boolean;
-};
-export type OptimizationRecord = {
-  status: 'optimal' | 'infeasible';
-  decisions: string[];
-  bounds: Record<string, [number, number]>;
-  constraints: { grade: { minimum: number; species: string }; power: { maximum_kw: number }; water?: { maximum_m3_t: number } };
-  base: OptimumSummary;
-  optimum: OptimumSummary | null;
-  gain_tph?: number;
-  gain_pct?: number | null;
-  starts: Array<{ start: Record<string, number>; end: OptimumSummary; violation: number; evaluations: number; message: string }>;
-  evaluations: number;
-  least_violating?: OptimumSummary;
+// the optimizer record is the engine's own shape: the browser re-runs it and the parity test compares the two
+export type { OptimizationRecord, Summary as OptimumSummary } from '../engine/optimization-record';
+import type { OptimizationRecord } from '../engine/optimization-record';
+/** The benchmark's optimizer summary of one variant; the screen's fields are absent when the search ran unscreened
+ * (the cut-mode variants). */
+export type BenchmarkOptimization = {
+  status: string; base_feasible: boolean; gain_pct: number | null; active: string[]; decisions: Record<string, number> | null; evaluations: number;
+  screened: boolean; evaluations_without_screen?: number; screened_candidates?: number; proposed?: number; improved?: number;
+  surrogate_abs_error_pp?: number | null; same_optimum_without_screen?: boolean;
+  path: Array<{ weight: number; status: string; recovered_tph: number; energy_kwh_t: number | null }>;
 };
 export type OutputDistribution = { p05: number; p50: number; p95: number; mean: number; std: number; base: number; values: number[] };
 export type UncertaintyRecord = {
@@ -112,6 +101,8 @@ export type LearningRecord = {
   leave_one_case_out: Array<{ held_out: string; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
   summary: LearningSummary;
   final: { mlp_training: Record<string, unknown>; guard_threshold: number; exports: Record<string, { path: string; bytes: number; max_abs_difference: number; opset: number }> };
+  settings: Record<string, unknown>;
+  seconds: number;
   engine_version: string;
   contract_digest: string;
 };
@@ -131,7 +122,7 @@ export type Benchmark = {
   cases: BenchmarkCase[];
   oracles: Record<string, Record<string, unknown>>;
   kinetics: Record<string, { fits: number; mean_abs_lumping_error_pct: number; worst_abs_lumping_error_pct: number; mean_rmse_pct: number; converged_share: number }>;
-  optimization: Record<string, Record<string, { status: string; base_feasible: boolean; gain_pct: number | null; active: string[]; decisions: Record<string, number> | null; evaluations: number }>>;
+  optimization: Record<string, Record<string, BenchmarkOptimization>>;
   uncertainty: Record<string, { recovery_pct: Record<string, number>; concentrate_grade: Record<string, number>; probabilities: Record<string, number>; dominant_input: Record<string, string> }>;
   learning: { summary: LearningSummary; identity: Record<string, string>; guard: Record<string, number>; design_rows: number; device: string } | null;
   lanes: Record<string, { path: string; schema: string } | null>;

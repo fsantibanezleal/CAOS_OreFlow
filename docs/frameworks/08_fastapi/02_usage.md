@@ -68,7 +68,7 @@ pays that cost once, at the first simulation.
 
 ## Tests (`tests/test_live_api.py`)
 
-- every one of the contract's 719 probe states goes through the API and gets the verdict the probe
+- every one of the contract's 791 probe states goes through the API and gets the verdict the probe
   records, with the same codes and a message for each;
 - for every case the live trace equals, value for value, the trace of the engine run directly;
 - `/api/contract` serves the exported file unchanged;

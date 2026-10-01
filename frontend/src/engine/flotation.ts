@@ -225,10 +225,11 @@ export function runFlotation(fo: Species, feedWaterIn: number, ore: ResolvedOre,
   let residual = Infinity;
   let relative = Infinity;
   const maxIterations = constant('numerics.recycle_max_iterations');
+  const recirculate = plant.cleaner_tail_to_rougher !== false;
   for (iterations = 1; iterations <= maxIterations; iterations += 1) {
     const state = passOnce(x, waterX, tRc, waterTRc);
-    const xNew = mapSpecies(keys, k => plus(fo[k], state.tail_c[k]));
-    const waterXNew = feedWater + state.water_tail_c;
+    const xNew = recirculate ? mapSpecies(keys, k => plus(fo[k], state.tail_c[k])) : mapSpecies(keys, k => fo[k].slice());
+    const waterXNew = recirculate ? feedWater + state.water_tail_c : feedWater;
     const tRcNew = state.tail_rc;
     const waterTRcNew = state.water_tail_rc;
     let maxX = 0.0;

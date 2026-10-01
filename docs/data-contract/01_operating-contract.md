@@ -35,6 +35,7 @@ grinding loop, then flotation), `magnetic` (grinding, then low-intensity magneti
 | `rougher_cells` | whole number | 3 to 12 | 1 | flotation families | Rougher cells in series. |
 | `gravity_bleed` | fraction (shown in %) | 0.10 to 0.60 | 0.01 | `gravity_rougher` | Fraction of the cyclone underflow sent to the gravity concentrator. |
 | `deslime_cut_um` | um | 8 to 45 | 0.5 | `deslime_rougher` | Cut size of the desliming cyclone. |
+| `d50c_um` | um | 0 (off), or 0.8 to 1.6 of the nominal state's solved cut | 1% of that cut | all | The host gangue's corrected cyclone cut. Off, the target mode solves the cut; on, the mill draws its installed power and the P80 and the circulating load follow (the cut mode, since 0.07.000). |
 
 Why two kinds of bound. Throughput, grade, hardness and reagent dose are properties of a scenario:
 the envelope around them is the region the case plant is sized for, so they are bounded by factors
@@ -52,6 +53,13 @@ absolute ranges, from the research dossier of 2026-09-26:
 - Circulating load brackets the Moly-Cop BallSim base case (277%) and the Laplante example (250%);
   the water, crusher-setting and desliming ranges are authored around the case nominals (desliming
   near 20 um is common phosphate practice, dossier section 6).
+
+**The classifier cut's bounds are an engine result.** Its reference is the cut the target mode solves at the case's
+nominal state (`catalog.nominal_cut`), so the contract builder runs the engine once per case, and the entry records
+the reference and `off: 0`. Both validators accept the off value outside the range, as the state itself: 0 is the
+target mode and every case's nominal. With a positive cut the engine ignores `target_p80_um` and
+`circulating_load`, which become results; the contract still bounds them, because every internal caller (the
+optimizer, the learned lane's design) validates a complete point.
 
 Worked example, soft copper porphyry (nominal in brackets): throughput 360 to 1080 t/h (720), target
 P80 75 to 300 um (150), work index 7.7 to 16.5 kWh/t (11.0), head grade 0.37 to 1.11% Cu (0.74),
@@ -117,14 +125,15 @@ than a valuable-rich size class carried (a 55% magnetite feed). See the methodol
 | `families` | the four circuit families |
 | `inputs` | each declaration: unit, bound kind, factors or limits, step, integer flag, families, bilingual label and help, display scale and unit |
 | `rules` | the cross-field rules |
+| `controls` | the method records' controls, with bounds, step, default and bilingual label and help: the uncertainty record's seed and sample count (UQ-07), and the optimizer's weight on recovered metal, `optimizer_weight_pct`, 0 to 100% in steps of 5 (OP-10). One validator (`validate_control`) checks them in both languages, with the error codes of the inputs plus `off_step`. |
 | `messages` | bilingual message per error code |
-| `cases` | per case: family, primary payable and unit, full nominal point, resolved `min`, `max`, `step`, `unit` of every applicable input |
+| `cases` | per case: family, primary payable and unit, full nominal point, resolved `min`, `max`, `step`, `unit` of every applicable input, and for the classifier cut its `reference` and `off` value |
 | `grid` | the 63 size-class upper bounds and representative sizes (um) shared by both engines |
 | `laguerre` | the 64-node Gauss-Laguerre nodes and weights used by the kinetic bank projection, so both engines integrate with the same table |
 | `digest` | SHA-256 of the document without the digest; every API response carries it |
 
 `contract_probes.json` holds deterministic probe states with their verdicts: for every case the
-nominal, every input at each bound and just outside it, NaN, infinity, a string, a boolean, an
+nominal, every input at each bound and just outside it, an input's off value, NaN, infinity, a string, a boolean, an
 unknown name, every inapplicable input set and unset, and the rule at and beyond its limit. Strict
 JSON has no NaN, so non-finite probe values are written as `{"non_finite": "nan"}` and decoded by each
 harness. `tests/test_contract.py::test_export_matches_validator` checks that both files equal a fresh

@@ -1,0 +1,1058 @@
+[
+ {
+  "case": "copper_porphyry_soft",
+  "e_star": 2.5621010035116956,
+  "cut_star": 183.90907637576464,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 110.34544582545878,
+    "monotone": true,
+    "C_range": [
+     0.8107148914456742,
+     13.358608552175216
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     6621.876968500754,
+     13360.995188486017
+    ],
+    "installed_kw": 7270.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 147.12726110061172,
+    "monotone": true,
+    "C_range": [
+     0.657298790451117,
+     11.184579845590248
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     5619.262364955928,
+     12228.960655104556
+    ],
+    "installed_kw": 7270.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 183.90907637576464,
+    "monotone": true,
+    "C_range": [
+     0.5561547960797467,
+     9.750888447478722
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4958.075174386956,
+     11482.634202207719
+    ],
+    "installed_kw": 7270.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 229.88634546970582,
+    "monotone": true,
+    "C_range": [
+     0.4686303445070034,
+     8.505198182354217
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4383.590004285712,
+     10836.804324813469
+    ],
+    "installed_kw": 7270.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 294.25452220122344,
+    "monotone": true,
+    "C_range": [
+     0.38578972848572657,
+     7.3154783246705835
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     3834.917164857286,
+     10225.535771547306
+    ],
+    "installed_kw": 7270.0
+   }
+  ]
+ },
+ {
+  "case": "copper_porphyry_hard",
+  "e_star": 4.0555762870665895,
+  "cut_star": 201.9802704920052,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 121.18816229520311,
+    "monotone": true,
+    "C_range": [
+     0.810303800560195,
+     13.3521304363856
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     7421.2853830032445,
+     14977.323338514443
+    ],
+    "installed_kw": 7360.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 161.58421639360415,
+    "monotone": true,
+    "C_range": [
+     0.6571975599806371,
+     11.181407015984052
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     6298.834743234268,
+     13710.617899573852
+    ],
+    "installed_kw": 7360.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 201.9802704920052,
+    "monotone": true,
+    "C_range": [
+     0.5562670623242559,
+     9.749714767554691
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     5558.526758763104,
+     12875.581980382272
+    ],
+    "installed_kw": 7360.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 252.47533811500648,
+    "monotone": true,
+    "C_range": [
+     0.46893590569197513,
+     8.505568568233752
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4915.1962062528255,
+     12153.05851774392
+    ],
+    "installed_kw": 7360.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 323.1684327872083,
+    "monotone": true,
+    "C_range": [
+     0.3862875259624751,
+     7.3170531772548895
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4300.631564603213,
+     11469.277427393232
+    ],
+    "installed_kw": 7360.0
+   }
+  ]
+ },
+ {
+  "case": "gold_free_milling",
+  "e_star": 4.460098310977737,
+  "cut_star": 128.85021410551468,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 77.3101284633088,
+    "monotone": true,
+    "C_range": [
+     0.814640438111634,
+     13.34846995610173
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     4159.713130061069,
+     8417.213743175742
+    ],
+    "installed_kw": 4570.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 103.08017128441175,
+    "monotone": true,
+    "C_range": [
+     0.6592416678274468,
+     11.167040182706199
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     3527.302698951601,
+     7696.3961985883225
+    ],
+    "installed_kw": 4570.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 128.85021410551468,
+    "monotone": true,
+    "C_range": [
+     0.5568416189977443,
+     9.7290439049493
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     3110.4183889265732,
+     7221.413342365752
+    ],
+    "installed_kw": 4570.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 161.06276763189334,
+    "monotone": true,
+    "C_range": [
+     0.4682624728607985,
+     8.480316801678212
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     2748.4044220554256,
+     6810.538774289581
+    ],
+    "installed_kw": 4570.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 206.1603425688235,
+    "monotone": true,
+    "C_range": [
+     0.3844515658638674,
+     7.288640020344051
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     2402.9297080775336,
+     6421.781694161516
+    ],
+    "installed_kw": 4570.0
+   }
+  ]
+ },
+ {
+  "case": "iron_magnetite_fine",
+  "e_star": 5.469744211959013,
+  "cut_star": 81.6414904353363,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 48.984894261201774,
+    "monotone": true,
+    "C_range": [
+     0.8295750083214641,
+     13.33640614102856
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     18035.78913734246,
+     36826.89090856919
+    ],
+    "installed_kw": 19700.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 65.31319234826904,
+    "monotone": true,
+    "C_range": [
+     0.6701479618823004,
+     11.116965367504196
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     15243.641272645196,
+     33617.83830324475
+    ],
+    "installed_kw": 19700.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 81.6414904353363,
+    "monotone": true,
+    "C_range": [
+     0.5650554994337296,
+     9.656905605806205
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     13406.825983592973,
+     31502.467994673938
+    ],
+    "installed_kw": 19700.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 102.05186304417037,
+    "monotone": true,
+    "C_range": [
+     0.4740951683197953,
+     8.392205914383336
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     11815.781705676856,
+     29671.558534441727
+    ],
+    "installed_kw": 19700.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 130.62638469653808,
+    "monotone": true,
+    "C_range": [
+     0.3879842344684164,
+     7.189576914631042
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     10302.824913255148,
+     27938.260936608254
+    ],
+    "installed_kw": 19700.0
+   }
+  ]
+ },
+ {
+  "case": "nickel_sulphide",
+  "e_star": 3.867713722095089,
+  "cut_star": 128.13977504083405,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 76.88386502450042,
+    "monotone": true,
+    "C_range": [
+     0.8267313246702388,
+     13.219604836924159
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     5912.216280683187,
+     12152.270954933796
+    ],
+    "installed_kw": 6520.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 102.51182003266725,
+    "monotone": true,
+    "C_range": [
+     0.6700072771310492,
+     11.057032389841023
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     5013.063584357805,
+     11109.669306224474
+    ],
+    "installed_kw": 6520.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 128.13977504083405,
+    "monotone": true,
+    "C_range": [
+     0.5667878925554164,
+     9.634661775714873
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     4421.671432575547,
+     10423.005694436331
+    ],
+    "installed_kw": 6520.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 160.17471880104256,
+    "monotone": true,
+    "C_range": [
+     0.4775112022589131,
+     8.40112364176016
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     3908.7919030774447,
+     9829.095404624737
+    ],
+    "installed_kw": 6520.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 205.0236400653345,
+    "monotone": true,
+    "C_range": [
+     0.3930177811687255,
+     7.224910453420009
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     3419.74689504731,
+     9267.005658239821
+    ],
+    "installed_kw": 6520.0
+   }
+  ]
+ },
+ {
+  "case": "phosphate_clay",
+  "e_star": 2.153067697840124,
+  "cut_star": 188.34346966558897,
+  "design_C": 2.2,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 113.00608179935338,
+    "monotone": true,
+    "C_range": [
+     0.7095339233609332,
+     11.551599936619688
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     3175.37221462039,
+     6919.795465250601
+    ],
+    "installed_kw": 3660.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 150.67477573247118,
+    "monotone": true,
+    "C_range": [
+     0.5766726478375506,
+     9.713921613261121
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     2710.4663287676817,
+     6382.003942478926
+    ],
+    "installed_kw": 3660.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 188.34346966558897,
+    "monotone": true,
+    "C_range": [
+     0.4889025665091697,
+     8.495922771678659
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     2402.3303382540794,
+     6026.7310798224435
+    ],
+    "installed_kw": 3660.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 235.4293370819862,
+    "monotone": true,
+    "C_range": [
+     0.4128001746888688,
+     7.432660604838105
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     2133.340475727292,
+     5718.686308895917
+    ],
+    "installed_kw": 3660.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 301.34955146494235,
+    "monotone": true,
+    "C_range": [
+     0.34060518869813156,
+     6.412099132394531
+    ],
+    "max_iterations": 16,
+    "unconverged": 0,
+    "power_range_kw": [
+     1875.1532677798284,
+     5426.457807404486
+    ],
+    "installed_kw": 3660.0
+   }
+  ]
+ },
+ {
+  "case": "copper_molybdenum",
+  "e_star": 3.7722308651243477,
+  "cut_star": 183.72228930268406,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 110.23337358161044,
+    "monotone": true,
+    "C_range": [
+     0.8107075822318772,
+     13.358603610275237
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     8666.234835002584,
+     17485.841995289014
+    ],
+    "installed_kw": 9460.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 146.97783144214725,
+    "monotone": true,
+    "C_range": [
+     0.6572923832498061,
+     11.18462001775422
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     7354.111953725513,
+     16004.325070413848
+    ],
+    "installed_kw": 9460.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 183.72228930268406,
+    "monotone": true,
+    "C_range": [
+     0.5561503787042178,
+     9.750959610784987
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     6488.816267761341,
+     15027.605732666863
+    ],
+    "installed_kw": 9460.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 229.65286162835508,
+    "monotone": true,
+    "C_range": [
+     0.468628204209719,
+     8.505291582258078
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     5736.9846861760925,
+     14182.411881758837
+    ],
+    "installed_kw": 9460.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 293.9556628842945,
+    "monotone": true,
+    "C_range": [
+     0.3857898979823279,
+     7.315585617797495
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     5018.929396646374,
+     13382.449729910937
+    ],
+    "installed_kw": 9460.0
+   }
+  ]
+ },
+ {
+  "case": "copper_oxide",
+  "e_star": 2.955343896141605,
+  "cut_star": 170.63015177950382,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 102.37809106770229,
+    "monotone": true,
+    "C_range": [
+     0.8203026258824697,
+     13.31315730734733
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     6133.5438020036145,
+     12480.718990514917
+    ],
+    "installed_kw": 7210.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 136.50412142360307,
+    "monotone": true,
+    "C_range": [
+     0.6676173432304885,
+     11.147860337259614
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     5205.66021034063,
+     11433.84794848536
+    ],
+    "installed_kw": 7210.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 170.63015177950382,
+    "monotone": true,
+    "C_range": [
+     0.5668837314023821,
+     9.719899498459393
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4593.743484753396,
+     10743.178230027579
+    ],
+    "installed_kw": 7210.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 213.2876897243798,
+    "monotone": true,
+    "C_range": [
+     0.4796096151935121,
+     8.479161755379616
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4062.056510973513,
+     10144.792168248214
+    ],
+    "installed_kw": 7210.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 273.00824284720613,
+    "monotone": true,
+    "C_range": [
+     0.39684121357520286,
+     7.294151421497633
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     3554.2501176936003,
+     9577.299078250937
+    ],
+    "installed_kw": 7210.0
+   }
+  ]
+ },
+ {
+  "case": "zinc_sulfide",
+  "e_star": 4.296803314993062,
+  "cut_star": 133.1832005295971,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 79.90992031775825,
+    "monotone": true,
+    "C_range": [
+     0.8138407365944095,
+     13.334304922475575
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     12010.379337257811,
+     24316.396696389147
+    ],
+    "installed_kw": 13100.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 106.54656042367768,
+    "monotone": true,
+    "C_range": [
+     0.6597088391558855,
+     11.162526145504073
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     10190.69661883488,
+     22250.100419065882
+    ],
+    "installed_kw": 13100.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 133.1832005295971,
+    "monotone": true,
+    "C_range": [
+     0.5580059055306617,
+     9.729897501501389
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     8990.330535027455,
+     20886.668211748292
+    ],
+    "installed_kw": 13100.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 166.47900066199637,
+    "monotone": true,
+    "C_range": [
+     0.4699161105756591,
+     8.484929003936328
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     7947.200505384554,
+     19705.734100051584
+    ],
+    "installed_kw": 13100.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 213.09312084735535,
+    "monotone": true,
+    "C_range": [
+     0.3864472205974794,
+     7.295907728809482
+    ],
+    "max_iterations": 18,
+    "unconverged": 0,
+    "power_range_kw": [
+     6950.947346854904,
+     18586.74796220164
+    ],
+    "installed_kw": 13100.0
+   }
+  ]
+ },
+ {
+  "case": "mixed_ore_high_clay",
+  "e_star": 2.8751652695950343,
+  "cut_star": 178.89598024059893,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 107.33758814435936,
+    "monotone": true,
+    "C_range": [
+     0.8296439832341258,
+     13.116126589489049
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     5276.205598469768,
+     10941.899979542017
+    ],
+    "installed_kw": 5840.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 143.11678419247914,
+    "monotone": true,
+    "C_range": [
+     0.6767889461197127,
+     10.99833141378316
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     4484.634150620056,
+     10027.774312034457
+    ],
+    "installed_kw": 5840.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 178.89598024059893,
+    "monotone": true,
+    "C_range": [
+     0.5757919904166793,
+     9.600564467452081
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     3962.1887233397824,
+     9423.777798140301
+    ],
+    "installed_kw": 5840.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 223.61997530074865,
+    "monotone": true,
+    "C_range": [
+     0.4881676381519853,
+     8.38504274538132
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     3507.8613641740762,
+     8899.754049783705
+    ],
+    "installed_kw": 5840.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 286.2335683849583,
+    "monotone": true,
+    "C_range": [
+     0.40493460734973924,
+     7.2229288772774645
+    ],
+    "max_iterations": 17,
+    "unconverged": 0,
+    "power_range_kw": [
+     3073.4963378987727,
+     8401.991913336542
+    ],
+    "installed_kw": 5840.0
+   }
+  ]
+ },
+ {
+  "case": "low_grade_copper",
+  "e_star": 3.2148014331410204,
+  "cut_star": 219.97701928406846,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 131.98621157044107,
+    "monotone": true,
+    "C_range": [
+     0.8099673346839018,
+     13.346055479933424
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     12913.521520706956,
+     26067.71140503147
+    ],
+    "installed_kw": 14120.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 175.98161542725478,
+    "monotone": true,
+    "C_range": [
+     0.6571428808154802,
+     11.178294135840545
+    ],
+    "max_iterations": 20,
+    "unconverged": 0,
+    "power_range_kw": [
+     10962.223283511657,
+     23866.686180579396
+    ],
+    "installed_kw": 14120.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 219.97701928406846,
+    "monotone": true,
+    "C_range": [
+     0.5564086049036843,
+     9.748392810561523
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     9675.105611179628,
+     22415.87986891626
+    ],
+    "installed_kw": 14120.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 274.97127410508557,
+    "monotone": true,
+    "C_range": [
+     0.4692564987768033,
+     8.505617580574727
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     8556.42844585819,
+     21160.688182679023
+    ],
+    "installed_kw": 14120.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 351.96323085450956,
+    "monotone": true,
+    "C_range": [
+     0.3867872552776944,
+     7.318139079423135
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     7487.526321406829,
+     19972.940537663384
+    ],
+    "installed_kw": 14120.0
+   }
+  ]
+ },
+ {
+  "case": "refractory_gold",
+  "e_star": 5.131096258551574,
+  "cut_star": 129.44376809215785,
+  "design_C": 2.5,
+  "rows": [
+   {
+    "cut_factor": 0.6,
+    "cut_um": 77.66626085529471,
+    "monotone": true,
+    "C_range": [
+     0.817926419832014,
+     13.353860173661683
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     5707.955463045713,
+     11566.664759391411
+    ],
+    "installed_kw": 6220.0
+   },
+   {
+    "cut_factor": 0.8,
+    "cut_um": 103.55501447372629,
+    "monotone": true,
+    "C_range": [
+     0.6618428074590901,
+     11.16191981519665
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4836.308547693384,
+     10573.573510451184
+    ],
+    "installed_kw": 6220.0
+   },
+   {
+    "cut_factor": 1.0,
+    "cut_um": 129.44376809215785,
+    "monotone": true,
+    "C_range": [
+     0.559024669108558,
+     9.719657752238922
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     4262.778673373655,
+     9919.387001849134
+    ],
+    "installed_kw": 6220.0
+   },
+   {
+    "cut_factor": 1.25,
+    "cut_um": 161.8047101151973,
+    "monotone": true,
+    "C_range": [
+     0.47010644325020634,
+     8.46891888718739
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     3765.409906279606,
+     9353.639511585783
+    ],
+    "installed_kw": 6220.0
+   },
+   {
+    "cut_factor": 1.6,
+    "cut_um": 207.11002894745258,
+    "monotone": true,
+    "C_range": [
+     0.38599298273218596,
+     7.276718433661069
+    ],
+    "max_iterations": 19,
+    "unconverged": 0,
+    "power_range_kw": [
+     3291.3195215733444,
+     8818.462626014061
+    ],
+    "installed_kw": 6220.0
+   }
+  ]
+ }
+]

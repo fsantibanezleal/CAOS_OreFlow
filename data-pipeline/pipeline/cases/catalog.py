@@ -8,6 +8,7 @@ operating point relative to the case nominal (requirement PE-32).
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Any
 
 from ..engine.model import (Bank, Carrier, Crusher, Cyclone, DeslimePlant, Flotability, FlotationPlant, GradeSpec,
@@ -150,6 +151,16 @@ QUARTZ = Flotability(floatability=1.0e-6, optimum_size_um=30.0, fine_width=1.2, 
 PYRITE_DEPRESSED = Flotability(floatability=1.5e-5, optimum_size_um=40.0, fine_width=1.6, coarse_width=0.8, half_dose_gpt=40.0)
 
 
+# CM-06: every case also runs in the cut mode, at the nominal state's own solved cut and at a finer one, with the
+# mill at installed power (the P80 and the circulating load follow)
+CUT_VARIANTS: tuple[dict[str, Any], ...] = (
+    {"id": "cut_nominal", "label": ("Classifier cut held at the nominal cut", "Corte del clasificador fijo en el corte nominal"),
+     "change": {"d50c_um": 1.0}},
+    {"id": "cut_finer", "label": ("Finer classifier cut (-20% d50c)", "Corte del clasificador más fino (-20% d50c)"),
+     "change": {"d50c_um": 0.8}},
+)
+
+
 def _flotation_variants(collector_factor: float = 1.6) -> tuple[dict[str, Any], ...]:
     return (
         {"id": "nominal", "label": ("Nominal design", "Diseño nominal"), "change": {}},
@@ -158,6 +169,7 @@ def _flotation_variants(collector_factor: float = 1.6) -> tuple[dict[str, Any], 
         {"id": "higher_throughput", "label": ("Higher throughput (+25%)", "Mayor tratamiento (+25%)"), "change": {"throughput_tph": 1.25}},
         {"id": "more_collector", "label": (f"More collector (+{round(100 * (collector_factor - 1))}%)", f"Más colector (+{round(100 * (collector_factor - 1))}%)"), "change": {"collector_gpt": collector_factor}},
         {"id": "more_air", "label": ("More air (+40% gas velocity)", "Más aire (+40% velocidad de gas)"), "change": {"jg_cm_s": 1.4}},
+        *CUT_VARIANTS,
     )
 
 
@@ -169,6 +181,7 @@ def _gravity_variants() -> tuple[dict[str, Any], ...]:
         {"id": "higher_throughput", "label": ("Higher throughput (+25%)", "Mayor tratamiento (+25%)"), "change": {"throughput_tph": 1.25}},
         {"id": "larger_bleed", "label": ("Larger gravity bleed (x2)", "Mayor purga gravimétrica (x2)"), "change": {"gravity_bleed": 2.0}},
         {"id": "more_collector", "label": ("More collector (+60%)", "Más colector (+60%)"), "change": {"collector_gpt": 1.6}},
+        *CUT_VARIANTS,
     )
 
 
@@ -180,6 +193,7 @@ def _magnetic_variants() -> tuple[dict[str, Any], ...]:
         {"id": "finer_grind", "label": ("Finer grind target (-25% P80)", "Molienda más fina (-25% P80)"), "change": {"target_p80_um": 0.75}},
         {"id": "higher_throughput", "label": ("Higher throughput (+25%)", "Mayor tratamiento (+25%)"), "change": {"throughput_tph": 1.25}},
         {"id": "finer_crusher", "label": ("Finer crusher setting (-20% CSS)", "Chancado más fino (-20% CSS)"), "change": {"crusher_css_mm": 0.8}},
+        *CUT_VARIANTS,
     )
 
 
@@ -191,6 +205,7 @@ def _deslime_variants() -> tuple[dict[str, Any], ...]:
         {"id": "higher_throughput", "label": ("Higher throughput (+25%)", "Mayor tratamiento (+25%)"), "change": {"throughput_tph": 1.25}},
         {"id": "coarser_deslime", "label": ("Coarser desliming cut (+50%)", "Corte de deslamado más grueso (+50%)"), "change": {"deslime_cut_um": 1.5}},
         {"id": "more_collector", "label": ("More collector (+40%)", "Más colector (+40%)"), "change": {"collector_gpt": 1.4}},
+        *CUT_VARIANTS,
     )
 
 
@@ -395,10 +410,25 @@ CASES: tuple[CaseDef, ...] = _cases()
 CASE_BY_ID = {c.id: c for c in CASES}
 
 
+@lru_cache(maxsize=None)
+def nominal_cut(case_id: str) -> float:
+    """The host's corrected cut (um) that the target mode solves at the case's nominal state: the reference of the
+    classifier cut's bounds (CM-01) and of the cut-mode variants (CM-06)."""
+    from ..engine.circuit import simulate
+
+    case = CASE_BY_ID[case_id]
+    return float(simulate(case.ore, case.plant, case.nominal).metrics["cyclone_cut_um"])
+
+
 def variant_point(case: CaseDef, variant: dict[str, Any]) -> OperatingPoint:
-    """Apply a variant's single multiplicative change to the case nominal."""
+    """Apply a variant's single multiplicative change to the case nominal. The classifier cut's nominal is 0 (the
+    target mode), so its factor applies to the nominal state's solved cut."""
     changes = {}
     for name, factor in variant["change"].items():
+        if name == "d50c_um":
+            # rounded as the contract rounds its bounds, so a variant at a bound compares equal to it
+            changes[name] = float(f"{nominal_cut(case.id) * factor:.12g}")
+            continue
         value = getattr(case.nominal, name) * factor
         changes[name] = int(round(value)) if isinstance(getattr(case.nominal, name), int) else value
     return case.nominal.with_values(**changes)

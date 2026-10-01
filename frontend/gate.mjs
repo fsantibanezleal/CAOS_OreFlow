@@ -6,6 +6,8 @@
  *   OF_MATRIX=full node gate.mjs            (three viewports, both themes, both languages)
  *   OF_MATRIX=none node gate.mjs            (the phone and tablet pass alone)
  *
+ * Every combination also checks the optimizer's controls (a live run once per gate, OP-09), the classifier-cut
+ * mode (CM-07) and the two real sources (RS-07 to RS-10).
  * OF_BASE points it at another host (a public deployment), OF_ONLY names combinations of the full matrix
  * (1280x800-dark-es,...) to re-check after a fix, OF_CASE picks the case, OF_PAGES the content
  * pages (default all five; empty for none). For every combination it:
@@ -29,7 +31,7 @@
  *   page offers it;
  * - at 390x844 and 768x1024 in both themes and languages (OF_SMALL), where the rail stacks and the page body scrolls, visits every
  *   view: the rail whole and clear of the readout, no sideways document scroll, and no flowsheet unit
- *   box over another;
+ *   box over another; and every tab and sub-tab of every content page, none scrolling the document sideways;
  * - fails on any console error.
  *
  * A screenshot of every state lands in OF_QA (default `qa-output/`, ignored by git); the measurements
@@ -57,6 +59,9 @@ const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case
 // (both themes and both languages at each size: PE-37 names phone, tablet and desktop in both)
 const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,390x844-dark-es,768x1024-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
+// the tab counts the pages must show: Implementation's nine (PG-02), Experiments' seven (PG-01), and Benchmark's five
+// with the industrial-quality lane (IS-05)
+const TAB_CENSUS = { implementation: 9, experiments: 7, benchmark: 5 };
 mkdirSync(OUT, { recursive: true });
 
 const results = [];
@@ -338,6 +343,8 @@ async function settleCharts(page, minimum = 1) {
   await page.waitForTimeout(250);
 }
 
+let uncertaintyRerunChecked = false;
+let optimizerRunChecked = false;
 const browser = await chromium.launch();
 for (const { v: [w, h], theme, lang } of COMBOS) {
   const tag = `${w}x${h}-${theme}-${lang}`;
@@ -390,6 +397,41 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         const m = await measure(page);
         const ok = viewOk(m, lang);
         record(`${tag} methods/${name}`, ok, m);
+        // UQ-06: the uncertainty record carries its re-run controls in every combination, and once per run of the
+        // gate a 32-sample re-run at another seed completes and replaces the baked record
+        if (/^(Uncertainty|Incertidumbre)$/.test(name)) {
+          const rerun = page.locator('.of-view-methods .of-rerun');
+          const controls = { box: await rerun.count(), seed: await rerun.locator('input[type=number]').count(), samples: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count() };
+          let live = null;
+          if (!uncertaintyRerunChecked && controls.box === 1) {
+            uncertaintyRerunChecked = true;
+            await rerun.locator('input[type=number]').fill('7');
+            await rerun.locator('select').selectOption('32');
+            await rerun.locator('.of-run').click();
+            live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 120000 }).then(() => true, () => false);
+            if (live) await rerun.locator('.of-revert').click();
+          }
+          record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false, { ...controls, live });
+        }
+        // OP-09: the optimizer carries its weight control and run button in every combination, and once per run of
+        // the gate a live run at 50% completes, replaces the baked record and offers the four charts
+        if (/^(Optimizer|Optimizador)$/.test(name)) {
+          const rerun = page.locator('.of-view-methods .of-rerun');
+          const controls = { box: await rerun.count(), weight: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count(),
+            charts: await page.locator('.of-view-methods .of-aside .of-fields select').last().locator('option').count() };
+          let live = null;
+          if (!optimizerRunChecked && controls.box === 1) {
+            optimizerRunChecked = true;
+            await rerun.locator('select').selectOption('50');
+            await rerun.locator('.of-run').click();
+            live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 600000 }).then(() => true, () => false);
+            if (live) {
+              await page.screenshot({ path: join(OUT, `methods-optimizer-live-${tag}.png`) });
+              await rerun.locator('.of-revert').click();
+            }
+          }
+          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false, { ...controls, live });
+        }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }
       continue;
@@ -400,6 +442,58 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     record(`${tag} ${view}`, ok, m);
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
   }
+
+  // CM-07: the classifier cut in the rail's classification section: on, its slider appears and the target and the
+  // load stay visible and disabled, and the Grinding view says the cut is set; off again, the target mode returns
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
+  await page.locator('.of-rail-sections button').nth(1).click();
+  await page.locator('.of-rail .of-segmented:not(.of-segmented-3) button').last().click();
+  await page.waitForFunction(() => /classifier cut and the installed power|corte del clasificador y la potencia instalada/.test(document.querySelector('.of-view-host')?.textContent ?? ''), null, { timeout: 90000 }).catch(() => undefined);
+  const cut = await page.evaluate(() => ({
+    slider: document.querySelectorAll('.of-rail input[id$="d50c_um"]').length,
+    follows: document.querySelectorAll('.of-rail .of-knob.follows input[disabled]').length,
+    stated: /classifier cut and the installed power|corte del clasificador y la potencia instalada/.test(document.querySelector('.of-view-host')?.textContent ?? ''),
+    url: location.search.includes('d50c_um'),
+  }));
+  await page.screenshot({ path: join(OUT, `cut-mode-${tag}.png`) });
+  record(`${tag} grinding mode`, cut.slider === 1 && cut.follows === 2 && cut.stated && cut.url, cut);
+  await page.locator('.of-rail .of-segmented:not(.of-segmented-3) button').first().click();
+  await page.waitForFunction(() => !location.search.includes('d50c_um'), null, { timeout: 30000 }).catch(() => undefined);
+
+  // RS-07 to RS-10: the two real sources. A sample fixes the head grade and the work index and runs in the engine;
+  // an hour is shown in the Case view, and every engine view says why it does not apply
+  const sourceButton = k => page.locator('.of-rail .of-segmented-3 button').nth(k);
+  await sourceButton(1).click();
+  // the options of a closed select have no box, so they are attached, never visible
+  await page.waitForSelector('.of-rail select option', { state: 'attached', timeout: 60000 });
+  await page.locator('.of-rail-sections button').first().click();
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  await page.waitForSelector('.of-view-sample table', { timeout: 90000 });
+  const sampleCheck = await page.evaluate(() => ({
+    fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
+    tables: document.querySelectorAll('.of-view-sample table').length,
+    url: location.search.includes('source=sample'),
+  }));
+  const sampleView = await measure(page);
+  await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
+  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.url && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
+  await settleCharts(page, 1);
+  const sampleGrinding = await measure(page);
+  record(`${tag} source sample grinding`, viewOk(sampleGrinding, lang), sampleGrinding);
+  await sourceButton(2).click();
+  await page.waitForSelector('.of-view-statement .of-note', { timeout: 60000 });
+  const statement = await page.evaluate(() => /reverse cationic|catiónica inversa/.test(document.querySelector('.of-view-statement')?.textContent ?? ''));
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  await page.waitForSelector('.of-view-hour table', { timeout: 90000 });
+  await settleCharts(page, 1);
+  const hourView = await measure(page);
+  const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table.of-table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour') }));
+  await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`) });
+  record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
+  await sourceButton(0).click();
+  await page.waitForFunction(() => !location.search.includes('source='), null, { timeout: 30000 }).catch(() => undefined);
+  await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
 
   await checkArchitecture(page, tag, lang);
 
@@ -427,6 +521,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
     const topTabs = page.locator('.page-body .tablist [role=tab]');
     const groups = await topTabs.count();
+    // PG-01, PG-02: the planned tab census of the pages that 0.07.000 extends
+    if (route in TAB_CENSUS) record(`${tag} ${route} tabs`, groups === TAB_CENSUS[route], { groups, expected: TAB_CENSUS[route] });
     for (let g = 0; g < Math.max(1, groups); g += 1) {
       if (groups) await topTabs.nth(g).click();
       const subTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
@@ -514,6 +610,34 @@ for (const tag of SMALL) {
     });
     record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText });
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
+  }
+  // the content pages at a phone's and a tablet's width (ADR-0071): no tab or sub-tab scrolls the document
+  // sideways. Until 0.07.000 this pass visited the App route only, and 16 content tabs overflowed a phone, their
+  // wide tables and the charts beside them past the edge; a wide table now scrolls inside its own box
+  for (const route of PAGES) {
+    await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle', timeout: 90000 });
+    await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
+    const topTabs = page.locator('.page-body .tablist [role=tab]');
+    const groups = await topTabs.count();
+    const over = [];
+    let visited = 0;
+    for (let g = 0; g < Math.max(1, groups); g += 1) {
+      if (groups) await topTabs.nth(g).click();
+      const subTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
+      const count = Math.max(1, await subTabs.count());
+      for (let k = 0; k < count; k += 1) {
+        if (await subTabs.count()) await subTabs.nth(k).click();
+        await page.waitForTimeout(400);
+        visited += 1;
+        const state = await page.evaluate(() => ({
+          overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+          tab: [...document.querySelectorAll('.page-body [role=tab][aria-selected=true]')].map(t => t.textContent.trim()).join(' / '),
+        }));
+        if (state.overX) over.push(state.tab);
+      }
+    }
+    await page.screenshot({ path: join(OUT, `${route}-${tag}.png`) });
+    record(`${tag} ${route} page`, over.length === 0, { visited, over });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();

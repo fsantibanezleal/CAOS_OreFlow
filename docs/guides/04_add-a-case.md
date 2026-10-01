@@ -1,7 +1,7 @@
 # 04 Add a case
 
-A case is an authored ore, plant and operating point inside published ranges, with six variants that change
-one input each. Adding one touches the catalog, the prose, a few pinned counts and the bake. The tests say
+A case is an authored ore, plant and operating point inside published ranges, with eight variants that change
+one input each (the last two run the grinding circuit in the cut mode). Adding one touches the catalog, the prose, a few pinned counts and the bake. The tests say
 when each part is right.
 
 ## 1. Gather the values and their sources
@@ -45,12 +45,12 @@ The catalog's size is stated in checks and prose, so a thirteenth case fails the
 
 | Where | What |
 |---|---|
-| `scripts/check_artifacts.py` | `N_CASES, N_VARIANTS = 12, 72` |
+| `scripts/check_artifacts.py` | `N_CASES, N_VARIANTS = 12, 96` |
 | `tests/test_cases.py::test_catalog_shape` | twelve cases, twelve ids |
 | `frontend/src/test/*-claims.test.ts` | the counts and the per-case findings the pages state |
 | the content pages, the architecture modal (`content/architecture.ts`, `public/svg/tech/`) and `docs/` | "twelve", "12", "72" in the prose and the diagrams |
 
-`grep -rn "twelve\|72 variants\|12 cases" frontend/src docs` finds the prose.
+`grep -rn "twelve\|96 variants\|12 cases" frontend/src docs` finds the prose.
 
 ## 5. Bake, render, check
 
@@ -71,7 +71,7 @@ What the tests hold the new case to:
 - `test_engine_balances.py`: every unit of every variant closes within 1e-9 (PE-02);
 - `test_contract.py::test_engine_solves_the_envelope`: states across the case's whole envelope solve;
 - `test_directions.py`: the physical directions hold for it;
-- `frontend/src/test/parity.test.ts`: the browser port reproduces its six variants within 1e-6 (PE-31).
+- `frontend/src/test/parity.test.ts`: the browser port reproduces its eight variants within 1e-6 (PE-31).
 
 The workbench picks the case up from the index (its selector code, its focus route and the Pages route file
 are generated), and the browser gate measures it like any other once it is baked.

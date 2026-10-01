@@ -70,8 +70,8 @@
   <text class="ttl l-es" x="32" y="175">Circuito cerrado, resuelto</text>
   <text class="it l-en" x="32" y="191">Illinois root finders on ln e and ln d50c give the target P80 and the design circulating load</text>
   <text class="it l-es" x="32" y="191">buscadores de Illinois sobre ln e y ln d50c dan el P80 objetivo y la carga circulante de diseño</text>
-  <text class="it l-en" x="32" y="205">installed power caps e, and the product then coarsens: the power-limited state</text>
-  <text class="it l-es" x="32" y="205">la potencia instalada limita e y el producto engruesa: el estado limitado por potencia</text>
+  <text class="it l-en" x="32" y="205">installed power caps e and the product coarsens; in the cut mode d50c is set, e draws the installed power, P80 and the load follow</text>
+  <text class="it l-es" x="32" y="205">la potencia instalada limita e y el producto engruesa; en el modo de corte d50c se fija, e consume la potencia instalada, P80 y la carga resultan</text>
   <text class="cd mono l-neutral" x="32" y="219">engine/roots.py · grinding.py</text>
   <path class="flow" d="M 440 232 L 440 250" marker-end="url(#of-arch-4)"/>
   <text class="lbl l-en" x="448" y="245">overflow at the target P80</text>
@@ -120,25 +120,25 @@
   <rect class="bx" x="234" y="448" width="204" height="76" rx="8"/>
   <text class="ttl l-en" x="246" y="467">Constrained optimum</text>
   <text class="ttl l-es" x="246" y="467">Óptimo con restricciones</text>
-  <text class="it l-en" x="246" y="483">max ṁ  s.t. grade, power, water</text>
-  <text class="it l-es" x="246" y="483">max ṁ  s.a. ley, potencia, agua</text>
-  <text class="it l-en" x="246" y="497">COBYLA from 6 starts</text>
-  <text class="it l-es" x="246" y="497">COBYLA desde 6 inicios</text>
+  <text class="it l-en" x="246" y="483">max w ṁ/ṁ₀ − (1−w) E/E₀, 3 limits</text>
+  <text class="it l-es" x="246" y="483">max w ṁ/ṁ₀ − (1−w) E/E₀, 3 límites</text>
+  <text class="it l-en" x="246" y="497">screened pattern search, 6 starts</text>
+  <text class="it l-es" x="246" y="497">búsqueda por patrones filtrada</text>
   <text class="cd mono l-neutral" x="246" y="511">methods/optimization.py</text>
   <rect class="bx" x="448" y="448" width="204" height="76" rx="8"/>
   <text class="ttl l-en" x="460" y="467">Uncertainty and Sobol</text>
   <text class="ttl l-es" x="460" y="467">Incertidumbre y Sobol</text>
   <text class="it l-neutral" x="460" y="483">S_i = V[E(Y|X_i)] / V(Y)</text>
-  <text class="it l-en" x="460" y="497">128 LHS draws, N = 256</text>
-  <text class="it l-es" x="460" y="497">128 sorteos LHS, N = 256</text>
+  <text class="it l-en" x="460" y="497">128 SplitMix64 LHS draws, N = 256</text>
+  <text class="it l-es" x="460" y="497">128 sorteos LHS SplitMix64, N = 256</text>
   <text class="cd mono l-neutral" x="460" y="511">methods/uncertainty.py</text>
   <rect class="bx bx-hi" x="662" y="448" width="198" height="76" rx="8"/>
   <text class="ttl l-en" x="674" y="467">Learned lane</text>
   <text class="ttl l-es" x="674" y="467">Vía aprendida</text>
   <text class="it l-en" x="674" y="483">R², RMSE on unseen plants</text>
   <text class="it l-es" x="674" y="483">R², RMSE en plantas no vistas</text>
-  <text class="it l-en" x="674" y="497">5 models, guard, ONNX</text>
-  <text class="it l-es" x="674" y="497">5 modelos, guardia, ONNX</text>
+  <text class="it l-en" x="674" y="497">5 models, guard, ONNX, screen</text>
+  <text class="it l-es" x="674" y="497">5 modelos, guardia, ONNX, filtro</text>
   <text class="cd mono l-neutral" x="674" y="511">methods/learning.py</text>
   <text class="mu l-en" x="440" y="548" text-anchor="middle">the lumped models, the optimizer and the surrogate are comparisons fitted to this engine, not alternative engines</text>
   <text class="mu l-es" x="440" y="548" text-anchor="middle">los modelos agrupados, el optimizador y el sustituto son comparaciones ajustadas a este motor, no motores alternativos</text>

@@ -51,6 +51,9 @@ export interface Series {
   bars?: boolean;
   /** For paired bars: -1 draws the bar left of its tick, 1 right of it. */
   align?: -1 | 1;
+  /** For grouped bars on categories: this series is bar `index` of `count` side by side in each category, so bars of
+   * different series never draw over each other (the ablation chart's five mechanisms read as a stack before). */
+  group?: { index: number; count: number };
   /** Left out of the legend (a highlight drawn over another series). */
   legend?: false;
 }
@@ -180,7 +183,11 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         const x = Math.max(left, Math.min(side, left + width - w));
         let row = 0;
         let box: Box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
-        while (placed.some(b => overlaps(b, box)) && row < 6) {
+        // a label that touches its neighbour reads as one word ("P50base" in the Uncertainty histogram when the
+        // median and the base state were close), so labels in one row keep a gap of a mark's spacing
+        const gap = 4 * ratio;
+        const crowds = (other: Box) => overlaps(other, { ...box, x0: box.x0 - gap, x1: box.x1 + gap });
+        while (placed.some(crowds) && row < 6) {
           row += 1;
           box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
         }
@@ -321,7 +328,14 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
           const stroke = colours.resolve(s.colour);
           // a category's bar stops at 64 px; a histogram's keeps its share of the bin, or at 2560 px its bars
           // stood apart like categories
-          const bars = s.align ? uPlot.paths.bars?.({ size: [0.36, 48], align: s.align }) : uPlot.paths.bars?.({ size: [0.8, categories ? 64 : Infinity] });
+          const grouped = s.group && categories ? s.group : null;
+          const width = grouped ? 0.8 / grouped.count : 0;
+          const bars = grouped
+            // left edge and width in x-scale units (uPlot's ScaleValue facet unit is 1): a category spans 0.8 of its step
+            ? uPlot.paths.bars?.({ disp: {
+              x0: { unit: 1 as uPlot.Series.BarsPathBuilderFacetUnit, values: self => (self.data[0] as number[]).map(x => x - 0.4 + grouped.index * width) },
+              size: { unit: 1 as uPlot.Series.BarsPathBuilderFacetUnit, values: self => (self.data[0] as number[]).map(() => width) } } })
+            : s.align ? uPlot.paths.bars?.({ size: [0.36, 48], align: s.align }) : uPlot.paths.bars?.({ size: [0.8, categories ? 64 : Infinity] });
           return {
             label: s.label, stroke, width: s.width ?? 2, dash: s.dash, show: !hiddenRef.current.has(s.label),
             ...(s.fillTo !== undefined ? { fill: `${stroke}22` } : {}),

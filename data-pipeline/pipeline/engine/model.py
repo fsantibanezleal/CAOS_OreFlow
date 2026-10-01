@@ -120,6 +120,7 @@ class FlotationPlant:
     drainage: float                # Savassi delta
     recleaner: Bank | None = None  # second cleaning stage; its tails return to the cleaner feed
     regrind_energy_kwh_t: float = 0.0   # open-circuit regrind of rougher concentrate, per t of regrind feed
+    cleaner_tail_to_rougher: bool = True   # the cleaner tail returns to the rougher feed; False sends it to the final tail (ablation)
 
 
 @dataclass(frozen=True)
@@ -182,6 +183,9 @@ class OperatingPoint:
     rougher_cells: int = 0
     gravity_bleed: float = 0.0     # fraction of cyclone underflow sent to the gravity unit
     deslime_cut_um: float = 0.0
+    # the host's corrected cut in the cut mode (CM-01): 0 is the target mode, which solves the cut for the design
+    # circulating load; a positive cut runs the mill at installed power, and the P80 and the load follow
+    d50c_um: float = 0.0
 
     def with_values(self, **changes: Any) -> "OperatingPoint":
         return replace(self, **changes)

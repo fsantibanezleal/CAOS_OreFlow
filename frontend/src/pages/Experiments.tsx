@@ -1,7 +1,7 @@
 /**
- * Experiments (ADR-0016 section 9.C): the design and its coverage, the metrics, what the single-factor
- * variants did in every case, and the protocols of the method records and of the learned lane; every
- * result is read from the committed benchmark.
+ * Experiments (ADR-0016 section 9.C): the design and its coverage, the data, the splits, the metrics, what
+ * the single-factor variants did in every case, the uncertainty record with its seed study, and the mechanism
+ * ablations; every result is read from the committed benchmark and studies records.
  */
 import { useShellLang } from '@fasl-work/caos-app-shell';
 import { DocPage, TopicGroups } from '../content/doc';
@@ -11,8 +11,8 @@ import type { Lang } from '../lib/format';
 const T = {
   title: { en: 'Experiments', es: 'Experimentos' },
   lede: {
-    en: 'The numerical experiments behind OreFlow: a designed matrix of twelve cases with single-factor variants, the metrics that judge each state, what every variant did in every case, and the protocols of the method records, including the leakage-safe one that scores the learned lane on plants it never saw.',
-    es: 'Los experimentos numéricos detrás de OreFlow: una matriz diseñada de doce casos con variantes de un factor, las métricas que juzgan cada estado, qué hizo cada variante en cada caso, y los protocolos de los registros de métodos, incluido el protocolo sin fuga que evalúa la vía aprendida en plantas que nunca vio.',
+    en: 'The numerical experiments behind OreFlow: a designed matrix of twelve cases with single-factor variants, the data and the leakage-safe splits every score uses, the metrics that judge each state, what every variant did in every case, how much of the uncertainty record is its own sampling error, and what each mechanism of the engine carries.',
+    es: 'Los experimentos numéricos detrás de OreFlow: una matriz diseñada de doce casos con variantes de un factor, los datos y las particiones sin fuga que usa cada puntaje, las métricas que juzgan cada estado, qué hizo cada variante en cada caso, cuánto del registro de incertidumbre es su propio error de muestreo, y qué lleva cada mecanismo del motor.',
   },
   sections: { en: 'Experiment sections', es: 'Secciones de los experimentos' },
 };

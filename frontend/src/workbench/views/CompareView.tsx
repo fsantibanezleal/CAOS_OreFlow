@@ -1,5 +1,5 @@
 /**
- * Compare view (design §12.1, view 6): the six variants of the case side by side, each a single-factor
+ * Compare view (design §12.1, view 6): the eight variants of the case side by side, each a single-factor
  * change from the nominal state (PE-32), and the twelve cases at their nominal states on one map of
  * recovery against specific energy. Every number is the bake's: the variants from the case artifact,
  * the cases from benchmark.json, whose variant metrics the artifact checks hold equal to the artifacts.

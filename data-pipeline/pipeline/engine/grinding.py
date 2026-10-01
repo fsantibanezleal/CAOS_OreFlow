@@ -3,8 +3,13 @@
 For each mineral the steady state satisfies ``(T^-1(e) - diag(r)) p = f + s``: ``p`` is the mill
 product, ``f`` the new feed, ``r`` the fraction of each class that returns to the mill (underflow
 minus the gravity bleed recovery) and ``s`` a source that carries host gangue locked in composites.
-Valuable minerals are solved first because their composites define that source. The solver meets
-the target overflow P80 at the design circulating load (docs/methodologies/03_grinding-circuit.md).
+Valuable minerals are solved first because their composites define that source.
+
+Two modes (docs/methodologies/03_grinding-circuit.md). The target mode meets the target overflow P80 at the
+design circulating load: the energy per pass is solved for the P80, and the host cut for the load. The cut mode
+is the plant's direction (CM-02): the host's corrected cut is given, the mill draws its installed power, and the
+energy per pass is solved so that ``e (1 + C) F`` equals it, while the P80 and the circulating load ``C`` follow.
+The underflow water then follows the achieved load, so each energy is a fixed point on ``C``.
 """
 from __future__ import annotations
 
@@ -55,6 +60,7 @@ class GrindingResult:
     overflow_species: dict[str, np.ndarray]
     species_consistency: float
     composite_scale: np.ndarray        # host-limited composite scale per class (1 = declared content)
+    cut_mode: bool = False             # the cut was given and the P80 and the load follow (CM-03)
 
 
 class GrindingCircuit:
@@ -90,6 +96,7 @@ class GrindingCircuit:
         self.bleed = op.gravity_bleed if plant.gravity is not None else 0.0
         self.rho_host = ore.density[ore.host]
         self._cut_guess = math.log(max(op.target_p80_um, 1.0))
+        self._load_guess = op.circulating_load
         self.composite_scale = np.ones(self.g.n)   # host-limited composite scale of the last run
         for m in ore.valuable:
             host = ore.spec[m].host
@@ -165,7 +172,9 @@ class GrindingCircuit:
             result, demand = self._pass(energy_per_pass, cut, scale)
             host = result.product[self.ore.host]
             limited = np.ones(self.g.n)
-            short = demand > host
+            # only where composites demand more host than the class holds: an empty class carries round-off
+            # (host -4e-16 against no demand at the finest cut-mode grinds), which must not divide 0 by 0
+            short = demand > np.maximum(host, 0.0)
             limited[short] = np.maximum(host[short], 0.0) / demand[short]
             if float(np.max(np.abs(limited - scale))) <= tolerance:
                 self.composite_scale = limited
@@ -197,6 +206,49 @@ class GrindingCircuit:
         self._cut_guess = x
         return math.exp(x)
 
+    def _set_load(self, load: float) -> None:
+        """Underflow water and bypass for a circulating load (the design one in the target mode)."""
+        su = self.plant.cyclone.underflow_solids
+        self.water_under = load * self.new_feed_tph * (1.0 - su) / su
+        self.bypass = self.water_under / (self.water_under + self.water_over)
+
+    def run_at_cut(self, energy_per_pass: float, cut: float) -> PassResult:
+        """The cut mode's pass: the underflow water, and with it the bypass, follow the achieved circulating load, a
+        fixed point on the load from the last one found. The bypass of the reported pass is that of its own input
+        load, which agrees with the achieved load within the declared tolerance."""
+        tolerance = float(constant("numerics.cut_mode_load_tolerance"))
+        load = self._load_guess
+        for _ in range(int(constant("numerics.cut_mode_load_max_iterations"))):
+            self._set_load(load)
+            result = self.run(energy_per_pass, cut)
+            if abs(result.circulating_load - load) <= tolerance * max(1.0, load):
+                self._load_guess = result.circulating_load
+                return result
+            load = result.circulating_load
+        self.flags.add("cut_mode_load_not_converged",
+                       "The circulating load of the cut mode did not settle; the last pass is reported.")
+        return result
+
+    def solve_at_cut(self, cut: float, power_kw: float) -> tuple[float, PassResult]:
+        """The energy per pass at which the mill draws ``power_kw`` with the host cut held at ``cut`` (CM-02). The
+        power rises with the energy at every measured state, so the root is unique where it exists; outside the
+        energy bracket the state is flagged and runs at the bracket end nearest the power."""
+        lo, hi = (math.log(float(v)) for v in constant("grinding.energy_bracket_kwh_t"))
+
+        def f(x: float) -> float:
+            e = math.exp(x)
+            load = self.run_at_cut(e, cut).circulating_load
+            return math.log(power_kw) - math.log(e * (1.0 + load) * self.new_feed_tph)
+
+        guess = math.log(power_kw / ((1.0 + self._load_guess) * self.new_feed_tph))
+        try:
+            energy = math.exp(solve_decreasing(f, min(max(guess, lo), hi), math.log(2.0), lo, hi))
+        except RootError:
+            self.flags.add("power_unreachable_at_cut",
+                           "The installed power cannot be drawn at this cut within the energy search range; the mill runs at the nearest end of it.")
+            energy = math.exp(hi) if f(hi) > 0.0 else math.exp(lo)
+        return energy, self.run_at_cut(energy, cut)
+
     def overflow_p80(self, energy_per_pass: float) -> float:
         cut = self.solve_cut(energy_per_pass)
         result = self.run(energy_per_pass, cut)
@@ -211,6 +263,8 @@ class GrindingCircuit:
         for mass in self.feed.values():
             feed_total += mass
         f80 = g.p80(feed_total)
+        if op.d50c_um > 0.0:
+            return self._solve_cut_mode(f80)
         lo, hi = (math.log(float(v)) for v in constant("grinding.energy_bracket_kwh_t"))
         guess = max(bond_energy(op.work_index_kwh_t, f80, op.target_p80_um), float(constant("numerics.energy_guess_floor_kwh_t"))) / (1.0 + op.circulating_load)
 
@@ -233,9 +287,22 @@ class GrindingCircuit:
             self.flags.add("circulating_load_unreachable", "The design circulating load cannot be held at this energy; the cut is at its search limit.")
             cut = float(constant("grinding.cut_bracket_um")[1])
         result = self.run(energy, cut)
-        return self._report(energy, cut, result, f80, required, limited)
+        return self._report(energy, cut, result, f80, required, limited, op.circulating_load)
 
-    def _report(self, energy: float, cut: float, r: PassResult, f80: float, required: float, limited: bool) -> GrindingResult:
+    def _solve_cut_mode(self, f80: float) -> GrindingResult:
+        """The cut mode at installed power (CM-02, CM-03): the P80 and the circulating load are results."""
+        cut = self.op.d50c_um
+        energy, result = self.solve_at_cut(cut, self.plant.mill.installed_power_kw)
+        load = result.circulating_load
+        low, high = (float(v) for v in constant("grinding.cut_mode_load_range"))
+        if not low <= load <= high:
+            self.flags.add("circulating_load_out_of_range",
+                           f"The cut sets a circulating load of {100.0 * load:.0f}%, outside the {100.0 * low:.0f} to {100.0 * high:.0f}% the target mode accepts.")
+        required = energy * (1.0 + load) * self.new_feed_tph
+        return self._report(energy, cut, result, f80, required, False, load, cut_mode=True)
+
+    def _report(self, energy: float, cut: float, r: PassResult, f80: float, required: float, limited: bool, load: float,
+                cut_mode: bool = False) -> GrindingResult:
         ore, op, plant, g = self.ore, self.op, self.plant, self.g
         water_density = float(constant("water.density_t_m3"))
         mill_solids = float(sum(float(np.sum(p)) for p in r.product.values()))
@@ -285,14 +352,16 @@ class GrindingCircuit:
         rebuilt = to_minerals(overflow_species, defs, ore)
         scale = max(float(np.max(np.abs(r.overflow[m]))) for m in ore.ids)
         consistency = max(float(np.max(np.abs(rebuilt[m] - r.overflow[m]))) for m in ore.ids) / scale
-        specific = energy * (1.0 + op.circulating_load)
+        specific = energy * (1.0 + load)
+        p80 = g.p80(total_over)
         return GrindingResult(
             energy_per_pass_kwh_t=energy, specific_energy_kwh_t=specific, power_kw=specific * self.new_feed_tph,
             required_power_kw=required, power_limited=limited, cut_um=cut, bypass=self.bypass,
-            circulating_load=r.circulating_load, target_p80_um=op.target_p80_um, p80_um=g.p80(total_over),
+            # in the cut mode nothing targets the P80: the achieved one is reported in its place
+            circulating_load=r.circulating_load, target_p80_um=p80 if cut_mode else op.target_p80_um, p80_um=p80,
             feed_f80_um=f80, streams=streams, partition=partition, sizing=sizing,
             water={"overflow_tph": self.water_over, "underflow_tph": self.water_under, "mill_discharge_tph": water_mill_discharge,
                    "mill_addition_tph": mill_addition, "sump_addition_tph": sump_addition},
             gold_circulating_load=gold_cl, defs=defs, overflow_species=overflow_species, species_consistency=consistency,
-            composite_scale=self.composite_scale.copy(),
+            composite_scale=self.composite_scale.copy(), cut_mode=cut_mode,
         )

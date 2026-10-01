@@ -7,7 +7,8 @@ export type ContractInput = {
   name: string; unit: string; bounds: string; low: number; high: number; step: number; integer: boolean; families: string[];
   label: { en: string; es: string }; help: { en: string; es: string }; display_scale: number; display_unit: string;
 };
-export type CaseBounds = { min: number; max: number; step: number; unit: string };
+/** A case's bounds of one input; `off` is the value that turns the input off (the classifier cut's target mode). */
+export type CaseBounds = { min: number; max: number; step: number; unit: string; off?: number; reference?: number };
 export type ContractCase = {
   family: string;
   primary: { species: string; unit: string };
@@ -25,9 +26,15 @@ export type OperatingContract = {
   rules: ContractRule[];
   messages: Record<string, { en: string; es: string }>;
   cases: Record<string, ContractCase>;
+  controls?: Record<string, ContractControl>;
   digest: string;
 };
-export type ContractError = { code: string; input: string | null; value?: number; min?: number; max?: number };
+/** A control of a method record (UQ-07): the workbench re-runs the record with it; it is not a plant input. */
+export type ContractControl = {
+  min: number; max: number; step: number; integer: boolean; unit: string; default: number;
+  label: { en: string; es: string }; help: { en: string; es: string };
+};
+export type ContractError = { code: string; input: string | null; value?: number; min?: number; max?: number; step?: number };
 export type Verdict = { accepted: boolean; point: Record<string, number> | null; errors: ContractError[] };
 
 const isNumber = (value: unknown): value is number => typeof value === 'number';
@@ -49,6 +56,8 @@ export function validate(contract: OperatingContract, caseId: string, values: Re
     if (!Number.isFinite(value)) { errors.push({ code: 'not_finite', input: name }); continue; }
     if (declared[name].integer && value !== Math.floor(value)) { errors.push({ code: 'not_integer', input: name, value }); continue; }
     const bounds = entry.inputs[name];
+    // an input with an off value (the classifier cut) takes it as its own state, outside its range
+    if (bounds.off !== undefined && value === bounds.off) { point[name] = value; continue; }
     if (value < bounds.min || value > bounds.max) {
       errors.push({ code: 'out_of_range', input: name, value, min: bounds.min, max: bounds.max });
       continue;
@@ -67,6 +76,18 @@ export function validate(contract: OperatingContract, caseId: string, values: Re
 }
 
 /** Order-free summary of a validation result, compared across validators. */
+/** Interpret one method control (port of io/contract.py:validate_control), with the operating inputs' error codes plus off_step. */
+export function validateControl(contract: OperatingContract, name: string, value: unknown): { accepted: boolean; value: number | null; errors: ContractError[] } {
+  const spec = contract.controls?.[name];
+  if (spec === undefined) return { accepted: false, value: null, errors: [{ code: 'unknown_input', input: name }] };
+  if (!isNumber(value)) return { accepted: false, value: null, errors: [{ code: 'not_a_number', input: name }] };
+  if (!Number.isFinite(value)) return { accepted: false, value: null, errors: [{ code: 'not_finite', input: name }] };
+  if (spec.integer && !Number.isInteger(value)) return { accepted: false, value: null, errors: [{ code: 'not_integer', input: name, value }] };
+  if (!(spec.min <= value && value <= spec.max)) return { accepted: false, value: null, errors: [{ code: 'out_of_range', input: name, value, min: spec.min, max: spec.max }] };
+  if ((value - spec.min) % spec.step !== 0) return { accepted: false, value: null, errors: [{ code: 'off_step', input: name, value, step: spec.step }] };
+  return { accepted: true, value, errors: [] };
+}
+
 export function verdictSummary(result: Verdict): { accepted: boolean; errors: Array<[string, string]> } {
   const errors = result.errors.map(e => [e.code, e.input ?? ''] as [string, string]);
   errors.sort((a, b) => (a[0] === b[0] ? (a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0) : a[0] < b[0] ? -1 : 1));

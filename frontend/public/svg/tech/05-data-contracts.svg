@@ -37,8 +37,8 @@
   <rect class="bx bx-hi" x="20" y="62" width="260" height="104" rx="8"/>
   <text class="ttl l-en" x="32" y="81">Contract 1: the operating contract</text>
   <text class="ttl l-es" x="32" y="81">Contrato 1: contrato de operación</text>
-  <text class="it l-en" x="32" y="97">12 inputs with unit, bounds and step</text>
-  <text class="it l-es" x="32" y="97">12 entradas con unidad, límites y paso</text>
+  <text class="it l-en" x="32" y="97">13 inputs with unit, bounds and step</text>
+  <text class="it l-es" x="32" y="97">13 entradas con unidad, límites y paso</text>
   <text class="it l-en" x="32" y="111">bounds: nominal factors or absolute</text>
   <text class="it l-es" x="32" y="111">límites: factor del nominal o absoluto</text>
   <text class="it l-en" x="32" y="125">rule: d_des ≤ 0.5 P80*</text>
@@ -82,8 +82,8 @@
   <rect class="bx" x="330" y="196" width="240" height="76" rx="8"/>
   <text class="ttl l-en" x="342" y="215">Parity of the two engines</text>
   <text class="ttl l-es" x="342" y="215">Paridad de los dos motores</text>
-  <text class="it l-en" x="342" y="231">72 variants re-simulated in TS</text>
-  <text class="it l-es" x="342" y="231">72 variantes resimuladas en TS</text>
+  <text class="it l-en" x="342" y="231">96 variants re-simulated in TS</text>
+  <text class="it l-es" x="342" y="231">96 variantes resimuladas en TS</text>
   <text class="it l-en" x="342" y="245">every number within 1e-6</text>
   <text class="it l-es" x="342" y="245">cada número dentro de 1e-6</text>
   <text class="cd mono l-neutral" x="342" y="259">src/test/parity.test.ts</text>
@@ -95,8 +95,8 @@
   <text class="ttl l-es" x="632" y="81">Contrato 2: artefacto de caso</text>
   <text class="it l-en" x="632" y="97">ore and plant definitions</text>
   <text class="it l-es" x="632" y="97">definiciones de mineral y planta</text>
-  <text class="it l-en" x="632" y="111">6 variants: point, trace, records</text>
-  <text class="it l-es" x="632" y="111">6 variantes: punto, traza, registros</text>
+  <text class="it l-en" x="632" y="111">8 variants: point, trace, records</text>
+  <text class="it l-es" x="632" y="111">8 variantes: punto, traza, registros</text>
   <text class="it l-en" x="632" y="125">texts, KPI ranges, sources</text>
   <text class="it l-es" x="632" y="125">textos, rangos KPI, fuentes</text>
   <text class="cd mono l-neutral" x="632" y="139">cases/&lt;case&gt;.json · case/v2</text>
@@ -105,8 +105,8 @@
   <text class="ttl l-es" x="632" y="199">Manifiesto e índice</text>
   <text class="it l-en" x="632" y="215">bytes, SHA-256, schema, KPIs</text>
   <text class="it l-es" x="632" y="215">bytes, SHA-256, esquema, KPI</text>
-  <text class="it l-en" x="632" y="229">from this run: 12 cases, 72 variants</text>
-  <text class="it l-es" x="632" y="229">esta corrida: 12 casos, 72 variantes</text>
+  <text class="it l-en" x="632" y="229">from this run: 12 cases, 96 variants</text>
+  <text class="it l-es" x="632" y="229">esta corrida: 12 casos, 96 variantes</text>
   <text class="cd mono l-neutral" x="632" y="243">manifest/v2 · index/v2</text>
   <rect class="bx" x="620" y="278" width="240" height="76" rx="8"/>
   <text class="ttl l-en" x="632" y="297">Learning and benchmark</text>

@@ -33,6 +33,10 @@ const TEXT = {
   liberated: { en: 'Liberated fraction', es: 'Fracción liberada' },
   scale: { en: 'Composite scale', es: 'Escala de mixtos' },
   target: { en: 'target P80', es: 'P80 objetivo' },
+  cutSet: { en: 'cut set', es: 'corte fijado' },
+  modeTarget: { en: 'Set: the target P80 and the circulating load; the cut and the energy follow', es: 'Fijados: el P80 objetivo y la carga circulante; el corte y la energía resultan' },
+  modeCut: { en: 'Set: the classifier cut and the installed power; the P80 and the circulating load follow', es: 'Fijados: el corte del clasificador y la potencia instalada; el P80 y la carga circulante resultan' },
+  mode: { en: 'Grind control', es: 'Control de la molienda' },
   achieved: { en: 'P80', es: 'P80' },
   cut: { en: 'cut', es: 'corte' },
   host: { en: 'Host gangue', es: 'Ganga huésped' },
@@ -71,25 +75,29 @@ export function grindingCharts(trace: Trace, ore: Ore, lang: Lang, onCursor: (te
   const valuable = Object.keys(curves.liberation);
   const liberationSize = (mineral: string) => ore.minerals.find(x => x.id === mineral)?.liberation_size_um ?? 0;
   const scaled = curves.composite_scale.some(v => v < 0.999999);
+  // CM-07: in the cut mode nothing targets the P80, so only the achieved one is marked, and the cut is the set value
+  const cutMode = m.cut_mode === 1;
+  const p80Marks = cutMode ? [{ x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }]
+    : [{ x: m.target_p80_um, label: TEXT.target[lang] }, { x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }];
   return {
     psd: (
       <Chart key="psd" title={GRINDING_CHARTS.psd[lang]} data={ascending(size, ...present.map(s => curves.psd[s.key]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.passing[lang]}
         series={present.map(s => ({ label: s[lang], colour: s.colour }))} summary={TEXT.psdSummary[lang]} format={fmt} yRange={[0, 1]}
-        marks={[{ x: m.target_p80_um, label: TEXT.target[lang] }, { x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }]}
+        marks={p80Marks}
         onCursor={report(present.map(s => s[lang]))} />
     ),
     partition: (
       <Chart key="partition" title={GRINDING_CHARTS.partition[lang]} data={ascending(size, ...Object.values(curves.partition))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.partition[lang]}
         series={Object.keys(curves.partition).map((k, i) => ({ label: k === 'host' ? TEXT.host[lang] : mineralName(k, lang), colour: (['accent', 'warn', 'good', 'magenta'] as const)[i % 4] }))}
         summary={TEXT.partSummary[lang]} format={fmt} yRange={[0, 1]}
-        marks={[{ x: m.cyclone_cut_um, label: `${TEXT.cut[lang]} ${formatWithUnit(m.cyclone_cut_um, 'um', lang)}` }]}
+        marks={[{ x: m.cyclone_cut_um, label: `${cutMode ? TEXT.cutSet[lang] : TEXT.cut[lang]} ${formatWithUnit(m.cyclone_cut_um, 'um', lang)}` }]}
         onCursor={report(Object.keys(curves.partition).map(k => (k === 'host' ? TEXT.host[lang] : mineralName(k, lang))))} />
     ),
     liberation: (
       <Chart key="liberation" title={GRINDING_CHARTS.liberation[lang]} data={ascending(size, ...valuable.map(v => curves.liberation[v]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.liberated[lang]}
         series={valuable.map((v, i) => ({ label: mineralName(v, lang), colour: (['good', 'accent', 'magenta', 'warn'] as const)[i % 4] }))}
         summary={TEXT.libSummary[lang]} format={fmt} yRange={[0, 1]}
-        marks={[...valuable.filter(v => liberationSize(v) > 0).map(v => ({ x: liberationSize(v), label: lang === 'es' ? `${TEXT.xl.es} ${mineralName(v, lang).toLowerCase()}` : `${mineralName(v, lang)} ${TEXT.xl.en}` })), { x: m.target_p80_um, label: TEXT.target[lang] }]}
+        marks={[...valuable.filter(v => liberationSize(v) > 0).map(v => ({ x: liberationSize(v), label: lang === 'es' ? `${TEXT.xl.es} ${mineralName(v, lang).toLowerCase()}` : `${mineralName(v, lang)} ${TEXT.xl.en}` })), { x: cutMode ? m.p80_um : m.target_p80_um, label: cutMode ? TEXT.achieved[lang] : TEXT.target[lang] }]}
         onCursor={report(valuable.map(v => mineralName(v, lang)))} />
     ),
     ...(scaled ? {
@@ -113,6 +121,7 @@ export function GrindingView({ trace, ore, lang, onCursor }: { trace: Trace; ore
       {charts.liberation}
       {charts.scale ?? (
         <dl className="of-facts of-grid-facts">
+          <div className="of-facts-wide"><dt>{TEXT.mode[lang]}</dt><dd>{m.cut_mode === 1 ? TEXT.modeCut[lang] : TEXT.modeTarget[lang]}</dd></div>
           {['crusher_feed_f80_um', 'crusher_p80_um', 'p80_um', 'circulating_load_pct', 'cyclone_cut_um', 'cyclone_bypass_pct', 'cyclones_required', 'cyclone_pressure_kpa', 'specific_energy_grinding_kwh_t', 'operating_work_index_kwh_t']
             .filter(k => k in m).map(k => <div key={k}><dt>{metricLabel(k, lang)}</dt><dd>{formatWithUnit(m[k], trace.metric_units[k], lang)}</dd></div>)}
         </dl>

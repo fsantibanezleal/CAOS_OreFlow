@@ -29,9 +29,11 @@ runs six stages and stops with an error if the last one, the artifact checks, fi
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
 | contract | `contract/operating_contract.json`, `contract/contract_probes.json` | under 1 s |
-| cases | `cases/<case>.json`: every variant's trace, optimization and uncertainty records, the nominal Sobol record | 517 s on 12 workers in the committed 0.06.000 bake, which shared the machine with another job (374.9 s unloaded for 0.05.000) |
-| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json` | 3180 s on CUDA in the committed 0.06.000 bake, under the same load (1688.0 s unloaded for 0.05.000) |
+| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 4082.2 s on CUDA in the committed 0.07.000 bake, under the same load (1688.0 s unloaded for 0.05.000); it runs before the cases, which read the screen |
+| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 1292.8 s on 12 workers in the committed 0.07.000 bake, which shared the machine with a parity run and browser checks (374.9 s unloaded for 0.05.000, before the optimizer ran twice) |
 | benchmark | `benchmark.json` | under 1 s |
+| studies | `studies.json`: the ablations and the uncertainty seed study | 128.9 s on 12 workers |
+| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 2.6 s |
 | manifests | `manifests/<case>.json`, `manifests/index.json` | under 1 s |
 | validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | under 1 s |
 

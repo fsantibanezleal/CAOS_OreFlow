@@ -7,7 +7,8 @@ import { VARIANT_KINDS } from '../content/design';
 // The Experiments page states the design, the protocols and what every variant did; each of those
 // statements is checked here against the committed artifacts, so a bake that changes a factor, a count
 // or a direction fails instead of shipping text the engine no longer supports.
-const derived = fileURLToPath(new URL('../../../data/derived/', import.meta.url));
+// OF_DERIVED points a development run at a sandbox bake; by default the committed records are read
+const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
 const read = <T>(path: string): T => JSON.parse(readFileSync(join(derived, path), 'utf-8')) as T;
 
 type Metrics = Record<string, number | boolean | string[]>;
@@ -53,13 +54,13 @@ describe('the Experiments page says what the bake did', () => {
         expect(v.change, `${id}:${v.id}`).toEqual({ [kind.input]: kind.except?.[id] ?? kind.factor });
       }
       expect(artifact.variants[0].id).toBe('nominal');
-      expect(artifact.variants).toHaveLength(6);
+      expect(artifact.variants).toHaveLength(8);
     }
   });
 
   it('matches the coverage and protocol numbers it quotes', () => {
     for (const record of Object.values(benchmark.kinetics)) {
-      expect(record.fits).toBe(66); // every variant of the eleven cases with flotation
+      expect(record.fits).toBe(88); // every variant of the eleven cases with flotation
       expect(record.converged_share).toBe(1);
     }
     for (const c of benchmark.cases) {

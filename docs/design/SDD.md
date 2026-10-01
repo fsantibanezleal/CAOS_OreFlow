@@ -33,7 +33,7 @@ Non-goals, stated so they cannot be implied:
   controls and the browser engine all read that file. A state is either valid everywhere or
   rejected everywhere with the same error code, and every state it accepts is solved by the
   engine with closed balances.
-- **Contract 2, the artifacts.** Per case, `data/derived/cases/<id>.json` holds six variants, each
+- **Contract 2, the artifacts.** Per case, `data/derived/cases/<id>.json` holds eight variants, each
   with its full operating point, named streams (solids, water, assays, size distribution for the
   key streams), unit curves (partition, recovery by size, bank profile, batch kinetics, energy
   laws), metrics with explicit units, method records and provenance. Manifests, the index, the
@@ -76,11 +76,16 @@ applicable variant, tests, documentation and an honest lane label.
 | Uncertainty and sensitivity | Seeded Monte Carlo quantiles, constraint probabilities and Sobol indices for nominal variants. |
 | Ridge, random forest, histogram gradient boosting, Gaussian process, MLP | Evaluated on interpolation and leave-one-case-out splits on recovery, grade and energy; the GP reports interval coverage; the MLP stops on validation loss; ONNX parity for the MLP. |
 | Autoencoder guard | A threshold from validation reconstruction error; false-alarm rate in distribution and false-accept rate on held-out cases are reported. |
+| Pattern search with a progressive barrier and a surrogate-screened search step (0.07.000) | The same evaluation sequence and optimum in Python and the browser within 1e-6 at every recorded weight; every reported optimum is an engine result; the saving in engine evaluations and the surrogate's disagreement are records (`features/live-optimizer/`). |
+| SplitMix64 Latin hypercube (0.07.000) | The published SplitMix64 vector in both languages; bit-identical factors in the browser; one sample per stratum per input (`features/live-uncertainty/`). |
+| Classifier-cut mode (0.07.000) | At a given cut the mill draws the installed power; the two modes agree at the same state within 0.5%; balances close within 1e-9 (`features/cut-mode/`). |
+| Real-sample runs (0.07.000) | Pinned sources with a row ledger; the Bond work index reproduced from the BWI columns (15.2 to 26.1 kWh/t); the engine's recovery beside the measured locked-cycle one, labelled a comparison and not a calibration (`features/real-samples/`). |
+| Mechanism ablations (0.07.000) | Each switch inert when on; balances close with each switch off; a case without the mechanism is not applicable, never zero (`features/ablation-and-pages/`). |
 
 ## 5. Cases
 
-Twelve authored cases in four categories. Each has six variants; each variant changes exactly one
-declared input.
+Twelve authored cases in four categories. Each has eight variants; each variant changes exactly one
+declared input, and the last two run the grinding circuit in the cut mode (since 0.07.000).
 
 | Category | Cases | Why the category exists |
 |---|---|---|

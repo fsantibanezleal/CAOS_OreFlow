@@ -80,3 +80,73 @@ def test_bond_efficiency_consistent_across_cases(case_id):
     # circuit breaks the ore faster than its own work index allows.
     ratio = run_variant(case_id, "nominal").metrics["bond_efficiency_ratio"]
     assert 0.80 <= ratio <= 0.95
+
+
+# CM-02 to CM-04: the cut mode. The host's corrected cut is given, the mill draws its installed power, and the P80
+# and the circulating load follow; the underflow water follows the achieved load.
+
+def _circuit(case_id: str, point):
+    from pipeline.engine.circuit import crush, resolve
+    from pipeline.engine.constants import constant
+    from pipeline.engine.grid import grid
+    from pipeline.engine.grinding import GrindingCircuit
+    from pipeline.engine.model import Flags
+    from pipeline.engine.streams import Stream
+
+    case = CASE_BY_ID[case_id]
+    r = resolve(case.ore, point)
+    shape = grid().rosin_rammler(case.plant.crusher.feed_f80_um, case.plant.crusher.feed_slope)
+    feed = Stream({m: point.throughput_tph * r.fraction[m] * shape for m in r.ids}, 0.0)
+    css = point.crusher_css_mm * float(constant("units.um_per_mm"))
+    return GrindingCircuit(r, case.plant, point, {m: crush(feed.solids[m], css, case.plant.crusher) for m in r.ids}, Flags())
+
+
+@pytest.mark.parametrize("case_id", [c.id for c in CASES])
+def test_cut_mode_meets_installed_power(case_id):
+    result = run_variant(case_id, "cut_nominal")
+    g, case = result.grinding, CASE_BY_ID[case_id]
+    assert g.cut_mode and result.metrics["cut_mode"] == 1.0
+    case_variant = next(v for v in case.variants if v["id"] == "cut_nominal")
+    from pipeline.cases.catalog import variant_point
+    assert g.cut_um == variant_point(case, case_variant).d50c_um
+    assert g.power_kw == pytest.approx(case.plant.mill.installed_power_kw, rel=1e-9)
+    assert g.required_power_kw == pytest.approx(g.power_kw, rel=1e-12) and not g.power_limited
+    # the load used for the water is the achieved one
+    su = case.plant.cyclone.underflow_solids
+    assert g.water["underflow_tph"] == pytest.approx(g.circulating_load * g.streams["new_feed"].tph() * (1.0 - su) / su, rel=1e-9)
+
+
+@pytest.mark.parametrize("case_id", [c.id for c in CASES])
+def test_cut_mode_reports_and_flags(case_id):
+    nominal, finer = run_variant(case_id, "cut_nominal"), run_variant(case_id, "cut_finer")
+    # a finer cut returns more to the mill: the load rises and, at the same power, the product is finer
+    assert finer.grinding.circulating_load > nominal.grinding.circulating_load
+    assert finer.grinding.p80_um < nominal.grinding.p80_um
+    for result in (nominal, finer):
+        # nothing targets the P80 in the cut mode: the achieved one stands in its place
+        assert result.metrics["target_p80_um"] == result.metrics["p80_um"]
+        load = result.grinding.circulating_load
+        flagged = any(f["code"] == "circulating_load_out_of_range" for f in result.flags)
+        assert flagged == (not 1.0 <= load <= 4.0)
+    # the nominal state stays in the target mode
+    assert run_variant(case_id, "nominal").metrics["cut_mode"] == 0.0
+
+
+def test_cut_mode_flags_a_load_outside_the_target_envelope():
+    # measured: the hard porphyry at 0.8 of its nominal cut returns about 412% to the mill
+    result = run_variant("copper_porphyry_hard", "cut_finer")
+    assert result.grinding.circulating_load > 4.0
+    assert any(f["code"] == "circulating_load_out_of_range" for f in result.flags)
+
+
+@pytest.mark.parametrize("case_id", [c.id for c in CASES])
+def test_modes_agree_at_the_same_state(case_id):
+    # CM-04: a target-mode state re-run in the cut mode at its own solved cut and at the power it draws gives back
+    # its P80 and circulating load (the requirement allows 0.5%; the solvers agree to about 1e-13)
+    case = CASE_BY_ID[case_id]
+    target = _circuit(case_id, case.nominal).solve()
+    circuit = _circuit(case_id, case.nominal)
+    _, result = circuit.solve_at_cut(target.cut_um, target.power_kw)
+    total = sum(result.overflow.values())
+    assert circuit.g.p80(total) == pytest.approx(target.p80_um, rel=1e-9)
+    assert result.circulating_load == pytest.approx(target.circulating_load, rel=1e-9)

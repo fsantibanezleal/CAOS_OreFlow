@@ -101,3 +101,24 @@ def test_protocols_and_model_identity(tmp_path):
         assert export["max_abs_difference"] <= 1e-5
     scalers = json.loads((tmp_path / "process_surrogate.json").read_text(encoding="utf-8"))
     assert scalers["features"] == list(learning.FEATURES) and scalers["guard_threshold"] == record["final"]["guard_threshold"]
+
+
+def test_reused_learning_cannot_ship(tmp_path):
+    # a development bake reuses an earlier learned lane and marks it; the artifact checks CI runs reject that mark,
+    # and only the bake's own validation, which knows it is a development bake, allows it
+    import importlib.util
+    import json
+    from pathlib import Path
+
+    root = Path(__file__).resolve().parents[1]
+    spec = importlib.util.spec_from_file_location("check_artifacts", root / "scripts" / "check_artifacts.py")
+    checker = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(checker)
+    record = json.loads((root / "data" / "derived" / "learning.json").read_text(encoding="utf-8"))
+    version, digest = record["engine_version"], record["contract_digest"]
+    record["reused"] = {"from_contract_digest": digest, "from_engine_version": version}
+    (tmp_path / "learning.json").write_text(json.dumps(record), encoding="utf-8")
+    shipped = checker.check_learning(tmp_path, root / "models", version, digest)
+    assert any("reused by a development bake" in e for e in shipped)
+    developing = checker.check_learning(tmp_path, root / "models", version, digest, allow_reused=True)
+    assert not any("reused" in e for e in developing)
