@@ -328,7 +328,7 @@ the browser port, the service and the documentation are versioned together; this
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
 workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed bake took 1293 s for the cases on 12
 workers and 4082 s for the learned lane, while other jobs shared the machine; the measured lanes follow it.
-`./scripts/smoke.ps1` runs the checks, including 364 Python tests and 174 frontend tests. The workbench at
+`./scripts/smoke.ps1` runs the checks, including 490 Python tests and 323 frontend tests. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.
 
 ## References
