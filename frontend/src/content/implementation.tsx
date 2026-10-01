@@ -84,7 +84,7 @@ function BakeFigure({ lang }: { lang: Lang }) {
   const arrow = 'url(#of-impl-arrow-3)';
   const stages: Array<[string, string]> = [
     [p('contract', 'contrato'), p('operating contract, probes', 'contrato de operación, sondas')],
-    [p('learning, CUDA', 'aprendizaje, CUDA'), p('learning record, ONNX, the screen', 'registro de aprendizaje, ONNX, el filtro')],
+    [p('learning, CUDA', 'aprendizaje, CUDA'), p('learning record, ONNX, the screen', 'el registro, ONNX y el filtro')],
     [p('cases, 12 workers', 'casos, 12 procesos'), p('12 case artifacts, 96 variants', '12 artefactos de caso, 96 variantes')],
     [p('benchmark', 'benchmark'), p('the cross-case summary', 'el resumen entre casos')],
     [p('studies, 12 workers', 'estudios, 12 procesos'), p('ablations and the seed study', 'ablaciones y el estudio de semillas')],
