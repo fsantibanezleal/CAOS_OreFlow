@@ -86,7 +86,7 @@ The search step is screened by the learned lane (page 14), in the surrogate mana
    cube and not yet evaluated by the engine.
 2. A candidate passes if the autoencoder guard accepts its features and the Gaussian process's 95% half-width on
    recovery is at most 5 points (`optimization.screen_half_width_pct`; the lane's mean held-out half-width was
-   9.3 points in the 0.06.000 learning record):
+   9.3 points in the 0.07.000 learning record):
    $$\sigma^2(x) = k(x, x) - \left\lVert L^{-1} k_* \right\rVert^2,\qquad 1.96\,\sigma(x) \le 5,$$
    with $L$ the Cholesky factor of the training covariance (Rasmussen and Williams 2006, algorithm 2.1).
 3. The passing candidates are ranked by the surrogate's objective. The decisions change neither the throughput
