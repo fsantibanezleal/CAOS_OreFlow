@@ -73,7 +73,37 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-Pending: the release PRs, CI, Pages, the tag, the VPS update and the external checks follow.
+- PR #68 (the release) merged into `develop` at `a03c6c0`; CI `36805077515` passed. Promotion PR #69 merged into
+  `main` at `23d88a482c9e7b049eb451ad946f5154a4105cb8`; CI `36805404016` and Pages `36805403981` passed for that commit,
+  which carries the annotated tag `v0.07.000` and its GitHub release.
+- **The ML VPS updated through `deploy/setup-vps.sh`.** The release's copy of the script ran from outside the
+  checkout. It:
+  - fast-forwarded the checkout from `ede51ff` to `23d88a4`, every requirement already present;
+  - rebuilt the site with the bundle `index-Bu0WEtPq.js`, the local release build's hash;
+  - restarted `oreflow.service` and passed its local checks (health 0.07.000, the catalog with the release's digest);
+  - exited 0. Everything in the checkout is owned by `fasl`, except `.git/index`, which the verification's own
+    `git status` had left to root, as in 0.06.000; it was returned to `fasl`.
+- The external checks of architecture 05, from outside the build machine:
+  1. `https://oreflow.ml.fasl-work.com/healthz` reported 0.07.000.
+  2. `/api/cases` answered `oreflow.index/v2` with 12 cases and 96 variants of 0.07.000. `/api/benchmark` answered
+     `oreflow.benchmark/v2` of the same version and contract digest (`bdb92360cd94`), with both measured-lane links.
+  3. `POST /api/simulate` answered 200, `oreflow.live/v2`, lane `live-api`, for three states: the nominal states of
+     the soft copper porphyry and the fine magnetite, and the soft porphyry's cut-mode variant, where `cut_mode` is
+     1. Recovery matched the bake within 1.4e-14, and every balance closed (at most 1.0e-13 relative). A throughput
+     of 50,000 t/h answered 422, `oreflow.rejection/v1`, code `out_of_range`.
+  4. On both hosts the root, `/methodology/`, `/benchmark/`, `/implementation/`, `/introduction/` and
+     `/experiments/` answered 200 with the app, and the routes without the slash and `/focus/copper_porphyry_soft`
+     did so after one redirect. Pages serves the 0.07.000 records (12 cases, 96 variants, the same digest) and the
+     screen's Cholesky factor (1,002,000 bytes).
+  5. The browser gate with `OF_BASE` set to each public host passed 194 checks on the VPS and 194 on Pages. That is
+     the smoke pair of combinations with the five content pages, and the phone and tablet pass in both themes and
+     languages, which now opens every content tab. A phone capture of the live Benchmark in dark Spanish was read.
+  6. The certificate for `oreflow.ml.fasl-work.com` names that host (CN and SAN), is issued by Let's Encrypt YE1,
+     and is valid to 2026-12-12.
+- Scientific boundary: the twelve cases are authored inside sourced ranges, not calibrated plants. The real-sample
+  mode compares the engine with measured tests and does not calibrate it. The learned lane's held-out-case scores
+  bound transfer between authored plants. The adversarial validation (#60) waits for Felipe's go-ahead, and his
+  acceptance of the design (#62) is not recorded.
 
 ## 0.06.000, 2026-09-28
 
