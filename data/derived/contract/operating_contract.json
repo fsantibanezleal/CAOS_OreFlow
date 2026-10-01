@@ -12,7 +12,8 @@
   "jg_cm_s",
   "rougher_cells",
   "gravity_bleed",
-  "deslime_cut_um"
+  "deslime_cut_um",
+  "d50c_um"
  ],
  "families": [
   "rougher",
@@ -311,6 +312,31 @@
    },
    "display_scale": 1.0,
    "display_unit": ""
+  },
+  {
+   "name": "d50c_um",
+   "unit": "um",
+   "bounds": "solved",
+   "low": 0.8,
+   "high": 1.6,
+   "step": 0.01,
+   "integer": false,
+   "families": [
+    "rougher",
+    "gravity_rougher",
+    "magnetic",
+    "deslime_rougher"
+   ],
+   "label": {
+    "en": "Classifier cut (d50c)",
+    "es": "Corte del clasificador (d50c)"
+   },
+   "help": {
+    "en": "Corrected cut of the host gangue in the cyclone, set by its hardware and pressure. Off (0), the solver finds the cut that holds the circulating load and the energy that meets the grind target. On, the mill draws its installed power, and the P80 and the circulating load follow: a finer cut returns more to the mill and grinds finer.",
+    "es": "Corte corregido de la ganga huésped en el ciclón, fijado por su equipo y su presión. Apagado (0), el solver busca el corte que sostiene la carga circulante y la energía que cumple el objetivo de molienda. Encendido, el molino consume su potencia instalada, y el P80 y la carga circulante resultan: un corte más fino devuelve más al molino y muele más fino."
+   },
+   "display_scale": 1.0,
+   "display_unit": ""
   }
  ],
  "rules": [
@@ -357,6 +383,10 @@
   "out_of_range": {
    "en": "The value is outside the operating envelope.",
    "es": "El valor está fuera de la envolvente de operación."
+  },
+  "off_step": {
+   "en": "The value must be a multiple of the control's step.",
+   "es": "El valor debe ser un múltiplo del paso del control."
   }
  },
  "cases": {
@@ -378,7 +408,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -440,6 +471,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 147.127261101,
+     "max": 294.254522201,
+     "step": 1.83909076376,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 183.90907637576464
     }
    }
   },
@@ -461,7 +500,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -523,6 +563,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 161.584216394,
+     "max": 323.168432787,
+     "step": 2.01980270492,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 201.9802704920052
     }
    }
   },
@@ -544,7 +592,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 7,
     "gravity_bleed": 0.3,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -612,6 +661,14 @@
      "max": 0.6,
      "step": 0.01,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 103.080171284,
+     "max": 206.160342569,
+     "step": 1.28850214106,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 128.85021410551468
     }
    }
   },
@@ -633,7 +690,8 @@
     "jg_cm_s": 0.0,
     "rougher_cells": 0,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -677,6 +735,14 @@
      "max": 39.75,
      "step": 0.265,
      "unit": "%"
+    },
+    "d50c_um": {
+     "min": 65.3131923483,
+     "max": 130.626384697,
+     "step": 0.816414904353,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 81.6414904353363
     }
    }
   },
@@ -698,7 +764,8 @@
     "jg_cm_s": 1.3,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -760,6 +827,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 102.511820033,
+     "max": 205.023640065,
+     "step": 1.28139775041,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 128.13977504083405
     }
    }
   },
@@ -781,7 +856,8 @@
     "jg_cm_s": 1.2,
     "rougher_cells": 7,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 20.0
+    "deslime_cut_um": 20.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -849,6 +925,14 @@
      "max": 45.0,
      "step": 0.5,
      "unit": "um"
+    },
+    "d50c_um": {
+     "min": 150.674775732,
+     "max": 301.349551465,
+     "step": 1.88343469666,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 188.34346966558897
     }
    }
   },
@@ -870,7 +954,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -932,6 +1017,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 146.977831442,
+     "max": 293.955662884,
+     "step": 1.83722289303,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 183.72228930268406
     }
    }
   },
@@ -953,7 +1046,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -1015,6 +1109,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 136.504121424,
+     "max": 273.008242847,
+     "step": 1.7063015178,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 170.63015177950382
     }
    }
   },
@@ -1036,7 +1138,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -1098,6 +1201,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 106.546560424,
+     "max": 213.093120847,
+     "step": 1.3318320053,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 133.1832005295971
     }
    }
   },
@@ -1119,7 +1230,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -1181,6 +1293,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 143.116784192,
+     "max": 286.233568385,
+     "step": 1.78895980241,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 178.89598024059893
     }
    }
   },
@@ -1202,7 +1322,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -1264,6 +1385,14 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 175.981615427,
+     "max": 351.963230855,
+     "step": 2.19977019284,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 219.97701928406846
     }
    }
   },
@@ -1285,7 +1414,8 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0
+    "deslime_cut_um": 0.0,
+    "d50c_um": 0.0
    },
    "inputs": {
     "throughput_tph": {
@@ -1347,7 +1477,65 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "d50c_um": {
+     "min": 103.555014474,
+     "max": 207.110028947,
+     "step": 1.29443768092,
+     "unit": "um",
+     "off": 0.0,
+     "reference": 129.44376809215785
     }
+   }
+  }
+ },
+ "controls": {
+  "uncertainty_seed": {
+   "min": 0,
+   "max": 9007199254740991,
+   "step": 1,
+   "integer": true,
+   "unit": "1",
+   "default": 20260926,
+   "label": {
+    "en": "Seed",
+    "es": "Semilla"
+   },
+   "help": {
+    "en": "The Latin hypercube's seed; the baked record uses the default.",
+    "es": "La semilla del hipercubo latino; el registro horneado usa la predeterminada."
+   }
+  },
+  "uncertainty_samples": {
+   "min": 32,
+   "max": 512,
+   "step": 32,
+   "integer": true,
+   "unit": "1",
+   "default": 128,
+   "label": {
+    "en": "Samples",
+    "es": "Muestras"
+   },
+   "help": {
+    "en": "Engine runs of the design, in steps of 32.",
+    "es": "Corridas del motor del diseño, en pasos de 32."
+   }
+  },
+  "optimizer_weight_pct": {
+   "min": 0,
+   "max": 100,
+   "step": 5,
+   "integer": true,
+   "unit": "%",
+   "default": 100,
+   "label": {
+    "en": "Weight on recovered metal",
+    "es": "Peso del metal recuperado"
+   },
+   "help": {
+    "en": "The objective's weight on recovered metal, in steps of 5%; the rest weighs the specific energy. The baked record uses 100%.",
+    "es": "El peso del metal recuperado en el objetivo, en pasos de 5%; el resto pondera la energía específica. El registro horneado usa 100%."
    }
   }
  },
@@ -1617,5 +1805,5 @@
    2.089063508436509e-101
   ]
  },
- "digest": "ecc7d8badf6c49222ce7840099e737d883d8703411e17955aced4ba935d001b6"
+ "digest": "bdb92360cd944d5b624c37fa6c1585516fd0339bf49b851dd71beced8f82a1e4"
 }

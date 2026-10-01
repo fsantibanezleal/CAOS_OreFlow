@@ -2,6 +2,99 @@
 
 ## [Unreleased]
 
+## [0.07.000] - 2026-09-30
+
+The rest of the plan that the audit of 2026-09-27 found missing (issues #51 to #57, under #63): the optimizer the
+plan proposed, screened by the learned lane and running live in the browser; live uncertainty with its seed and
+sample count; the classifier cut as a control; real ore samples and plant hours as workbench sources; the
+iron-plant soft-sensor lane; mechanism ablations; and the Implementation and Experiments pages at their planned
+tabs. Every feature was designed before its code (`docs/design/features/`, ADR-0075), and every requirement names
+the test or check that fails when it is broken.
+
+### Added
+
+- **The live optimizer** (#53, #54, OP-01 to OP-11).
+  - A generalized pattern search with a progressive barrier replaces COBYLA, written line for line in Python and
+    TypeScript. The browser takes the bake's steps.
+  - The objective is `w M/M0 - (1-w) E/E0`. The contract declares the weight on recovered metal
+    (`optimizer_weight_pct`, 0 to 100 in steps of 5), and the record keeps the optimum at 0.75, 0.5 and 0.25,
+    each run warm-started from the one before.
+  - The learned lane screens the search step: a candidate passes only where the autoencoder guard accepts its
+    state and the Gaussian process's 95% half-width on recovery is at most 5 points. The poll and the optimum are
+    always engine results.
+  - The record keeps each start's screen counts and proposals, and the same starts run without the screen, so
+    the saving is measured, not assumed.
+  - The Methods view runs the optimizer at the current state, in its own worker, only on the button.
+- **Live uncertainty** (#54, UQ-01 to UQ-08). A SplitMix64 Latin hypercube, bit for bit in both languages. The
+  contract declares the seed and the sample count as controls, and the Methods view re-runs the record in the
+  browser at another seed or sample count. The Sobol indices stay baked only.
+- **The classifier cut as a control** (#55, CM-01 to CM-08).
+  - A corrected cut above 0 holds the classifier's cut; the mill draws its installed power, and the P80 and the
+    circulating load follow as results. The bounds are 0.8 to 1.6 times the cut the nominal state solves.
+  - Two cut-mode variants per case, so a case carries eight variants and the bake 96.
+  - The optimizer's grind decision becomes the cut, and that search runs unscreened, with the reason recorded.
+  - The modes agree to about 1e-13 at the same state.
+- **Real samples and plant hours** (#51, RS-01 to RS-10).
+  - The 52 GeoMet locked-cycle samples run through the soft porphyry's circuit on their own assays. Their work
+    index comes from the pinned comminution table, and their copper from a sulphur-limited normative mineralogy.
+    Bornite and chalcocite join the mineral table.
+  - The engine's recovery sits beside the measured test and the GeoMet lane's out-of-fold predictions: the engine is 20.4 points below the tests on average (RMSE 22.2), against the GeoMet lane's RMSE of 5.09 to 5.51 points, every sample at installed power.
+  - The rail's source switch chooses a synthetic case, a sample or an iron-plant hour. An hour is shown, never
+    simulated.
+- **The iron-plant soft-sensor lane** (#52, IS-01 to IS-06). On the CC0 flotation-plant record, the 310
+  interpolated hours are excluded and 3,701 next-hour pairs remain. Persistence (MAE 0.464 points of silica) beats
+  every model; the sensor-only ridge (0.765) is 0.001 better than the training mean (0.766). A Benchmark group,
+  Industrial quality, states it so.
+- **Mechanism ablations and a seed study** (#57, AB-01 to AB-04). Entrainment, composite classes, cleaner
+  recirculation, regrind and the gravity bleed are each taken away at every nominal state, and the uncertainty
+  record is re-run at eight more seeds. Removing the cleaner recirculation costs 3.1 to 11.2 points of recovery.
+- **Pages.** Experiments has the seven planned tabs (data and splits, the uncertainty protocol with its live
+  re-run and seed study, the ablations). Implementation has nine (the model registry, the GPU lane, deployment).
+  Methodology pages 15 (real samples) and 16 (the soft sensor) are new, and page 03 gains the cut mode.
+
+### Changed
+
+- **Bake order.** Learning runs before the cases, so the screen reads this bake's exports. The stages: contract,
+  learning, cases, benchmark, studies, real samples, manifests, validation.
+- **The uncertainty draws.** The SplitMix64 design replaces SciPy's scrambled Latin hypercube. Every uncertainty
+  record therefore holds new draws of the same distributions, and the quoted spreads and probabilities move:
+  the recovery spread between P05 and P95 runs from 2.9 points (free-milling gold) to 7.7 (zinc), where it ran from 3.7 to 9.1, and the chance of meeting every constraint from 52% (magnetite) to 83% (phosphate), where it ran from 53% to 82%.
+- The records of the 0.07.000 bake. Every page, guide and methodology page that quotes them was updated, and the
+  page-claim tests with them:
+  - **optimization.** 94 of the 96 variants reach an optimum; the two magnetite variants that cannot are the
+    same as before. 28 of the 72 target-mode variants break a constraint as run, and none of the 24 cut-mode
+    variants. The gains run from -0.8% to +18.1% (+18.2% with COBYLA), 0.3% to 7.6% at the nominal states and
+    0.3% to 5.1% in the cut mode. Power is active at 81 optima, grade at 23 and water at 10;
+  - **the screen.** Over the 72 screened variants it cost 8.5% more engine evaluations than the same starts
+    without it (23,535 against 21,692). Where it proposed, the surrogate was 0.64 points of recovery from the
+    engine on average, and the unscreened search reaches the same optimum in 63 of the 72;
+  - **the weight path.** With a quarter of the weight on metal the nominal optima spend 31 to 46% less energy per
+    tonne and recover 10 to 35% less metal; the magnetite optimum does not move, its grade already binding;
+  - **kinetic lumping.** 88 fits a model, the eight variants of the eleven flotation cases; first order loses 5.0
+    points on average, gamma 0.73 and Kelsall 0.80;
+  - **the learned lane** is unchanged from 0.06.000;
+  - **the manuscript** gains the engine on the GeoMet samples and the plant hours, the pattern search and what
+    its screen cost; methodology pages 12 and 13 are re-measured, the use-case pages re-rendered, and the bake
+    timings updated.
+- The architecture modal's diagrams follow the release: learning before the cases, the screened optimizer and
+  its worker, the cut mode, the real sources, 96 variants and thirteen inputs. `static-counts.test.ts` holds them
+  to the records.
+- The content pages fit a phone: below 860 px every table scrolls inside its own box, with its caption above the
+  rows, and a panel's column no longer takes a wide table's width. The gate's phone and tablet pass now opens every
+  tab of every content page; 16 tabs had scrolled the document sideways.
+
+### Fixed
+
+- **An empty size class could divide 0 by 0.** The host-limited composite scale divided 0 by 0 where round-off
+  leaves the host at about -4e-16 against no composite demand. The cut mode's finest grinds reached it at the
+  nickel and zinc envelope corners. The host is now clipped at 0 before it limits, in the circuit and in the
+  particle-class split, in both engines.
+- **The two languages could decide differently on a flat objective.** Every comparison in the pattern search,
+  the screen's ranking and the choice of the best start now uses a declared decrease tolerance (1e-9). One
+  start had taken 64 iterations in the browser and 65 in the bake, over equal values.
+- **Worded formulas.** Every formula with words now has an English and a Spanish form.
+
+
 ## [0.06.000] - 2026-09-28
 
 From the audit of 2026-09-27 (issues #50 and #58):

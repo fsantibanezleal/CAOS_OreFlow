@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "ecc7d8badf6c49222ce7840099e737d883d8703411e17955aced4ba935d001b6",
+ "digest": "bdb92360cd944d5b624c37fa6c1585516fd0339bf49b851dd71beced8f82a1e4",
  "probes": [
   {
    "case_id": "no_such_case",
@@ -768,6 +768,83 @@
       "rougher_cells"
      ]
     ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "d50c_um": 147.127261101
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "d50c_um": 294.254522201
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "d50c_um": 145.65598849
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "d50c_um": 295.725794812
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
    }
   },
   {
@@ -1573,6 +1650,83 @@
       "rougher_cells"
      ]
     ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "d50c_um": 161.584216394
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "d50c_um": 323.168432787
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "d50c_um": 159.96837423007
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "d50c_um": 324.78427495092996
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
    }
   },
   {
@@ -2450,6 +2604,83 @@
   {
    "case_id": "gold_free_milling",
    "values": {
+    "d50c_um": 103.080171284
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "d50c_um": 206.160342569
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "d50c_um": 102.04936957115
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "d50c_um": 207.19114428185
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
     "deslime_cut_um": 1.0
    },
    "expected": {
@@ -3009,6 +3240,83 @@
       "head_grade"
      ]
     ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "d50c_um": 65.3131923483
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "d50c_um": 130.626384697
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "d50c_um": 64.66006042481301
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "d50c_um": 131.279516620487
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
    }
   },
   {
@@ -3894,6 +4202,83 @@
   {
    "case_id": "nickel_sulphide",
    "values": {
+    "d50c_um": 102.511820033
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "d50c_um": 205.023640065
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "d50c_um": 101.48670183268001
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "d50c_um": 206.04875826532
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
     "gravity_bleed": 1.0
    },
    "expected": {
@@ -4766,6 +5151,83 @@
   {
    "case_id": "phosphate_clay",
    "values": {
+    "d50c_um": 150.674775732
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "d50c_um": 301.349551465
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "d50c_um": 149.16802797467
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "d50c_um": 302.85629922233
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
     "gravity_bleed": 1.0
    },
    "expected": {
@@ -5568,6 +6030,83 @@
       "rougher_cells"
      ]
     ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "d50c_um": 146.977831442
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "d50c_um": 293.955662884
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "d50c_um": 145.50805312757998
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "d50c_um": 295.42544119842
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
    }
   },
   {
@@ -6378,6 +6917,83 @@
   {
    "case_id": "copper_oxide",
    "values": {
+    "d50c_um": 136.504121424
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "d50c_um": 273.008242847
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "d50c_um": 135.13908020977001
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "d50c_um": 274.37328406123004
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
     "gravity_bleed": 1.0
    },
    "expected": {
@@ -7178,6 +7794,83 @@
       "rougher_cells"
      ]
     ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "d50c_um": 106.546560424
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "d50c_um": 213.093120847
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "d50c_um": 105.48109481977001
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "d50c_um": 214.15858645123
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
    }
   },
   {
@@ -7988,6 +8681,83 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
+    "d50c_um": 143.116784192
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "d50c_um": 286.233568385
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "d50c_um": 141.68561635007
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "d50c_um": 287.66473622693
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
     "gravity_bleed": 1.0
    },
    "expected": {
@@ -8793,6 +9563,83 @@
   {
    "case_id": "low_grade_copper",
    "values": {
+    "d50c_um": 175.981615427
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "d50c_um": 351.963230855
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "d50c_um": 174.22179927272
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "d50c_um": 353.72304700928
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
     "gravity_bleed": 1.0
    },
    "expected": {
@@ -9593,6 +10440,83 @@
       "rougher_cells"
      ]
     ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "d50c_um": 103.555014474
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "d50c_um": 207.110028947
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "d50c_um": 102.51946432927001
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "d50c_um": 208.14557909172999
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "d50c_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "d50c_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "d50c_um": 0.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
    }
   },
   {
