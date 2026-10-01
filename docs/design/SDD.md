@@ -76,11 +76,11 @@ applicable variant, tests, documentation and an honest lane label.
 | Uncertainty and sensitivity | Seeded Monte Carlo quantiles, constraint probabilities and Sobol indices for nominal variants. |
 | Ridge, random forest, histogram gradient boosting, Gaussian process, MLP | Evaluated on interpolation and leave-one-case-out splits on recovery, grade and energy; the GP reports interval coverage; the MLP stops on validation loss; ONNX parity for the MLP. |
 | Autoencoder guard | A threshold from validation reconstruction error; false-alarm rate in distribution and false-accept rate on held-out cases are reported. |
-| Pattern search with a progressive barrier and a surrogate-screened search step (0.07.000, planned) | The same evaluation sequence and optimum in Python and the browser within 1e-6 at every recorded weight; every reported optimum is an engine result; the saving in engine evaluations and the surrogate's disagreement are records (`features/live-optimizer/`). |
-| SplitMix64 Latin hypercube (0.07.000, planned) | The published SplitMix64 vector in both languages; bit-identical factors in the browser; one sample per stratum per input (`features/live-uncertainty/`). |
-| Classifier-cut mode (0.07.000, planned) | At a given cut the mill draws the installed power; the two modes agree at the same state within 0.5%; balances close within 1e-9 (`features/cut-mode/`). |
-| Real-sample runs (0.07.000, planned) | Pinned sources with a row ledger; the Bond work index reproduced from the BWI columns (15.2 to 26.1 kWh/t); the engine's recovery beside the measured locked-cycle one, labelled a comparison and not a calibration (`features/real-samples/`). |
-| Mechanism ablations (0.07.000, planned) | Each switch inert when on; balances close with each switch off; a case without the mechanism is not applicable, never zero (`features/ablation-and-pages/`). |
+| Pattern search with a progressive barrier and a surrogate-screened search step (0.07.000) | The same evaluation sequence and optimum in Python and the browser within 1e-6 at every recorded weight; every reported optimum is an engine result; the saving in engine evaluations and the surrogate's disagreement are records (`features/live-optimizer/`). |
+| SplitMix64 Latin hypercube (0.07.000) | The published SplitMix64 vector in both languages; bit-identical factors in the browser; one sample per stratum per input (`features/live-uncertainty/`). |
+| Classifier-cut mode (0.07.000) | At a given cut the mill draws the installed power; the two modes agree at the same state within 0.5%; balances close within 1e-9 (`features/cut-mode/`). |
+| Real-sample runs (0.07.000) | Pinned sources with a row ledger; the Bond work index reproduced from the BWI columns (15.2 to 26.1 kWh/t); the engine's recovery beside the measured locked-cycle one, labelled a comparison and not a calibration (`features/real-samples/`). |
+| Mechanism ablations (0.07.000) | Each switch inert when on; balances close with each switch off; a case without the mechanism is not applicable, never zero (`features/ablation-and-pages/`). |
 
 ## 5. Cases
 

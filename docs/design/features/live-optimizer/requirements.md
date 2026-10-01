@@ -1,6 +1,6 @@
 # Live optimizer requirements
 
-Status: planned (0.07.000, CAOS_OreFlow #63)
+Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
 Scope: issues #53 and #54 (objective weights). The optimizer runs identically in the bake (Python) and in the
 browser worker (TypeScript). It is a generalized pattern search with a progressive barrier (Torczon 1997; Audet and

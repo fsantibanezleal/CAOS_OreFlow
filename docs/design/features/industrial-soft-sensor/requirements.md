@@ -1,6 +1,6 @@
 # Industrial iron-flotation soft-sensor requirements
 
-Status: planned (0.07.000, CAOS_OreFlow #63)
+Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
 Scope: issue #52, brought from branch `task/oreflow-industrial-soft-sensor` onto the 0.07 code. An observational
 next-hour quality forecast on open data from one iron-ore plant, separate from the copper circuit and from any

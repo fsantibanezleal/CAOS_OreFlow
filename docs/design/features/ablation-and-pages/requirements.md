@@ -1,6 +1,6 @@
 # Ablation study and page tabs requirements
 
-Status: planned (0.07.000, CAOS_OreFlow #63)
+Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
 Scope: issues #56 (Implementation, at least 8 tabs) and #57 (Experiments, the six planned tabs with a baked
 ablation study). The plan of 2026-09-13 lists the tabs; `plans/oreflow/plan-0.07.md` item 6 fixes them at 9 and 7.

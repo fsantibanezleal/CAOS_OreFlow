@@ -1,6 +1,6 @@
 # Classifier-cut mode requirements
 
-Status: planned (0.07.000, CAOS_OreFlow #63)
+Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
 Scope: issue #55. In operation the cyclone's cut is set by its hardware and pressure, the mill draws its power,
 and the product size and circulating load follow. The engine's target mode solves the reverse. The cut mode adds

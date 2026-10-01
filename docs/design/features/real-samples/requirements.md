@@ -1,6 +1,6 @@
 # Real-sample mode requirements
 
-Status: planned (0.07.000, CAOS_OreFlow #63)
+Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
 Scope: issue #51. The workbench's source is a synthetic case, a GeoMet ore sample or an iron-plant hour. Research:
 CAOS_MANAGE `wip/oreflow/research-2026-09-28-0.07.md` sections 4 and 5; the soft sensor's own requirements are
