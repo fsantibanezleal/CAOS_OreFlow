@@ -147,6 +147,9 @@ input, select, textarea { font: inherit; }
 .of-view-circuit > .of-stage { flex: 1 1 auto; position: relative; padding: 0; }
 .of-view-response, .of-view-compare { display: flex; flex-direction: column; gap: 8px; }
 .of-view-tabbed { display: flex; flex-direction: column; }
+/* the real sources' Case views hand the view's height to their split, so its columns scroll inside the frame; as
+ * blocks they took their content's height, and an hour's 21 sensors ran past it */
+.of-view-sample, .of-view-hour { display: flex; flex-direction: column; }
 
 .of-stage {
   display: flex;
@@ -369,6 +372,10 @@ input, select, textarea { font: inherit; }
 /* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
  * phone never scrolls sideways */
 .of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+/* RS-07: an hour's main column is the window's chart over the forecasts and their note. A two-row stack gave the note
+ * an implicit third row that ran 60 px past the frame at 1280x800; the chart now takes what the rows leave, at least
+ * 220 px, and the column scrolls where the frame is shorter than its content */
+.of-hour-main { display: grid; grid-template-rows: minmax(220px, 1fr) auto auto; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
 .of-sample-text { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--color-fg); }
 .of-view-sample .of-table td, .of-view-sample .of-table th { white-space: normal; overflow-wrap: anywhere; }
 .of-progress { font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg-subtle); white-space: nowrap; }

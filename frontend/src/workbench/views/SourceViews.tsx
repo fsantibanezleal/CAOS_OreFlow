@@ -153,7 +153,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
   return (
     <div className="of-view of-view-hour">
       <div className="of-split">
-        <div className="of-stack">
+        <div className="of-hour-main">
           <Chart data={[xs, window.trace.map(t => t.observed_pct), window.trace.map(t => t.predictions_pct.previous_lab)] as uPlot.AlignedData}
             xLabel={SOURCE_TEXT.hourAxis[lang]} yLabel={SOURCE_TEXT.silicaAxis[lang]} title={SOURCE_TEXT.traceTitle[lang]} summary={SOURCE_TEXT.traceSummary[lang]}
             series={[{ label: SOURCE_TEXT.observed[lang], colour: 'accent', points: true }, { label: IRON_NAME.previous_lab[lang], colour: 'warn', dash: [4, 4] }]}

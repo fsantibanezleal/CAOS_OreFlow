@@ -464,7 +464,8 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   // an hour is shown in the Case view, and every engine view says why it does not apply
   const sourceButton = k => page.locator('.of-rail .of-segmented-3 button').nth(k);
   await sourceButton(1).click();
-  await page.waitForSelector('.of-rail select option', { timeout: 60000 });
+  // the options of a closed select have no box, so they are attached, never visible
+  await page.waitForSelector('.of-rail select option', { state: 'attached', timeout: 60000 });
   await page.locator('.of-rail-sections button').first().click();
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
   await page.waitForSelector('.of-view-sample table', { timeout: 90000 });
@@ -487,7 +488,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForSelector('.of-view-hour table', { timeout: 90000 });
   await settleCharts(page, 1);
   const hourView = await measure(page);
-  const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour') }));
+  const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table.of-table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour') }));
   await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`) });
   record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
   await sourceButton(0).click();
