@@ -27,6 +27,21 @@
       "unit": "kWh/t per um^-0.5 per (kWh/t)",
       "source": "Bond (1952); GMG01-MP-2021 equation 2."
     },
+    "bond.lab_constant": {
+      "value": 44.5,
+      "unit": "kWh per short ton, with the screen in um and the grindability in g/rev",
+      "source": "Bond (1961), in the form stated by Nikolic, Doll and Trumic (2022), doi:10.1016/j.mineng.2022.107822 (from the search summary, UNVERIFIED against the full text): Wi = 44.5 / (P1^0.23 Gbp^0.82 (10/sqrt(P80) - 10/sqrt(F80))) (RS-02)."
+    },
+    "bond.lab_screen_exponent": {
+      "value": 0.23,
+      "unit": "1",
+      "source": "Bond (1961), as bond.lab_constant: the exponent of the closing screen P1."
+    },
+    "bond.lab_grindability_exponent": {
+      "value": 0.82,
+      "unit": "1",
+      "source": "Bond (1961), as bond.lab_constant: the exponent of the grindability Gbp."
+    },
     "bond.reference_feed_um": {
       "value": 10000.0,
       "unit": "um",
@@ -307,6 +322,14 @@
       "unit": "kWh per t of mill feed per pass",
       "source": "Numerics: search bracket."
     },
+    "grinding.cut_mode_load_range": {
+      "value": [
+        1.0,
+        4.0
+      ],
+      "unit": "1 (underflow solids over new feed)",
+      "source": "Design (CM-03): the circulating loads the target mode accepts as an input (Contract 1, 100 to 400%); a cut-mode state whose achieved load leaves it is flagged."
+    },
     "grinding.cut_bracket_um": {
       "value": [
         0.5,
@@ -329,6 +352,16 @@
       "value": 1e-08,
       "unit": "1",
       "source": "Numerics: a size class holding less than this share of the rougher-feed payable is reported empty (null) in the recovery-by-size curve; below it the class composition is round-off of the cyclone split, and the float64 ratio error grows as 1e-16 over the share."
+    },
+    "numerics.cut_mode_load_tolerance": {
+      "value": 1e-12,
+      "unit": "1 (relative to the circulating load, at least 1)",
+      "source": "Numerics (CM-02): the cut mode's fixed point on the circulating load stops when two passes agree within this; measured to converge at all 1,020 states of the cut-mode measurement (docs/design/features/cut-mode)."
+    },
+    "numerics.cut_mode_load_max_iterations": {
+      "value": 60,
+      "unit": "1",
+      "source": "Numerics (CM-02): cap on the passes of the cut mode's fixed point; the measurement needed at most 20."
     },
     "numerics.cut_search_step_ratio": {
       "value": 4.0,
@@ -376,6 +409,16 @@
       "unit": "1",
       "source": "Numerics: floor on the diagonal of the normal matrix used for Marquardt scaling."
     },
+    "minerals.bornite_floatability_ratio": {
+      "value": 0.8,
+      "unit": "1 (bornite's floatability over chalcopyrite's)",
+      "source": "Authored, an upper bound (RS-03b): Jiang et al. (2025, Minerals 15:1148, doi:10.3390/min15111148, abstract only) report chalcopyrite above 90% in every collector system and bornite at 84.2% at best; with first-order kinetics at equal time, ln(1 - 0.842) / ln(1 - 0.90) = 0.80 (CAOS_MANAGE dossier of 2026-09-30)."
+    },
+    "minerals.chalcocite_to_bornite_floatability_ratio": {
+      "value": 1.5,
+      "unit": "1 (chalcocite's floatability over bornite's)",
+      "source": "Authored (RS-03b): Tafirenyika et al. (2022, Minerals 12:1527, doi:10.3390/min12121527), Table 3, plant water: at pH 9 ln(0.60)/ln(0.65) = 1.19 and at pH 11 ln(0.45)/ln(0.66) = 1.92, geometric mean 1.5; mass recoveries of impure samples (dossier of 2026-09-30)."
+    },
     "optimization.starts": {
       "value": [
         [
@@ -405,22 +448,45 @@
         ]
       ],
       "unit": "unit cube of the decision bounds",
-      "source": "Design: five fixed starts that, with the nominal point, make the six COBYLA starts; the magnetite circuit uses the first coordinate of each."
+      "source": "Design: five fixed starts that, with the variant's own point, make the six pattern-search starts; the magnetite circuit uses the first coordinate of each."
     },
-    "optimization.rhobeg": {
+    "optimization.mesh_initial": {
       "value": 0.25,
       "unit": "unit cube of the decision bounds",
-      "source": "Numerics: initial COBYLA trust-region radius (Powell 1994), a quarter of each decision range."
+      "source": "Numerics (OP-02): the pattern search's initial mesh size, a quarter of each decision range; a power of two, so the browser takes the same steps."
     },
-    "optimization.rhoend": {
-      "value": 0.0001,
+    "optimization.mesh_minimum": {
+      "value": 0.0009765625,
       "unit": "unit cube of the decision bounds",
-      "source": "Numerics: final COBYLA trust-region radius (1e-4 of each decision range)."
+      "source": "Numerics (OP-02): the pattern search stops below this mesh size, 2^-10 of each decision range (0.2 um of a 225 um grind range)."
     },
     "optimization.max_evaluations": {
       "value": 200,
       "unit": "1",
-      "source": "Numerics: cap on circuit evaluations per COBYLA start."
+      "source": "Numerics (OP-02): cap on circuit evaluations per pattern-search start."
+    },
+    "optimization.weight_default": {
+      "value": 1.0,
+      "unit": "1",
+      "source": "Design (OP-01): the baked record's weight on recovered metal; 1 is recovered metal alone, the objective since 0.05.000."
+    },
+    "optimization.weight_path": {
+      "value": [
+        0.75,
+        0.5,
+        0.25
+      ],
+      "unit": "1",
+      "source": "Design (OP-07): the weights on recovered metal at which the record keeps the optimum, each warm-started from the previous one."
+    },
+    "optimization.weight_pct_bounds": {
+      "value": [
+        0,
+        100,
+        5
+      ],
+      "unit": "% (minimum, maximum, step)",
+      "source": "Design (OP-10): the workbench's weight on recovered metal, in whole percent so the one validator checks its step in integers; the optimizer divides it by 100, which is exact at the recorded weights."
     },
     "optimization.feasibility_tolerance": {
       "value": 1e-06,
@@ -431,6 +497,24 @@
       "value": 0.001,
       "unit": "1 (relative to each constraint limit)",
       "source": "Design: a constraint whose relative slack at the optimum is below this is reported as active."
+    },
+    "optimization.decrease_tolerance": {
+      "value": 1e-09,
+      "unit": "1 (relative to max(1, |objective|); relative for the violation)",
+      "source": "Numerics (OP-08): a trial point, a screened candidate or a start counts as better only by more than this. The engines in Python and TypeScript agree to round-off, and where the objective is flat (the free-milling gold's recovery at its optimum, equal to 5e-16) a comparison of equal values could otherwise decide differently in the two languages; improvements this small are below anything the mesh resolves."
+    },
+    "optimization.screen_steps": {
+      "value": [
+        1.0,
+        2.0
+      ],
+      "unit": "mesh steps",
+      "source": "Design (OP-05): the screen's candidates lie these many mesh steps from each incumbent along every coordinate; one step is the poll's own points, two the points beyond them."
+    },
+    "optimization.screen_half_width_pct": {
+      "value": 5.0,
+      "unit": "percentage points of recovery",
+      "source": "Design (OP-05): the screen proposes a candidate only where the Gaussian process's 95% half-width on recovery is at most this; about half the lane's mean held-out half-width (9.3 points in the 0.06.000 learning record), so the surrogate is trusted only where it is more confident than on an average interpolation state."
     },
     "uncertainty.half_widths": {
       "value": {
@@ -450,7 +534,38 @@
     "uncertainty.seed": {
       "value": 20260926,
       "unit": "1",
-      "source": "Design: seed of the scrambled Latin hypercube, so every record is reproducible."
+      "source": "Design: seed of the SplitMix64 Latin hypercube, so every record is reproducible and the browser repeats it (UQ-01 to UQ-05)."
+    },
+    "uncertainty.seed_bounds": {
+      "value": [
+        0,
+        9007199254740991
+      ],
+      "unit": "1",
+      "source": "Design (UQ-07): a seed the workbench accepts, from 0 to 2^53 - 1, the largest integer a browser number holds exactly."
+    },
+    "studies.seed_study_seeds": {
+      "value": [
+        101,
+        202,
+        303,
+        404,
+        505,
+        606,
+        707,
+        808
+      ],
+      "unit": "1",
+      "source": "Design (Experiments, uncertainty): eight seeds, distinct from the bake's, at which every nominal uncertainty record is re-run to measure the design's own sampling error."
+    },
+    "uncertainty.samples_bounds": {
+      "value": [
+        32,
+        512,
+        32
+      ],
+      "unit": "1",
+      "source": "Design (UQ-07): the workbench's sample count, minimum, maximum and step; 512 engine runs take about half a minute in the browser."
     },
     "uncertainty.quantiles": {
       "value": [
@@ -597,6 +712,16 @@
       "value": 1e-05,
       "unit": "1 (absolute, standardized outputs)",
       "source": "Numerics: largest difference allowed between PyTorch and ONNX Runtime outputs of an exported model."
+    },
+    "learning.gp_export_tolerance": {
+      "value": 1e-08,
+      "unit": "percentage points of recovery (absolute)",
+      "source": "Numerics (OP-05): largest difference allowed between the screen's float64 Gaussian process and scikit-learn's predict(return_std=True), in mean and standard deviation, at the export check."
+    },
+    "units.short_ton_per_tonne": {
+      "value": 1.1023113109,
+      "unit": "short ton per tonne",
+      "source": "Exact: 1 short ton = 907.18474 kg; Bond's laboratory form gives kWh per short ton."
     },
     "units.kw_per_mw": {
       "value": 1000.0,

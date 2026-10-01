@@ -3,10 +3,12 @@
 Four ore properties are uncertain: the Bond work index, the head grade, the liberation size of the
 valuable minerals and their floatability (the magnetite circuit has no flotation, so three there).
 Each varies uniformly on ``[1 - h, 1 + h]`` times its value at the operating point, with the declared
-half-widths ``h``. The uncertainty record propagates a seeded, scrambled Latin hypercube of 128
-samples through the engine and reports P05, P50 and P95 of recovery, grade, grinding energy and
-recovered metal, and the probability of meeting each constraint of the optimizer (grade
-specification, installed power, process-water capacity). The sensitivity record estimates
+half-widths ``h``. The uncertainty record propagates a seeded Latin hypercube of 128 samples through
+the engine and reports P05, P50 and P95 of recovery, grade, grinding energy and recovered metal, and
+the probability of meeting each constraint of the optimizer (grade specification, installed power,
+process-water capacity). The design comes from one SplitMix64 generator (``methods/sampling.py``),
+which the browser repeats bit for bit, so a seed or sample count set in the workbench re-runs the
+same design (UQ-01 to UQ-06). The sensitivity record estimates
 first-order and total Sobol indices with the Saltelli design and estimators (Saltelli et al. 2010,
 doi:10.1016/j.cpc.2009.09.018) through SALib (Herman and Usher 2017, doi:10.21105/joss.00097).
 """
@@ -18,12 +20,12 @@ from typing import Any
 import numpy as np
 from SALib.analyze import sobol as sobol_analyze
 from SALib.sample import sobol as sobol_sample
-from scipy.stats import qmc
 
 from ..cases.catalog import CaseDef
 from ..engine.circuit import simulate
 from ..engine.constants import constant
 from ..engine.model import OperatingPoint, Ore
+from .sampling import latin_hypercube
 
 INPUTS = ("work_index", "head_grade", "liberation_size", "floatability")
 OUTPUTS = ("recovery_pct", "concentrate_grade", "specific_energy_grinding_kwh_t", "recovered_primary_tph")
@@ -72,7 +74,7 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
     widths = _half_widths(names)
     n = int(constant("uncertainty.samples")) if samples is None else samples
     seed = int(constant("uncertainty.seed")) if seed is None else seed
-    unit = qmc.LatinHypercube(d=len(names), scramble=True, rng=np.random.default_rng(seed)).random(n)
+    unit = np.asarray(latin_hypercube(n, len(names), seed))
     factors = 1.0 - np.asarray(widths) + 2.0 * np.asarray(widths) * unit
     rows = [_evaluate(case, point, dict(zip(names, map(float, row)))) for row in factors]
     base = _evaluate(case, point, {})
@@ -95,7 +97,8 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
         "status": "computed",
         "samples": n,
         "seed": seed,
-        "design": "scrambled Latin hypercube",
+        "design": "Latin hypercube",
+        "generator": "SplitMix64",
         "inputs": {name: {"half_width": w} for name, w in zip(names, widths)},
         "factors": [[float(v) for v in row] for row in factors],
         "outputs": outputs,

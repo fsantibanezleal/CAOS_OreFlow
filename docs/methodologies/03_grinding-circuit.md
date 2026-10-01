@@ -83,6 +83,37 @@ again for the design circulating load, and the coarser achieved P80 is reported 
 bypass is the underflow water split $R_f = W_u/(W_u + W_o)$. The mill discharge density fixes the
 water added at the mill and at the sump; a negative addition is flagged.
 
+### The cut mode (since 0.07.000)
+
+In a plant the cyclone's cut is set by its hardware and its pressure, the mill draws its power, and the
+product size and the circulating load follow. The target mode above solves the reverse, which is what a design
+study asks. The cut mode is the plant's direction (CM-01 to CM-07; `docs/design/features/cut-mode/`):
+
+- **Input.** The host gangue's corrected cut $d_{50c}$ (`d50c_um`), bounded per case by 0.8 to 1.6 times the cut
+  the target mode solves at the nominal state. 0, every case's nominal, is the target mode itself. With a cut
+  set, the engine ignores the grind target and the circulating load and reports them as results.
+- **The power condition.** At the installed power $P_{inst}$ the energy per pass $e$ is the root of
+  $$e\,\big(1 + C(e, d_{50c})\big)\,F = P_{inst},$$
+  solved by Illinois on $\ln e$. The power rises monotonically with $e$ at every state the design measured (60
+  series over the 12 nominal states, cut factors 0.6 to 1.6, energies a quarter to four times nominal), so the
+  root is unique where it exists; outside the energy bracket the state is flagged `power_unreachable_at_cut`.
+- **The water follows the load.** In the target mode the underflow water, and with it the bypass $R_f$, comes from
+  the design load. In the cut mode the load is a result, so each energy is a fixed point on $C$:
+  $$W_u = C\,F\,\frac{1 - s_u}{s_u},\qquad R_f = \frac{W_u}{W_u + W_o},\qquad C \leftarrow \frac{U(e, d_{50c}, R_f)}{F},$$
+  iterated until two passes agree within $10^{-12}$ (measured to converge at all 1,020 states of the design
+  measurement, in at most 20 passes).
+- **Flags.** A load outside the 100 to 400% the target mode accepts as an input is flagged
+  `circulating_load_out_of_range`; the trace reports the achieved P80 in the target's place and sets the
+  `cut_mode` metric.
+- **What else changes.** The learned lane keeps sampling the target mode, whose features are the target and the
+  design load. The optimizer's grind decision becomes the cut, and its search runs without the screen, saying
+  why (`unscreened_reason: cut_mode`).
+
+The engine fix that came with it: the host-limited composite scale divided 0 by 0 in empty size classes, where
+round-off leaves the host at about -4e-16 against no composite demand. The cut mode's finest grinds reached it
+(the nickel and zinc envelope corners); the host is now clipped at 0 before it limits, in the circuit and in the
+particle-class split, in both engines.
+
 ## Parameters
 
 | Parameter | Value | Unit | Source |
@@ -106,6 +137,15 @@ water added at the mill and at the sump; a negative addition is flagged.
   target limits the composites of the coarse classes, keeps every class mass non-negative beyond
   round-off, and keeps the particle-class split consistent within 1e-12; the nominal case has
   $s = 1$ in every class.
+- `tests/test_grinding.py::test_cut_mode_meets_installed_power` (CM-02): at the nominal state's own cut the mill
+  draws its installed power within 1e-9, and the underflow water is the achieved load's.
+- `tests/test_grinding.py::test_cut_mode_reports_and_flags` (CM-03): a finer cut raises the load and fines the
+  product; the out-of-range flag matches the load; the nominal state stays in the target mode.
+- `tests/test_grinding.py::test_modes_agree_at_the_same_state` (CM-04): a target-mode state re-run in the cut mode
+  at its own solved cut and drawn power gives back its P80 and load within 1e-9 (the requirement allows 0.5%;
+  measured 1.1e-13 and 1.9e-13).
+- `tests/test_engine_balances.py::test_cut_mode_closure` (CM-05): every unit and the circuit close within 1e-9 in
+  the 24 cut-mode variants.
 - `tests/test_oracles.py::test_molycop_base_case` (PE-08): with the Moly-Cop defaults and base-case
   inputs (504 t/h, F80 6913 um, P80 169.4 um, 277% circulating load), the specific energy lands
   within 20% of the reported 8.56 kWh/t. The engine gives 9.13 kWh/t with the Rosin-Rammler feed
@@ -114,5 +154,7 @@ water added at the mill and at the sump; a negative addition is flagged.
 
 ## What it is not
 
-A single breakage parameter set per ore, with hardness entering only through the work index; no ball
+The cut mode holds a corrected cut, not a cyclone's geometry and pressure: the Plitt sizing that follows it is a
+report, not a constraint, and most states at 0.8 of the nominal cut flag the pressure window. A single breakage
+parameter set per ore, with hardness entering only through the work index; no ball
 size, filling or speed effects; no slurry rheology; the mixer fractions are declared, not fitted.

@@ -21,8 +21,9 @@ interpreter:
 
 1. [**01 NumPy**](frameworks/01_numpy.md): the engine's arrays: 63 size classes by mineral, the
    Whiten crusher and the mill as matrix solves, the Gauss-Laguerre table.
-2. [**02 SciPy**](frameworks/02_scipy.md): COBYLA for the constrained optimizer, the scrambled Latin
-   hypercube of the uncertainty record and the Sobol sequence of the learning design.
+2. [**02 SciPy**](frameworks/02_scipy.md): the Sobol sequence of the learning design and the triangular solve of
+   the optimizer's screen; COBYLA and SciPy's Latin hypercube until 0.06, replaced by OreFlow's own code that the
+   browser repeats.
 3. [**03 SALib**](frameworks/03_salib.md): the Saltelli design and the first-order and total Sobol
    indices of the sensitivity record.
 

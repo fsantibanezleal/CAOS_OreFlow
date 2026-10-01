@@ -40,7 +40,7 @@ whichever chart has your cursor.
 | **Separation** | for flotation, recovery by size in the rougher, the grade-recovery curve down the bank, and the kinetic record (the virtual batch test, five fitted models, their projections to the bank); for magnetite, the drums' capture by particle class; for phosphate, the desliming partition |
 | **Response** | press run to sweep one input, or two as a decision surface with the grade-specification and installed-power boundaries drawn; rejected states are hatched, the current state and the baked optimum marked |
 | **Methods** | the optimizer's record, the uncertainty record (quantiles, the probability of meeting each constraint), the Sobol indices, and the learned lane beside the engine |
-| **Case** | the case's context (problem, variables, formalization, scope, what each variant shows, how to read it) and the six variants side by side, with all twelve cases on one map of recovery against energy |
+| **Case** | the case's context (problem, variables, formalization, scope, what each variant shows, how to read it) and the eight variants side by side, with all twelve cases on one map of recovery against energy |
 
 Charts share one set of gestures: hover for a reading, click a legend entry to hide a series, drag to zoom,
 Escape or the reset button to restore, and the arrow keys to step through samples.

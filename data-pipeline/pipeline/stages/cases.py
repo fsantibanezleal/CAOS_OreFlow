@@ -1,19 +1,22 @@
 """Stage: bake one case into its Contract 2 artifact.
 
 For every variant: the engine trace (point, metrics, streams, topology, curves, kinetics, balance,
-flags), the constrained optimization record and the uncertainty record; for the nominal variant
-also the Sobol sensitivity record. The artifact embeds the ore and plant definitions, so the browser
-engine recomputes every variant from the artifact alone.
+flags), the constrained optimization record (screened by the learned lane this bake exported) and the
+uncertainty record; for the nominal variant also the Sobol sensitivity record. The artifact embeds the
+ore and plant definitions, so the browser engine recomputes every variant from the artifact alone.
 """
 from __future__ import annotations
 
 from dataclasses import asdict
+from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from ..cases.catalog import CASE_BY_ID, SOURCES, variant_point
 from ..engine.circuit import simulate
 from ..engine.trace import trace
 from ..methods.optimization import optimize
+from ..methods.screen import Screen
 from ..methods.uncertainty import sensitivity, uncertainty
 
 SCHEMA = "oreflow.case/v2"
@@ -23,13 +26,20 @@ def _bilingual(pair: tuple[str, str]) -> dict[str, str]:
     return {"en": pair[0], "es": pair[1]}
 
 
-def bake_case(case_id: str, contract: dict[str, Any], version: str) -> dict[str, Any]:
+@lru_cache(maxsize=2)
+def _screen(models_dir: str) -> Screen:
+    """One screen per worker process: the exports of this bake's learning stage."""
+    return Screen(Path(models_dir))
+
+
+def bake_case(case_id: str, contract: dict[str, Any], version: str, models_dir: str) -> dict[str, Any]:
     case = CASE_BY_ID[case_id]
+    screen = _screen(models_dir)
     variants = []
     for variant in case.variants:
         point = variant_point(case, variant)
         result = simulate(case.ore, case.plant, point)
-        methods: dict[str, Any] = {"optimization": optimize(case, point, contract), "uncertainty": uncertainty(case, point)}
+        methods: dict[str, Any] = {"optimization": optimize(case, point, contract, screen=screen), "uncertainty": uncertainty(case, point)}
         if variant["id"] == "nominal":
             methods["sensitivity"] = sensitivity(case, point)
         variants.append({"id": variant["id"], "label": _bilingual(variant["label"]), "change": dict(variant["change"]),

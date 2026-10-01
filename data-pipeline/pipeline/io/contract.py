@@ -20,7 +20,7 @@ from typing import Any
 
 import numpy as np
 
-from ..cases.catalog import CASES
+from ..cases.catalog import CASES, nominal_cut
 from ..engine.constants import constant
 from ..engine.grid import grid
 from ..engine.model import OPERATING_FIELDS
@@ -36,7 +36,8 @@ PROBES_PATH = CONTRACT_PATH.with_name("contract_probes.json")
 class InputSpec:
     name: str
     unit: str                      # "case" means the unit of the case's primary payable
-    bounds: str                    # "relative" (factors of the case nominal) or "absolute"
+    bounds: str                    # "relative" (factors of the case nominal), "absolute", or "solved" (factors of an
+                                   # engine result at the nominal state, with 0 accepted as off)
     low: float
     high: float
     step: float                    # absolute step, or a factor of the nominal for relative bounds
@@ -125,6 +126,18 @@ INPUTS: tuple[InputSpec, ...] = (
                "flotation feed and loses more of the fine valuable mineral.",
                "Tamaño de corte del ciclón de deslamado. Las partículas más finas van a relaves como lamas: un corte más "
                "grueso limpia la alimentación a flotación y pierde más mineral valioso fino.")),
+    # CM-01: bounds are factors of the cut the target mode solves at the case's nominal state, and 0 (the nominal)
+    # is the target mode itself
+    InputSpec("d50c_um", "um", "solved", 0.8, 1.6, 0.01, False, FAMILIES,
+              ("Classifier cut (d50c)", "Corte del clasificador (d50c)"),
+              ("Corrected cut of the host gangue in the cyclone, set by its hardware and pressure. Off (0), the solver "
+               "finds the cut that holds the circulating load and the energy that meets the grind target. On, the mill "
+               "draws its installed power, and the P80 and the circulating load follow: a finer cut returns more to the "
+               "mill and grinds finer.",
+               "Corte corregido de la ganga huésped en el ciclón, fijado por su equipo y su presión. Apagado (0), el "
+               "solver busca el corte que sostiene la carga circulante y la energía que cumple el objetivo de molienda. "
+               "Encendido, el molino consume su potencia instalada, y el P80 y la carga circulante resultan: un corte "
+               "más fino devuelve más al molino y muele más fino.")),
 )
 INPUT_BY_NAME = {spec.name: spec for spec in INPUTS}
 
@@ -144,6 +157,7 @@ MESSAGES = {
     "not_finite": {"en": "The value must be finite.", "es": "El valor debe ser finito."},
     "not_integer": {"en": "The value must be a whole number.", "es": "El valor debe ser un número entero."},
     "out_of_range": {"en": "The value is outside the operating envelope.", "es": "El valor está fuera de la envolvente de operación."},
+    "off_step": {"en": "The value must be a multiple of the control's step.", "es": "El valor debe ser un múltiplo del paso del control."},
 }
 
 
@@ -156,6 +170,11 @@ def _case_entry(case: Any) -> dict[str, Any]:
         if family not in spec.families:
             continue
         base = float(nominal[spec.name])
+        if spec.bounds == "solved":
+            reference = nominal_cut(case.id)
+            low, high, step = (float(f"{f * reference:.12g}") for f in (spec.low, spec.high, spec.step))
+            inputs[spec.name] = {"min": low, "max": high, "step": step, "unit": spec.unit, "off": 0.0, "reference": reference}
+            continue
         if spec.bounds == "relative":
             if base <= 0.0:
                 raise ValueError(f"{case.id}: relative input {spec.name} needs a positive nominal")
@@ -173,6 +192,53 @@ def _case_entry(case: Any) -> dict[str, Any]:
         inputs[spec.name] = entry
     return {"family": family, "primary": {"species": primary.species, "unit": primary.unit},
             "nominal": nominal, "inputs": inputs}
+
+
+def _controls() -> dict[str, Any]:
+    """Controls of the method records, not of the plant: the workbench re-runs a record with them (UQ-07, OP-10)."""
+    seed_lo, seed_hi = (int(v) for v in constant("uncertainty.seed_bounds"))
+    n_lo, n_hi, n_step = (int(v) for v in constant("uncertainty.samples_bounds"))
+    w_lo, w_hi, w_step = (int(v) for v in constant("optimization.weight_pct_bounds"))
+    return {
+        "uncertainty_seed": {"min": seed_lo, "max": seed_hi, "step": 1, "integer": True, "unit": "1",
+                             "default": int(constant("uncertainty.seed")),
+                             "label": {"en": "Seed", "es": "Semilla"},
+                             "help": {"en": "The Latin hypercube's seed; the baked record uses the default.",
+                                      "es": "La semilla del hipercubo latino; el registro horneado usa la predeterminada."}},
+        "uncertainty_samples": {"min": n_lo, "max": n_hi, "step": n_step, "integer": True, "unit": "1",
+                                "default": int(constant("uncertainty.samples")),
+                                "label": {"en": "Samples", "es": "Muestras"},
+                                "help": {"en": "Engine runs of the design, in steps of 32.",
+                                         "es": "Corridas del motor del diseño, en pasos de 32."}},
+        # OP-10: the optimizer's weight on recovered metal; the rest of the objective is the specific energy
+        "optimizer_weight_pct": {"min": w_lo, "max": w_hi, "step": w_step, "integer": True, "unit": "%",
+                                 "default": round(100 * float(constant("optimization.weight_default"))),
+                                 "label": {"en": "Weight on recovered metal", "es": "Peso del metal recuperado"},
+                                 "help": {"en": "The objective's weight on recovered metal, in steps of 5%; the rest weighs "
+                                                "the specific energy. The baked record uses 100%.",
+                                          "es": "El peso del metal recuperado en el objetivo, en pasos de 5%; el resto pondera "
+                                                "la energía específica. El registro horneado usa 100%."}},
+    }
+
+
+def validate_control(contract: dict[str, Any], name: str, value: Any) -> dict[str, Any]:
+    """Interpret one method control; the browser validator is a line-by-line port. Returns ``{"accepted", "value",
+    "errors"}`` with the same error codes as the operating inputs, plus ``off_step``."""
+    spec = contract.get("controls", {}).get(name)
+    if spec is None:
+        return {"accepted": False, "value": None, "errors": [{"code": "unknown_input", "input": name}]}
+    if not _is_number(value):
+        return {"accepted": False, "value": None, "errors": [{"code": "not_a_number", "input": name}]}
+    if not math.isfinite(float(value)):
+        return {"accepted": False, "value": None, "errors": [{"code": "not_finite", "input": name}]}
+    if spec["integer"] and float(value) != int(value):
+        return {"accepted": False, "value": None, "errors": [{"code": "not_integer", "input": name, "value": value}]}
+    if not spec["min"] <= value <= spec["max"]:
+        return {"accepted": False, "value": None,
+                "errors": [{"code": "out_of_range", "input": name, "value": value, "min": spec["min"], "max": spec["max"]}]}
+    if (int(value) - spec["min"]) % spec["step"] != 0:
+        return {"accepted": False, "value": None, "errors": [{"code": "off_step", "input": name, "value": value, "step": spec["step"]}]}
+    return {"accepted": True, "value": int(value) if spec["integer"] else value, "errors": []}
 
 
 def _digest(document: dict[str, Any]) -> str:
@@ -197,6 +263,7 @@ def build_contract() -> dict[str, Any]:
         "rules": [dict(rule) for rule in RULES],
         "messages": MESSAGES,
         "cases": {case.id: _case_entry(case) for case in CASES},
+        "controls": _controls(),
         "grid": {"upper_um": [float(v) for v in g.upper], "size_um": [float(v) for v in g.size]},
         "laguerre": {"nodes": [float(v) for v in nodes], "weights": [float(v) for v in weights]},
     }
@@ -238,6 +305,10 @@ def validate(contract: dict[str, Any], case_id: str, values: dict[str, Any]) -> 
             errors.append({"code": "not_integer", "input": name, "value": value})
             continue
         bounds = case["inputs"][name]
+        # an input with an off value (the classifier cut) takes it as its own state, outside its range
+        if "off" in bounds and value == bounds["off"]:
+            point[name] = float(value)
+            continue
         if value < bounds["min"] or value > bounds["max"]:
             errors.append({"code": "out_of_range", "input": name, "value": value, "min": bounds["min"], "max": bounds["max"]})
             continue
@@ -271,6 +342,8 @@ def probe_states(contract: dict[str, Any]) -> list[dict[str, Any]]:
             probes.append({"case_id": case_id, "values": {name: bounds["min"] - outside}})
             probes.append({"case_id": case_id, "values": {name: bounds["max"] + outside}})
             probes.append({"case_id": case_id, "values": {name: math.nan}})
+            if "off" in bounds:
+                probes.append({"case_id": case_id, "values": {name: bounds["off"]}})
             if integer:
                 probes.append({"case_id": case_id, "values": {name: bounds["min"] + 0.5}})
         for spec in contract["inputs"]:

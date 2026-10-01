@@ -44,7 +44,7 @@ export type ParticleBenchmark = {
   protocol: {
     train_rows: number; fit_rows: number; validation_rows: number; test_rows: number;
     features: string[]; excluded_from_features: string[]; target: string; test_oracle: string;
-    published_reference: string; split: string; device: string; mlp_best_epoch: number;
+    published_reference: string; split: string; device: string; mlp_best_epoch: number; torch_version: string; mlp_validation_bce: number;
     missingness: string; threshold_interpretation: string;
   };
   standardization: { mean: number[]; scale: number[] };
@@ -71,3 +71,63 @@ export type GeometBenchmark = {
   protocols: { hole: GeometProtocol; zone: GeometProtocol };
 };
 export const loadGeometBenchmark = () => get<GeometBenchmark>('source/geomet_lct_benchmark.json');
+
+/** The iron-plant soft-sensor lane (IS-01 to IS-06): forward windows, scores and down-sampled traces. */
+export type IronScores = { mae_pct_points: number; rmse_pct_points: number; bias_pct_points: number; r2: number };
+export type IronFold = {
+  id: number; train_rows: number; test_rows: number; train_first: string; train_last: string; test_first: string; test_last: string;
+  embargo_hours_min: number; scores: Record<string, IronScores>;
+  trace: Array<{ sensor_hour: string; lab_hour: string; observed_pct: number; predictions_pct: Record<string, number>;
+    sensors: Record<string, number>; lab_pct: { silica: number; iron: number } }>;
+};
+export type IronPlant = {
+  schema: string;
+  source: { title: string; url: string; publisher: string; dataset_id: number; version: number; license: string; archive_sha256: string; csv_sha256: string; date_first: string; date_last: string };
+  quality: { source_rows: number; nominal_hours: number; rows_per_hour_min: number; rows_per_hour_max: number; constant_lab_hours: number;
+    changing_lab_hours_excluded: number; changing_lab_rows_excluded: number; changing_lab_first_hour: string; gap_hours: number };
+  protocol: { target: string; features: string[]; excluded_features: string[]; pair_rows: number; sampling: string; splits: string; interpretation: string; previous_lab_caveat: string };
+  pooled_scores: Record<string, IronScores>;
+  folds: IronFold[];
+};
+export const loadIronPlant = () => get<IronPlant>('source/iron_plant_soft_sensor.json');
+
+/** The GeoMet samples in the soft porphyry's circuit (RS-05). */
+export type RealSample = {
+  id: string; source_row: number; hole: string; xyz: number[]; assays_pct: Record<string, number>; measured_recovery_pct: number;
+  allocation: { band: string; fractions: Record<string, number>; copper_shares: Record<string, number>; s_to_cu_molar: number };
+  work_index: { value: number; how: 'nearest_in_hole' | 'deposit_median'; from_source_row: number | null; distance_m: number | null };
+  ore: import('../engine/model').Ore; point: import('../engine/model').OperatingPoint; metrics: Record<string, number>; flags: string[];
+  balance_error: number; geomet_lane: { fold: number; predictions_pct: Record<string, number> } | null;
+};
+export type RealSamples = {
+  schema: string; engine_version: string; case_id: string; labels: Record<string, string>;
+  source: { title: string; record: string; doi: string; paper_doi: string; license: string; tables: Record<string, { file: string; md5: string; sha256: string }> };
+  floatability_ratios: { bornite: number; chalcocite_to_bornite: number };
+  plant: import('../engine/model').Plant;
+  comminution: Array<{ source_row: number; hole: string; work_index_kwh_t: number }>;
+  excluded: Array<{ table: string; source_row: number; reason: string }>;
+  samples: RealSample[];
+  summary: {
+    samples: number; comminution_samples: number; work_index_kwh_t: { min: number; max: number; median: number };
+    bands: Record<string, number>; work_index_assignment: Record<string, number>;
+    engine_minus_measured_pp: { mean: number; rmse: number; min: number; max: number };
+    geomet_lane_minus_measured_pp: Record<string, { mean: number; rmse: number }>; power_limited: number;
+  };
+};
+export const loadRealSamples = () => get<RealSamples>('real_samples.json');
+
+export type AblationRecord = { status: 'not_applicable' } | {
+  status: 'computed'; on: Record<string, number>; off: Record<string, number>; delta: Record<string, number>; flags: string[]; balance: number;
+};
+export type SeedStudy = {
+  seeds: number[]; samples: number; design: string; generator: string;
+  per_seed: Array<{ seed: number; recovery_pct: Record<string, number>; concentrate_grade: Record<string, number>; all_constraints: number }>;
+  spread: { recovery_pct: Record<string, number>; concentrate_grade: Record<string, number>; all_constraints: number };
+};
+export type Studies = {
+  schema: 'oreflow.studies/v1'; engine_version: string; contract_digest: string;
+  switches: Record<string, { removes: { en: string; es: string } }>;
+  cases: Record<string, { ablations: Record<string, AblationRecord>; seed_study: SeedStudy }>;
+};
+/** The mechanism ablations and the uncertainty seed study of every nominal state (the studies stage). */
+export const loadStudies = () => get<Studies>('studies.json');

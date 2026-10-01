@@ -5,6 +5,8 @@
     "quartz": {"name": ["Quartz and silicate gangue", "Cuarzo y ganga silicatada"], "formula": "SiO2", "density": 2.65, "source": "mindat.org quartz, 2.65 t/m3."},
     "silicate_fe": {"name": ["Iron-bearing silicate gangue", "Ganga silicatada con hierro"], "composition": {"Si": 0.40, "Fe": 0.05, "O": 0.51, "Mg": 0.04}, "density": 2.85, "source": "Declared composite silicate gangue for a magnetite ore (quartz with amphibole and minor iron silicates); composition authored."},
     "chalcopyrite": {"name": ["Chalcopyrite", "Calcopirita"], "formula": "CuFeS2", "density": 4.19, "source": "mindat.org chalcopyrite, 4.1 to 4.3 t/m3."},
+    "bornite": {"name": ["Bornite", "Bornita"], "formula": "Cu5FeS4", "density": 5.07, "source": "Handbook of Mineralogy (Anthony et al. 2001-2005), bornite: D(meas.) 5.06 to 5.08, D(calc.) 5.074 t/m3."},
+    "chalcocite": {"name": ["Chalcocite", "Calcosina"], "formula": "Cu2S", "density": 5.8, "source": "Handbook of Mineralogy (Anthony et al. 2001-2005), chalcocite: D(meas.) 5.5 to 5.8, D(calc.) 5.80 t/m3."},
     "molybdenite": {"name": ["Molybdenite", "Molibdenita"], "formula": "MoS2", "density": 4.7, "source": "mindat.org molybdenite, 4.62 to 4.73 t/m3 measured."},
     "sphalerite": {"name": ["Sphalerite (iron-bearing)", "Esfalerita (con hierro)"], "formula": "Zn0.92Fe0.08S", "density": 4.05, "source": "mindat.org sphalerite, 3.9 to 4.1 t/m3; 8 mol% Fe substitution declared."},
     "pyrite": {"name": ["Pyrite", "Pirita"], "formula": "FeS2", "density": 5.01, "source": "mindat.org pyrite, 4.95 to 5.10 t/m3."},

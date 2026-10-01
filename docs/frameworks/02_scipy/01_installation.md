@@ -33,12 +33,10 @@ Check it:
 
 ## Version notes that matter here
 
-- **COBYLA is PRIMA's implementation.** In 1.17.1, `minimize(method="COBYLA")` runs the pure-Python
-  port of Zhang's PRIMA (the module docstring of `scipy/optimize/_cobyla_py.py` says so and cites
-  it). It accepts `bounds`, and `catol` sets the constraint tolerance. A change of SciPy version can
-  change the iterates, so the committed optimization records belong to this pin: `example.py` re-runs
-  the optimizer and fails when its result differs from the committed record, and an upgrade is
-  followed by a bake.
+- **The triangular solve is LAPACK's.** `scipy.linalg.solve_triangular` calls LAPACK's `trtrs` from the wheel's
+  bundled OpenBLAS; the screen's variance therefore depends on the build only at round-off, which the export check
+  bounds against scikit-learn (1e-8). Until 0.06.000 the pin also held COBYLA's iterates (PRIMA's port); the
+  optimizer no longer uses SciPy.
 - **The samplers take `rng`.** `qmc.LatinHypercube` and `qmc.Sobol` accept a NumPy `Generator` through
   the `rng` keyword, which the code uses; the older `seed` keyword is still accepted but is not what
   OreFlow passes.

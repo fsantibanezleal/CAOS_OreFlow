@@ -1,7 +1,7 @@
 /**
  * Experiments (ADR-0016 section 9.C): the design of the numerical experiments and its coverage, the
- * metrics, what the single-factor variants did in every case, and the protocols of the method records
- * and of the learned lane (the leakage-safe one). Transcribed from the process-engine design and
+ * metrics (with the kinetic protocol) and what the single-factor variants did in every case; the data and
+ * splits tabs are experiments-data.tsx, the uncertainty and ablations tabs experiments-studies.tsx. Transcribed from the process-engine design and
  * requirements and the methodology pages; every result is read from the committed benchmark, and every
  * qualitative claim of the results text is checked against it by a test.
  */
@@ -15,6 +15,8 @@ import { metricLabel } from '../lib/i18n';
 import { Loaded, useArtifact } from './data';
 import { VARIANT_KINDS } from './design';
 import type { Bi, Topic } from './doc';
+import { DATA, SPLITS } from './experiments-data';
+import { ABLATIONS, UNCERTAINTY } from './experiments-studies';
 import { Arrow, pick } from './figures';
 
 const r = String.raw;
@@ -91,30 +93,6 @@ function RecoveryFigure({ lang }: { lang: Lang }) {
   );
 }
 
-function FoldsFigure({ lang }: { lang: Lang }) {
-  const p = (en: string, es: string) => pick(lang, en, es);
-  return (
-    <svg className="fig-svg" viewBox="0 0 440 250" role="img" aria-label={p('Twelve folds, each holding out one whole case', 'Doce particiones, cada una reservando un caso completo')}>
-      <text className="dg-box-title" x="12" y="18">{p('leave one case out: 12 folds', 'dejar un caso fuera: 12 particiones')}</text>
-      {Array.from({ length: 12 }, (_, fold) => (
-        <g key={fold}>
-          <text className="dg-tick" x="12" y={42 + 15 * fold}>{fold + 1}</text>
-          {Array.from({ length: 12 }, (_, c) => (
-            <rect key={c} x={36 + 20 * c} y={32 + 15 * fold} width="17" height="12" rx="2" className={c === fold ? 'dg-fill-warn' : 'dg-fill-accent'} />
-          ))}
-        </g>
-      ))}
-      <rect x="300" y="40" width="17" height="12" rx="2" className="dg-fill-accent" />
-      <text className="dg-box-sub" x="324" y="50">{p('train: 2816', 'entrena: 2816')}</text>
-      <rect x="300" y="62" width="17" height="12" rx="2" className="dg-fill-warn" />
-      <text className="dg-box-sub" x="324" y="72">{p('test: 256', 'prueba: 256')}</text>
-      <text className="dg-box-sub" x="300" y="104">{p('interpolation:', 'interpolación:')}</text>
-      <text className="dg-box-sub" x="300" y="118">{p('20% of every case', '20% de cada caso')}</text>
-      <text className="dg-box-sub" x="300" y="132">{p('2460 train, 612 test', '2460 entrena, 612 prueba')}</text>
-      <text className="dg-note" x="220" y="236" textAnchor="middle">{p('columns: the twelve cases; features never name the case', 'columnas: los doce casos; las variables nunca nombran el caso')}</text>
-    </svg>
-  );
-}
 
 const SIGN_METRICS: Array<{ key: string; label: Bi }> = [
   { key: 'recovery_pct', label: { en: 'recovery', es: 'recuperación' } },
@@ -343,7 +321,7 @@ const DESIGN: Topic = {
   ],
   equations: [
     { tex: r`\Delta_v m = m\big(x^{(v)}\big) - m\big(x^{(0)}\big),\qquad \delta_v m = \frac{\Delta_v m}{\big|m\big(x^{(0)}\big)\big|}`, caption: { en: 'The effect of variant v on a metric m: its change from the nominal state, and the relative change used where units differ between cases.', es: 'El efecto de la variante v sobre una métrica m: su cambio respecto del estado nominal, y el cambio relativo que se usa donde las unidades difieren entre casos.' } },
-    { tex: r`N = 12 \times 6 = 72`, caption: { en: 'The design: twelve cases with six states each, every one a full trace with its method records.', es: 'El diseño: doce casos con seis estados cada uno, cada uno una traza completa con sus registros de métodos.' } },
+    { tex: r`N = 12 \times 8 = 96`, caption: { en: 'The design: twelve cases with eight states each, six of the target mode and two of the cut mode, every one a full trace with its method records.', es: 'El diseño: doce casos con ocho estados cada uno, seis del modo objetivo y dos del modo de corte, cada uno una traza completa con sus registros de métodos.' } },
   ],
   limits: [
     { en: 'One factor at a time cannot show interactions between operating inputs; the optimizer and the Response view move several inputs together.', es: 'Un factor a la vez no puede mostrar interacciones entre entradas de operación; el optimizador y la vista de Respuesta mueven varias entradas juntas.' },
@@ -367,8 +345,11 @@ const METRICS: Topic = {
       es: 'La energía específica es chancado más molienda más remolienda, por tonelada de mineral; la potencia del molino es la energía de molienda por el tonelaje. El índice de trabajo operacional de Bond y su razón de eficiencia se informan para la reducción lograda, y las leyes de Rittinger y Kick son comparaciones calibradas con Bond, nunca sumadas a él. La intensidad de agua es el agua fresca por tonelada de mineral.' },
     { en: 'Three constraints judge a state: the final grade at or above the case\'s specification, the required mill power at or below the installed power, and the process water within the plant\'s capacity. Each case\'s nominal results are also checked against published plant practice for its ore type. At the nominal state no case is power-limited, and every check lies inside its published range; the table reads each one from the bake.',
       es: 'Tres restricciones juzgan un estado: la ley final sobre la especificación del caso, la potencia requerida del molino bajo la instalada, y el agua de proceso dentro de la capacidad de la planta. Los resultados nominales de cada caso también se verifican contra práctica de planta publicada para su tipo de mineral. En el estado nominal ningún caso está limitado por potencia, y cada verificación cae dentro de su rango publicado; la tabla lee cada una desde el horneado.' },
+    { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports a result only if it is feasible when simulated again from scratch.',
+      es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un resultado solo si es factible al simularlo de nuevo desde cero.' },
   ],
   equations: [
+    { tex: r`\varepsilon = \hat R_N - R_N`, caption: { en: 'The lumping error ε of a kinetic model: its projection to the bank of N cells minus the exact distributed bank recovery R_N.', es: 'El error de agregación ε de un modelo cinético: su proyección al banco de N celdas menos la recuperación exacta del banco distribuido R_N.' } },
     { tex: r`R = \frac{C_p}{F_p},\qquad R_s = \frac{C_{p,s}}{F_{p,s}}`, caption: { en: 'Overall recovery: the payable flow in the final concentrates C_p over the payable flow in the plant feed F_p; a stage recovery R_s on the stage s\'s own concentrate and feed.', es: 'Recuperación total: el flujo de pagable en los concentrados finales C_p sobre el flujo de pagable en la alimentación de planta F_p; una recuperación de etapa R_s sobre el concentrado y la alimentación propios de la etapa s.' } },
     { tex: r`\dot m = R\,f\,F,\qquad W_{i,o} = \frac{E}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}}`, caption: { en: 'Recovered metal from recovery, head grade and throughput, and the Bond operating work index of the achieved reduction.', es: 'Metal recuperado desde la recuperación, la ley de cabeza y el tonelaje, y el índice de trabajo operacional de Bond de la reducción lograda.' } },
   ],
@@ -377,7 +358,7 @@ const METRICS: Topic = {
   ],
   figure: { caption: { en: 'Overall recovery is measured on the plant feed, a stage recovery on the stage\'s own feed; an upstream loss separates them.', es: 'La recuperación total se mide sobre la alimentación de planta, una recuperación de etapa sobre la alimentación propia de la etapa; una pérdida aguas arriba las separa.' }, render: lang => <RecoveryFigure lang={lang} /> },
   data: lang => <KpiTable lang={lang} />,
-  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019'],
+  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'marquardt1963', 'torczon1997'],
 };
 
 const RESULTS: Topic = {
@@ -401,35 +382,13 @@ const RESULTS: Topic = {
   refs: ['gorain1997', 'savassi1998', 'muthaphuli2014', 'laplante-staunton', 'phosphate2019'],
 };
 
-const PROTOCOLS: Topic = {
-  id: 'protocols',
-  title: { en: 'Protocols', es: 'Protocolos' },
-  paragraphs: [
-    { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports a result only if it is feasible when simulated again from scratch.',
-      es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un resultado solo si es factible al simularlo de nuevo desde cero.' },
-    { en: 'Uncertainty: 128 seeded Latin-hypercube draws of the work index, the head grade, the liberation size and the floatability within authored spreads, the operating point held fixed, give the quantiles of every output and the probability of meeting each constraint. Sensitivity: Saltelli\'s design with N = 256 at the nominal state gives first-order and total Sobol indices with bootstrap intervals.',
-      es: 'Incertidumbre: 128 sorteos sembrados de hipercubo latino del índice de trabajo, la ley de cabeza, el tamaño de liberación y la flotabilidad dentro de rangos de autor, con el punto de operación fijo, dan los cuantiles de cada salida y la probabilidad de cumplir cada restricción. Sensibilidad: el diseño de Saltelli con N = 256 en el estado nominal da los índices de Sobol de primer orden y totales con intervalos bootstrap.' },
-    { en: 'The learned lane is scored on a 3072-state design, 256 per case, by two protocols. Interpolation holds out 20% of every case\'s states (2460 to train, 612 to test). Leave one case out holds out a whole case in each of twelve folds (2816 states to train, 256 to test), so no state of the tested plant is seen in training; the features are physical properties and controls, never the case\'s identity. This is the leakage-safe protocol, and the one that bounds how far a surrogate can be trusted on a new plant.',
-      es: 'La vía aprendida se evalúa sobre un diseño de 3072 estados, 256 por caso, con dos protocolos. La interpolación reserva el 20% de los estados de cada caso (2460 para entrenar, 612 para probar). Dejar un caso fuera reserva un caso completo en cada una de doce particiones (2816 estados para entrenar, 256 para probar), así que ningún estado de la planta probada se ve al entrenar; las variables son propiedades físicas y controles, nunca la identidad del caso. Este es el protocolo sin fuga, y el que acota cuánto se puede confiar en un sustituto para una planta nueva.' },
-    { en: 'The guard\'s threshold is the 99th percentile of its validation reconstruction errors. Its false-alarm rate is measured on the 612 held-out states of the envelope; its false-accept rate on 11,016 probes, each held-out state pushed half its training range past the maximum of one continuous feature at a time. The measured lanes follow the same rule: the GeoMet tests are split by whole drill hole and by spatial zone, and the HZDR particles keep their original training and test sheets.',
-      es: 'El umbral del guardia es el percentil 99 de sus errores de reconstrucción de validación. Su tasa de falsas alarmas se mide en los 612 estados reservados de la envolvente; su tasa de falsas aceptaciones en 11.016 sondas, cada estado reservado empujado la mitad de su rango de entrenamiento más allá del máximo de una variable continua a la vez. Las vías medidas siguen la misma regla: los ensayos GeoMet se dividen por sondaje completo y por zona espacial, y las partículas HZDR conservan sus hojas originales de entrenamiento y prueba.' },
-  ],
-  equations: [
-    { tex: r`\varepsilon = \hat R_N - R_N`, caption: { en: 'The lumping error ε of a kinetic model: its projection to the bank of N cells minus the exact distributed bank recovery R_N.', es: 'El error de agregación ε de un modelo cinético: su proyección al banco de N celdas menos la recuperación exacta del banco distribuido R_N.' } },
-    { tex: r`R^2 = 1 - \frac{\sum_i (y_i - \hat y_i)^2}{\sum_i (y_i - \bar y)^2},\qquad \mathrm{RMSE} = \sqrt{\tfrac{1}{n}\textstyle\sum_i (y_i - \hat y_i)^2}`, caption: { en: 'The scores of every learned model, on the held-out states of each protocol.', es: 'Los puntajes de cada modelo aprendido, sobre los estados reservados de cada protocolo.' } },
-    { tex: r`\alpha = \Pr\left[e(z) > q_{0.99}\mid z \in U\right],\qquad \beta = \Pr\left[e(z) \le q_{0.99}\mid z \notin U\right]`, caption: { en: 'The guard\'s false-alarm rate α on in-envelope states U, and its false-accept rate β on out-of-envelope probes.', es: 'La tasa de falsas alarmas α del guardia sobre estados de la envolvente U, y su tasa de falsas aceptaciones β sobre sondas fuera de ella.' } },
-  ],
-  limits: [
-    { en: 'Leave one case out measures transfer to a thirteenth authored plant, not to a real one; the twelve cases are the whole population the models ever see.', es: 'Dejar un caso fuera mide la transferencia a una decimotercera planta de autor, no a una real; los doce casos son toda la población que los modelos llegan a ver.' },
-    { en: 'The guard\'s probes step out along one feature at a time; a state that is unusual only in a combination of features is not probed.', es: 'Las sondas del guardia salen a lo largo de una variable a la vez; un estado que solo es inusual en una combinación de variables no se sondea.' },
-  ],
-  figure: { caption: { en: 'Leave one case out: in each fold one whole case is held out and the other eleven train the models.', es: 'Dejar un caso fuera: en cada partición se reserva un caso completo y los otros once entrenan los modelos.' }, render: lang => <FoldsFigure lang={lang} /> },
-  refs: ['marquardt1963', 'powell1994', 'saltelli2010', 'salib2017', 'sklearn2011', 'geomet', 'hzdr'],
-};
 
 export const EXPERIMENTS: Array<{ id: string; label: Bi; topics: Topic[] }> = [
   { id: 'design', label: { en: 'Design and coverage', es: 'Diseño y cobertura' }, topics: [DESIGN] },
+  { id: 'data', label: { en: 'Data', es: 'Datos' }, topics: [DATA] },
+  { id: 'splits', label: { en: 'Splits', es: 'Particiones' }, topics: [SPLITS] },
   { id: 'metrics', label: { en: 'Metrics', es: 'Métricas' }, topics: [METRICS] },
   { id: 'responses', label: { en: 'What the variants did', es: 'Qué hicieron las variantes' }, topics: [RESULTS] },
-  { id: 'protocols', label: { en: 'Protocols', es: 'Protocolos' }, topics: [PROTOCOLS] },
+  { id: 'uncertainty', label: { en: 'Uncertainty', es: 'Incertidumbre' }, topics: [UNCERTAINTY] },
+  { id: 'ablations', label: { en: 'Ablations', es: 'Ablaciones' }, topics: [ABLATIONS] },
 ];

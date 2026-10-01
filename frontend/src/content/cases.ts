@@ -49,6 +49,14 @@ export const VARIANT_NOTES: Record<string, Bi> = {
     en: 'Desliming cut 50% coarser. The flotation feed carries fewer slimes, and more of the phosphate in the fine classes leaves with them.',
     es: 'Corte de deslamado 50% más grueso. La alimentación a flotación lleva menos lamas, y más del fosfato de las clases finas se va con ellas.',
   },
+  cut_nominal: {
+    en: 'The plant\'s direction: the classifier\'s cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.',
+    es: 'La dirección de la planta: el corte del clasificador se fija en el corte que resuelve el estado nominal y el molino consume su potencia instalada, por lo que la molienda y la carga circulante son resultados. Donde la potencia instalada supera lo que necesita el objetivo nominal, la energía extra muele el producto más fino que el objetivo y vuelve menos material al molino.',
+  },
+  cut_finer: {
+    en: 'Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.',
+    es: 'Corte del clasificador 20% más fino que el corte nominal, con la misma potencia instalada. Más de la descarga del molino vuelve como underflow, por lo que la carga circulante sube y el producto se afina, mientras la energía por tonelada casi no cambia porque la potencia y el tratamiento están fijos. La carga puede salir del rango que acepta el modo objetivo, y la mayoría de los estados marca la presión de ciclón que ese corte requeriría.',
+  },
 };
 
 export const CASE_CONTEXT: Record<string, CaseContext> = {

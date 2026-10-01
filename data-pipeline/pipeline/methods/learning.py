@@ -78,7 +78,9 @@ def _ore_factors(case: CaseDef) -> tuple[str, ...]:
 
 def design_states(case: CaseDef, contract: dict[str, Any], count: int, seed: int) -> list[dict[str, Any]]:
     inputs = contract["cases"][case.id]["inputs"]
-    names = list(inputs)
+    # the lane learns the target mode: an input with an off value (the classifier cut) keeps it, so the design is
+    # the one of 0.06 and the cut mode stays the engine's alone (CM-01)
+    names = [name for name, bounds in inputs.items() if "off" not in bounds]
     factors = _ore_factors(case)
     widths = constant("uncertainty.half_widths")
     sampler = qmc.Sobol(d=len(names) + len(factors), scramble=True, rng=np.random.default_rng(seed))
@@ -459,6 +461,10 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                "guard_feature_scale": final_guard["_standardizer"].scale.tolist(), "guard_threshold": final_guard["threshold"]}
     (models_dir / "process_surrogate.json").write_text(json.dumps(scalers, indent=1) + "\n", encoding="utf-8", newline="\n")
     write_surrogate_reference(models_dir, cases)
+    # the optimizer's screen: the networks' weights and a Gaussian process on recovery over every state, checked
+    # against ONNX Runtime and scikit-learn (OP-05)
+    from .screen import export as export_screen
+    exports["screen"] = export_screen(models_dir, x, y, TARGETS, fx_all.mean, fx_all.scale, s, seed)
     summary: dict[str, Any] = {}
     for model_name in MODELS:
         summary[model_name] = {}

@@ -16,6 +16,11 @@ A feature whose ``requirements.md`` opens with ``Status: superseded`` is a recor
 not a live specification; it is skipped and listed, so a superseded gate cannot be mistaken for a
 passing one.
 
+A feature whose ``requirements.md`` opens with ``Status: planned`` is written before its code, as ADR-0075
+requires. Its rows get checks 1 and 2 and must name a file gate, but the gate need not exist yet. They are
+counted and listed apart from the live requirements, so a planned gate is never reported as a real one; the
+feature's convergence verdict removes the status line, and from then on check 3 applies.
+
 Standard library only; exit 1 on any finding. Usage: ``python scripts/check_sdd.py [repo_root]``.
 """
 from __future__ import annotations
@@ -63,8 +68,9 @@ def gate_findings(rel: str, rid: str, gate: str) -> list[str]:
 
 def main() -> int:
     findings = sdd_findings()
-    live = superseded = 0
+    live = superseded = planned = 0
     skipped: list[str] = []
+    pending: list[str] = []
     for req in sorted(FEATURES.glob("*/requirements.md")):
         rel = req.relative_to(ROOT).as_posix()
         text = req.read_text(encoding="utf-8")
@@ -73,11 +79,21 @@ def main() -> int:
             superseded += 1
             skipped.append(req.parent.name)
             continue
+        is_planned = bool(re.search(r"^Status:\s*planned", head, re.M | re.I))
         rows = [ROW.match(line) for line in text.splitlines()]
         rows = [r for r in rows if r]
         if not rows:
             findings.append(f"{rel}: no requirement rows")
+        if is_planned:
+            pending.append(req.parent.name)
         for r in rows:
+            if is_planned:
+                planned += 1
+                if "SHALL" not in r["statement"]:
+                    findings.append(f"{rel} {r['id']}: the statement has no SHALL")
+                if not any(FILE_LIKE.match(t) for t in TICKED.findall(r["gate"])):
+                    findings.append(f"{rel} {r['id']}: the planned gate names no file ({r['gate'].strip()[:80]!r})")
+                continue
             live += 1
             if "SHALL" not in r["statement"]:
                 findings.append(f"{rel} {r['id']}: the statement has no SHALL")
@@ -91,6 +107,7 @@ def main() -> int:
             print(f"  - {f}")
         return 1
     note = f"; superseded, not checked: {', '.join(skipped)}" if skipped else ""
+    note += f"; {planned} planned requirements, gates not yet built: {', '.join(pending)}" if pending else ""
     print(f"check_sdd: OK, SDD.md complete, {live} live requirements with real gates{note}")
     return 0
 

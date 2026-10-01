@@ -16,4 +16,8 @@ export const VARIANT_KINDS: Array<{ id: string; label: Bi; input: string; factor
   { id: 'finer_grind', label: { en: 'Finer grind', es: 'Molienda más fina' }, input: 'target_p80_um', factor: 0.75 },
   { id: 'finer_crusher', label: { en: 'Finer crusher', es: 'Chancado más fino' }, input: 'crusher_css_mm', factor: 0.8 },
   { id: 'coarser_deslime', label: { en: 'Coarser deslime cut', es: 'Corte de deslamado mayor' }, input: 'deslime_cut_um', factor: 1.5 },
+  // CM-06: the cut mode's two variants; the classifier cut's nominal is off, so the factor applies to the nominal
+  // state's solved cut
+  { id: 'cut_nominal', label: { en: 'Cut held at nominal', es: 'Corte fijo en el nominal' }, input: 'd50c_um', factor: 1.0 },
+  { id: 'cut_finer', label: { en: 'Finer cut', es: 'Corte más fino' }, input: 'd50c_um', factor: 0.8 },
 ];

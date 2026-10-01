@@ -19,7 +19,7 @@ const r = String.raw;
 const t = (text: Bi, lang: Lang) => text[lang];
 
 /** Catalog codes (L1, C2, F3, ...) in index order, as the workbench's case selector shows them. */
-function codes(index: CaseIndex): Record<string, string> {
+export function codes(index: CaseIndex): Record<string, string> {
   const counts: Record<string, number> = {};
   return Object.fromEntries(index.cases.map(c => {
     counts[c.category] = (counts[c.category] ?? 0) + 1;
@@ -103,7 +103,7 @@ const TEXT = {
   worstLump: { en: 'Worst |lumping error| (points)', es: 'Peor error de agregación (puntos)' },
   converged: { en: 'Converged', es: 'Convergidos' },
   kineticsTitle: { en: 'Lumping error of each kinetic model', es: 'Error de agregación de cada modelo cinético' },
-  kineticsSummary: { en: 'Mean and worst absolute lumping error of the five lumped models over the 66 baked flotation variants.', es: 'Error de agregación absoluto medio y peor de los cinco modelos agrupados sobre las 66 variantes de flotación horneadas.' },
+  kineticsSummary: { en: 'Mean and worst absolute lumping error of the five lumped models over the 88 baked flotation variants.', es: 'Error de agregación absoluto medio y peor de los cinco modelos agrupados sobre las 88 variantes de flotación horneadas.' },
   mean: { en: 'mean', es: 'medio' },
   worst: { en: 'worst', es: 'peor' },
   points: { en: 'points of recovery', es: 'puntos de recuperación' },
@@ -119,6 +119,15 @@ const TEXT = {
   ownCaption: { en: 'The optimum against the families\' own levers, with the same marks.', es: 'El óptimo frente a las palancas propias de las familias, con las mismas marcas.' },
   optCaption: { en: 'The gain of the optimum over each variant, and the constraints active at it: {codes}; * the variant\'s own state broke a constraint.', es: 'La ganancia del óptimo sobre cada variante, y las restricciones activas en él: {codes}; * el estado propio de la variante violaba una restricción.' },
   activeCodes: { en: 'P power, G grade, W water', es: 'P potencia, L ley, A agua' },
+  cutCaption: { en: 'The optimum in the cut mode, where the grind decision is the classifier cut instead of the grind target, with the same marks; these searches run without the screen.', es: 'El óptimo en el modo de corte, donde la decisión de molienda es el corte del clasificador en vez del objetivo de molienda, con las mismas marcas; estas búsquedas corren sin el filtro.' },
+  screenCaption: { en: 'What the screen cost or saved, per case over its {n} screened variants: the engine evaluations with and without the screen for the same starts and weight, the candidates the screen proposed and the ones that improved the incumbent, the surrogate\'s mean distance from the engine where it proposed, and how many variants reach the same optimum without it.', es: 'Lo que costó o ahorró el filtro, por caso sobre sus {n} variantes filtradas: las evaluaciones del motor con y sin el filtro para los mismos inicios y peso, los candidatos que propuso el filtro y los que mejoraron al incumbente, la distancia media del sustituto al motor donde propuso, y cuántas variantes llegan al mismo óptimo sin él.' },
+  evalsScreened: { en: 'Evaluations, screened', es: 'Evaluaciones, con filtro' },
+  evalsPlain: { en: 'Evaluations, unscreened', es: 'Evaluaciones, sin filtro' },
+  evalsChange: { en: 'Change', es: 'Cambio' },
+  proposedShort: { en: 'Proposed / improved', es: 'Propuestos / mejoraron' },
+  surrogateError: { en: 'Surrogate error (points)', es: 'Error del sustituto (puntos)' },
+  sameOptimum: { en: 'Same optimum', es: 'Mismo óptimo' },
+  total: { en: 'All cases', es: 'Todos los casos' },
   p05: { en: 'P05', es: 'P05' },
   p50: { en: 'P50', es: 'P50' },
   p95: { en: 'P95', es: 'P95' },
@@ -148,7 +157,7 @@ const TEXT = {
 const fill = (template: string, values: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? key);
 const signed = (value: number, lang: Lang, decimals: number) => `${value > 0 ? '+' : ''}${formatFixed(value, lang, decimals)}`;
 
-function Reading({ text, lang }: { text: string | null; lang: Lang }) {
+export function Reading({ text, lang }: { text: string | null; lang: Lang }) {
   return <p className="of-doc-reading" aria-live="polite">{text ?? TEXT.reading[lang]}</p>;
 }
 
@@ -357,9 +366,11 @@ function OptimizerTable({ lang }: { lang: Lang }) {
         const title = (id: string) => index.value!.cases.find(c => c.case_id === id)?.title[lang] ?? id;
         const label = (v: string) => (v === 'nominal' ? 'nominal' : VARIANT_KINDS.find(k => k.id === v)?.label[lang] ?? v);
         const cases = bench.cases.map(c => c.case_id);
-        // the nominal and the five common variants in one table; the families' own levers in a second
+        // the nominal and the five common variants in one table, the families' own levers in a second, the cut
+        // mode's two variants in a third
         const common = ['nominal', ...VARIANT_KINDS.slice(0, 5).map(k => k.id)];
-        const own = VARIANT_KINDS.slice(5).flatMap(k => cases.filter(id => bench.optimization[id][k.id]).map(id => ({ id, v: k.id })));
+        const cut = VARIANT_KINDS.filter(k => k.input === 'd50c_um').map(k => k.id);
+        const own = VARIANT_KINDS.slice(5).filter(k => !cut.includes(k.id)).flatMap(k => cases.filter(id => bench.optimization[id][k.id]).map(id => ({ id, v: k.id })));
         const cell = (id: string, v: string) => {
           const rec = bench.optimization[id][v];
           if (!rec) return <td key={v}>-</td>;
@@ -381,10 +392,47 @@ function OptimizerTable({ lang }: { lang: Lang }) {
               <thead><tr>{[TEXT.case, TEXT.variant, TEXT.gainShort].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
               <tbody>{own.map(({ id, v }) => <tr key={`${id}-${v}`}><th scope="row">{`${code[id]} ${title(id)}`}</th><td>{label(v)}</td>{cell(id, v)}</tr>)}</tbody>
             </table>
+            <div className="of-doc-scroll">
+              <table className="of-doc-table of-doc-table-data">
+                <caption>{TEXT.cutCaption[lang]}</caption>
+                <thead><tr><th scope="col">{TEXT.case[lang]}</th>{cut.map(v => <th scope="col" key={v}>{label(v)}</th>)}</tr></thead>
+                <tbody>{cases.map(id => <tr key={id}><th scope="row">{`${code[id]} ${title(id)}`}</th>{cut.map(v => cell(id, v))}</tr>)}</tbody>
+              </table>
+            </div>
+            <ScreenTable bench={bench} cases={cases} name={id => `${code[id]} ${title(id)}`} lang={lang} />
           </div>
         );
       }}
     </Loaded>
+  );
+}
+
+/** OP-11: the screen's measured cost or saving and the surrogate's disagreement, per case and over all cases. */
+function ScreenTable({ bench, cases, name, lang }: { bench: Benchmark; cases: string[]; name: (id: string) => string; lang: Lang }) {
+  const rows = cases.map(id => ({ id, recs: Object.values(bench.optimization[id]).filter(r => r.screened) }));
+  const all = rows.flatMap(r => r.recs);
+  const line = (recs: typeof all) => {
+    const screened = recs.reduce((a, r) => a + r.evaluations, 0), plain = recs.reduce((a, r) => a + (r.evaluations_without_screen ?? 0), 0);
+    const errors = recs.map(r => r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
+    return [
+      formatFixed(screened, lang, 0), formatFixed(plain, lang, 0), plain > 0 ? `${signed(100 * (screened / plain - 1), lang, 1)}%` : '-',
+      `${formatFixed(recs.reduce((a, r) => a + (r.proposed ?? 0), 0), lang, 0)} / ${formatFixed(recs.reduce((a, r) => a + (r.improved ?? 0), 0), lang, 0)}`,
+      errors.length ? formatFixed(errors.reduce((a, e) => a + e, 0) / errors.length, lang, 2) : '-',
+      `${recs.filter(r => r.same_optimum_without_screen).length} / ${recs.length}`,
+    ];
+  };
+  const heads = [TEXT.case, TEXT.evalsScreened, TEXT.evalsPlain, TEXT.evalsChange, TEXT.proposedShort, TEXT.surrogateError, TEXT.sameOptimum];
+  return (
+    <div className="of-doc-scroll">
+      <table className="of-doc-table of-doc-table-data">
+        <caption>{fill(TEXT.screenCaption[lang], { n: formatFixed(all.length, lang, 0) })}</caption>
+        <thead><tr>{heads.map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+        <tbody>
+          {rows.filter(r => r.recs.length).map(r => <tr key={r.id}><th scope="row">{name(r.id)}</th>{line(r.recs).map((v, k) => <td key={k}>{v}</td>)}</tr>)}
+          <tr><th scope="row">{TEXT.total[lang]}</th>{line(all).map((v, k) => <td key={k}><strong>{v}</strong></td>)}</tr>
+        </tbody>
+      </table>
+    </div>
   );
 }
 
@@ -564,10 +612,10 @@ const KINETICS: Topic = {
   id: 'kinetics',
   title: { en: 'Kinetic lumping', es: 'Agregación cinética' },
   paragraphs: [
-    { en: 'The five lumped kinetic models were fitted to the engine\'s virtual batch test of the rougher feed on all 66 baked variants with flotation, and every fit converged. Their lumping errors say how much a lumped model loses when it predicts the plant bank from a batch curve of this kind.',
-      es: 'Los cinco modelos cinéticos agrupados se ajustaron a la prueba batch virtual de la alimentación rougher del motor en las 66 variantes horneadas con flotación, y cada ajuste convergió. Sus errores de agregación dicen cuánto pierde un modelo agrupado al predecir el banco de planta desde una curva batch de este tipo.' },
-    { en: 'The first-order model loses most: 5.1 points of recovery on average and 8.2 at worst, because it caps the bank at the plateau of the batch test while the bank\'s residence (about 20 to 30 minutes at the nominal states) reaches past the test\'s 16 minutes; it underestimates the bank at every nominal state. The gamma and Kelsall forms, which carry a distribution of rates, lose 0.75 and 0.85 points on average and 1.9 at worst; the Klimpel form loses 1.7 points on average and the stretched exponential 2.9.',
-      es: 'El modelo de primer orden pierde más: 5,1 puntos de recuperación en promedio y 8,2 en el peor caso, porque limita el banco a la meseta de la prueba batch mientras la residencia del banco (unos 20 a 30 minutos en los estados nominales) llega más allá de los 16 minutos de la prueba; subestima el banco en cada estado nominal. Las formas gamma y de Kelsall, que llevan una distribución de tasas, pierden 0,75 y 0,85 puntos en promedio y 1,9 en el peor caso; la forma de Klimpel pierde 1,7 puntos en promedio y la exponencial estirada 2,9.' },
+    { en: 'The five lumped kinetic models were fitted to the engine\'s virtual batch test of the rougher feed on all 88 baked variants with flotation, and every fit converged. Their lumping errors say how much a lumped model loses when it predicts the plant bank from a batch curve of this kind.',
+      es: 'Los cinco modelos cinéticos agrupados se ajustaron a la prueba batch virtual de la alimentación rougher del motor en las 88 variantes horneadas con flotación, y cada ajuste convergió. Sus errores de agregación dicen cuánto pierde un modelo agrupado al predecir el banco de planta desde una curva batch de este tipo.' },
+    { en: 'The first-order model loses most: 5.0 points of recovery on average and 8.2 at worst, because it caps the bank at the plateau of the batch test while the bank\'s residence (about 20 to 30 minutes at the nominal states) reaches past the test\'s 16 minutes; it underestimates the bank at every nominal state. The gamma and Kelsall forms, which carry a distribution of rates, lose 0.73 and 0.80 points on average and 1.9 at worst; the Klimpel form loses 1.8 points on average and the stretched exponential 2.8.',
+      es: 'El modelo de primer orden pierde más: 5,0 puntos de recuperación en promedio y 8,2 en el peor caso, porque limita el banco a la meseta de la prueba batch mientras la residencia del banco (unos 20 a 30 minutos en los estados nominales) llega más allá de los 16 minutos de la prueba; subestima el banco en cada estado nominal. Las formas gamma y de Kelsall, que llevan una distribución de tasas, pierden 0,73 y 0,80 puntos en promedio y 1,9 en el peor caso; la forma de Klimpel pierde 1,8 puntos en promedio y la exponencial estirada 2,8.' },
   ],
   equations: [
     { tex: r`\bar\varepsilon = \frac{1}{n}\sum_{v} \left|\hat R_N^{(v)} - R_N^{(v)}\right|`, caption: { en: 'The mean absolute lumping error of a model over the n baked variants with flotation.', es: 'El error de agregación absoluto medio de un modelo sobre las n variantes horneadas con flotación.' } },
@@ -575,7 +623,7 @@ const KINETICS: Topic = {
   limits: [
     { en: 'The batch test is virtual, without the froth or entrainment effects a laboratory test includes; the errors describe this engine\'s rate distributions, not any particular ore.', es: 'La prueba batch es virtual, sin los efectos de espuma ni de arrastre que incluye una prueba de laboratorio; los errores describen las distribuciones de tasas de este motor, no un mineral particular.' },
   ],
-  figure: { caption: { en: 'Mean and worst absolute lumping error of each model over the 66 baked variants with flotation.', es: 'Error de agregación absoluto medio y peor de cada modelo sobre las 66 variantes horneadas con flotación.' }, render: lang => <KineticsChart lang={lang} /> },
+  figure: { caption: { en: 'Mean and worst absolute lumping error of each model over the 88 baked variants with flotation.', es: 'Error de agregación absoluto medio y peor de cada modelo sobre las 88 variantes horneadas con flotación.' }, render: lang => <KineticsChart lang={lang} /> },
   data: lang => <KineticsTable lang={lang} />,
   refs: ['marquardt1963', 'polat2000', 'bu2017', 'vinnett2025'],
 };
@@ -584,30 +632,36 @@ const OPTIMIZATION: Topic = {
   id: 'optimization',
   title: { en: 'Constrained optimization', es: 'Optimización con restricciones' },
   paragraphs: [
-    { en: 'The optimizer found a point within every constraint for 70 of the 72 variants. The two it could not are the magnetite case\'s harder ore and higher throughput: with the grind as its only decision and the mill already at installed power, no grind target meets every constraint.',
-      es: 'El optimizador encontró un punto dentro de todas las restricciones en 70 de las 72 variantes. Las dos que no son las de mineral más duro y más tonelaje del caso de magnetita: con la molienda como única decisión y el molino ya a potencia instalada, ningún objetivo de molienda cumple todas las restricciones.' },
-    { en: 'Twenty-eight of the 72 variants break at least one constraint as they are run, which is the point of the variants: they push the plant. The gain of the optimum over the variant\'s own state ranges from -0.8% (the magnetite case with a coarser grind) to +18.2% (oxide copper with a coarser grind). The one loss comes from a state that broke a constraint: meeting the constraints is worth recovering less metal. At the nominal states the gains run from 0.3% (magnetite) to 7.6% (oxide copper).',
-      es: 'Veintiocho de las 72 variantes violan al menos una restricción tal como se ejecutan, que es el sentido de las variantes: exigen a la planta. La ganancia del óptimo sobre el estado propio de la variante va de -0,8% (el caso de magnetita con molienda más gruesa) a +18,2% (cobre oxidado con molienda más gruesa). La única pérdida viene de un estado que violaba una restricción: cumplir las restricciones vale recuperar menos metal. En los estados nominales las ganancias van de 0,3% (magnetita) a 7,6% (cobre oxidado).' },
-    { en: 'Installed power is the constraint that shapes the answer most often, active at 58 of the optima, then the grade specification at 17 and the water capacity at 6: the objective is recovered metal alone, so the optimizer spends every kilowatt the mill has.',
-      es: 'La potencia instalada es la restricción que más a menudo da forma a la respuesta, activa en 58 de los óptimos, luego la especificación de ley en 17 y la capacidad de agua en 6: el objetivo es solo el metal recuperado, así que el optimizador gasta cada kilowatt que tiene el molino.' },
+    { en: 'The pattern search, from six starts with all the weight on recovered metal, found a point within every constraint for 94 of the 96 variants. The two it could not are the magnetite case\'s harder ore and higher throughput: with the grind as its only decision and the mill already at installed power, no grind target meets every constraint.',
+      es: 'La búsqueda por patrones, desde seis inicios y con todo el peso en el metal recuperado, encontró un punto dentro de todas las restricciones en 94 de las 96 variantes. Las dos que no son las de mineral más duro y más tonelaje del caso de magnetita: con la molienda como única decisión y el molino ya a potencia instalada, ningún objetivo de molienda cumple todas las restricciones.' },
+    { en: 'Twenty-eight of the 72 target-mode variants break at least one constraint as they are run, which is the point of the variants: they push the plant. The gain of the optimum over the variant\'s own state ranges from -0.8% (the magnetite case with a coarser grind) to +18.1% (oxide copper with a coarser grind). The one loss comes from a state that broke a constraint: meeting the constraints is worth recovering less metal. At the nominal states the gains run from 0.3% (magnetite) to 7.6% (oxide copper). The 24 cut-mode variants meet every constraint as run, and with the classifier cut as the grind decision their optima gain 0.3% (magnetite) to 5.1% (zinc).',
+      es: 'Veintiocho de las 72 variantes en modo objetivo violan al menos una restricción tal como se ejecutan, que es el sentido de las variantes: exigen a la planta. La ganancia del óptimo sobre el estado propio de la variante va de -0,8% (el caso de magnetita con molienda más gruesa) a +18,1% (cobre oxidado con molienda más gruesa). La única pérdida viene de un estado que violaba una restricción: cumplir las restricciones vale recuperar menos metal. En los estados nominales las ganancias van de 0,3% (magnetita) a 7,6% (cobre oxidado). Las 24 variantes en modo de corte cumplen cada restricción tal como se ejecutan, y con el corte del clasificador como decisión de molienda sus óptimos ganan de 0,3% (magnetita) a 5,1% (zinc).' },
+    { en: 'Installed power is the constraint that shapes the answer most often, active at 81 of the 94 optima and at all 24 in the cut mode, then the grade specification at 23 and the water capacity at 10: with the objective on recovered metal alone, the optimizer spends every kilowatt the mill has.',
+      es: 'La potencia instalada es la restricción que más a menudo da forma a la respuesta, activa en 81 de los 94 óptimos y en los 24 del modo de corte, luego la especificación de ley en 23 y la capacidad de agua en 10: con el objetivo solo en el metal recuperado, el optimizador gasta cada kilowatt que tiene el molino.' },
+    { en: 'The screen did not save engine evaluations. Over the 72 screened variants the search spent 23,535 engine evaluations, against 21,692 for the same starts and weight without the screen: 8.5% more, with fewer evaluations in 9 variants, more in 54 and the same in 9. Of the 73,897 candidates it screened, the guard rejected 3,962 and the interval 44,511; the engine evaluated the best passing candidate 4,838 times, and 828 of those improved the incumbent. Where it proposed, the surrogate\'s recovery was 0.64 points from the engine\'s on average. Without the screen the search reaches the same optimum in 63 of the 72 variants, and the other nine within 0.02% of the recovered metal, at most five of the finest mesh steps away in any decision. The cut-mode searches run unscreened, because the learned lane describes the target mode.',
+      es: 'El filtro no ahorró evaluaciones del motor. Sobre las 72 variantes filtradas la búsqueda gastó 23.535 evaluaciones del motor, frente a 21.692 para los mismos inicios y peso sin el filtro: 8,5% más, con menos evaluaciones en 9 variantes, más en 54 y las mismas en 9. De los 73.897 candidatos que filtró, el guardián rechazó 3.962 y el intervalo 44.511; el motor evaluó el mejor candidato que pasó 4.838 veces, y 828 de ellos mejoraron al incumbente. Donde propuso, la recuperación del sustituto quedó a 0,64 puntos de la del motor en promedio. Sin el filtro la búsqueda llega al mismo óptimo en 63 de las 72 variantes, y las otras nueve quedan dentro de 0,02% del metal recuperado, a lo más a cinco de los pasos de malla más finos en cualquier decisión. Las búsquedas en modo de corte corren sin filtro, porque la vía aprendida describe el modo objetivo.' },
+    { en: 'Moving weight from metal to energy trades one for the other. At the nominal states, with a quarter of the weight on metal, the optimum spends 31 to 46% less energy per tonne and recovers 10 to 35% less metal than the metal-only optimum; the magnetite optimum does not move, because its grade specification already binds there and a coarser grind would break it. Along every path neither the energy nor the metal rises as the weight falls, beyond 0.004%, the mesh\'s resolution.',
+      es: 'Mover peso del metal a la energía cambia uno por otra. En los estados nominales, con un cuarto del peso en el metal, el óptimo gasta de 31 a 46% menos energía por tonelada y recupera de 10 a 35% menos metal que el óptimo solo de metal; el óptimo de la magnetita no se mueve, porque su especificación de ley ya está activa allí y una molienda más gruesa la violaría. A lo largo de cada trayectoria ni la energía ni el metal suben al bajar el peso, más allá de 0,004%, la resolución de la malla.' },
   ],
   equations: [
     { tex: r`g = \frac{\dot m(u^{*}) - \dot m(u_v)}{\dot m(u_v)}`, caption: { en: 'The gain of the optimum u* over the variant\'s own point u_v in recovered metal.', es: 'La ganancia del óptimo u* sobre el punto propio de la variante u_v en metal recuperado.' } },
+    { tex: r`\Delta N = \frac{N_{s} - N_{0}}{N_{0}}`, caption: { en: 'What the screen costs or saves: the engine evaluations of the screened search N_s against those of the same starts and weight without it, N_0.', es: 'Lo que cuesta o ahorra el filtro: las evaluaciones del motor de la búsqueda filtrada N_s frente a las de los mismos inicios y peso sin él, N_0.' } },
   ],
   limits: [
-    { en: 'A steady-state optimum of an authored plant with recovered metal as the only objective: no reagent cost, payability or value of energy, and no froth-stability penalty on air.', es: 'Un óptimo de estado estacionario de una planta de autor con el metal recuperado como único objetivo: sin costo de reactivos, condiciones comerciales ni valor de la energía, y sin penalización de estabilidad de espuma al aire.' },
+    { en: 'A steady-state optimum of an authored plant, weighing recovered metal against energy per tonne: no reagent cost, payability or value of energy beyond the declared weight, and no froth-stability penalty on air.', es: 'Un óptimo de estado estacionario de una planta de autor, que pondera el metal recuperado contra la energía por tonelada: sin costo de reactivos, condiciones comerciales ni valor de la energía más allá del peso declarado, y sin penalización de estabilidad de espuma al aire.' },
+    { en: 'A pattern search converges to a local optimum on its mesh; the six starts are the safeguard against a poor one, and the unscreened run of every screened variant is a second search from the same starts.', es: 'Una búsqueda por patrones converge a un óptimo local en su malla; los seis inicios son la salvaguarda contra uno pobre, y la corrida sin filtro de cada variante filtrada es una segunda búsqueda desde los mismos inicios.' },
   ],
   figure: { caption: { en: 'The optimizer\'s gain over every variant of every case, by whether the variant\'s own state met every constraint.', es: 'La ganancia del optimizador sobre cada variante de cada caso, según si el estado propio de la variante cumplía cada restricción.' }, render: lang => <OptimizerChart lang={lang} /> },
   data: lang => <OptimizerTable lang={lang} />,
-  refs: ['powell1994', 'prima2023', 'scipy2020'],
+  refs: ['torczon1997', 'audet2006', 'audet2009', 'booker1999'],
 };
 
 const UNCERTAINTY: Topic = {
   id: 'uncertainty',
   title: { en: 'Uncertainty and sensitivity', es: 'Incertidumbre y sensibilidad' },
   paragraphs: [
-    { en: 'With the operating point held at nominal, 128 draws of the work index, head grade, liberation size and floatability spread recovery between P05 and P95 by 3.7 points in the free-milling gold and up to 9.1 points in the zinc case. The chance of meeting every constraint at once ranges from 53% (magnetite, whose grade meets its specification in 65% of the draws and whose mill stays within its installed power in 79%) to 82% (the soft porphyry and the free-milling gold).',
-      es: 'Con el punto de operación fijo en el nominal, 128 sorteos del índice de trabajo, la ley de cabeza, el tamaño de liberación y la flotabilidad separan la recuperación entre P05 y P95 en 3,7 puntos en el oro de molienda libre y hasta 9,1 puntos en el caso de zinc. La probabilidad de cumplir todas las restricciones a la vez va de 53% (magnetita, cuya ley cumple su especificación en 65% de los sorteos y cuyo molino queda dentro de su potencia instalada en 79%) a 82% (el pórfido blando y el oro de molienda libre).' },
+    { en: 'With the operating point held at nominal, 128 draws of the work index, head grade, liberation size and floatability spread recovery between P05 and P95 by 2.9 points in the free-milling gold and up to 7.7 points in the zinc case. The chance of meeting every constraint at once ranges from 52% (magnetite, whose grade meets its specification in 66% of the draws and whose mill stays within its installed power in 79%) to 83% (the phosphate case).',
+      es: 'Con el punto de operación fijo en el nominal, 128 sorteos del índice de trabajo, la ley de cabeza, el tamaño de liberación y la flotabilidad separan la recuperación entre P05 y P95 en 2,9 puntos en el oro de molienda libre y hasta 7,7 puntos en el caso de zinc. La probabilidad de cumplir todas las restricciones a la vez va de 52% (magnetita, cuya ley cumple su especificación en 66% de los sorteos y cuyo molino queda dentro de su potencia instalada en 79%) a 83% (el caso de fosfato).' },
     { en: 'The Sobol indices at the nominal states name the input behind each output. Floatability drives recovery in ten cases (the work index in the hard porphyry, the head grade in the magnetite); liberation size drives concentrate grade in eight (the head grade in the two gold cases, the nickel and the oxide copper); the work index drives grinding energy and the head grade drives recovered metal in all twelve.',
       es: 'Los índices de Sobol en los estados nominales nombran la entrada detrás de cada salida. La flotabilidad domina la recuperación en diez casos (el índice de trabajo en el pórfido duro, la ley de cabeza en la magnetita); el tamaño de liberación domina la ley del concentrado en ocho (la ley de cabeza en los dos casos de oro, en el níquel y en el cobre oxidado); el índice de trabajo domina la energía de molienda y la ley de cabeza el metal recuperado en los doce.' },
   ],
@@ -616,6 +670,7 @@ const UNCERTAINTY: Topic = {
   ],
   limits: [
     { en: 'The spreads are authored and the inputs independent by construction; real ore properties co-vary, and the indices are only as meaningful as that assumption.', es: 'Los rangos son de autor y las entradas independientes por construcción; las propiedades reales del mineral covarían, y los índices valen lo que ese supuesto.' },
+    { en: 'The workbench re-runs the uncertainty record at another seed or sample count, in the browser, with the same generator as the bake; the Sobol indices are baked only, at the nominal states, and are not re-run live.', es: 'El laboratorio vuelve a correr el registro de incertidumbre con otra semilla o número de muestras, en el navegador, con el mismo generador del horneado; los índices de Sobol solo se hornean, en los estados nominales, y no se vuelven a correr en vivo.' },
   ],
   figure: { caption: { en: 'The recovery quantiles of every case under the ore\'s uncertainty, at its nominal operating point.', es: 'Los cuantiles de recuperación de cada caso bajo la incertidumbre del mineral, en su punto nominal de operación.' }, render: lang => <UncertaintyChart lang={lang} /> },
   data: lang => <UncertaintyTable lang={lang} />,

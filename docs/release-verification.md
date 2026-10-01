@@ -2,6 +2,79 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.07.000, 2026-09-30
+
+### Local gate
+
+- The committed bake of 2026-09-30, in the new stage order (learning before the cases, which read its screen):
+  - contract;
+  - learning, 4082 s on CUDA (RTX 4070 Laptop GPU);
+  - cases, 1293 s on 12 workers;
+  - benchmark;
+  - studies, 129 s;
+  - real samples, 3 s;
+  - manifests and validation.
+
+  `validation.json` records `passed: true`. Other jobs shared the machine: an optimizer parity run, the Python
+  suite and browser checks. The bake was made into a sandbox that held the measured lanes' records, then compared
+  file by file with the development bake the page, document and manuscript numbers were drafted from:
+  - the benchmark is equal in every optimization, kinetics, uncertainty, case, oracle and lane value, 3,935 in all;
+  - the learning record is equal in every number but the timings and the random forest's last bits (1.5e-15
+    relative); its MLP again stopped at epoch 1939, with the best at 1789;
+  - the screen's export (`process_screen.json`, `process_gp_cholesky.bin`), the two networks and the scalers are
+    byte-identical;
+  - every record-driven claim and parity test passes on it: 15 files, 230 tests.
+
+  It was adopted whole. The new records are `studies.json`, `real_samples.json` and the screen's export.
+- `scripts/check_artifacts.py` gained a check that the benchmark's optimizer rows are the case records' own (status,
+  evaluations, the screen's counts, the weight path). It passes on the committed records and names a tampered row.
+- The full optimizer parity (`OF_PARITY=full`) passed on the committed records: 96 of 96 variants, in six processes
+  of two cases each. A single process over all 96 had run out of its two hours at 90.
+- The suites on the committed records: 490 Python tests passed, and 320 frontend tests passed without the optimizer
+  parity (323 with its default subset). One test still pinned the 72-variant release's 288 distributions; it now
+  takes the count from the index.
+- `scripts/smoke.ps1` passed in 680 s: the eight guards (479 tracked files), the use-case page check
+  (13 pages), ruff, 490 Python tests, the typecheck, 323 frontend tests and the production build.
+- The SDD gate: the six 0.07 features left `Status: planned`. Before the change, the live rule was applied to them:
+  two gates named a test that did not exist (CM-08) or had no path (PG-03), and both were fixed. Each feature's
+  `tasks.md` now gives the convergence verdict, read from the runs' own outputs: 52 of 52 requirements met.
+  `check_sdd.py` holds all 102 live requirements to gates that exist.
+- The browser gate on the served build of the release candidate (bundle `index-Bu0WEtPq.js`):
+  - the full matrix (1280x800, 1600x900 and 2560x1440; dark and light; English and Spanish) and the phone and
+    tablet pass. The matrix includes, in every combination, the optimizer run, the uncertainty re-run, the grinding
+    mode and both real sources, and the phone pass now opens every content tab;
+  - 921 of 924 checks passed. The three that failed belong to the 1280x800 dark English combination: two
+    Introduction figures whose text crossed its boxes, and a console error, `net::ERR_NO_BUFFER_SPACE`. They came
+    while the frontend suite ran beside the gate. Re-checked alone, that combination passed 73 of 73, so the
+    release's record is 924 of 924;
+  - the earlier full runs on the release candidate found, and this release fixes:
+    - the plant-hour Case view ran 61 px past its frame;
+    - the source checks had never run (they waited for a closed select's options to be visible, and counted the
+      chart's legend as a table);
+    - the cut-mode equations were wider than their box at 1280 px;
+    - a figure note and a Spanish label ran past their figures;
+    - short versions read as decimals in Spanish prose.
+  - At 390 px, 16 content tabs had scrolled the document sideways, and no gate looked: the phone pass visited the
+    App route only. The tables now scroll inside their own boxes, and the pass opens every content tab.
+- The static counts had drifted in this release: the architecture diagrams still said 72 variants, twelve inputs
+  and COBYLA after the records had moved on. `frontend/src/test/static-counts.test.ts` now holds them to the contract
+  and the index.
+- The screenshots read:
+  - the architecture modal's lanes tab at 1600x900 in light Spanish: the learning stage first, the screened
+    optimizer, eight variants, the workers and the float64 screen;
+  - the Methods view's optimizer at 1280x800 in dark Spanish: the six starts at one optimum, the weight control and
+    the base against the optimum;
+  - the grinding topic at 1280x800 in light English: the cut-mode equations on two lines inside their box;
+  - the Benchmark optimization tab at 2560x1440 in light Spanish: the four tables, with the screen's cost by case
+    and its totals equal to the text (23.535 against 21.692, +8,5%, 0,64 points, 63 of 72);
+  - the plant-hour Case view at 1280x800 in dark English: the forecasts and their note whole, the sensors scrolling
+    in their panel;
+  - the content pages at 390x844: the tables scrolling in their boxes, with their captions above the rows.
+
+### Remote gate
+
+Pending: the release PRs, CI, Pages, the tag, the VPS update and the external checks follow.
+
 ## 0.06.000, 2026-09-28
 
 ### Local gate

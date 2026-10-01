@@ -139,9 +139,12 @@ def test_the_method_records_quote_the_benchmark():
     k = bench["kinetics"]
     mean = {m: k[m]["mean_abs_lumping_error_pct"] for m in k}
     assert sorted(mean, key=mean.get) == ["gamma", "kelsall", "klimpel", "stretched_exponential", "first_order"]
-    assert {k[m]["fits"] for m in k} == {66}
+    assert {k[m]["fits"] for m in k} == {88}
     optimization = [(case, variant, r) for case, variants in bench["optimization"].items() for variant, r in variants.items()]
     infeasible = sorted(f"{c}:{v}" for c, v, r in optimization if r["status"] != "optimal")
+    screened = [r for _, _, r in optimization if r["screened"]]
+    with_screen, without = sum(r["evaluations"] for r in screened), sum(r["evaluations_without_screen"] for r in screened)
+    errors = [r["surrogate_abs_error_pp"] for r in screened if r["surrogate_abs_error_pp"] is not None]
     assert infeasible == ["iron_magnetite_fine:harder_ore", "iron_magnetite_fine:higher_throughput"]
     dominant = {t: Counter(u["dominant_input"][t] for u in bench["uncertainty"].values())
                 for t in ("recovery_pct", "concentrate_grade", "specific_energy_grinding_kwh_t", "recovered_primary_tph")}
@@ -154,6 +157,9 @@ def test_the_method_records_quote_the_benchmark():
         f" {mean['kelsall']:.2f} for Kelsall, {mean['klimpel']:.2f} for Klimpel, {mean['stretched_exponential']:.2f} for the stretched exponential"
         f" and {mean['first_order']:.2f} for first order",
         f"for {len(optimization) - len(infeasible)} of the {len(optimization)} variants",
+        f"over the {len(screened)} screened variants it cost {100 * (with_screen / without - 1):.1f}% more engine evaluations",
+        f"the surrogate's recovery was {sum(errors) / len(errors):.2f} points from the engine's on average",
+        f"reaches the same optimum in {sum(1 for r in screened if r['same_optimum_without_screen'])} of the {len(screened)}",
         f"floatability drives recovery in {words[dominant['recovery_pct']['floatability']]} cases",
         f"liberation size drives concentrate grade in {words[grade['liberation_size']]} and the head grade in the other {words[grade['head_grade']]}",
     ])
@@ -194,5 +200,32 @@ def test_the_measured_lanes_quote_their_records():
     missing = _missing([
         f"RMSE ranges from {min(rmse['hole']):.2f} to {max(rmse['hole']):.2f} points (whole holes) and {min(rmse['zone']):.2f} to {max(rmse['zone']):.2f} (zones)",
         f"({ridge['mean_pp']:.2f} points, 95% interval {ridge['interval_95_pp'][0]:.2f} to {ridge['interval_95_pp'][1]:.2f})",
+    ])
+    assert not missing, missing
+
+
+def test_the_engine_on_the_samples_and_the_plant_hours_quote_their_records():
+    samples = _read(DERIVED / "real_samples.json")
+    s = samples["summary"]
+    case = _read(DERIVED / "cases" / "copper_porphyry_soft.json")
+    gap = s["engine_minus_measured_pp"]
+    lane = [v["rmse"] for v in s["geomet_lane_minus_measured_pp"].values()]
+    assert s["samples"] == 52 and s["power_limited"] == s["samples"]
+    assert gap["max"] < 0  # every sample below its test
+    iron = _read(DERIVED / "source" / "iron_plant_soft_sensor.json")
+    mae = {m: v["mae_pct_points"] for m, v in iron["pooled_scores"].items()}
+    sensors = ("ridge", "random_forest", "hist_gradient_boosting")
+    best = min(sensors, key=mae.get)
+    assert best == "ridge" and min(mae, key=mae.get) == "previous_lab"
+    missing = _missing([
+        f"in the hole ({s['work_index_assignment']['nearest_in_hole']} samples) or the deposit median ({s['work_index_assignment']['deposit_median']})",
+        f"spans {s['work_index_kwh_t']['min']:.1f} to {s['work_index_kwh_t']['max']:.1f} kWh/t against the case's {case['variants'][0]['point']['work_index_kwh_t']:.1f}",
+        f"float at declared ratios to chalcopyrite ({samples['floatability_ratios']['bornite']:g}, and chalcocite at {samples['floatability_ratios']['chalcocite_to_bornite']:g} times bornite)",
+        f"falls short of the locked-cycle test by {-gap['mean']:.1f} points on average (RMSE {gap['rmse']:.1f} points; {-gap['max']:.1f} to {-gap['min']:.1f} points below)",
+        f"against an RMSE of {min(lane):.2f} to {max(lane):.2f} points for the lane's models",
+        f"CC0; {iron['quality']['source_rows']:,} rows)",
+        f"Dropping the {iron['quality']['changing_lab_hours_excluded']} hours whose silica label was interpolated leaves {iron['protocol']['pair_rows']:,} pairs",
+        f"with a mean absolute error of {mae['previous_lab']:.3f} points",
+        f"ridge, is {mae['train_mean'] - mae['ridge']:.3f} points below the training mean's {mae['train_mean']:.3f}",
     ])
     assert not missing, missing

@@ -61,9 +61,11 @@ html, body, #root { height: auto; min-height: 100%; }
 .of-doc-state { padding: 0.8rem 1rem; border: 1px dashed var(--color-border); border-radius: 8px; color: var(--color-fg-subtle); }
 
 /* an interactive panel on a content page: a control, a sized chart, its cursor reading, then its table */
-.of-doc-panel { display: grid; gap: 0.6rem; min-width: 0; }
-.of-doc-control { display: inline-flex; align-items: center; gap: 0.6rem; font-size: 0.86rem; color: var(--color-fg-subtle); }
-.of-doc-control select { font: inherit; color: var(--color-fg); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; }
+/* one column that its items cannot widen: with the implicit auto column a table of unbreakable cells set the
+ * column's width, and every chart beside it followed, past a phone's edge */
+.of-doc-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem; min-width: 0; }
+.of-doc-control { display: inline-flex; align-items: center; gap: 0.6rem; max-width: 100%; font-size: 0.86rem; color: var(--color-fg-subtle); }
+.of-doc-control select { min-width: 0; max-width: 100%; font: inherit; color: var(--color-fg); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; }
 .of-doc-chart { height: 360px; min-width: 0; }
 .of-doc-chart .of-plot { height: 100%; }
 .of-doc-reading { margin: 0; min-height: 1.4em; font-size: 0.84rem; color: var(--color-fg-subtle); font-variant-numeric: tabular-nums; }
@@ -84,3 +86,11 @@ html, body, #root { height: auto; min-height: 100%; }
 .of-doc-run { justify-self: start; font: inherit; font-weight: 600; padding: 0.45rem 0.9rem; border-radius: 8px; border: 1px solid var(--color-accent); background: var(--color-accent-soft); color: var(--color-accent); cursor: pointer; }
 .of-doc-run:disabled { opacity: 0.6; cursor: progress; }
 @media (max-width: 1000px) { .of-doc-charts-2, .of-doc-inference { grid-template-columns: minmax(0, 1fr); } }
+/* on a phone or a tablet a wide table scrolls inside its own box, never the page (ADR-0071): every content table,
+ * the topic tables included, which have no scroll wrapper of their own */
+@media (max-width: 860px) {
+  .of-doc-table { display: block; max-width: 100%; overflow-x: auto; }
+  /* the caption above the rows at the box's width, held at its left edge while the rows scroll: laid out at the
+   * table's width it ran past the box and was cut */
+  .of-doc-table caption { display: block; position: sticky; left: 0; padding: 0 0 0.5rem; }
+}

@@ -37,36 +37,36 @@
   <rect class="band" x="12" y="60" width="276" height="430" rx="10"/>
   <text class="bt l-en" x="24" y="77">OFFLINE BAKE (WORKSTATION)</text>
   <text class="bt l-es" x="24" y="77">HORNEADO (ESTACIÓN DE TRABAJO)</text>
-  <rect class="bx bx-hi" x="24" y="88" width="252" height="90" rx="8"/>
-  <text class="ttl l-en" x="36" y="107">Case stage</text>
-  <text class="ttl l-es" x="36" y="107">Etapa de casos</text>
-  <text class="it l-en" x="36" y="123">12 workers, every record seeded</text>
-  <text class="it l-es" x="36" y="123">12 procesos, todo sembrado</text>
-  <text class="it l-en" x="36" y="137">traces, optimizer, uncertainty</text>
-  <text class="it l-es" x="36" y="137">trazas, optimizador, incertidumbre</text>
-  <text class="it l-en" x="36" y="151">Sobol at the nominal state</text>
-  <text class="it l-es" x="36" y="151">Sobol en el estado nominal</text>
-  <text class="cd mono l-neutral" x="36" y="165">stages/cases.py</text>
-  <rect class="bx" x="24" y="188" width="252" height="76" rx="8"/>
-  <text class="ttl l-en" x="36" y="207">Learning stage</text>
-  <text class="ttl l-es" x="36" y="207">Etapa de aprendizaje</text>
-  <text class="it l-en" x="36" y="223">3072 states, CUDA when present</text>
-  <text class="it l-es" x="36" y="223">3072 estados, CUDA si existe</text>
-  <text class="it l-en" x="36" y="237">5 models, guard, ONNX export</text>
-  <text class="it l-es" x="36" y="237">5 modelos, guardia, ONNX</text>
-  <text class="cd mono l-neutral" x="36" y="251">methods/learning.py</text>
+  <rect class="bx" x="24" y="88" width="252" height="76" rx="8"/>
+  <text class="ttl l-en" x="36" y="107">Learning stage, first</text>
+  <text class="ttl l-es" x="36" y="107">Etapa de aprendizaje, primero</text>
+  <text class="it l-en" x="36" y="123">3072 states, CUDA when present</text>
+  <text class="it l-es" x="36" y="123">3072 estados, CUDA si existe</text>
+  <text class="it l-en" x="36" y="137">5 models, guard, ONNX, the screen</text>
+  <text class="it l-es" x="36" y="137">5 modelos, guardia, ONNX, el filtro</text>
+  <text class="cd mono l-neutral" x="36" y="151">methods/learning.py · screen.py</text>
+  <rect class="bx bx-hi" x="24" y="174" width="252" height="90" rx="8"/>
+  <text class="ttl l-en" x="36" y="193">Case stage</text>
+  <text class="ttl l-es" x="36" y="193">Etapa de casos</text>
+  <text class="it l-en" x="36" y="209">12 workers, every record seeded</text>
+  <text class="it l-es" x="36" y="209">12 procesos, todo sembrado</text>
+  <text class="it l-en" x="36" y="223">traces, screened optimizer, weights</text>
+  <text class="it l-es" x="36" y="223">trazas, optimizador filtrado, pesos</text>
+  <text class="it l-en" x="36" y="237">uncertainty; Sobol at the nominal</text>
+  <text class="it l-es" x="36" y="237">incertidumbre; Sobol en el nominal</text>
+  <text class="cd mono l-neutral" x="36" y="251">stages/cases.py</text>
   <rect class="bx" x="24" y="274" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="36" y="293">Benchmark and oracles</text>
-  <text class="ttl l-es" x="36" y="293">Benchmark y oráculos</text>
-  <text class="it l-en" x="36" y="309">published examples re-solved</text>
-  <text class="it l-es" x="36" y="309">ejemplos publicados resueltos</text>
-  <text class="cd mono l-neutral" x="36" y="323">stages/benchmark.py · oracles.py</text>
+  <text class="ttl l-en" x="36" y="293">Benchmark and studies</text>
+  <text class="ttl l-es" x="36" y="293">Benchmark y estudios</text>
+  <text class="it l-en" x="36" y="309">oracles, ablations, seed study</text>
+  <text class="it l-es" x="36" y="309">oráculos, ablaciones, semillas</text>
+  <text class="cd mono l-neutral" x="36" y="323">stages/benchmark.py · studies.py</text>
   <rect class="bx" x="24" y="346" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="36" y="365">Measured lanes</text>
-  <text class="ttl l-es" x="36" y="365">Vías medidas</text>
-  <text class="it l-en" x="36" y="381">GeoMet tests, HZDR particles</text>
-  <text class="it l-es" x="36" y="381">ensayos GeoMet, partículas HZDR</text>
-  <text class="cd mono l-neutral" x="36" y="395">run_geomet.py · run_particles.py</text>
+  <text class="ttl l-en" x="36" y="365">Measured lanes and samples</text>
+  <text class="ttl l-es" x="36" y="365">Vías medidas y muestras</text>
+  <text class="it l-en" x="36" y="381">GeoMet, HZDR, the iron plant</text>
+  <text class="it l-es" x="36" y="381">GeoMet, HZDR, la planta de hierro</text>
+  <text class="cd mono l-neutral" x="36" y="395">stages/real_samples.py · run_*.py</text>
   <rect class="bx bx-warn" x="24" y="418" width="252" height="62" rx="8"/>
   <text class="ttl l-en" x="36" y="437">Validation</text>
   <text class="ttl l-es" x="36" y="437">Validación</text>
@@ -79,14 +79,14 @@
   <rect class="bx" x="314" y="88" width="252" height="62" rx="8"/>
   <text class="ttl l-en" x="326" y="107">Operating contract</text>
   <text class="ttl l-es" x="326" y="107">Contrato de operación</text>
-  <text class="it l-en" x="326" y="123">bounds, rules, messages, digest</text>
-  <text class="it l-es" x="326" y="123">límites, reglas, mensajes, huella</text>
+  <text class="it l-en" x="326" y="123">bounds, rules, controls, digest</text>
+  <text class="it l-es" x="326" y="123">límites, reglas, controles, huella</text>
   <text class="cd mono l-neutral" x="326" y="137">contract/operating_contract.json</text>
   <rect class="bx bx-hi" x="314" y="160" width="252" height="62" rx="8"/>
   <text class="ttl l-en" x="326" y="179">12 case artifacts</text>
   <text class="ttl l-es" x="326" y="179">12 artefactos de caso</text>
-  <text class="it l-en" x="326" y="195">definition, 6 variants, records</text>
-  <text class="it l-es" x="326" y="195">definición, 6 variantes, registros</text>
+  <text class="it l-en" x="326" y="195">definition, 8 variants, records</text>
+  <text class="it l-es" x="326" y="195">definición, 8 variantes, registros</text>
   <text class="cd mono l-neutral" x="326" y="209">cases/&lt;case&gt;.json · case/v2</text>
   <rect class="bx" x="314" y="232" width="252" height="62" rx="8"/>
   <text class="ttl l-en" x="326" y="251">Manifests and index</text>
@@ -97,15 +97,15 @@
   <rect class="bx" x="314" y="304" width="252" height="62" rx="8"/>
   <text class="ttl l-en" x="326" y="323">Learning record, networks</text>
   <text class="ttl l-es" x="326" y="323">Registro de aprendizaje, redes</text>
-  <text class="it l-en" x="326" y="339">scalers and a reference block</text>
-  <text class="it l-es" x="326" y="339">escaladores y bloque de referencia</text>
-  <text class="cd mono l-neutral" x="326" y="353">learning.json · models/*.onnx</text>
+  <text class="it l-en" x="326" y="339">scalers, reference, the screen's GP</text>
+  <text class="it l-es" x="326" y="339">escaladores, referencia, GP del filtro</text>
+  <text class="cd mono l-neutral" x="326" y="353">learning.json · models/*</text>
   <rect class="bx" x="314" y="376" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="326" y="395">Benchmark, lanes, validation</text>
-  <text class="ttl l-es" x="326" y="395">Benchmark, vías, validación</text>
-  <text class="it l-en" x="326" y="411">oracles, records, timings</text>
-  <text class="it l-es" x="326" y="411">oráculos, registros, tiempos</text>
-  <text class="cd mono l-neutral" x="326" y="425">benchmark.json · source/</text>
+  <text class="ttl l-en" x="326" y="395">Benchmark, studies, samples</text>
+  <text class="ttl l-es" x="326" y="395">Benchmark, estudios, muestras</text>
+  <text class="it l-en" x="326" y="411">oracles, lanes, validation, timings</text>
+  <text class="it l-es" x="326" y="411">oráculos, vías, validación, tiempos</text>
+  <text class="cd mono l-neutral" x="326" y="425">benchmark · studies · real_samples</text>
   <rect class="band" x="592" y="60" width="276" height="430" rx="10"/>
   <text class="bt l-en" x="604" y="77">LIVE, IN THE BROWSER</text>
   <text class="bt l-es" x="604" y="77">EN VIVO, EN EL NAVEGADOR</text>
@@ -124,22 +124,22 @@
   <text class="it l-es" x="616" y="209">dentro de 1e-6 del de Python</text>
   <text class="cd mono l-neutral" x="616" y="223">engine/worker.ts · circuit.ts</text>
   <rect class="bx" x="604" y="246" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="616" y="265">Sweeps on request</text>
-  <text class="ttl l-es" x="616" y="265">Barridos a pedido</text>
-  <text class="it l-en" x="616" y="281">cell by cell, cancellable</text>
-  <text class="it l-es" x="616" y="281">celda a celda, cancelables</text>
-  <text class="cd mono l-neutral" x="616" y="295">engine/sweep.ts</text>
+  <text class="ttl l-en" x="616" y="265">Sweeps, optimizer, uncertainty</text>
+  <text class="ttl l-es" x="616" y="265">Barridos, optimizador, incertidumbre</text>
+  <text class="it l-en" x="616" y="281">on request, streamed, cancellable</text>
+  <text class="it l-es" x="616" y="281">a pedido, con avance, cancelables</text>
+  <text class="cd mono l-neutral" x="616" y="295">sweep.ts · optimize.ts · uncertainty.ts</text>
   <rect class="bx" x="604" y="318" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="616" y="337">Surrogate and guard</text>
-  <text class="ttl l-es" x="616" y="337">Sustituto y guardia</text>
-  <text class="it l-en" x="616" y="353">onnxruntime-web, one thread</text>
-  <text class="it l-es" x="616" y="353">onnxruntime-web, un hilo</text>
-  <text class="cd mono l-neutral" x="616" y="367">learning/surrogate.ts</text>
+  <text class="ttl l-en" x="616" y="337">Surrogate, guard and screen</text>
+  <text class="ttl l-es" x="616" y="337">Sustituto, guardia y filtro</text>
+  <text class="it l-en" x="616" y="353">onnxruntime-web; the screen in float64</text>
+  <text class="it l-es" x="616" y="353">onnxruntime-web; el filtro en float64</text>
+  <text class="cd mono l-neutral" x="616" y="367">learning/surrogate.ts · screen.ts</text>
   <rect class="bx" x="604" y="390" width="252" height="62" rx="8"/>
   <text class="ttl l-en" x="616" y="409">Views draw the trace</text>
   <text class="ttl l-es" x="616" y="409">Las vistas dibujan la traza</text>
-  <text class="it l-en" x="616" y="425">no engine formula in the UI</text>
-  <text class="it l-es" x="616" y="425">sin fórmulas del motor en la UI</text>
+  <text class="it l-en" x="616" y="425">a sample runs, a plant hour is shown</text>
+  <text class="it l-es" x="616" y="425">una muestra corre, una hora se muestra</text>
   <text class="cd mono l-neutral" x="616" y="439">workbench/views/*.tsx</text>
   <path class="flow" d="M 288 270 L 300 270" marker-end="url(#of-arch-2)"/>
   <text class="lbl l-en" x="294" y="508" text-anchor="middle">writes, then validates</text>

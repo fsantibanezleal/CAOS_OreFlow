@@ -48,7 +48,8 @@ def test_declaration_covers_the_operating_point():
         assert set(entry["inputs"]) == {s.name for s in INPUTS if case.plant.family in s.families}
         assert validate(document, case.id, {})["accepted"], case.id
         for name, bounds in entry["inputs"].items():
-            assert bounds["min"] <= entry["nominal"][name] <= bounds["max"]
+            # the classifier cut's nominal is its off value, the target mode (CM-01)
+            assert bounds["min"] <= entry["nominal"][name] <= bounds["max"] or entry["nominal"][name] == bounds.get("off")
 
 
 def test_validator_branches():
@@ -113,3 +114,78 @@ def test_engine_solves_the_envelope(case_id):
 
 def test_contract_file_location():
     assert CONTRACT_PATH.parts[-3:] == ("derived", "contract", "operating_contract.json")
+
+
+# UQ-07, OP-10: the method controls, and the one validator the browser repeats. frontend/src/test/contract.test.ts holds
+# the same probe table, so the two languages give the same verdict on every probe.
+CONTROL_PROBES = [
+    ("uncertainty_seed", 20260926, True, None), ("uncertainty_seed", 0, True, None),
+    ("uncertainty_seed", 9007199254740991, True, None), ("uncertainty_seed", 9007199254740992, False, "out_of_range"),
+    ("uncertainty_seed", -1, False, "out_of_range"), ("uncertainty_seed", 1.5, False, "not_integer"),
+    ("uncertainty_seed", "7", False, "not_a_number"), ("uncertainty_seed", float("nan"), False, "not_finite"),
+    ("uncertainty_samples", 128, True, None), ("uncertainty_samples", 32, True, None), ("uncertainty_samples", 512, True, None),
+    ("uncertainty_samples", 100, False, "off_step"), ("uncertainty_samples", 16, False, "out_of_range"),
+    ("uncertainty_samples", 544, False, "out_of_range"), ("uncertainty_bins", 10, False, "unknown_input"),
+    ("optimizer_weight_pct", 100, True, None), ("optimizer_weight_pct", 0, True, None), ("optimizer_weight_pct", 55, True, None),
+    ("optimizer_weight_pct", 52, False, "off_step"), ("optimizer_weight_pct", 105, False, "out_of_range"),
+    ("optimizer_weight_pct", -5, False, "out_of_range"), ("optimizer_weight_pct", 0.75, False, "not_integer"),
+]
+
+
+def test_uncertainty_controls_declared():
+    from pipeline.engine.constants import constant
+    from pipeline.io.contract import build_contract, validate_control
+
+    contract = build_contract()
+    controls = contract["controls"]
+    assert controls["uncertainty_seed"]["default"] == int(constant("uncertainty.seed"))
+    assert controls["uncertainty_samples"]["default"] == int(constant("uncertainty.samples"))
+    assert controls["optimizer_weight_pct"]["default"] == 100 * constant("optimization.weight_default")
+    assert [controls["optimizer_weight_pct"][k] for k in ("min", "max", "step")] == constant("optimization.weight_pct_bounds")
+    for spec in controls.values():
+        assert spec["label"]["en"] and spec["label"]["es"] and spec["help"]["en"] and spec["help"]["es"]
+        assert validate_control(contract, next(k for k, v in controls.items() if v is spec), spec["default"])["accepted"]
+    assert "off_step" in contract["messages"]
+    for name, value, accepted, code in CONTROL_PROBES:
+        verdict = validate_control(contract, name, value)
+        assert verdict["accepted"] == accepted, (name, value, verdict)
+        if code:
+            assert verdict["errors"][0]["code"] == code, (name, value, verdict)
+
+
+def test_weights_declared():
+    """OP-10: the optimizer's weight control is declared from its constants, and the validator holds its step."""
+    from pipeline.engine.constants import constant
+    from pipeline.io.contract import build_contract, validate_control
+
+    contract = build_contract()
+    spec = contract["controls"]["optimizer_weight_pct"]
+    assert spec["integer"] and spec["unit"] == "%"
+    assert [spec["min"], spec["max"], spec["step"]] == constant("optimization.weight_pct_bounds")
+    # every recorded weight is a value of the control, so the workbench can re-run each step of the path
+    for weight in [constant("optimization.weight_default"), *constant("optimization.weight_path")]:
+        assert validate_control(contract, "optimizer_weight_pct", round(100 * weight))["accepted"]
+        assert round(100 * weight) / 100 == weight
+
+
+def test_cut_mode_declared():
+    """CM-01: the classifier cut is declared for every case, bounded by factors of the cut the target mode solves at
+    the nominal state, with 0 (the nominal) as the target mode; the learned lane keeps sampling the target mode."""
+    from pipeline.cases.catalog import CASES, nominal_cut
+    from pipeline.io.contract import INPUT_BY_NAME, build_contract, validate
+
+    contract = build_contract()
+    spec = INPUT_BY_NAME["d50c_um"]
+    assert spec.bounds == "solved" and (spec.low, spec.high) == (0.8, 1.6)
+    for case in CASES:
+        bounds = contract["cases"][case.id]["inputs"]["d50c_um"]
+        cut = nominal_cut(case.id)
+        assert bounds["reference"] == cut and bounds["off"] == 0.0
+        assert bounds["min"] == pytest.approx(0.8 * cut, rel=1e-11) and bounds["max"] == pytest.approx(1.6 * cut, rel=1e-11)
+        assert contract["cases"][case.id]["nominal"]["d50c_um"] == 0.0
+        assert validate(contract, case.id, {"d50c_um": 0.0})["accepted"]
+        assert validate(contract, case.id, {"d50c_um": bounds["min"]})["accepted"]
+        assert validate(contract, case.id, {"d50c_um": 0.5 * cut})["errors"][0]["code"] == "out_of_range"
+    from pipeline.methods.learning import design_states
+    states = design_states(CASES[0], contract, 8, 1)
+    assert all(s["point"]["d50c_um"] == 0.0 for s in states)

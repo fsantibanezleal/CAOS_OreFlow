@@ -105,9 +105,11 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
         cleaner_inputs = ["regrind_product" if regrind is not None else "rougher_concentrate"]
         if flotation.recleaner is not None:
             cleaner_inputs.append("recleaner_tail")
+        # the cleaner tail returns to the rougher feed unless the ablation sends it to the final tail
+        recirculate = plant.flotation.cleaner_tail_to_rougher
         units += [
             ("flotation_link", [separation_feed], ["flotation_feed"], flotation.dilution_rougher_tph),
-            ("rougher_junction", ["flotation_feed", "cleaner_tail"], ["rougher_feed"], 0.0),
+            ("rougher_junction", ["flotation_feed", "cleaner_tail"] if recirculate else ["flotation_feed"], ["rougher_feed"], 0.0),
             ("rougher", ["rougher_feed"], ["rougher_concentrate", "rougher_tail"], 0.0),
             ("cleaner_junction", cleaner_inputs, ["cleaner_feed"], flotation.dilution_cleaner_tph),
             ("cleaner", ["cleaner_feed"], ["cleaner_concentrate", "cleaner_tail"], 0.0),
@@ -121,6 +123,8 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
             ]
         concentrates.append(final_stream_name(flotation))
         tails.append("rougher_tail")
+        if not recirculate:
+            tails.append("cleaner_tail")
     topology: list[dict[str, object]] = [
         {"unit": name, "inputs": list(inputs), "outputs": list(outputs), "water_added_tph": float(water)}
         for name, inputs, outputs, water in units
@@ -190,6 +194,7 @@ def _metrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, streams: dict[str
     put("required_mill_power_kw", grinding.required_power_kw, "kW")
     put("installed_mill_power_kw", plant.mill.installed_power_kw, "kW")
     put("power_limited", 1.0 if grinding.power_limited else 0.0, "flag")
+    put("cut_mode", 1.0 if grinding.cut_mode else 0.0, "flag")
     energy = energy_report(op.work_index_kwh_t, r.crushing_work_index, streams["crusher_feed"].p80(), grinding.feed_f80_um,
                            grinding.specific_energy_kwh_t, grinding.feed_f80_um, grinding.p80_um)
     for key, value in energy.items():
@@ -219,7 +224,7 @@ def _metrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, streams: dict[str
         put("rougher_water_recovery_pct", 100.0 * flotation.rougher.water_recovery, "%")
         put("cleaner_water_recovery_pct", 100.0 * flotation.cleaner.water_recovery, "%")
         put("bubble_surface_flux_s", flotation.sb_rougher, "1/s")
-        put("cleaner_recycle_tph", f["cleaner_tail"].tph(), "t/h")
+        put("cleaner_recycle_tph", f["cleaner_tail"].tph() if plant.flotation.cleaner_tail_to_rougher else 0.0, "t/h")
         put("recycle_iterations", flotation.iterations, "1")
         free = [d for d in flotation.defs if d.kind == "free"]
         final = flotation.species_final

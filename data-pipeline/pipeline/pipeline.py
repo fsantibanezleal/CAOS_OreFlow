@@ -1,4 +1,4 @@
-"""OreFlow bake: contract, cases, learning, benchmark, manifests and validation (design section 11a).
+"""OreFlow bake: contract, learning, cases, benchmark, studies, real samples, manifests and validation (design section 11a).
 
 The index and the benchmark are built from this run's records only, never from files already on
 disk, so a partial bake cannot ship as complete; the bake ends by running the artifact checks and
@@ -26,7 +26,8 @@ from .io.contract import export_contract
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DERIVED = REPO_ROOT / "data" / "derived"
 MODELS = REPO_ROOT / "models"
-STAGES = ("contract", "cases", "learning", "benchmark", "manifests", "validation")
+# learning runs before the cases: the optimizer's screen reads the models this bake exports (OP-05)
+STAGES = ("contract", "learning", "cases", "benchmark", "studies", "real_samples", "manifests", "validation")
 HEADLINE = ("recovery_pct", "concentrate_grade", "specific_energy_total_kwh_t", "p80_um", "mill_power_kw")
 
 
@@ -41,10 +42,16 @@ def write_json(path: Path, document: Any) -> tuple[int, str]:
     return len(data), hashlib.sha256(data).hexdigest()
 
 
-def _bake(args: tuple[str, dict[str, Any], str]) -> dict[str, Any]:
+def _bake(args: tuple[str, dict[str, Any], str, str]) -> dict[str, Any]:
     from .stages.cases import bake_case
 
     return bake_case(*args)
+
+
+def _study(case_id: str) -> dict[str, Any]:
+    from .stages.studies import study_case
+
+    return study_case(case_id)
 
 
 def _checker():
@@ -54,7 +61,8 @@ def _checker():
     return module
 
 
-def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None) -> dict[str, Any]:
+def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None,
+            reuse_learning: Path | None = None) -> dict[str, Any]:
     from .methods import learning, oracles
     from .stages import benchmark
 
@@ -68,11 +76,28 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     timings["contract"] = time.perf_counter() - t
 
     t = time.perf_counter()
+    if reuse_learning is not None:
+        # a development bake of the case stage: the learned lane depends on the engine and the case envelopes,
+        # not on the method records, so it is taken from an earlier bake (with the models directory it exported)
+        # and marked. check_artifacts.py fails any committed record so marked: release records come from a full bake
+        _log(f"learning: reused from {reuse_learning} (development bake)")
+        record = json.loads(Path(reuse_learning).read_text(encoding="utf-8"))
+        record["reused"] = {"from_contract_digest": record.get("contract_digest"), "from_engine_version": record.get("engine_version")}
+    else:
+        _log("learning: design, protocols and exports")
+        record = learning.run(contract, models_dir)
+    record["engine_version"], record["contract_digest"] = __version__, digest
+    write_json(derived / "learning.json", record)
+    timings["learning"] = time.perf_counter() - t
+
+    _log(f"learning done ({time.perf_counter() - t:.0f}s)")
+
+    t = time.perf_counter()
     ids = [case.id for case in CASES]
     workers = workers or min(len(ids), max(1, (os.cpu_count() or 2) // 2))
     for variable in ("OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "OMP_NUM_THREADS"):
         os.environ.setdefault(variable, "1")   # small dense solves: one thread per worker process
-    jobs = [(case_id, contract, __version__) for case_id in ids]
+    jobs = [(case_id, contract, __version__, str(models_dir)) for case_id in ids]
     _log(f"cases: {len(jobs)} cases on {workers} worker(s)")
     by_id: dict[str, dict[str, Any]] = {}
     if workers > 1:
@@ -89,17 +114,32 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     timings["cases"] = time.perf_counter() - t
 
     t = time.perf_counter()
-    _log("learning: design, protocols and exports")
-    record = learning.run(contract, models_dir)
-    record["engine_version"], record["contract_digest"] = __version__, digest
-    write_json(derived / "learning.json", record)
-    timings["learning"] = time.perf_counter() - t
-
-    _log(f"learning done ({time.perf_counter() - t:.0f}s)")
-    t = time.perf_counter()
     bench = benchmark.build(artifacts, oracles.all_oracles(), record, derived, __version__, digest)
     write_json(derived / "benchmark.json", bench)
     timings["benchmark"] = time.perf_counter() - t
+
+    t = time.perf_counter()
+    from .stages import studies
+    _log(f"studies: ablations and the uncertainty seed study on {workers} worker(s)")
+    studied: dict[str, dict[str, Any]] = {}
+    if workers > 1:
+        with ProcessPoolExecutor(max_workers=workers, mp_context=multiprocessing.get_context("spawn")) as pool:
+            futures = {pool.submit(_study, case_id): case_id for case_id in ids}
+            for future in as_completed(futures):
+                studied[futures[future]] = future.result()
+    else:
+        for case_id in ids:
+            studied[case_id] = _study(case_id)
+    write_json(derived / "studies.json", studies.build([studied[case_id] for case_id in ids], __version__, digest))
+    timings["studies"] = time.perf_counter() - t
+    _log(f"studies done ({timings['studies']:.0f}s)")
+
+    t = time.perf_counter()
+    from .stages import real_samples
+    # RS-05: the GeoMet samples in the soft porphyry's circuit, from the pinned tables in data/raw
+    write_json(derived / "real_samples.json", real_samples.build(derived, __version__, digest))
+    timings["real_samples"] = time.perf_counter() - t
+    _log(f"real samples done ({timings['real_samples']:.0f}s)")
 
     t = time.perf_counter()
     # every catalog case is rewritten below; a case the catalog no longer has must not ship from an older bake
@@ -134,11 +174,11 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
 
     t = time.perf_counter()
     _log("validation: artifact checks")
-    errors = _checker().run(derived, models_dir)
+    errors = _checker().run(derived, models_dir, allow_reused_learning=reuse_learning is not None)
     timings["validation"] = time.perf_counter() - t
     validation = {"schema": "oreflow.validation/v2", "engine_version": __version__, "contract_digest": digest,
                   "passed": not errors, "errors": errors, "stages": list(STAGES), "workers": workers,
-                  "seconds": timings}
+                  "seconds": timings, **({"learning_reused": True} if reuse_learning is not None else {})}
     write_json(derived / "validation.json", validation)
     if errors:
         raise SystemExit("bake failed validation:\n" + "\n".join(f"  - {e}" for e in errors[:50]))
@@ -150,12 +190,16 @@ def main() -> None:
     parser.add_argument("--output", type=Path, help="sandbox derived directory (default data/derived)")
     parser.add_argument("--models", type=Path, help="sandbox models directory (default models)")
     parser.add_argument("--workers", type=int, help="case worker processes (default half the cores, at most 12)")
+    parser.add_argument("--reuse-learning", type=Path, help="development bakes only: take learning.json from this file; "
+                        "the record is marked reused and cannot be committed")
     args = parser.parse_args()
+    if args.reuse_learning is not None and args.output is None:
+        parser.error("--reuse-learning writes a development bake and needs a sandbox --output")
     # joblib probes physical cores with a Windows tool that may be absent and falls back to logical cores
     warnings.filterwarnings("ignore", message="Could not find the number of physical cores", category=UserWarning)
     # a bake that is still running after 45 minutes prints every thread's stack once, so a stall shows its place
     faulthandler.dump_traceback_later(45 * 60, exit=False)
-    result = run_all(args.output, args.models, args.workers)
+    result = run_all(args.output, args.models, args.workers, args.reuse_learning)
     faulthandler.cancel_dump_traceback_later()
     print(f"oreflow bake {__version__}: stages {' -> '.join(STAGES)}; "
           + ", ".join(f"{k} {v:.0f}s" for k, v in result["seconds"].items()) + "; validation passed")

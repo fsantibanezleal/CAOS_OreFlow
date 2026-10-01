@@ -4,7 +4,7 @@
 CAOS_OreFlow/
 ├── VERSION                         the release version; the bake stamps it on every record, the service and the site report it
 ├── data-pipeline/
-│   ├── run.py                      the process bake: contract, cases, learning, benchmark, manifests, validation
+│   ├── run.py                      the process bake: contract, learning, cases, benchmark, studies, real samples, manifests, validation
 │   ├── run_particles.py            the HZDR particle lane
 │   ├── run_geomet.py               the GeoMet lane, its checkpoint and the assay prediction
 │   └── pipeline/

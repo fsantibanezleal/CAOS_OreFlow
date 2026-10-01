@@ -75,16 +75,16 @@
   <rect class="bx" x="28" y="196" width="176" height="76" rx="8"/>
   <text class="ttl l-en" x="40" y="215">Rail and controls</text>
   <text class="ttl l-es" x="40" y="215">Riel y controles</text>
-  <text class="it l-en" x="40" y="231">case, variant, 3 sections</text>
-  <text class="it l-es" x="40" y="231">caso, variante, 3 secciones</text>
-  <text class="it l-en" x="40" y="245">contract bounds and help</text>
-  <text class="it l-es" x="40" y="245">límites y ayuda del contrato</text>
+  <text class="it l-en" x="40" y="231">source, case, variant</text>
+  <text class="it l-es" x="40" y="231">fuente, caso, variante</text>
+  <text class="it l-en" x="40" y="245">3 sections, contract bounds</text>
+  <text class="it l-es" x="40" y="245">3 secciones, límites</text>
   <text class="cd mono l-neutral" x="40" y="259">Rail.tsx · Controls.tsx</text>
   <rect class="bx" x="244" y="196" width="176" height="76" rx="8"/>
   <text class="ttl l-en" x="256" y="215">State in the URL</text>
   <text class="ttl l-es" x="256" y="215">Estado en la URL</text>
-  <text class="it l-en" x="256" y="231">case, variant, set inputs</text>
-  <text class="it l-es" x="256" y="231">caso, variante, entradas</text>
+  <text class="it l-en" x="256" y="231">source, case, set inputs</text>
+  <text class="it l-es" x="256" y="231">fuente, caso, entradas</text>
   <text class="it l-en" x="256" y="245">survives the focus trip</text>
   <text class="it l-es" x="256" y="245">sobrevive al viaje al foco</text>
   <text class="cd mono l-neutral" x="256" y="259">workbench/state.ts</text>
@@ -98,11 +98,11 @@
   <text class="cd mono l-neutral" x="472" y="259">contract.ts · client.ts</text>
   <rect class="bx bx-hi" x="676" y="196" width="176" height="76" rx="8"/>
   <text class="ttl l-neutral" x="688" y="215">Worker</text>
-  <text class="it l-en" x="688" y="231">engine port</text>
-  <text class="it l-es" x="688" y="231">motor traducido</text>
-  <text class="it l-en" x="688" y="245">sweeps on request</text>
-  <text class="it l-es" x="688" y="245">barridos a pedido</text>
-  <text class="cd mono l-neutral" x="688" y="259">worker.ts · sweep.ts</text>
+  <text class="it l-en" x="688" y="231">engine, sweeps, uncertainty</text>
+  <text class="it l-es" x="688" y="231">motor, barridos, incertidumbre</text>
+  <text class="it l-en" x="688" y="245">optimizer in its own worker</text>
+  <text class="it l-es" x="688" y="245">optimizador en otro worker</text>
+  <text class="cd mono l-neutral" x="688" y="259">worker.ts · optimize.ts</text>
   <path class="flow" d="M 204 232 L 242 232" marker-end="url(#of-arch-3)"/>
   <text class="lbl l-en" x="223" y="226" text-anchor="middle">set</text>
   <text class="lbl l-es" x="223" y="226" text-anchor="middle">fija</text>
@@ -134,8 +134,8 @@
   <rect class="bx bx-warn" x="452" y="402" width="400" height="76" rx="8"/>
   <text class="ttl l-en" x="464" y="421">Gates on the built site</text>
   <text class="ttl l-es" x="464" y="421">Controles sobre el sitio compilado</text>
-  <text class="it l-en" x="464" y="437">parity on 72 variants, claims, surrogate</text>
-  <text class="it l-es" x="464" y="437">paridad en 72 variantes, afirmaciones, sustituto</text>
+  <text class="it l-en" x="464" y="437">parity on 96 variants, claims, surrogate</text>
+  <text class="it l-es" x="464" y="437">paridad en 96 variantes, afirmaciones, sustituto</text>
   <text class="it l-en" x="464" y="451">browser gate: 3 viewports, 2 themes, 2 languages</text>
   <text class="it l-es" x="464" y="451">control en navegador: 3 tamaños, 2 temas, 2 idiomas</text>
   <text class="cd mono l-neutral" x="464" y="465">src/test/*.test.ts · gate.mjs</text>
