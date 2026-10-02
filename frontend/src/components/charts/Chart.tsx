@@ -214,7 +214,8 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       let over = 0;
       for (const level of levels ?? []) {
         const y = self.valToPos(level.y, 'y', true);
-        if (!Number.isFinite(y) || y < top || y > top + height) continue;
+        // U-17: a level the plot cannot show is counted, so the gate sees it (the guard threshold was dropped silently)
+        if (!Number.isFinite(y) || y < top - ratio || y > top + height + ratio) { over += 1; continue; }
         ctx.beginPath();
         ctx.moveTo(left, y);
         ctx.lineTo(left + width, y);
@@ -231,6 +232,8 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         const boxOf = ([x, b]: [number, number]): Box => ({ x0: x - 2 * ratio, y0: b - 10 * ratio, x1: x + w + 2 * ratio, y1: b + 3 * ratio });
         const free = spots.find(s => { const b = boxOf(s); return b.y0 >= top && b.y1 <= top + height && !dots.some(d => overlaps(d, b)) && !placed.some(p => overlaps(p, b)); });
         if (!free) over += 1;
+        // U-34: on a plot narrower than the label there is no spot at all
+        if (!free && spots.length === 0) continue;
         const [lx, ly] = free ?? spots[0];
         placed.push(boxOf([lx, ly]));
         label(level.label, lx, ly);
@@ -278,7 +281,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       ctx.fillStyle = colours.axis;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'bottom';
-      ctx.translate(left - 56 * ratio, top + height / 2);
+      ctx.translate(left - ySize * ratio, top + height / 2);
       ctx.rotate(-Math.PI / 2);
       shown.forEach((text, j) => ctx.fillText(text, 0, -(shown.length - 1 - j) * 13 * ratio));
       ctx.restore();
@@ -312,15 +315,31 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
     const xScale: uPlot.Scale = categories
       ? { time: false, range: [-0.5, categories.length - 0.5] }
       : { time: false, distr: logX ? 3 : 1, ...(logX ? { range: span } : half > 0 ? { range: binned } : {}) };
-    // an empty title keeps uPlot's 30 px band, where drawYTitle writes the real one
-    const yAxis = { ...axis('', 30, !!logY), size: 56 };
+    // an empty title keeps uPlot's 30 px band, where drawYTitle writes the real one. U-05: the tick column is as
+    // wide as its widest label (56 px at least), and the chart declares a label still wider than its column, so the
+    // rotated title can no longer be drawn over the ticks unseen (0,0008475 to 0,0008750 on the gold optimizer)
+    let ySize = 56;
+    const ySizeOf = (_self: uPlot, values: string[] | null) => {
+      const widest = Math.max(0, ...(values ?? []).map(v => textWidth(String(v))));
+      ySize = Math.max(56, Math.ceil(widest) + 14);
+      host.dataset.yTicksCut = widest + 8 > ySize ? '1' : '0';
+      return ySize;
+    };
+    const yAxis = { ...axis('', 30, !!logY), size: ySizeOf };
+    // U-17: the y range reaches every level, so a threshold above or below the data is drawn
+    const levelYs = (levels ?? []).map(l => l.y).filter(v => Number.isFinite(v) && (!logY || v > 0));
+    const withLevels = (_self: uPlot, min: number, max: number): uPlot.Range.MinMax => {
+      const lo = Math.min(min, ...levelYs);
+      const hi = Math.max(max, ...levelYs);
+      return logY ? uPlot.rangeLog(lo, hi, 10, true) : uPlot.rangeNum(lo, hi, 0.1, true);
+    };
     const options: uPlot.Options = {
       width: Math.max(160, host.clientWidth),
       height: Math.max(120, host.clientHeight),
       padding: [12 + inset[0], 16 + inset[1], inset[2], inset[3]],
       cursor: { drag: { x: !categories, y: false, setScale: !categories }, focus: { prox: 24 } },
       legend: { show: false },
-      scales: { x: xScale, y: { ...(logY ? { distr: 3 } : {}), ...(yRange ? { range: yRange } : { auto: true }) } },
+      scales: { x: xScale, y: { ...(logY ? { distr: 3 } : {}), ...(yRange ? { range: yRange } : levelYs.length ? { range: withLevels } : { auto: true }) } },
       axes: [xAxis, yAxis],
       series: [
         { label: xLabel },

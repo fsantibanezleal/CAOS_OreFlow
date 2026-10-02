@@ -52,7 +52,6 @@ Escape or the reset button to restore, and the arrow keys to step through sample
 | `power_limited` | the mill runs at its installed power; the product is coarser than the target |
 | `target_unreachable` | the target P80 cannot be reached within the energy search range |
 | `circulating_load_unreachable` | the design circulating load cannot be held at this energy |
-| `cyclone_pressure` | the Plitt pressure lies outside the 35 to 200 kPa practical window |
 | `mill_water_negative`, `sump_water_negative` | the declared densities leave no room for water at the mill or the sump |
 | `recycle_not_converged` | the flotation recycle did not converge |
 | `composite_scale_not_converged` | the host-limited composites did not converge |

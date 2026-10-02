@@ -63,7 +63,7 @@ def settings(**overrides: Any) -> dict[str, Any]:
             "forest_min_leaf", "hgb_iterations", "hgb_learning_rate", "gp_training_rows", "gp_restarts", "interval_z",
             "mlp_hidden", "mlp_learning_rate", "mlp_weight_decay", "max_epochs", "patience", "autoencoder_hidden",
             "guard_quantile", "ood_shift", "permutation_repeats", "onnx_tolerance", "gp_noise_initial", "gp_noise_bounds",
-            "gp_length_scale_bounds", "gp_bound_margin")
+            "gp_length_scale_bounds", "gp_bound_margin", "ood_shifts", "mlp_seed_offsets")
     out = {k: constant(f"learning.{k}") for k in keys}
     out["device"] = "auto"
     out.update(overrides)
@@ -295,6 +295,7 @@ class Standardizer:
 
 def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int) -> dict[str, Any]:
     """Train every model on ``train`` rows and score it on ``test`` rows, for every target."""
+    from sklearn.base import clone
     from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
     from sklearn.exceptions import ConvergenceWarning
     from sklearn.gaussian_process import GaussianProcessRegressor
@@ -344,6 +345,11 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
             "switched_off": [name for name, v in zip(FEATURES, scales) if v >= high * float(s["gp_bound_margin"])],
             "noise_level": float(gp.kernel_.k2.noise_level),
             "optimizer_notes": len([w for w in caught if issubclass(w.category, ConvergenceWarning)])}
+        if len(gp_rows) < len(train):
+            # M-11: the GP sees a subsample; the other models refitted on the same rows rank it on equal data
+            for name, est in estimators.items():
+                refit = clone(est).fit(fx(x[gp_rows]), y[gp_rows, j])
+                out.setdefault("equal_rows", {}).setdefault(name, {})[target] = _scores(ye, refit.predict(xs_te))
     model, info, _ = _train_network(xs_tr, fy(y[train]), list(s["mlp_hidden"]), s, seed, "silu")
     pred = fy.inverse(_predict_network(model, xs_te))
     out["identity"]["mlp"] = f"torch.nn.Sequential ({info['device']})"
@@ -351,6 +357,28 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         out["models"].setdefault("mlp", {})[target] = _scores(y[test, j], pred[:, j])
     out["mlp_training"] = info
     return out
+
+
+def mlp_seeds(x: np.ndarray, y: np.ndarray, splits: list[tuple[str, np.ndarray, np.ndarray]], s: dict[str, Any],
+              seeds: list[int]) -> dict[str, Any]:
+    """M-21: the network retrained over several seeds on every split; the first seed is the record's own."""
+    runs: dict[str, dict[str, list[dict[str, float]]]] = {}
+    for name, tr, te in splits:
+        fx, fy = Standardizer(x[tr]), Standardizer(y[tr])
+        for k in seeds:
+            model, _, _ = _train_network(fx(x[tr]), fy(y[tr]), list(s["mlp_hidden"]), s, k, "silu")
+            pred = fy.inverse(_predict_network(model, fx(x[te])))
+            for j, target in enumerate(TARGETS):
+                runs.setdefault(name, {}).setdefault(target, []).append(_scores(y[te, j], pred[:, j]))
+    folds = [name for name, _, _ in splits if name != "interpolation"]
+    summary = {}
+    for target in TARGETS:
+        loco_mean = [float(np.mean([runs[h][target][i]["rmse"] for h in folds])) for i in range(len(seeds))]
+        loco_median_r2 = [float(np.median([runs[h][target][i]["r2"] for h in folds])) for i in range(len(seeds))]
+        summary[target] = {"interpolation_rmse": [r["rmse"] for r in runs["interpolation"][target]],
+                           "loco_rmse_mean": loco_mean, "loco_r2_median": loco_median_r2,
+                           "loco_rmse_by_case": {h: [r["rmse"] for r in runs[h][target]] for h in folds}}
+    return {"seeds": seeds, "summary": summary}
 
 
 def guard(x: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int) -> dict[str, Any]:
@@ -378,8 +406,23 @@ def guard(x: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any],
     probe_err = errors(fx(probe_x))
     labels_arr = np.asarray(labels)
     per_feature = {name: float(np.mean(probe_err[labels_arr == name] <= threshold)) for name in dict.fromkeys(labels)}
+    # M-16: one distance above the maximum is one point of a curve; the guard accepts more near the envelope and below it
+    by_distance = []
+    for shift in s["ood_shifts"]:
+        rates = {}
+        for direction, edge, sign in (("upward", hi, 1.0), ("downward", lo, -1.0)):
+            moved = []
+            for j, name in enumerate(FEATURES):
+                if name in BINARY or hi[j] <= lo[j]:
+                    continue
+                shifted = x[test].copy()
+                shifted[:, j] = edge[j] + sign * float(shift) * (hi[j] - lo[j])
+                moved.append(shifted)
+            rates[direction] = float(np.mean(errors(fx(np.vstack(moved))) <= threshold))
+        by_distance.append({"distance": float(shift), **rates})
     return {"threshold": threshold, "false_alarm_rate": float(np.mean(in_env > threshold)),
             "false_accept_rate": float(np.mean(probe_err <= threshold)), "false_accept_by_feature": per_feature,
+            "acceptance_by_distance": by_distance,
             "in_envelope_rows": int(len(test)), "probe_rows": int(len(probe_x)), "training": info,
             "_model": model, "_standardizer": fx}
 
@@ -441,8 +484,13 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
         fold.pop("_hgb", None)
         g = guard(x, tr, te, s, seed)
         folds.append({"held_out": held_out, "train_rows": int(len(tr)), "test_rows": int(len(te)), "models": fold["models"],
+                      # M-07: the held-out case's own spread, so an R2 is read beside the RMSE it comes from
+                      "spread": {target: float(np.std(y[te, j])) for j, target in enumerate(TARGETS)},
+                      "equal_rows": fold.get("equal_rows", {}),
                       "mlp_training": {k: v for k, v in fold["mlp_training"].items() if k != "validation_history"},
                       "held_out_flag_rate": float(g["false_alarm_rate"])})
+    seeds = mlp_seeds(x, y, [("interpolation", train, test)] + [(h, tr, te) for h, tr, te in leave_one_case_out(case_of)],
+                      s, [seed + int(k) for k in s["mlp_seed_offsets"]])
     # the deployable surrogate and guard: every state trains them
     all_rows = np.arange(len(x))
     fx_all, fy_all = Standardizer(x), Standardizer(y)
@@ -477,6 +525,16 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                 "loco_rmse_max": float(np.max([p["rmse"] for p in pooled])),
                 "loco_r2_median": float(np.median([p["r2"] for p in pooled])),
             }
+            if model_name == "gaussian_process":
+                # M-08: the coverage under leave one case out, beside the interpolation's
+                rows = np.array([f["test_rows"] for f in folds], dtype=float)
+                cover = np.array([p["coverage_95"] for p in pooled])
+                summary[model_name][target].update({
+                    "interpolation_coverage": interpolation["models"][model_name][target]["coverage_95"],
+                    "loco_coverage_pooled": float(np.sum(cover * rows) / np.sum(rows)),
+                    "loco_coverage_worst": float(cover.min()), "loco_folds_below_80": int(np.sum(cover < 0.8))})
+            if model_name == "mlp":
+                summary[model_name][target]["seeds"] = seeds["summary"][target]
     return {
         "schema": "oreflow.learning/v1",
         "features": list(FEATURES), "targets": list(TARGETS), "models": list(MODELS),
@@ -489,6 +547,8 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                           "permutation_importance": interpolation["permutation_importance"]},
         "guard": {k: v for k, v in guard_interp.items() if not k.startswith("_")},
         "leave_one_case_out": folds,
+        "equal_rows": interpolation.get("equal_rows", {}),
+        "mlp_seeds": seeds,
         "summary": summary,
         "final": {"mlp_training": {k: v for k, v in final_info.items() if k != "validation_history"},
                   "guard_threshold": final_guard["threshold"], "exports": exports},

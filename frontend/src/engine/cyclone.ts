@@ -8,9 +8,11 @@ import { grid, type Vec } from './grid';
 import type { Cyclone } from './model';
 import { roundHalfEven } from './roots';
 
-export function correctedCut(d50Ref: number, rhoRef: number, rho: number): number {
+/** The cut of a particle of density `rho` given the reference density's; Stokes' 0.5 unless the GRG exponent applies (E-11). */
+export function correctedCut(d50Ref: number, rhoRef: number, rho: number, exponent = 0.5): number {
   const water = constant('water.density_t_m3');
-  return d50Ref * Math.sqrt((rhoRef - water) / (rho - water));
+  const ratio = (rhoRef - water) / (rho - water);
+  return d50Ref * (exponent === 0.5 ? Math.sqrt(ratio) : Math.pow(ratio, exponent));
 }
 
 /** Corrected (bypass-free) fraction of each class reporting to underflow. */
@@ -31,7 +33,6 @@ export type PlittSizing = {
   volume_split: number;
   sharpness: number;
   feed_solids_vol_pct: number;
-  in_pressure_window: boolean;
 };
 
 const k = (name: string) => constant(`plitt.${name}`);
@@ -86,10 +87,8 @@ export function sizeCluster(c: Cyclone, requiredD50Um: number, solidsM3H: number
   const rhoFeed = (solidsTH + waterTH) / volume;
   const head = pressure / (constant('gravity.acceleration_m_s2') * rhoFeed);
   const split = plittSplit(c, head, cvPct);
-  const [lo, hi] = constant<number[]>('plitt.pressure_window_kpa');
   return {
     cyclones: count, flow_l_min: flow, d50c_um: plittCut(c, flow, cvPct, rhoS), required_d50c_um: requiredD50Um,
     pressure_kpa: pressure, volume_split: split, sharpness: plittSharpness(c, flow, split), feed_solids_vol_pct: cvPct,
-    in_pressure_window: lo <= pressure && pressure <= hi,
   };
 }

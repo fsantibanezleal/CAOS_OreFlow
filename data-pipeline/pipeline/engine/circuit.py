@@ -47,9 +47,11 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
     r = resolve(ore, op)
     g = grid()
     shape = g.rosin_rammler(plant.crusher.feed_f80_um, plant.crusher.feed_slope)
-    crusher_feed = Stream({m: op.throughput_tph * r.fraction[m] * shape for m in r.ids}, 0.0)
+    # gravity-recoverable grains carry their own sizes, which the crusher passes unchanged (E-11)
+    grains = {m: g.from_passing(s.grains.size_um, s.grains.passing, s.grains.lower_um) for m, s in r.spec.items() if s.grains is not None}
+    crusher_feed = Stream({m: op.throughput_tph * r.fraction[m] * grains.get(m, shape) for m in r.ids}, 0.0)
     css_um = op.crusher_css_mm * float(constant("units.um_per_mm"))
-    new_feed = {m: crush(crusher_feed.solids[m], css_um, plant.crusher) for m in r.ids}
+    new_feed = {m: crusher_feed.solids[m].copy() if m in grains else crush(crusher_feed.solids[m], css_um, plant.crusher) for m in r.ids}
     circuit = GrindingCircuit(r, plant, op, new_feed, flags)
     grinding = circuit.solve()
     streams: dict[str, Stream] = {"crusher_feed": crusher_feed, **grinding.streams}
@@ -61,14 +63,20 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
     overflow = streams["cyclone_overflow"]
     fresh_water = grinding.water["mill_addition_tph"] + grinding.water["sump_addition_tph"]
     # Units by stream name: (unit, input streams, output streams, fresh water added in t/h).
+    at_discharge = "sump_feed" in streams
     units: list[tuple[str, list[str], list[str], float]] = [
         ("crusher", ["crusher_feed"], ["new_feed"], 0.0),
         ("mill_feed_junction", ["new_feed", "recycle"], ["mill_feed"], grinding.water["mill_addition_tph"]),
         ("mill", ["mill_feed"], ["mill_discharge"], 0.0),
-        ("sump", ["mill_discharge"], ["cyclone_feed"], grinding.water["sump_addition_tph"]),
+        ("sump", ["sump_feed" if at_discharge else "mill_discharge"], ["cyclone_feed"], grinding.water["sump_addition_tph"]),
         ("cyclone", ["cyclone_feed"], ["cyclone_underflow", "cyclone_overflow"], 0.0),
     ]
-    if "gravity_concentrate" in streams:
+    if at_discharge:
+        # the unit treats a share of the mill discharge; its tails rejoin the cyclone feed
+        units.insert(3, ("gravity_split", ["mill_discharge"], ["sump_feed", "gravity_concentrate"], 0.0))
+        units.append(("underflow_return", ["cyclone_underflow"], ["recycle"], 0.0))
+        concentrates.append("gravity_concentrate")
+    elif "gravity_concentrate" in streams:
         units.append(("gravity_split", ["cyclone_underflow"], ["recycle", "gravity_concentrate"], 0.0))
         concentrates.append("gravity_concentrate")
     else:
@@ -205,6 +213,11 @@ def _metrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, streams: dict[str
         put("gold_circulating_load_pct", 100.0 * grinding.gold_circulating_load, "%")
     if "gravity_concentrate" in streams:
         put("gravity_recovery_pct", 100.0 * streams["gravity_concentrate"].species_tph(primary, comp) / feed_primary, "%")
+        grg = [m for m in r.ids if r.spec[m].grains is not None]
+        grg_feed = sum(streams["new_feed"].mineral_tph(m) for m in grg)
+        if grg_feed > 0.0:
+            # the share of the gravity-recoverable gold the unit recovers, Laplante's "GRG recovery" (E-11)
+            put("grg_recovery_pct", 100.0 * sum(streams["gravity_concentrate"].mineral_tph(m) for m in grg) / grg_feed, "%")
     if flotation is not None:
         f = flotation.streams
         final_name = final_stream_name(flotation)

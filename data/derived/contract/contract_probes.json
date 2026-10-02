@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "bdb92360cd944d5b624c37fa6c1585516fd0339bf49b851dd71beced8f82a1e4",
+ "digest": "dbeb20842d2c693bd19a1b8b288f8cf93b68c0f7bfc58822446f50b4b73bb2de",
  "probes": [
   {
    "case_id": "no_such_case",
@@ -2604,7 +2604,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 103.080171284
+    "d50c_um": 103.094353581
    },
    "expected": {
     "accepted": true,
@@ -2614,7 +2614,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 206.160342569
+    "d50c_um": 206.188707162
    },
    "expected": {
     "accepted": true,
@@ -2624,7 +2624,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 102.04936957115
+    "d50c_um": 102.06341004519
    },
    "expected": {
     "accepted": false,
@@ -2639,7 +2639,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 207.19114428185
+    "d50c_um": 207.21965069780998
    },
    "expected": {
     "accepted": false,
@@ -3178,7 +3178,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 13.25
+    "head_grade": 14.85
    },
    "expected": {
     "accepted": true,
@@ -3188,7 +3188,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 39.75
+    "head_grade": 44.55
    },
    "expected": {
     "accepted": true,
@@ -3198,7 +3198,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 12.985
+    "head_grade": 14.552999999999999
    },
    "expected": {
     "accepted": false,
@@ -3213,7 +3213,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 40.015
+    "head_grade": 44.846999999999994
    },
    "expected": {
     "accepted": false,
@@ -3245,7 +3245,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 65.3131923483
+    "d50c_um": 65.3255679306
    },
    "expected": {
     "accepted": true,
@@ -3255,7 +3255,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 130.626384697
+    "d50c_um": 130.651135861
    },
    "expected": {
     "accepted": true,
@@ -3265,7 +3265,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 64.66006042481301
+    "d50c_um": 64.672312251296
    },
    "expected": {
     "accepted": false,
@@ -3280,7 +3280,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 131.279516620487
+    "d50c_um": 131.304391540304
    },
    "expected": {
     "accepted": false,

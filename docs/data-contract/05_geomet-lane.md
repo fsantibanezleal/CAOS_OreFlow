@@ -13,7 +13,11 @@ rows, so the difference between two models carries their shared sampling noise o
 gives each model's 95% RMSE interval and, for every pair, the mean difference, its 95% interval, the
 share of resamples in which the first model is better, and whether the interval excludes zero. The
 bootstrap is computed from the stored out-of-fold predictions, and `tests/test_geomet.py` recomputes
-it from them without refitting. Under hole-grouped folds only ridge beats the training mean with an
-interval that excludes zero (0.42 points, 95% interval 0.02 to 0.82); under spatial-zone folds no
-difference does. The five assays carry little transferable signal about locked-cycle recovery on this
-deposit, and the product reports that instead of a ranking.
+it from them without refitting. On the five fixed hole folds ridge beats the training mean by 0.42
+points (95% interval 0.02 to 0.82), but that partition sits at the 98.5th percentile of the gain over 200
+random hole partitions (mean 0.18). The record's `protocols.hole.robust` repeats the comparison over those
+partitions (squared errors averaged per test) and over leave one hole out, each with a hole bootstrap
+widened for the six model pairs (Bonferroni): the gain is 0.17 points (-0.39 to 0.71) and 0.22 (-0.36 to
+0.79), and no pair excludes zero; under spatial-zone folds no difference does either (review of 2026-10-02,
+M-05). The five assays carry little transferable signal about locked-cycle recovery on this deposit, and
+the product reports that instead of a ranking.

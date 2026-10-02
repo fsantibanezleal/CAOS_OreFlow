@@ -7,7 +7,7 @@
  */
 import { simulate } from './circuit';
 import { constant } from './constants';
-import type { MineralSpec, OperatingPoint, Ore, Plant } from './model';
+import { InfeasibleState, type MineralSpec, type OperatingPoint, type Ore, type Plant } from './model';
 import { latinHypercube } from './sampling';
 
 export const UNCERTAIN_INPUTS = ['work_index', 'head_grade', 'liberation_size', 'floatability'] as const;
@@ -27,6 +27,7 @@ export type UncertaintyRecord = {
   outputs: Record<UncertainOutput, OutputSummary>;
   probabilities: Record<string, number>;
   base_checks: Record<string, boolean>;
+  refused: Record<string, number>;
   flag_counts: Record<string, number>;
   max_balance_error: number;
 };
@@ -48,10 +49,19 @@ export function perturbed(ore: Ore, point: OperatingPoint, factors: Partial<Reco
 }
 
 export type Evaluation = { outputs: Record<UncertainOutput, number>; checks: Record<string, boolean>; flags: string[]; balance: number };
+/** A draw with no steady state (E-01): counted by code, never a sample of the outputs. */
+export type Refused = { refused: string };
+const isRefused = (e: Evaluation | Refused): e is Refused => 'refused' in e;
 
-export function evaluateSample(ore: Ore, plant: Plant, point: OperatingPoint, factors: Partial<Record<UncertainInput, number>>): Evaluation {
+export function evaluateSample(ore: Ore, plant: Plant, point: OperatingPoint, factors: Partial<Record<UncertainInput, number>>): Evaluation | Refused {
   const [o, p] = perturbed(ore, point, factors);
-  const result = simulate(o, plant, p);
+  let result: ReturnType<typeof simulate>;
+  try {
+    result = simulate(o, plant, p);
+  } catch (error) {
+    if (error instanceof InfeasibleState) return { refused: error.code };
+    throw error;
+  }
   const m = result.metrics;
   const checks: Record<string, boolean> = {
     grade_meets_spec: m.concentrate_grade >= (plant.grade_spec as { minimum: number }).minimum,
@@ -94,7 +104,12 @@ export function designFor(plant: Plant, samples?: number, seed?: number): { name
 export const factorsOf = (names: UncertainInput[], row: number[]) => Object.fromEntries(names.map((name, k) => [name, row[k]])) as Partial<Record<UncertainInput, number>>;
 
 /** The record from the evaluated samples and the base state (the order of `rows` is the design's). */
-export function summarize(design: ReturnType<typeof designFor>, rows: Evaluation[], base: Evaluation): UncertaintyRecord {
+export function summarize(design: ReturnType<typeof designFor>, drawn: Array<Evaluation | Refused>, baseRow: Evaluation | Refused): UncertaintyRecord {
+  if (isRefused(baseRow)) throw new InfeasibleState(baseRow.refused, 'd50c_um', NaN);
+  const base = baseRow;
+  const rows = drawn.filter((r): r is Evaluation => !isRefused(r));
+  const refused: Record<string, number> = {};
+  for (const r of drawn) if (isRefused(r)) refused[r.refused] = (refused[r.refused] ?? 0) + 1;
   const levels = constant<number[]>('uncertainty.quantiles').map(Number);
   const outputs = {} as Record<UncertainOutput, OutputSummary>;
   for (const key of UNCERTAIN_OUTPUTS) {
@@ -103,14 +118,15 @@ export function summarize(design: ReturnType<typeof designFor>, rows: Evaluation
       mean: mean(values), std: std(values), base: base.outputs[key], values };
   }
   const probabilities: Record<string, number> = {};
-  for (const c of Object.keys(base.checks)) probabilities[c] = mean(rows.map(r => (r.checks[c] ? 1 : 0)));
-  probabilities.all_constraints = mean(rows.map(r => (Object.values(r.checks).every(Boolean) ? 1 : 0)));
+  // over every draw: an ore the circuit cannot bring to a steady state meets no constraint (engine/uncertainty.py)
+  for (const c of Object.keys(base.checks)) probabilities[c] = rows.reduce((s, r) => s + (r.checks[c] ? 1 : 0), 0) / drawn.length;
+  probabilities.all_constraints = rows.reduce((s, r) => s + (Object.values(r.checks).every(Boolean) ? 1 : 0), 0) / drawn.length;
   const flagCounts: Record<string, number> = {};
   for (const r of rows) for (const code of r.flags) flagCounts[code] = (flagCounts[code] ?? 0) + 1;
   return {
     status: 'computed', samples: design.samples, seed: design.seed, design: 'Latin hypercube', generator: 'SplitMix64',
     inputs: Object.fromEntries(design.names.map((name, k) => [name, { half_width: design.widths[k] }])),
-    factors: design.factors, outputs, probabilities, base_checks: base.checks, flag_counts: flagCounts,
+    factors: design.factors, outputs, probabilities, refused, base_checks: base.checks, flag_counts: flagCounts,
     max_balance_error: Math.max(...rows.map(r => r.balance)),
   };
 }

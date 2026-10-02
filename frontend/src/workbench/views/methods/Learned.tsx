@@ -62,6 +62,7 @@ const TEXT = {
   summary: { en: 'The engine and the surrogate over one contract input, other inputs held at the current state.', es: 'El motor y el sustituto sobre una entrada del contrato, con las demás en el estado actual.' },
   guardSummary: { en: 'The guard reconstruction error over the same states, against its threshold.', es: 'El error de reconstrucción del guardia sobre los mismos estados, frente a su umbral.' },
   progress: { en: 'states', es: 'estados' },
+  changed: { en: 'The state changed since the last sweep, so its results were cleared; compute again.', es: 'El estado cambió desde el último barrido, así que sus resultados se borraron; calcule de nuevo.' },
 };
 
 type SweepResult = { xs: number[]; engine: (number | null)[]; surrogate: (number | null)[]; outside: (number | null)[]; guard: (number | null)[] };
@@ -91,6 +92,19 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
   useEffect(() => { loadLearning().then(setLearning, () => setLearning(null)); }, []);
   useEffect(() => () => { if (running.current !== null) cancelSweep(running.current); }, []);
   useEffect(() => { setCells([]); setAnswers(null); setProgress(null); }, [caseId, xInput]);
+  // U-02: the sweep and the guard chart belong to the state they ran at; when it moves they are stopped and cleared
+  const stateKey = JSON.stringify(point);
+  const ranAt = useRef<string | null>(null);
+  const [changed, setChanged] = useState(false);
+  useEffect(() => {
+    if (ranAt.current === null || ranAt.current === stateKey) return;
+    if (running.current !== null) { cancelSweep(running.current); running.current = null; }
+    ranAt.current = null;
+    setCells([]);
+    setAnswers(null);
+    setProgress(null);
+    setChanged(true);
+  }, [stateKey]);
 
   // the surrogate for the current state; a newer state supersedes an answer still on its way
   useEffect(() => {
@@ -111,6 +125,8 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
     const axis = { input: xInput, values: declared[xInput].integer ? [...new Set(values.map(Math.round))] : values };
     setCells([]);
     setAnswers(null);
+    setChanged(false);
+    ranAt.current = stateKey;
     const collected: Array<{ x: number; engine: Record<string, number> | null; point: OperatingPoint | null }> = axis.values.map(x => ({ x, engine: null, point: null }));
     const handle = sweepInWorker({ caseId, ore: artifact.definition.ore, plant: artifact.definition.plant, base: point, axes: [axis],
       outputs: ['recovery_pct', 'concentrate_grade', 'head_grade', 'specific_energy_total_kwh_t'] }, contract, (cell, done, total) => {
@@ -124,7 +140,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
         const accepted = collected.filter(c => c.point !== null).map(c => c.point as OperatingPoint);
         return askSurrogate(artifact.definition.ore, artifact.definition.plant, accepted);
       })
-      .then(batch => { setCells(collected); setAnswers(batch); })   // one answer per accepted state, in order
+      .then(batch => { if (ranAt.current === stateKey) { setCells(collected); setAnswers(batch); } })   // one answer per accepted state, in order
       .catch(() => { running.current = null; });
   };
 
@@ -152,7 +168,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
   const heldOut = learning ? learning.leave_one_case_out.reduce((s, f) => s + f.held_out_flag_rate, 0) / learning.leave_one_case_out.length : null;
   const headGrade = trace?.metrics.head_grade ?? point.head_grade;
 
-  let body: React.ReactNode = <p className="of-hint">{status === 'failed' ? TEXT.failed[lang] : TEXT.hint[lang]}</p>;
+  let body: React.ReactNode = <p className="of-hint">{status === 'failed' ? TEXT.failed[lang] : changed ? TEXT.changed[lang] : TEXT.hint[lang]}</p>;
   if (sweep) {
     body = (
       <div className="of-stack of-stack-2-1">

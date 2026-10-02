@@ -7,11 +7,16 @@ from pipeline.cases.catalog import CASE_BY_ID
 
 
 def test_bleed_response_and_gold_circulating_load():
+    """PE-18 as restated in 0.08.000 (E-11): the GRG circulates above the ore without gravity and across the 5 to 25%
+    of the stream that practice treats; at 60% the rebuilt model strips it below the ore's load, because its unit
+    keeps 70% per pass where the published simulator's recovery falls with its feed rate."""
     case = CASE_BY_ID["gold_free_milling"]
+    for bleed in (0.0, 0.05, 0.1, 0.15, 0.2, 0.25):
+        m = run_point(case.id, case.nominal.with_values(gravity_bleed=bleed)).metrics
+        assert m["gold_circulating_load_pct"] > m["circulating_load_pct"], bleed
     recoveries = []
     for bleed in (0.1, 0.2, 0.3, 0.4, 0.5, 0.6):
         m = run_point(case.id, case.nominal.with_values(gravity_bleed=bleed)).metrics
-        assert m["gold_circulating_load_pct"] > m["circulating_load_pct"]
         recoveries.append(m["gravity_recovery_pct"])
     steps = [b - a for a, b in zip(recoveries, recoveries[1:])]
     assert all(s > 0.0 for s in steps)

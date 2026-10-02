@@ -25,11 +25,13 @@ export function contractMessage(contract: OperatingContract, error: ContractErro
 /** Inputs the cut mode turns into results: the engine ignores them while the classifier cut is set. */
 const FOLLOW_IN_CUT_MODE = new Set(['target_p80_um', 'circulating_load']);
 
-export function ControlList({ contract, caseId, names, variantPoint, errors, lang, idPrefix = 'of', fixed = {} }: {
+export function ControlList({ contract, caseId, names, variantPoint, errors, lang, idPrefix = 'of', fixed = {}, baseLabel }: {
   contract: OperatingContract; caseId: string; names: Array<keyof OperatingPoint>; variantPoint: OperatingPoint | null;
   errors: ContractError[]; lang: Lang; idPrefix?: string;
   /** Inputs a real sample fixes (RS-08): shown, disabled, with the reason each is fixed. */
   fixed?: Partial<Record<keyof OperatingPoint, { en: string; es: string }>>;
+  /** What the base value under a moved slider is called: the variant, or the sample (U-29). */
+  baseLabel?: string;
 }) {
   const { point, setValue } = useWorkbench();
   const entry = contract.cases[caseId];
@@ -96,7 +98,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
             <input id={id} type="range" min={bounds.min} max={bounds.max} step={bounds.step} value={value} aria-describedby={`${id}-help`} disabled={follows}
               onChange={event => setValue(name, spec.integer ? Math.round(Number(event.target.value)) : Number(event.target.value))} />
             <small id={`${id}-help`} className="of-sr-only">{spec.help[lang]}</small>
-            {variantValue !== undefined && variantValue !== value && <small className="of-knob-base">{`${t(UI.variant, lang)}: ${formatWithUnit(variantValue, unit, lang)}`}</small>}
+            {variantValue !== undefined && variantValue !== value && <small className="of-knob-base">{`${baseLabel ?? t(UI.variant, lang)}: ${formatWithUnit(variantValue, unit, lang)}`}</small>}
             {error && <small role="alert" className="of-knob-error">{contractMessage(contract, error, unit, lang)}</small>}
           </div>
         );

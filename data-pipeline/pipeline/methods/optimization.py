@@ -39,7 +39,7 @@ import numpy as np
 from ..cases.catalog import CaseDef
 from ..engine.circuit import simulate
 from ..engine.constants import constant
-from ..engine.model import OperatingPoint
+from ..engine.model import InfeasibleState, OperatingPoint
 from ..io.contract import validate
 from .learning import _ore_factors, features
 from .pattern_search import pattern_search
@@ -91,7 +91,11 @@ class Problem:
         if not verdict["accepted"]:
             return {"point": point, "valid": False, "recovered_tph": 0.0, "values": {}, "slacks": {},
                     "relative": {"contract": -1.0}}
-        m = simulate(self.case.ore, self.case.plant, point).metrics
+        try:
+            m = simulate(self.case.ore, self.case.plant, point).metrics
+        except InfeasibleState as refusal:   # no steady state at this trial (E-01): infeasible, never a result
+            return {"point": point, "valid": False, "recovered_tph": 0.0, "values": {}, "slacks": {},
+                    "relative": {refusal.code: -1.0}}
         values = {"grade": m["concentrate_grade"], "required_power_kw": m["required_mill_power_kw"],
                   "water_m3_t": m["water_intensity_m3_t"], "energy_kwh_t": m["specific_energy_total_kwh_t"]}
         slacks = {"grade": m["concentrate_grade"] - self.spec.minimum,

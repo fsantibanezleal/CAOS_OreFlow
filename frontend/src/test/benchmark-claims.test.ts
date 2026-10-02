@@ -25,9 +25,18 @@ type OptimizationRecord = {
 };
 const benchmark = read<{
   oracles: {
-    molycop: { published: Record<string, number>; engine: Record<string, number>; relative_error: Record<string, number>; tolerance: Record<string, number> };
+    molycop: {
+      inputs: Record<'p80_um' | 'circulating_load', { published: number; engine: number; relative_error: number }>;
+      comparison: Record<'net_specific_energy_kwh_t' | 'gross_specific_energy_kwh_t' | 'cut_um' | 'water_bypass', { published: number; engine: number; relative_error: number }> & { overflow_passing_max_abs_difference_pct: number };
+      tolerance: { net_specific_energy_kwh_t: number };
+      sizing: { examples: Record<string, { published: { cyclones: number; pressure_kpa: number }; sized_for_published_cut: { cyclones: number; pressure_kpa: number }; calibration: { cut: number; pressure: number } }> };
+    };
     gmg: { examples: Array<Record<string, number>>; tolerance_abs_kwh_t: number };
-    laplante: { published: Record<string, number[]>; engine: Record<string, number[]> };
+    laplante: {
+      published: Record<string, number[]>; engine: Record<string, number[]> & { max_recovery: number; fit_at_bound: boolean; within_tolerance: boolean };
+      without_grg_below_25um: Record<string, number[]> & { max_recovery: number; fit_at_bound: boolean; within_tolerance: boolean };
+      audit: Record<string, number>; rising: boolean; diminishing: boolean; grg_above_ore_without_gravity: boolean;
+    };
     zandrivierspoort: { published: Record<string, number[]>; engine: Record<string, number[]>; grade_difference_pct_points: { engine: number; published: number } };
   };
   kinetics: Record<string, { fits: number; mean_abs_lumping_error_pct: number; worst_abs_lumping_error_pct: number; converged_share: number }>;
@@ -43,30 +52,47 @@ const learning = read<{
 
 describe('the Benchmark page says what the records hold', () => {
   it('published examples: Moly-Cop, GMG, Laplante and Zandrivierspoort as quoted', () => {
+    // E-05 and E-08: every published input, net energy against net; P80 and the load are inputs
     const m = benchmark.oracles.molycop;
-    expect(Math.abs(m.relative_error.p80_um)).toBeLessThan(1e-9);
-    expect(Math.abs(m.relative_error.circulating_load)).toBeLessThan(1e-9);
-    expect(round(m.engine.gross_specific_energy_kwh_t, 2)).toBe(9.13);
-    expect(m.published.gross_specific_energy_kwh_t).toBe(8.56);
-    expect(round(100 * m.relative_error.gross_specific_energy_kwh_t, 1)).toBe(6.7);
-    expect(m.tolerance.gross_specific_energy_kwh_t).toBe(0.2);
+    expect(Math.abs(m.inputs.p80_um.relative_error)).toBeLessThan(1e-9);
+    expect(Math.abs(m.inputs.circulating_load.relative_error)).toBeLessThan(1e-9);
+    const c = m.comparison;
+    expect([round(c.net_specific_energy_kwh_t.engine, 2), round(c.net_specific_energy_kwh_t.published, 2)]).toEqual([7.3, 7.71]);
+    expect(round(100 * c.net_specific_energy_kwh_t.relative_error, 1)).toBe(-5.2);
+    expect(m.tolerance.net_specific_energy_kwh_t).toBe(0.2);
+    expect([Math.round(c.cut_um.engine), c.cut_um.published]).toEqual([188, 183.3]);
+    expect([round(100 * c.water_bypass.engine, 1), round(100 * c.water_bypass.published, 1)]).toEqual([37.4, 37.5]);
+    expect(c.overflow_passing_max_abs_difference_pct).toBeLessThan(0.5);
+    // E-07: the sizing fails both published classifier states, by the factors the page quotes
+    const bs = m.sizing.examples.BallSim_Direct, bp = m.sizing.examples.BallParam_Direct;
+    expect([round(1 / bs.calibration.cut, 2), round(1 / bp.calibration.cut, 2)]).toEqual([1.66, 1.38]);
+    expect([round(1 / bs.calibration.pressure, 1), round(1 / bp.calibration.pressure, 1)]).toEqual([2.2, 1.7]);
+    expect([bs.sized_for_published_cut.cyclones, Math.round(bs.sized_for_published_cut.pressure_kpa)]).toEqual([2, 816]);
+    expect([bs.published.cyclones, Math.round(bs.published.pressure_kpa)]).toEqual([6, 53]);
     const gmg = benchmark.oracles.gmg;
     expect(gmg.examples.map(e => round(e.engine_operating_work_index_kwh_t, 2))).toEqual([14.38, 11.71]);
     expect(gmg.examples.map(e => e.operating_work_index_kwh_t)).toEqual([14.4, 11.7]);
     for (const e of gmg.examples) expect(Math.abs(e.error_kwh_t)).toBeLessThan(0.03);
     expect(gmg.tolerance_abs_kwh_t).toBe(0.05);
-    const l = benchmark.oracles.laplante;
-    const g = l.engine.gravity_recovery_pct, steps = g.slice(1).map((v, i) => v - g[i]);
-    expect(steps.every(s => s > 0)).toBe(true);
-    expect(steps.slice(1).every((s, i) => s < steps[i])).toBe(true);
-    expect([round(g[0], 1), round(g.at(-1)!, 1)]).toEqual([13.7, 31.7]);
-    expect([l.published.gold_recovery_pct[0], l.published.gold_recovery_pct.at(-1)]).toEqual([64.1, 77.1]);
-    const gold = l.engine.gold_circulating_load_pct;
-    expect([Math.round(gold[0]), Math.round(gold.at(-1)!)]).toEqual([556, 271]);
-    expect(gold.slice(1).every((v, i) => v < gold[i])).toBe(true);
-    expect(gold.every((v, i) => v > l.engine.ore_circulating_load_pct[i])).toBe(true);
-    expect(l.engine.ore_circulating_load_pct.every(v => Math.round(v) === 250)).toBe(true);
-    expect([l.published.grg_circulating_load_pct[0], l.published.grg_circulating_load_pct.at(-1)]).toEqual([2016, 413]);
+    // E-11: the simulator example like for like, as the page quotes it
+    const l = benchmark.oracles.laplante, e = l.engine, w = l.without_grg_below_25um;
+    expect(l.published.grg_recovery_pct).toEqual([79.78, 88.28, 91.79, 93.74, 94.75, 95.85]);
+    expect([l.published.grg_circulating_load_pct[0], l.published.grg_circulating_load_pct[3], l.published.grg_circulating_load_pct.at(-1)]).toEqual([2016.31, 602.84, 412.63]);
+    expect(e.fit_at_bound && e.max_recovery === 1 && !e.within_tolerance).toBe(true);
+    expect([round(e.grg_recovery_pct[0], 1), round(e.grg_recovery_pct.at(-1)!, 1)]).toEqual([69.5, 90.7]);
+    const missed = e.grg_recovery_pct.map((v, i) => l.published.grg_recovery_pct[i] - v);
+    expect([round(Math.max(...missed), 1), round(Math.min(...missed), 1)]).toEqual([10.3, 5.2]);
+    const clLow = e.grg_circulating_load_pct.map((v, i) => 100 * (1 - v / l.published.grg_circulating_load_pct[i]));
+    expect([Math.round(Math.min(...clLow)), Math.round(Math.max(...clLow))]).toEqual([65, 80]);
+    expect([Math.round(Math.min(...e.grg_to_overflow_pct)), Math.round(Math.max(...e.grg_to_overflow_pct))]).toEqual([9, 31]);
+    expect([round(Math.min(...e.discharge_grg_below_150um_pct), 1), round(Math.max(...e.discharge_grg_below_150um_pct), 1)]).toEqual([86.7, 88.3]);
+    expect(round(w.max_recovery, 2)).toBe(0.74);
+    const near = w.grg_recovery_pct.map((v, i) => Math.abs(v - l.published.grg_recovery_pct[i]));
+    expect([round(Math.max(...near.slice(1)), 1), round(near[0], 1)]).toEqual([1.1, 4.8]);
+    const wLow = w.grg_circulating_load_pct.map((v, i) => 100 * (1 - v / l.published.grg_circulating_load_pct[i]));
+    expect([Math.round(Math.min(...wLow)), Math.round(Math.max(...wLow))]).toEqual([50, 69]);
+    expect([Math.round(l.audit.grg_circulating_load_pct), round(l.audit.underflow_over_overflow_au_grade, 1), Math.round(100 * l.audit.underflow_grg_share)]).toEqual([2812, 9.3, 97]);
+    expect(l.rising && l.diminishing && l.grg_above_ore_without_gravity).toBe(true);
     const z = benchmark.oracles.zandrivierspoort;
     expect(z.engine.concentrate_fe_pct.map(v => round(v, 1))).toEqual([63.8, 67.8]);
     expect(z.published.concentrate_fe_pct).toEqual([64.9, 69.0]);
@@ -252,7 +278,8 @@ describe('the Benchmark page says what the records hold', () => {
   it('measured lanes: the GeoMet bootstrap and the HZDR probability errors as quoted', () => {
     const g = read<{
       source: { raw_rows: number; usable_rows: number; holes: number };
-      protocols: Record<'hole' | 'zone', { folds: unknown[]; paired_bootstrap: { samples: number; rmse_differences: Record<string, { mean_pp: number; interval_95_pp: [number, number]; excludes_zero: boolean }> } }>;
+      protocols: Record<'hole' | 'zone', { folds: unknown[]; paired_bootstrap: { samples: number; rmse_differences: Record<string, { mean_pp: number; interval_95_pp: [number, number]; excludes_zero: boolean }> };
+        robust?: Record<'repeated_partitions' | 'leave_one_hole_out', { rmse_differences: Record<string, { difference_pp: number; interval_adjusted_pp: [number, number]; excludes_zero: boolean }>; ridge_gain_over_mean_pp?: { mean: number; published_percentile: number } }> }>;
     }>('source/geomet_lct_benchmark.json');
     expect([g.source.raw_rows, g.source.usable_rows, g.source.holes]).toEqual([53, 52, 29]);
     expect([g.protocols.hole.folds.length, g.protocols.zone.folds.length]).toEqual([5, 3]);
@@ -262,6 +289,14 @@ describe('the Benchmark page says what the records hold', () => {
     const ridge = hole.rmse_differences['train_mean-ridge'];
     expect([round(ridge.mean_pp, 2), round(ridge.interval_95_pp[0], 2), round(ridge.interval_95_pp[1], 2)]).toEqual([0.42, 0.02, 0.82]);
     expect(Object.values(zone.rmse_differences).some(d => d.excludes_zero)).toBe(false);
+    // M-05: the fixed partition is extreme; over partitions and leaving a hole out nothing separates
+    const robust = g.protocols.hole.robust!;
+    const rp = robust.repeated_partitions, lo = robust.leave_one_hole_out;
+    expect([rp.ridge_gain_over_mean_pp!.published_percentile, round(rp.ridge_gain_over_mean_pp!.mean, 2)]).toEqual([98.5, 0.18]);
+    const rr = rp.rmse_differences['train_mean-ridge'], lr = lo.rmse_differences['train_mean-ridge'];
+    expect([round(rr.difference_pp, 2), round(rr.interval_adjusted_pp[0], 2), round(rr.interval_adjusted_pp[1], 2)]).toEqual([0.17, -0.39, 0.71]);
+    expect([round(lr.difference_pp, 2), round(lr.interval_adjusted_pp[0], 2), round(lr.interval_adjusted_pp[1], 2)]).toEqual([0.22, -0.36, 0.79]);
+    expect([...Object.values(rp.rmse_differences), ...Object.values(lo.rmse_differences)].some(d => d.excludes_zero)).toBe(false);
     const p = read<{
       protocol: { train_rows: number; validation_rows: number; test_rows: number };
       cases: Array<{ case: string; test_rows: number; excluded_test_rows: number; models: Record<string, { rmse: number }> }>;

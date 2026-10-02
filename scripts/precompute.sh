@@ -6,3 +6,4 @@ VP=".venv-gpu/Scripts/python.exe"; [ -x "$VP" ] || VP=".venv-gpu/bin/python"; [ 
 "$VP" data-pipeline/run.py "$@"
 "$VP" data-pipeline/run_particles.py
 "$VP" data-pipeline/run_geomet.py --fit-checkpoint
+"$VP" data-pipeline/run_iron_plant.py

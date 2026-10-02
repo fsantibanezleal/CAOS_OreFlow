@@ -24,7 +24,7 @@ from SALib.sample import sobol as sobol_sample
 from ..cases.catalog import CaseDef
 from ..engine.circuit import simulate
 from ..engine.constants import constant
-from ..engine.model import OperatingPoint, Ore
+from ..engine.model import InfeasibleState, OperatingPoint, Ore
 from .sampling import latin_hypercube
 
 INPUTS = ("work_index", "head_grade", "liberation_size", "floatability")
@@ -58,7 +58,10 @@ def perturbed(case: CaseDef, point: OperatingPoint, factors: dict[str, float]) -
 
 def _evaluate(case: CaseDef, point: OperatingPoint, factors: dict[str, float]) -> dict[str, Any]:
     ore, p = perturbed(case, point, factors)
-    result = simulate(ore, case.plant, p)
+    try:
+        result = simulate(ore, case.plant, p)
+    except InfeasibleState as refusal:   # a draw with no steady state (E-01): counted, never a sample of the outputs
+        return {"refused": refusal.code}
     m = result.metrics
     plant = case.plant
     checks = {"grade_meets_spec": m["concentrate_grade"] >= plant.grade_spec.minimum,
@@ -76,7 +79,12 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
     seed = int(constant("uncertainty.seed")) if seed is None else seed
     unit = np.asarray(latin_hypercube(n, len(names), seed))
     factors = 1.0 - np.asarray(widths) + 2.0 * np.asarray(widths) * unit
-    rows = [_evaluate(case, point, dict(zip(names, map(float, row)))) for row in factors]
+    drawn = [_evaluate(case, point, dict(zip(names, map(float, row)))) for row in factors]
+    rows = [r for r in drawn if "refused" not in r]
+    refused: dict[str, int] = {}
+    for r in drawn:
+        if "refused" in r:
+            refused[r["refused"]] = refused.get(r["refused"], 0) + 1
     base = _evaluate(case, point, {})
     levels = [float(q) for q in constant("uncertainty.quantiles")]
     outputs = {}
@@ -87,8 +95,9 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
                         "mean": float(np.mean(values)), "std": float(np.std(values, ddof=1)), "base": base["outputs"][key],
                         "values": [float(v) for v in values]}
     checks = list(base["checks"])
-    probabilities = {c: float(np.mean([r["checks"][c] for r in rows])) for c in checks}
-    probabilities["all_constraints"] = float(np.mean([all(r["checks"].values()) for r in rows]))
+    # over every draw: an ore the circuit cannot bring to a steady state meets no constraint
+    probabilities = {c: float(sum(r["checks"][c] for r in rows)) / len(drawn) for c in checks}
+    probabilities["all_constraints"] = float(sum(all(r["checks"].values()) for r in rows)) / len(drawn)
     flag_counts: dict[str, int] = {}
     for r in rows:
         for code in r["flags"]:
@@ -103,6 +112,8 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
         "factors": [[float(v) for v in row] for row in factors],
         "outputs": outputs,
         "probabilities": probabilities,
+        # draws with no steady state (E-01), by code; the outputs are over the solved draws only
+        "refused": refused,
         "base_checks": base["checks"],
         "flag_counts": flag_counts,
         "max_balance_error": max(r["balance"] for r in rows),

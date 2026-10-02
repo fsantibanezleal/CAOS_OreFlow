@@ -9,13 +9,14 @@ from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
+import pytest
 
 from pipeline.cases.catalog import CASE_BY_ID
 from pipeline.engine.model import OperatingPoint
 from pipeline.io.contract import build_contract, validate
 from pipeline.methods import learning
 
-SANDBOX = dict(forest_trees=30, hgb_iterations=60, gp_training_rows=60, gp_restarts=0, max_epochs=500, patience=50,
+SANDBOX = dict(forest_trees=30, hgb_iterations=60, gp_training_rows=40, gp_restarts=0, max_epochs=500, patience=50,
                permutation_repeats=2, device="cpu")
 CASES = tuple(CASE_BY_ID[c] for c in ("copper_porphyry_soft", "copper_porphyry_hard", "iron_magnetite_fine"))
 
@@ -101,6 +102,34 @@ def test_protocols_and_model_identity(tmp_path):
         assert export["max_abs_difference"] <= 1e-5
     scalers = json.loads((tmp_path / "process_surrogate.json").read_text(encoding="utf-8"))
     assert scalers["features"] == list(learning.FEATURES) and scalers["guard_threshold"] == record["final"]["guard_threshold"]
+
+
+def test_the_records_the_pages_quote(tmp_path):
+    """M-07, M-08, M-11, M-16 and M-21 (review of 2026-10-02): what the Benchmark and the manuscript quote is recorded."""
+    record = _run(str(tmp_path))
+    # M-16: the guard's acceptance over distances, both directions; the 0.5 upward point is the headline rate
+    curve = record["guard"]["acceptance_by_distance"]
+    assert [c["distance"] for c in curve] == list(learning.settings()["ood_shifts"])
+    half = next(c for c in curve if c["distance"] == 0.5)
+    assert half["upward"] == pytest.approx(record["guard"]["false_accept_rate"])
+    assert all(0.0 <= c[d] <= 1.0 for c in curve for d in ("upward", "downward"))
+    # M-08: the GP's coverage under leave one case out, beside the interpolation's
+    for target in record["targets"]:
+        s = record["summary"]["gaussian_process"][target]
+        assert 0.0 <= s["loco_coverage_worst"] <= s["loco_coverage_pooled"] <= 1.0
+        assert s["interpolation_coverage"] == record["interpolation"]["models"]["gaussian_process"][target]["coverage_95"]
+    # M-07: each held-out case carries its own spread
+    for fold in record["leave_one_case_out"]:
+        assert set(fold["spread"]) == set(record["targets"]) and all(v >= 0.0 for v in fold["spread"].values())
+    # M-11: the other models refitted on the GP's rows
+    assert set(record["equal_rows"]) == {"ridge", "random_forest", "hist_gradient_boosting"}
+    # M-21: the network over five seeds, the first the record's own
+    seeds = record["mlp_seeds"]
+    assert len(seeds["seeds"]) == 5 and seeds["seeds"][0] == record["design"]["seed"]
+    for target in record["targets"]:
+        s = seeds["summary"][target]
+        assert s["interpolation_rmse"][0] == pytest.approx(record["interpolation"]["models"]["mlp"][target]["rmse"], rel=1e-6)
+        assert len(s["loco_rmse_mean"]) == len(s["loco_r2_median"]) == 5
 
 
 def test_reused_learning_cannot_ship(tmp_path):

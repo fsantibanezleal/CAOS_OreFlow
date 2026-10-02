@@ -43,11 +43,11 @@ in `balance` and is not a topology node.
 |---|---|
 | Products | `throughput_tph`, `head_grade`, `recovery_pct` (primary payable, overall), `concentrate_grade`, `tail_grade`, `concentrate_tph`, `mass_pull_pct`, `recovered_primary_tph`; per species `head_<S>`, `concentrate_<S>`; per payable `recovery_<S>_pct` |
 | Grinding | `crusher_feed_f80_um`, `crusher_p80_um` (mill new feed), `target_p80_um`, `p80_um` (achieved), `circulating_load_pct`, `cyclone_cut_um`, `cyclone_bypass_pct`, `mill_power_kw`, `required_mill_power_kw`, `installed_mill_power_kw`, `power_limited` (1 or 0) |
-| Cyclone sizing (Plitt) | `cyclones_required`, `cyclone_pressure_kpa`, `plitt_cut_um`, `plitt_sharpness`, `cyclone_feed_solids_vol_pct` |
+| Cyclone sizing (Plitt, uncalibrated estimate; never a flag) | `cyclones_required`, `cyclone_pressure_kpa`, `plitt_cut_um`, `plitt_sharpness`, `cyclone_feed_solids_vol_pct` |
 | Energy | `specific_energy_crushing_kwh_t`, `specific_energy_grinding_kwh_t`, `specific_energy_regrind_kwh_t`, `specific_energy_total_kwh_t` (their sum), `bond_energy_kwh_t`, `operating_work_index_kwh_t`, `bond_efficiency_ratio`, and the comparison laws `energy_rittinger_kwh_t`, `energy_kick_kwh_t` (never summed) |
 | Water | `water_use_m3_h`, `water_intensity_m3_t` (fresh water per tonne of ore) |
 | Flotation | `flotation_recovery_pct` (on the flotation feed), `rougher_recovery_pct`, `cleaner_recovery_pct`, `recleaner_recovery_pct`, `rougher_concentrate_grade`, `rougher_mass_pull_pct`, `rougher_residence_min`, `cleaner_residence_min`, `rougher_water_recovery_pct`, `cleaner_water_recovery_pct`, `bubble_surface_flux_s`, `cleaner_recycle_tph`, `recycle_iterations`, `entrained_gangue_share_pct`, `regrind_power_kw` |
-| Gravity | `gravity_recovery_pct`, `gold_circulating_load_pct` |
+| Gravity | `gravity_recovery_pct` (all the gold), `grg_recovery_pct` (the gravity-recoverable gold), `gold_circulating_load_pct` (the gravity-recoverable gold's) |
 | Magnetite | `magnetite_recovery_pct` (magnetic Fe); `recovery_pct` is total Fe |
 | Desliming | `slimes_mass_pct`, `slimes_loss_pct` (primary payable lost to slimes) |
 | Audit | `balance_max_relative_error`, `species_consistency_error` |
@@ -73,7 +73,6 @@ classes) and `upper_um` (class upper bounds).
 | `power_limited` | required mill power exceeds installed power; the circuit runs at installed power and the product is coarser than the target |
 | `target_unreachable` | the target P80 cannot be met within the energy search range |
 | `circulating_load_unreachable` | the design circulating load cannot be held at this energy |
-| `cyclone_pressure` | the Plitt pressure falls outside the 35 to 200 kPa practical window |
 | `mill_water_negative`, `sump_water_negative` | the declared densities leave no room for water addition at the mill or the sump |
 | `recycle_not_converged` | the flotation recycle did not meet its absolute and relative tolerances |
 | `composite_scale_not_converged` | the host-limited composite fixed point did not converge |

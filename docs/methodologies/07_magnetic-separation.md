@@ -21,6 +21,13 @@ Concentrate water follows a declared concentrate solids fraction. Fe grade and r
 the mineral balance: magnetite at 72.36% Fe and an iron-bearing silicate gangue at a declared 5% Fe.
 Recovery is reported both as total Fe and as magnetite (magnetic Fe).
 
+The head grade control is the feed's total Fe assay (since 0.08.000). The resolver solves the magnetite
+fraction so that magnetite plus the silicate's iron assay to the control: at the nominal 29.7% Fe, magnetite
+carries 26.5 points. Until 0.08.000 the control set the iron in magnetite alone, so the feed assayed 29.67%
+against a declared 26.5% (review of 2026-10-02, E-02). The silicate's 5% Fe is authored; no source gives it.
+It never reports as magnetic, so total-Fe recovery sits below magnetite recovery and moves with the head
+grade by dilution. The Sobol record's "head grade drives recovery" for this case is that dilution.
+
 ## Parameters
 
 | Parameter | Value | Unit | Source |

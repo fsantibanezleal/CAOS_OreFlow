@@ -75,7 +75,7 @@ bank residence (often above 20 min) is longer than the 16 min test.
   the bank projection, the lumping error and the ultimate gap, plus the exact distributed bank
   recovery and the engine's rougher recovery (which adds entrainment).
 
-On the twelve nominal cases the first-order model underestimates the exact bank by 3 to 7 points,
+On the eleven flotation cases' nominal states the first-order model underestimates the exact bank by 3.0 to 6.4 points,
 because it caps the ultimate recovery at the plateau of a 16 min test. The Kelsall and gamma forms
 fit the batch curve to within 0.2 points RMSE and project within about 1.6 points. The stretched
 exponential settles at $\beta$ between 0.83 and 0.94: a spread of rates, as the class structure

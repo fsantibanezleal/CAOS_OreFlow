@@ -154,15 +154,38 @@ def assign_work_index(hole: str, xyz: list[float], comminution: list[dict[str, A
     return {"value": median, "how": "deposit_median", "from_source_row": None, "distance_m": None}
 
 
-def sample_ore(allocation: dict[str, Any], head_cu_pct: float, work_index: float) -> Ore:
+def allocate_alternative(cu_ppm: float, s_ppm: float, fe_ppm: float) -> dict[str, Any] | None:
+    """S-06: the other end of the sulphur-deficient family, chalcopyrite with chalcocite, closing the same copper and
+    sulphur; the chalcopyrite-pyrite band has no freedom and keeps its allocation."""
+    base = allocate(cu_ppm, s_ppm, fe_ppm)
+    if base is None or base["band"] == "chalcopyrite_pyrite":
+        return base
+    w = atomic_weights()
+    c, s = cu_ppm / w["Cu"], s_ppm / w["S"]
+    (a1, b1), (a2, b2) = ((_atoms(m)["Cu"], _atoms(m)["S"]) for m in ("chalcopyrite", "chalcocite"))
+    det = a1 * b2 - a2 * b1
+    moles = {m: 0.0 for m in (*COPPER_MINERALS, "pyrite", "magnetite")}
+    moles["chalcopyrite"], moles["chalcocite"] = (c * b2 - s * a2) / det, (a1 * s - b1 * c) / det
+    fe_sulphides = sum(moles[m] * _atoms(m).get("Fe", 0.0) for m in COPPER_MINERALS)
+    moles["magnetite"] = max(0.0, fe_ppm / w["Fe"] - fe_sulphides) / _atoms("magnetite")["Fe"]
+    mass = {m: n * formula_weight(mineral_table()[m]["formula"]) / 1e6 for m, n in moles.items()}
+    cu_mass = {m: moles[m] * _atoms(m)["Cu"] * w["Cu"] for m in COPPER_MINERALS}
+    total_cu = sum(cu_mass.values())
+    return {"band": base["band"] + ":chalcopyrite_chalcocite", "fractions": mass,
+            "copper_shares": {m: cu_mass[m] / total_cu for m in COPPER_MINERALS}, "s_to_cu_molar": s / c}
+
+
+def sample_ore(allocation: dict[str, Any], head_cu_pct: float, work_index: float, bornite_ratio: float | None = None,
+               chalcocite_to_bornite: float | None = None, drop_magnetite: bool = False) -> Ore:
     """The soft porphyry's ore with the sample's minerals: the copper minerals take chalcopyrite's liberation and
     flotation parameters, at their declared floatability ratios; pyrite keeps the case's depressed flotability;
     magnetite is gangue that floats as quartz does; quartz closes the mass."""
     case = CASE_BY_ID[CASE_ID]
     spec = {m.id: m for m in case.ore.minerals}
     cp = spec["chalcopyrite"]
-    ratios = {"chalcopyrite": 1.0, "bornite": float(constant("minerals.bornite_floatability_ratio")),
-              "chalcocite": float(constant("minerals.bornite_floatability_ratio")) * float(constant("minerals.chalcocite_to_bornite_floatability_ratio"))}
+    bn = float(constant("minerals.bornite_floatability_ratio")) if bornite_ratio is None else bornite_ratio
+    cc = float(constant("minerals.chalcocite_to_bornite_floatability_ratio")) if chalcocite_to_bornite is None else chalcocite_to_bornite
+    ratios = {"chalcopyrite": 1.0, "bornite": bn, "chalcocite": bn * cc}
     shares = allocation["copper_shares"]
     carriers = [m for m in COPPER_MINERALS if shares[m] > 0.0]
     minerals = [replace(cp, id=m, flotation=replace(cp.flotation, floatability=cp.flotation.floatability * ratios[m])) for m in carriers]
@@ -170,7 +193,7 @@ def sample_ore(allocation: dict[str, Any], head_cu_pct: float, work_index: float
     # magnetite join only when the allocation gives them mass
     if allocation["fractions"]["pyrite"] > 0.0:
         minerals.append(replace(spec["pyrite"], fraction=allocation["fractions"]["pyrite"]))
-    if allocation["fractions"]["magnetite"] > 0.0:
+    if allocation["fractions"]["magnetite"] > 0.0 and not drop_magnetite:
         minerals.append(MineralSpec(id="magnetite", fraction=allocation["fractions"]["magnetite"], flotation=QUARTZ))
     minerals.append(spec["quartz"])
     payable = Payable("Cu", "%", tuple(Carrier(m, shares[m]) for m in carriers), head_cu_pct)

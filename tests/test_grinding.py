@@ -10,6 +10,7 @@ import pytest
 from engine_helpers import run_point, run_variant
 from pipeline.cases.catalog import CASE_BY_ID, CASES
 from pipeline.engine.circuit import simulate
+from pipeline.engine.model import InfeasibleState
 
 
 @pytest.mark.parametrize("case_id", [c.id for c in CASES])
@@ -150,3 +151,61 @@ def test_modes_agree_at_the_same_state(case_id):
     total = sum(result.overflow.values())
     assert circuit.g.p80(total) == pytest.approx(target.p80_um, rel=1e-9)
     assert result.circulating_load == pytest.approx(target.circulating_load, rel=1e-9)
+
+
+# E-01 (review of 2026-10-02): the reproductions of a cut-mode state with no steady state at installed power. Until
+# 0.08.000 the engine returned them as solved, at the energy bracket's end, with loads of millions of percent and mill
+# power above installed, and the service answered HTTP 200
+REFUSED = [
+    ("copper_porphyry_soft", {"throughput_tph": 1080.0, "d50c_um": 147.127261101}),
+    ("copper_porphyry_soft", {"work_index_kwh_t": 16.5, "d50c_um": 147.127261101}),
+    ("iron_magnetite_fine", {"water_m3_t": 1.0, "d50c_um": 65.3}),
+]
+
+
+@pytest.mark.parametrize("case_id,change", REFUSED)
+def test_cut_mode_refuses_a_state_without_a_steady_state(case_id, change):
+    case = CASE_BY_ID[case_id]
+    with pytest.raises(InfeasibleState) as refusal:
+        simulate(case.ore, case.plant, case.nominal.with_values(**change))
+    assert refusal.value.code in ("power_unreachable_at_cut", "circulating_load_above_bound")
+    assert refusal.value.error()["input"] == "d50c_um"
+
+
+def _corner_cases() -> list[str]:
+    # every case at release (OF_CORNERS=full); three families by default, so the suite stays fast
+    import os
+    return [c.id for c in CASES] if os.environ.get("OF_CORNERS") == "full" else ["copper_porphyry_soft", "iron_magnetite_fine", "copper_porphyry_hard"]
+
+
+@pytest.mark.parametrize("case_id", _corner_cases())
+def test_cut_mode_never_serves_an_impossible_state(case_id):
+    """Every corner of the cut-mode envelope over the six inputs that decide feasibility is refused, or served with the
+    mill at or under its installed power and a circulating load at or under the declared bound."""
+    import itertools
+
+    from pipeline.engine.constants import constant
+    from pipeline.io.contract import build_contract, validate
+
+    document = build_contract()
+    bounds = document["cases"][case_id]["inputs"]
+    names = [n for n in ("throughput_tph", "work_index_kwh_t", "d50c_um", "water_m3_t", "crusher_css_mm", "head_grade") if n in bounds]
+    case = CASE_BY_ID[case_id]
+    cap = float(constant("grinding.cut_mode_load_max"))
+    refused = served = 0
+    for corner in itertools.product(*[(bounds[n]["min"], bounds[n]["max"]) for n in names]):
+        state = dict(zip(names, corner))
+        verdict = validate(document, case_id, state)
+        if not verdict["accepted"]:
+            continue
+        point = case.nominal.with_values(**verdict["point"])
+        try:
+            result = simulate(case.ore, case.plant, point)
+        except InfeasibleState:
+            refused += 1
+            continue
+        served += 1
+        g = result.grinding
+        assert g.power_kw <= case.plant.mill.installed_power_kw * (1.0 + 1e-9), (state, g.power_kw)
+        assert g.circulating_load <= cap * (1.0 + 1e-12), (state, g.circulating_load)
+    assert served > 0

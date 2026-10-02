@@ -15,6 +15,8 @@ from ..engine.circuit import simulate
 from ..engine.model import OperatingPoint, Ore, Plant
 
 OUTPUTS = ("recovery_pct", "concentrate_grade", "specific_energy_total_kwh_t", "recovered_primary_tph")
+# M-18 (review of 2026-10-02): the flotation details the Experiments page quotes, kept where a case has them
+DETAIL = ("rougher_mass_pull_pct", "cleaner_recycle_tph", "cleaner_residence_min", "cleaner_recovery_pct")
 
 Transform = Callable[[Ore, Plant, OperatingPoint], tuple[Ore, Plant, OperatingPoint]]
 
@@ -89,6 +91,8 @@ def ablate(ore: Ore, plant: Plant, op: OperatingPoint, base: dict[str, float] | 
         off = {k: float(result.metrics[k]) for k in OUTPUTS}
         record[name] = {"status": "computed", "on": {k: float(on[k]) for k in OUTPUTS}, "off": off,
                         "delta": {k: off[k] - float(on[k]) for k in OUTPUTS},
+                        "detail": {"on": {k: float(on[k]) for k in DETAIL if k in on and k in result.metrics},
+                                   "off": {k: float(result.metrics[k]) for k in DETAIL if k in on and k in result.metrics}},
                         "flags": [f["code"] for f in result.flags],
                         "balance": float(result.metrics["balance_max_relative_error"])}
     return record

@@ -24,7 +24,8 @@ def _tables():
 def _record():
     from pipeline.stages import real_samples
 
-    return real_samples.build(Path(__file__).resolve().parents[1] / "data" / "derived", "test", "test")
+    # the sensitivity study (about 3,000 engine runs) is checked on the committed record, not rerun here
+    return real_samples.build(Path(__file__).resolve().parents[1] / "data" / "derived", "test", "test", with_sensitivity=False)
 
 
 def test_sources_pinned_and_ledger(tmp_path):
@@ -120,3 +121,33 @@ def test_record_fields():
         assert 0.0 < s["metrics"]["recovery_pct"] < 100.0 and 0.0 <= s["measured_recovery_pct"] <= 100.0
         assert s["geomet_lane"] is not None and set(s["geomet_lane"]["predictions_pct"]) >= {"ridge", "random_forest"}
     assert set(record["labels"]) == {"bond_columns", "allocation", "magnetite", "authored", "comparison"}
+
+
+def test_the_comparison_states_its_dependences():
+    """S-01 to S-09 (review of 2026-10-02, verified forms), on the committed record: the 720 t/h gap is the host
+    circuit's size and an unknown laboratory grind, so the record carries the gap against the assumed grind (zero near
+    165 um), the residence share of the target-grind result, the hosts, and every authored choice with its effect."""
+    import json
+
+    record = json.loads((Path(__file__).resolve().parents[1] / "data" / "derived" / "real_samples.json").read_text(encoding="utf-8"))
+    s = record["sensitivity"]
+    curve = {round(r["p80_um"]): r for r in s["gap_by_assumed_p80"]}
+    gaps = [r["mean_gap_pp"] for r in s["gap_by_assumed_p80"]]
+    assert all(b < a for a, b in zip(gaps, gaps[1:]))                       # a coarser assumed grind, a lower gap
+    assert curve[160]["mean_gap_pp"] > 0.0 > curve[165]["mean_gap_pp"]      # the zero crossing
+    # with the declared ratios the engine does not rank the samples at any grind, and no state beats a constant
+    assert all(abs(r["pearson"]) < 0.05 for r in s["gap_by_assumed_p80"])
+    assert min(r["rmse_pp"] for r in s["gap_by_assumed_p80"]) > s["measured_population_sd_pp"]
+    t = s["target_grind_throughput"]
+    assert t["residence_share_pp"] == t["mean_gap_pp"] - curve[150]["mean_gap_pp"] and 2.5 < t["residence_share_pp"] < 4.0
+    h = s["hosts"]
+    assert h["soft_720_record"]["mean_gap_pp"] < -15.0 and abs(h["hard_nominal"]["mean_gap_pp"]) < 5.0
+    # a slower chalcocite is what gives the engine a ranking, so every correlation sentence names the declared ratios
+    grid = {(g["bornite"], g["chalcocite_to_bornite"]): g for g in s["ratio_grid"]}
+    assert grid[(0.8, 0.67)]["sized_150"]["pearson"] > 0.2 and abs(grid[(0.8, 1.5)]["sized_150"]["pearson"]) < 0.05
+    w = s["work_index"]
+    assert w["recovery_per_kwh_t_median"] < 0.0 and w["pearson_recovery_work_index_720"] < -0.8
+    # the realistic alternative assignments move the mean far less than a uniform bias of the same size
+    base = h["soft_720_record"]["mean_gap_pp"]
+    assert max(abs(w["deposit_median_for_all"]["mean_gap_pp"] - base), abs(w["global_nearest"]["mean_gap_pp"] - base)) < 2.0
+    assert min(abs(w["all_minus_shift"]["mean_gap_pp"] - base), abs(w["all_plus_shift"]["mean_gap_pp"] - base)) > 5.0
