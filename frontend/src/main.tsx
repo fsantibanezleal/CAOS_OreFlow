@@ -18,6 +18,7 @@ import Workbench from "./workbench/Workbench";
 import { Pickaxe } from "lucide-react";
 import { APP_VERSION } from "./lib/version";
 import { DocumentLanguage } from "./lib/DocumentLanguage";
+import { NavOverflow } from "./lib/NavOverflow";
 
 // the workbench is the landing route; the focus route and the content pages load when first opened
 const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
@@ -85,6 +86,7 @@ function AppRoutes() {
   if (pathname.startsWith('/focus/')) return <><DocumentLanguage /><Boundary><Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes></Boundary></>;
   return <AppShell config={config}>
         <DocumentLanguage />
+        <NavOverflow />
         <Boundary>
           <Routes>
             <Route path="/" element={<Workbench />} />
