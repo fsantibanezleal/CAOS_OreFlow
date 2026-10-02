@@ -74,17 +74,42 @@ export const SOURCE_TEXT = {
   error: { en: 'Error (points)', es: 'Error (puntos)' },
   traceTitle: { en: 'The window\'s next-hour silica, with this hour marked', es: 'La sílice de la hora siguiente en la ventana, con esta hora marcada' },
   traceSummary: { en: 'Measured next-hour silica across the window\'s sampled hours, with persistence, and the chosen hour marked.', es: 'Sílice medida de la hora siguiente en las horas muestreadas de la ventana, con la persistencia, y la hora elegida marcada.' },
-  hourAxis: { en: 'Sampled hour in the window', es: 'Hora muestreada en la ventana' },
   silicaAxis: { en: 'Silica in the concentrate (%)', es: 'Sílice en el concentrado (%)' },
   observed: { en: 'Measured', es: 'Medida' },
   thisHour: { en: 'this hour', es: 'esta hora' },
   hourLabel: { en: 'Plant hour', es: 'Hora de planta' },
   recorded: { en: 'A measured record, shown and not simulated', es: 'Un registro medido, que se muestra y no se simula' },
+  unitsNote: {
+    en: 'Units as the dataset description gives them (Kaggle 6294, read through secondary copies): reagent flows in m³/h and air in Nm³/h. Its pulp density "1 to 3 kg/cm³" is shown in t/m³, which its values near 1.7 imply. The pulp-flow (t/h) and level (mm) units are UNVERIFIED.',
+    es: 'Unidades según la descripción del conjunto (Kaggle 6294, leída en copias secundarias): flujos de reactivo en m³/h y aire en Nm³/h. Su densidad de pulpa "1 a 3 kg/cm³" se muestra en t/m³, lo que implican sus valores cercanos a 1,7. Las unidades de flujo de pulpa (t/h) y de nivel (mm) están SIN VERIFICAR.',
+  },
+  hourTick: { en: 'Sensor hour (month-day hour)', es: 'Hora de sensores (mes-día hora)' },
   laneNote: {
     en: 'An observational forecast from one plant: it says how well the next hour is predicted here, not what a change of any sensor would do.',
     es: 'Un pronóstico observacional de una planta: dice qué tan bien se predice aquí la hora siguiente, no qué haría un cambio de algún sensor.',
   },
 };
+
+/** U-14: a plant sensor in the interface language with its unit (the dataset description's units; see unitsNote). */
+export function sensorLabel(name: string, lang: Lang): string {
+  const column = name.match(/^Flotation Column 0?(\d+) (Air Flow|Level)$/);
+  if (column) {
+    return column[2] === 'Air Flow'
+      ? (lang === 'es' ? `Flujo de aire, columna ${column[1]} (Nm³/h)` : `Air flow, column ${column[1]} (Nm³/h)`)
+      : (lang === 'es' ? `Nivel, columna ${column[1]} (mm)` : `Level, column ${column[1]} (mm)`);
+  }
+  const known: Record<string, [string, string]> = {
+    '% Iron Feed': ['Iron in the feed (%)', 'Hierro en la alimentación (%)'],
+    '% Silica Feed': ['Silica in the feed (%)', 'Sílice en la alimentación (%)'],
+    'Starch Flow': ['Starch flow (m³/h)', 'Flujo de almidón (m³/h)'],
+    'Amina Flow': ['Amine flow (m³/h)', 'Flujo de amina (m³/h)'],
+    'Ore Pulp Flow': ['Pulp flow (t/h)', 'Flujo de pulpa (t/h)'],
+    'Ore Pulp pH': ['Pulp pH', 'pH de la pulpa'],
+    'Ore Pulp Density': ['Pulp density (t/m³)', 'Densidad de la pulpa (t/m³)'],
+  };
+  const hit = known[name];
+  return hit ? hit[lang === 'es' ? 1 : 0] : name;
+}
 
 export function SourceStatement({ kind, lang }: { kind: 'hour' | 'sample-methods' | 'sample-response'; lang: Lang }) {
   const text = kind === 'hour' ? SOURCE_TEXT.notEngine : kind === 'sample-methods' ? SOURCE_TEXT.sampleNoMethods : SOURCE_TEXT.sampleNoResponse;
@@ -181,10 +206,10 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
       <div className="of-split">
         <div className="of-hour-main">
           <Chart data={[xs, window.trace.map(t => t.observed_pct), window.trace.map(t => t.predictions_pct.previous_lab)] as uPlot.AlignedData}
-            xLabel={SOURCE_TEXT.hourAxis[lang]} yLabel={SOURCE_TEXT.silicaAxis[lang]} title={SOURCE_TEXT.traceTitle[lang]} summary={SOURCE_TEXT.traceSummary[lang]}
+            xLabel={SOURCE_TEXT.hourTick[lang]} yLabel={SOURCE_TEXT.silicaAxis[lang]} title={SOURCE_TEXT.traceTitle[lang]} summary={SOURCE_TEXT.traceSummary[lang]}
             series={[{ label: SOURCE_TEXT.observed[lang], colour: 'accent', points: true }, { label: IRON_NAME.previous_lab[lang], colour: 'warn', dash: [4, 4] }]}
             marks={[{ x: index, label: SOURCE_TEXT.thisHour[lang] }]}
-            format={(v, axis) => (v === null ? '-' : axis === 'x' ? String(v) : `${formatFixed(v, lang, 2)}%`)}
+            format={(v, axis) => (v === null ? '-' : axis === 'x' ? (Number.isInteger(v) && window.trace[v] ? window.trace[v].sensor_hour.slice(5, 13).replace('T', ' ') : '') : `${formatFixed(v, lang, 2)}%`)}
             onCursor={c => onCursor(c ? `${window.trace[c.index].sensor_hour.slice(0, 16)}: ${SOURCE_TEXT.observed[lang]} ${formatFixed(window.trace[c.index].observed_pct, lang, 2)}%` : null)} />
           <table className="of-table of-table-data">
             <caption>{`${SOURCE_TEXT.hourTitle[lang]}: ${hour.sensor_hour.slice(0, 16)}`}</caption>
@@ -203,8 +228,9 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
           <table className="of-table">
             <caption>{`${SOURCE_TEXT.labNow[lang]}: ${SOURCE_TEXT.silica[lang]} ${formatFixed(hour.lab_pct.silica, lang, 2)}%, ${SOURCE_TEXT.iron[lang]} ${formatFixed(hour.lab_pct.iron, lang, 2)}%`}</caption>
             <thead><tr><th scope="col">{SOURCE_TEXT.sensor[lang]}</th><th scope="col">{SOURCE_TEXT.value[lang]}</th></tr></thead>
-            <tbody>{Object.entries(hour.sensors).map(([name, v]) => <tr key={name}><th scope="row">{name}</th><td>{formatFixed(v, lang, 2)}</td></tr>)}</tbody>
+            <tbody>{Object.entries(hour.sensors).map(([name, v]) => <tr key={name}><th scope="row" title={name}>{sensorLabel(name, lang)}</th><td>{formatFixed(v, lang, 2)}</td></tr>)}</tbody>
           </table>
+          <p className="of-footnote">{SOURCE_TEXT.unitsNote[lang]}</p>
         </div>
       </div>
     </div>

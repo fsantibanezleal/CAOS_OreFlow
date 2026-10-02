@@ -102,9 +102,16 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
     const s = streams[stream];
     return s ? `${formatWithUnit(s.solids_tph, 't/h', lang)} · ${formatWithUnit(s.grades[primary.species], primary.unit, lang)}` : '';
   };
+  // U-26: every edge segment (and its arrowhead) is an obstacle for every label, so no label sits on a line
+  const paths = plan.edges.map(pathOf);
+  const segmentBoxes: Box[] = paths.flatMap(path => path.slice(1).map(([x1, y1], i) => {
+    const [x0, y0] = path[i];
+    return { x0: Math.min(x0, x1) - 3, y0: Math.min(y0, y1) - 3, x1: Math.max(x0, x1) + 3, y1: Math.max(y0, y1) + 3 };
+  }));
   const edges = plan.edges.map((edge, k) => {
-    const path = pathOf(edge);
-    const text = valueOf(edge.stream);
+    const path = paths[k];
+    // U-09: an outlet or the feed says which stream it is; an inner edge keeps its rate and grade only
+    const text = edge.to === null || edge.from === null ? `${streamName(edge.stream, lang)}: ${valueOf(edge.stream)}` : valueOf(edge.stream);
     // the label goes by the longest segment: above a horizontal one, beside a vertical one
     let best = 0;
     let bestLength = -1;
@@ -135,7 +142,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
       const bx0 = c.anchor === 'middle' ? c.x - w / 2 : c.anchor === 'start' ? c.x : c.x - w;
       const box = { x0: bx0 - 2, y0: c.y - 10, x1: bx0 + w + 2, y1: c.y + 3 };
       // inside the frame, so no label sits under an overlay (the focus route's readouts)
-      if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...unitBoxes, ...placed].some(b => overlaps(b, box))) continue;
+      if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...unitBoxes, ...segmentBoxes, ...placed].some(b => overlaps(b, box))) continue;
       placed.push(box);
       label = c;
       break;
@@ -146,16 +153,17 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   return (
     <div className="of-flowmap-host" ref={hostRef}>
       <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
-        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`}>
+        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={edges.filter(e => !e.label && e.text).length}>
         <defs>
-          {(['plain', 'recycle', 'product'] as const).map(kind => (
+          {(['plain', 'recycle', 'product', 'tail'] as const).map(kind => (
             <marker key={kind} id={`of-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
               <path d="M0,0 L10,5 L0,10 z" className={`of-flow-arrow ${kind}`} />
             </marker>
           ))}
         </defs>
         {edges.map(({ edge, key, path, text, label }) => {
-          const kind = edge.recycle ? 'recycle' : edge.to === null ? 'product' : 'plain';
+          // U-09: a concentrate leaves green; a tail leaves in the plain colour, never as a product
+          const kind = edge.recycle ? 'recycle' : edge.to === null ? (concentrates.includes(edge.stream) ? 'product' : 'tail') : 'plain';
           return (
             <g key={key} className={`of-flow-edge ${kind}`}>
               <title>{`${streamName(edge.stream, lang)}: ${text}`}</title>

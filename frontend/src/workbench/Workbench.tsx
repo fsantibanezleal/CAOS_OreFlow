@@ -183,6 +183,8 @@ export default function Workbench() {
     if (query !== params.toString()) setParams(query, { replace: true });
   }, [caseId, variantId, base, point, view, source, sampleId, hourKey, params, setParams]);
   useEffect(() => setCursor(null), [view, caseId]);
+  // U-15: an hour of the plant has only its Case view; the source opens it and the other views are disabled
+  useEffect(() => { if (source === 'hour' && view !== 'case') setView('case'); }, [source, view, setView]);
 
   if (failure) return <div className="page-body wide of-bench"><p className="of-failure" role="alert">{failure}</p></div>;
   if (!loaded || !artifact || !variant || !point || artifact.case_id !== caseId) {
@@ -231,7 +233,8 @@ export default function Workbench() {
       <section className="of-main" aria-label={artifact.title[lang]}>
         {source === 'hour' && lane ? <HourReadout lane={lane} hourKey={hourKey} lang={lang} cursor={cursor} />
           : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} rejected={rejection} />}
-        <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names} />
+        <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names}
+          disabled={source === 'hour' ? VIEWS.filter(v => v !== 'case') : []} />
         {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>
       </section>

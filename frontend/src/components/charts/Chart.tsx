@@ -167,10 +167,29 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         ctx.fillText(text, x, y);
         ctx.restore();
       };
-      // vertical marks, left to right; a label that would run into the previous one drops a line
+      // the data points in canvas pixels, so a label goes where it covers none: the "nominal" label sat on a variant's
+      // point in the Case view, "sin cambio" on the Experiments page's points, and "P80 150 µm" on the tail curve (U-27)
+      const dots: Box[] = [];
+      if (levels?.length || marks?.length) {
+        const xs = self.data[0] as number[];
+        self.series.forEach((s, i) => {
+          if (i === 0 || s.show === false) return;
+          const ys = self.data[i] as (number | null)[];
+          for (let k = 0; k < xs.length; k += 1) {
+            const v = ys[k];
+            if (v === null || v === undefined) continue;
+            const px = self.valToPos(xs[k], 'x', true);
+            const py = self.valToPos(v, 'y', true);
+            if (px >= left && px <= left + width && py >= top && py <= top + height) dots.push({ x0: px - 5 * ratio, y0: py - 5 * ratio, x1: px + 5 * ratio, y1: py + 5 * ratio });
+          }
+        });
+      }
+      // vertical marks, left to right; a label that would run into a neighbour, another mark's line or the data drops a line
       const placed: Box[] = [];
       const vertical = (marks ?? []).map(m => ({ ...m, px: self.valToPos(m.x, 'x', true) }))
         .filter(m => Number.isFinite(m.px) && m.px >= left && m.px <= left + width).sort((a, b) => a.px - b.px);
+      const lines: Box[] = vertical.map(m => ({ x0: m.px - ratio, y0: top, x1: m.px + ratio, y1: top + height }));
+      let marksOver = 0;
       for (const mark of vertical) {
         ctx.beginPath();
         ctx.moveTo(mark.px, top);
@@ -187,30 +206,17 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         // median and the base state were close), so labels in one row keep a gap of a mark's spacing
         const gap = 4 * ratio;
         const crowds = (other: Box) => overlaps(other, { ...box, x0: box.x0 - gap, x1: box.x1 + gap });
-        while (placed.some(crowds) && row < 6) {
+        const own = (l: Box) => Math.abs((l.x0 + l.x1) / 2 - mark.px) < 0.5;
+        const blocked = () => placed.some(crowds) || lines.some(l => !own(l) && overlaps(l, box)) || dots.some(d => overlaps(d, box));
+        while (blocked() && row < 8 && top + (row + 2) * line <= top + height) {
           row += 1;
           box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
         }
+        if (blocked()) marksOver += 1;
         placed.push(box);
         label(mark.label, x, top + (row + 1) * line - 3 * ratio);
       }
-      // the data points in canvas pixels, so a level's label goes where it covers none: the "nominal" label
-      // sat on a variant's point in the Case view, and "sin cambio" on the Experiments page's points
-      const dots: Box[] = [];
-      if (levels?.length) {
-        const xs = self.data[0] as number[];
-        self.series.forEach((s, i) => {
-          if (i === 0 || s.show === false) return;
-          const ys = self.data[i] as (number | null)[];
-          for (let k = 0; k < xs.length; k += 1) {
-            const v = ys[k];
-            if (v === null || v === undefined) continue;
-            const px = self.valToPos(xs[k], 'x', true);
-            const py = self.valToPos(v, 'y', true);
-            if (px >= left && px <= left + width && py >= top && py <= top + height) dots.push({ x0: px - 5 * ratio, y0: py - 5 * ratio, x1: px + 5 * ratio, y1: py + 5 * ratio });
-          }
-        });
-      }
+      if (marks?.length) host.dataset.marksOver = String(marksOver);
       let over = 0;
       for (const level of levels ?? []) {
         const y = self.valToPos(level.y, 'y', true);

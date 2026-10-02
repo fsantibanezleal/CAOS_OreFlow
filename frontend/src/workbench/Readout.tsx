@@ -4,6 +4,7 @@
  * at the end of the same row, so every instrument reports to the same place.
  */
 import type { Trace } from '../engine/trace';
+import { flaggedFacts } from './views/GrindingView';
 import { formatWithUnit, type Lang } from '../lib/format';
 import { flagShort, flagText, metricLabel, t, UI } from '../lib/i18n';
 
@@ -22,10 +23,11 @@ export function Readout({ trace, lang, computing, cursor, rejected }: {
   // U-23: the row never wraps, so it names the flags short; FlagsLine gives the full sentences under the tabs
   const status = flags.length ? flags.map(f => flagShort(f.code, lang)).join(' · ') : t(UI.noFlags, lang);
   const full = flags.length ? flags.map(f => flagText(f.code, lang)).join(' ') : status;
+  const flagged = flaggedFacts(trace);
   return (
     <div className="of-readout" role="status" aria-live="polite">
       {HEADLINE.filter(key => key in trace.metrics).map(key => (
-        <span key={key} className="of-readout-item">
+        <span key={key} className={flagged.has(key) ? 'of-readout-item warn' : 'of-readout-item'}>
           <span className="of-readout-label">{metricLabel(key, lang)}</span>
           <strong>{formatWithUnit(trace.metrics[key], trace.metric_units[key], lang)}</strong>
         </span>

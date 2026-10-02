@@ -72,7 +72,9 @@ export default function FocusWorkbench() {
   const { caseId, variantId, base, point, view, selectedUnit, advanced, source, sampleId, hourKey, setVariant, setAdvanced, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
   const { artifact, variant, trace, accepted, errors, sample } = useCaseState(loaded, params);
-  const [stage, setStage] = useState<Stage>(() => (search.get('stage') as Stage | null) ?? 'flowsheet');
+  // U-25: from the workbench the focus route opens on the active view's first stage, not always on the flowsheet
+  const [stage, setStage] = useState<Stage>(() => (search.get('stage') as Stage | null)
+    ?? ({ grinding: 'psd', separation: 'recovery_by_size', response: 'response' } as Partial<Record<string, Stage>>)[search.get('view') ?? ''] ?? 'flowsheet');
   const [cursor, setCursor] = useState<string | null>(null);
 
   // the URL mirrors the state, as on the workbench

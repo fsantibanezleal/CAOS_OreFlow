@@ -44,6 +44,7 @@ const TEXT = {
   parameter: { en: 'Parameter', es: 'Parámetro' },
   input: { en: 'Operating input', es: 'Entrada de operación' },
   nominal: { en: 'Nominal', es: 'Nominal' },
+  cutOff: { en: 'off: the cut follows the grind target', es: 'apagado: el corte sigue al objetivo de molienda' },
   bounds: { en: 'Contract bounds', es: 'Límites del contrato' },
   crusher: { en: 'Crusher feed F80', es: 'F80 alimentación del chancador' },
   mill: { en: 'Ball mill installed power', es: 'Potencia instalada del molino de bolas' },
@@ -114,13 +115,13 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
   const plantRows: Array<[string, string]> = [
     [TEXT.crusher[lang], formatWithUnit(plant.crusher.feed_f80_um, 'um', lang)],
     [TEXT.mill[lang], formatWithUnit(plant.mill.installed_power_kw, 'kW', lang)],
-    [TEXT.cyclone[lang], `${formatSignificant(plant.cyclone.diameter_cm, lang, 3)} cm`],
+    [TEXT.cyclone[lang], `${formatSignificant(plant.cyclone.diameter_cm, lang, 3)} cm`],
   ];
   if (plant.flotation) {
     const f = plant.flotation;
-    plantRows.push([TEXT.rougher[lang], `${formatSignificant(f.rougher.cell_volume_m3, lang, 3)} m³`]);
-    plantRows.push([TEXT.cleaner[lang], `${f.cleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.cleaner.cell_volume_m3, lang, 3)} m³`]);
-    if (f.recleaner) plantRows.push([TEXT.recleaner[lang], `${f.recleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.recleaner.cell_volume_m3, lang, 3)} m³`]);
+    plantRows.push([TEXT.rougher[lang], `${formatSignificant(f.rougher.cell_volume_m3, lang, 3)} m³`]);
+    plantRows.push([TEXT.cleaner[lang], `${f.cleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.cleaner.cell_volume_m3, lang, 3)} m³`]);
+    if (f.recleaner) plantRows.push([TEXT.recleaner[lang], `${f.recleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.recleaner.cell_volume_m3, lang, 3)} m³`]);
     if (f.regrind_energy_kwh_t > 0) plantRows.push([TEXT.regrind[lang], formatWithUnit(f.regrind_energy_kwh_t, 'kWh/t', lang)]);
   }
   if (plant.gravity) plantRows.push([TEXT.gravityUnit[lang], formatWithUnit(100 * plant.gravity.max_recovery, '%', lang)]);
@@ -196,7 +197,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
               <tr key={x.id}><th scope="row">{mineralName(x.id, lang)}</th><td>{role(x.id)}</td>
                 <td>{x.liberation_size_um > 0 ? formatWithUnit(x.liberation_size_um, 'um', lang) : ''}</td>
                 <td>{x.liberation_size_um > 0 ? formatWithUnit(100 * x.composite_content, '%', lang) : ''}</td>
-                <td>{`${formatSignificant(mineralTable[x.id]?.density, lang, 3)} t/m³`}</td></tr>
+                <td>{`${formatSignificant(mineralTable[x.id]?.density, lang, 3)} t/m³`}</td></tr>
             ))}</tbody>
           </table>
           <p className="of-footnote">{ore.payables.map(p => `${TEXT.head[lang]} ${formulaText(p.species)} ${formatWithUnit(p.head_grade, p.unit, lang)}`).join('; ')}</p>
@@ -207,7 +208,9 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
           <table className="of-table">
             <thead><tr><th scope="col">{TEXT.input[lang]}</th><th scope="col">{TEXT.nominal[lang]}</th><th scope="col">{TEXT.bounds[lang]}</th></tr></thead>
             <tbody>{Object.keys(entry.inputs).map(name => (
-              <tr key={name}><th scope="row">{declared[name].label[lang]}</th><td>{shown(name, artifact.nominal[name as keyof OperatingPoint])}</td>
+              <tr key={name}><th scope="row">{declared[name].label[lang]}</th>
+                {/* U-28: a control whose nominal is its off value (the classifier cut) reads off, not 0.0 µm */}
+                <td>{entry.inputs[name].off !== undefined && artifact.nominal[name as keyof OperatingPoint] === entry.inputs[name].off ? TEXT.cutOff[lang] : shown(name, artifact.nominal[name as keyof OperatingPoint])}</td>
                 <td>{`${shown(name, entry.inputs[name].min)} – ${shown(name, entry.inputs[name].max)}`}</td></tr>
             ))}</tbody>
           </table>

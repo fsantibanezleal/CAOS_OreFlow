@@ -3,6 +3,8 @@
  * and for the selected unit a card with its input and output streams and its closure error from the
  * independent audit.
  */
+import { useContext } from 'react';
+import { OverlayInset } from '../../components/charts/inset';
 import type { TopologyUnit } from '../../engine/circuit';
 import type { Trace } from '../../engine/trace';
 import { formatSignificant, formatWithUnit, type Lang } from '../../lib/format';
@@ -33,6 +35,7 @@ export function CircuitView({ trace, primary, lang, selected, onSelect }: {
   const streams = trace.streams as unknown as Record<string, StreamRecord>;
   const balance = trace.balance as unknown as { units: Record<string, number> };
   const unit = topology.find(u => u.unit === selected) ?? null;
+  const inset = useContext(OverlayInset);
   const row = (name: string) => {
     const s = streams[name];
     return (
@@ -48,7 +51,10 @@ export function CircuitView({ trace, primary, lang, selected, onSelect }: {
   return (
     <div className="of-view of-view-circuit">
       <div className="of-stage">
-        <FlowsheetDiagram trace={trace} primary={primary} lang={lang} selected={selected} onSelect={onSelect} summary={TEXT.summary[lang]} />
+        {/* U-26: the hint's strip is reserved, so the drawing never runs under it */}
+        <OverlayInset.Provider value={unit ? inset : [inset[0], inset[1], inset[2] + 26, inset[3]]}>
+          <FlowsheetDiagram trace={trace} primary={primary} lang={lang} selected={selected} onSelect={onSelect} summary={TEXT.summary[lang]} />
+        </OverlayInset.Provider>
         {!unit && <p className="of-stage-hint">{TEXT.hint[lang]}</p>}
         {unit && (
           <aside className="of-unit-card" aria-label={unitName(unit.unit, lang)}>

@@ -8,7 +8,7 @@
  */
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
-import { formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
+import { formatValue, formatWithUnit, type Lang } from '../lib/format';
 import { t, UI } from '../lib/i18n';
 import { useWorkbench } from './state';
 
@@ -46,7 +46,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
         const value = point ? point[name] : bounds.min;
         const unit = spec.unit === 'case' ? primaryUnit : spec.unit;
         const shown = spec.display_scale !== 1 ? `${formatValue(value * spec.display_scale, spec.display_unit, lang)}${spec.display_unit}`
-          : `${formatValue(value, unit, lang)} ${unitLabel(unit)}`.trim();
+          : formatWithUnit(value, unit, lang);   // U-31: "0.74%", and a narrow no-break space before any other unit
         const error = errors.find(e => e.input === name);
         const variantValue = variantPoint?.[name];
         const id = `${idPrefix}-${name}`;

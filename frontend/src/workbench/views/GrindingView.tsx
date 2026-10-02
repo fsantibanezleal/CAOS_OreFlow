@@ -17,13 +17,14 @@ type Curves = {
   liberation: Record<string, number[]>; composite_scale: number[];
 };
 
-const STREAMS: Array<{ key: string; en: string; es: string; colour: Series['colour'] }> = [
+const STREAMS: Array<{ key: string; en: string; es: string; colour: Series['colour']; dash?: number[] }> = [
   { key: 'new_feed', en: 'Mill new feed', es: 'Alimentación fresca', colour: 'subtle' },
   { key: 'mill_discharge', en: 'Mill discharge', es: 'Descarga del molino', colour: 'accent-2' },
   { key: 'cyclone_underflow', en: 'Cyclone underflow', es: 'Descarga del ciclón', colour: 'warn' },
-  { key: 'cyclone_overflow', en: 'Cyclone overflow', es: 'Rebose del ciclón', colour: 'accent' },
   { key: 'final_concentrate', en: 'Concentrate', es: 'Concentrado', colour: 'good' },
-  { key: 'final_tail', en: 'Tail', es: 'Relave', colour: 'bad' },
+  { key: 'final_tail', en: 'Tail', es: 'Relave', colour: 'bad', dash: [5, 4] },
+  // U-10: last, so the tail, within 0.007 of it at every size, no longer covers it
+  { key: 'cyclone_overflow', en: 'Cyclone overflow', es: 'Rebose del ciclón', colour: 'accent' },
 ];
 
 const TEXT = {
@@ -78,11 +79,11 @@ export function grindingCharts(trace: Trace, ore: Ore, lang: Lang, onCursor: (te
   // CM-07: in the cut mode nothing targets the P80, so only the achieved one is marked, and the cut is the set value
   const cutMode = m.cut_mode === 1;
   const p80Marks = cutMode ? [{ x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }]
-    : [{ x: m.target_p80_um, label: TEXT.target[lang] }, { x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }];
+    : [{ x: m.target_p80_um, label: `${TEXT.target[lang]} ${formatWithUnit(m.target_p80_um, 'um', lang)}` }, { x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }];
   return {
     psd: (
       <Chart key="psd" title={GRINDING_CHARTS.psd[lang]} data={ascending(size, ...present.map(s => curves.psd[s.key]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.passing[lang]}
-        series={present.map(s => ({ label: s[lang], colour: s.colour }))} summary={TEXT.psdSummary[lang]} format={fmt} yRange={[0, 1]}
+        series={present.map(s => ({ label: s[lang], colour: s.colour, ...(s.dash ? { dash: s.dash } : {}) }))} summary={TEXT.psdSummary[lang]} format={fmt} yRange={[0, 1]}
         marks={p80Marks}
         onCursor={report(present.map(s => s[lang]))} />
     ),
@@ -97,7 +98,8 @@ export function grindingCharts(trace: Trace, ore: Ore, lang: Lang, onCursor: (te
       <Chart key="liberation" title={GRINDING_CHARTS.liberation[lang]} data={ascending(size, ...valuable.map(v => curves.liberation[v]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.liberated[lang]}
         series={valuable.map((v, i) => ({ label: mineralName(v, lang), colour: (['good', 'accent', 'magenta', 'warn'] as const)[i % 4] }))}
         summary={TEXT.libSummary[lang]} format={fmt} yRange={[0, 1]}
-        marks={[...valuable.filter(v => liberationSize(v) > 0).map(v => ({ x: liberationSize(v), label: lang === 'es' ? `${TEXT.xl.es} ${mineralName(v, lang).toLowerCase()}` : `${mineralName(v, lang)} ${TEXT.xl.en}` })), { x: cutMode ? m.p80_um : m.target_p80_um, label: cutMode ? TEXT.achieved[lang] : TEXT.target[lang] }]}
+        marks={[...valuable.filter(v => liberationSize(v) > 0).map(v => ({ x: liberationSize(v), label: `${lang === 'es' ? `${TEXT.xl.es} ${mineralName(v, lang).toLowerCase()}` : `${mineralName(v, lang)} ${TEXT.xl.en}`} ${formatWithUnit(liberationSize(v), 'um', lang)}` })),
+          { x: cutMode ? m.p80_um : m.target_p80_um, label: `${cutMode ? TEXT.achieved[lang] : TEXT.target[lang]} ${formatWithUnit(cutMode ? m.p80_um : m.target_p80_um, 'um', lang)}` }]}
         onCursor={report(valuable.map(v => mineralName(v, lang)))} />
     ),
     ...(scaled ? {
@@ -109,9 +111,20 @@ export function grindingCharts(trace: Trace, ore: Ore, lang: Lang, onCursor: (te
   };
 }
 
+/** U-11: the facts each engine flag speaks about, so a value outside its window never reads as a plain fact. */
+export const FLAGGED_FACTS: Record<string, string[]> = {
+  power_limited: ['p80_um', 'mill_power_kw', 'specific_energy_grinding_kwh_t'],
+  target_unreachable: ['p80_um'],
+  circulating_load_unreachable: ['circulating_load_pct'],
+  circulating_load_out_of_range: ['circulating_load_pct', 'cyclone_cut_um'],
+  cut_mode_load_not_converged: ['circulating_load_pct'],
+};
+export const flaggedFacts = (trace: Trace) => new Set(trace.flags.flatMap(f => FLAGGED_FACTS[f.code] ?? []));
+
 export function GrindingView({ trace, ore, lang, onCursor }: { trace: Trace; ore: Ore; lang: Lang; onCursor: (text: string | null) => void }) {
   const charts = grindingCharts(trace, ore, lang, onCursor);
   const m = trace.metrics;
+  const flagged = flaggedFacts(trace);
   return (
     // a fourth chart when the composite scale departs from 1, else the facts, which on a large screen
     // become a strip under the charts (of-grid-strip)
@@ -123,7 +136,7 @@ export function GrindingView({ trace, ore, lang, onCursor }: { trace: Trace; ore
         <dl className="of-facts of-grid-facts">
           <div className="of-facts-wide"><dt>{TEXT.mode[lang]}</dt><dd>{m.cut_mode === 1 ? TEXT.modeCut[lang] : TEXT.modeTarget[lang]}</dd></div>
           {['crusher_feed_f80_um', 'crusher_p80_um', 'p80_um', 'circulating_load_pct', 'cyclone_cut_um', 'cyclone_bypass_pct', 'cyclones_required', 'cyclone_pressure_kpa', 'specific_energy_grinding_kwh_t', 'operating_work_index_kwh_t']
-            .filter(k => k in m).map(k => <div key={k}><dt>{metricLabel(k, lang)}</dt><dd>{formatWithUnit(m[k], trace.metric_units[k], lang)}</dd></div>)}
+            .filter(k => k in m).map(k => <div key={k} className={flagged.has(k) ? 'of-fact-warn' : undefined}><dt>{metricLabel(k, lang)}</dt><dd>{formatWithUnit(m[k], trace.metric_units[k], lang)}</dd></div>)}
         </dl>
       )}
     </div>

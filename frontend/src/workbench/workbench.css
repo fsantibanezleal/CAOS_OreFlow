@@ -298,6 +298,8 @@ input, select, textarea { font: inherit; }
 .of-flow-arrow { fill: var(--color-fg-subtle); }
 .of-flow-arrow.recycle { fill: var(--color-warn); }
 .of-flow-arrow.product { fill: var(--color-good); }
+.of-flow-edge.tail polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
+.of-flow-arrow.tail { fill: var(--color-fg-subtle); }
 .of-flow-label { fill: var(--color-fg-subtle); font: 10.5px var(--font-mono); paint-order: stroke; stroke: var(--color-surface); stroke-width: 3px; stroke-linejoin: round; }
 .of-flow-unit { cursor: pointer; outline: none; }
 .of-flow-unit rect { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
@@ -482,3 +484,7 @@ input, select, textarea { font: inherit; }
   .of-table-scroll thead th { position: static; }
   .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }
 }
+/* U-11: a value an engine flag speaks about (power-limited P80 and power, a load outside its window) */
+.of-facts > .of-fact-warn dt, .of-facts > .of-fact-warn dd, .of-readout-item.warn strong { color: var(--color-warn); }
+/* U-15: a view the source has nothing for */
+.of-bench .tablist.of-viewbar .tab:disabled { opacity: 0.4; cursor: not-allowed; }
