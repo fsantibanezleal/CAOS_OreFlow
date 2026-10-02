@@ -100,7 +100,7 @@ export type LearningRecord = {
   guard: { threshold: number; false_alarm_rate: number; false_accept_rate: number; false_accept_by_feature: Record<string, number>; in_envelope_rows: number; probe_rows: number };
   leave_one_case_out: Array<{ held_out: string; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
   summary: LearningSummary;
-  final: { mlp_training: Record<string, unknown>; guard_threshold: number; exports: Record<string, { path: string; bytes: number; max_abs_difference: number; opset: number }> };
+  final: { mlp_training: Record<string, unknown>; guard_threshold: number; exports: Record<string, { path: string; bytes: number; max_abs_difference: number; opset: number; gp_rows?: number; gp_max_abs_difference?: number }> };
   settings: Record<string, unknown>;
   seconds: number;
   engine_version: string;

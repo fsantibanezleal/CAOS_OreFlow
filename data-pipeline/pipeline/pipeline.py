@@ -197,8 +197,9 @@ def main() -> None:
         parser.error("--reuse-learning writes a development bake and needs a sandbox --output")
     # joblib probes physical cores with a Windows tool that may be absent and falls back to logical cores
     warnings.filterwarnings("ignore", message="Could not find the number of physical cores", category=UserWarning)
-    # a bake that is still running after 45 minutes prints every thread's stack once, so a stall shows its place
-    faulthandler.dump_traceback_later(45 * 60, exit=False)
+    # a bake still running after four hours, well past a normal run (about one and a half), prints every thread's stack
+    # once, so a stall shows its place; at 45 minutes it fired in every normal bake
+    faulthandler.dump_traceback_later(4 * 60 * 60, exit=False)
     result = run_all(args.output, args.models, args.workers, args.reuse_learning)
     faulthandler.cancel_dump_traceback_later()
     print(f"oreflow bake {__version__}: stages {' -> '.join(STAGES)}; "
