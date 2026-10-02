@@ -14,8 +14,8 @@ import type { Lang } from '../lib/format';
 const T = {
   title: { en: 'Methodology', es: 'Metodología' },
   lede: {
-    en: 'How the engine turns an ore and a plant into streams, grades and energies: the particle and stream model, comminution, classification and separation, and the method records built on top of them. Every equation is the form the engine solves; every parameter is authored inside a range the research records, and every model states what it leaves out.',
-    es: 'Cómo el motor convierte un mineral y una planta en corrientes, leyes y energías: el modelo de partículas y corrientes, la conminución, la clasificación y la separación, y los registros de métodos construidos sobre ellos. Cada ecuación es la forma que resuelve el motor; cada parámetro es de autor dentro de un rango que registra la investigación, y cada modelo dice lo que deja fuera.',
+    en: 'How the engine turns an ore and a plant into streams, grades and energies: the particle and stream model, comminution, classification and separation, and the method records built on top of them. Every equation is the form the engine solves; every parameter carries its unit and either a source or the label authored, and every model states what it leaves out.',
+    es: 'Cómo el motor convierte un mineral y una planta en corrientes, leyes y energías: el modelo de partículas y corrientes, la conminución, la clasificación y la separación, y los registros de métodos construidos sobre ellos. Cada ecuación es la forma que resuelve el motor; cada parámetro lleva su unidad y una fuente o la marca de autor, y cada modelo dice lo que deja fuera.',
   },
   groups: { en: 'Model groups', es: 'Grupos de modelos' },
   streams: { en: 'Streams and conservation', es: 'Corrientes y conservación' },

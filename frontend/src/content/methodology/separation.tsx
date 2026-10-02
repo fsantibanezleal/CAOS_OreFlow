@@ -202,7 +202,7 @@ export const SEPARATION: Topic[] = [
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Typical value', es: 'Valor típico' }, { en: 'Source', es: 'Fuente' }],
       rows: [
-        ['J_g', '1.3 - 1.4 cm/s', { en: 'gas-dispersion literature range 0.5 to 2.5', es: 'rango de la literatura de dispersión de gas 0,5 a 2,5' }],
+        ['$J_g$', '1.2 - 1.4 cm/s', { en: 'gas-dispersion literature range 0.5 to 2.5', es: 'rango de la literatura de dispersión de gas 0,5 a 2,5' }],
         ['D32', '0.8 + 0.45 $J_g$ mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
         [{ en: 'P, liberated sulphide', es: 'P, sulfuro liberado' }, '1.8e-4 - 3.2e-4', { en: 'authored so nominal KPIs fall in literature ranges', es: 'de autor para que los KPI nominales caigan en rangos de la literatura' }],
         [{ en: 'K valuable, gangue', es: 'K valioso, ganga' }, '12 - 60, 40 - 1500 g/t', { en: 'authored; gangue saturates later', es: 'de autor; la ganga se satura después' }],

@@ -48,15 +48,15 @@ const TEXT = {
   hint: { en: 'Choose an input and compute: the engine sweeps it in the background and the surrogate answers for the same states.', es: 'Elija una entrada y calcule: el motor la barre en segundo plano y el sustituto responde para los mismos estados.' },
   loading: { en: 'Loading the ONNX models', es: 'Cargando los modelos ONNX' },
   failed: { en: 'The ONNX models could not be loaded', es: 'No se pudieron cargar los modelos ONNX' },
-  protocol: { en: 'How far to trust it (bake protocols, exported MLP)', es: 'Cuánto confiar (protocolos del horneado, MLP exportado)' },
+  protocol: { en: 'How far to trust it (precompute protocols, exported MLP)', es: 'Cuánto confiar (protocolos del precálculo, MLP exportado)' },
   interpolation: { en: 'Interpolation split R²', es: 'R² en la partición de interpolación' },
   loco: { en: 'Leave one case out: median R²', es: 'Dejando un caso fuera: R² mediano' },
   locoRmse: { en: 'Leave one case out: mean RMSE', es: 'Dejando un caso fuera: RMSE medio' },
   guardRates: { en: 'Guard false alarms / false accepts', es: 'Guardia: falsas alarmas / falsas aceptaciones' },
-  heldOut: { en: 'States of the held-out case the guard flags', es: 'Estados del caso excluido que marca el guardia' },
+  heldOut: { en: 'States of the held-out case the guard flags', es: 'Estados del caso reservado que marca el guardia' },
   bimodal: {
-    en: 'The mean over the twelve folds: the guard flags every state of an unseen plant unlike any trained one and almost none of a copper sulphide plant like the others (see Methodology, learned lane).',
-    es: 'Media de los doce pliegues: el guardia marca todos los estados de una planta no vista distinta de las entrenadas y casi ninguno de una planta de sulfuros de cobre parecida a las demás (ver Metodología, vía aprendida).',
+    en: (low: string, high: string) => `The mean over the twelve folds. Held out, a plant is flagged in ${low} to ${high} of its states: in most of them for a plant unlike the others, in almost none for a copper sulphide plant like the others (see Benchmark, learned lane, for each plant).`,
+    es: (low: string, high: string) => `Media de las doce particiones. Reservada, una planta queda marcada en ${low} a ${high} de sus estados: en la mayoría para una planta distinta de las demás, en casi ninguno para una planta de sulfuros de cobre parecida a las demás (ver Benchmark, vía aprendida, para cada planta).`,
   },
   learnedAs: { en: 'learned as the log10 upgrade ratio', es: 'aprendida como log10 de la razón de enriquecimiento' },
   summary: { en: 'The engine and the surrogate over one contract input, other inputs held at the current state.', es: 'El motor y el sustituto sobre una entrada del contrato, con las demás en el estado actual.' },
@@ -230,7 +230,9 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
             {heldOut !== null && <div><dt>{TEXT.heldOut[lang]}</dt><dd>{formatFraction(heldOut, lang, 0)}</dd></div>}
           </dl>
         )}
-        {summaryRow && learning && <p className="of-footnote">{TEXT.bimodal[lang]}</p>}
+        {summaryRow && learning && <p className="of-footnote">{TEXT.bimodal[lang](
+          formatFraction(Math.min(...learning.leave_one_case_out.map(f => f.held_out_flag_rate)), lang, 0),
+          formatFraction(Math.max(...learning.leave_one_case_out.map(f => f.held_out_flag_rate)), lang, 0))}</p>}
       </div>
     </div>
   );

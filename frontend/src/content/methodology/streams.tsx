@@ -59,7 +59,7 @@ function AuditFigure({ lang }: { lang: Lang }) {
         <g key={k} transform={`translate(${60 + k * 120} 70)`}>
           <rect className={k === 1 ? 'dg-box accent' : 'dg-box'} x="0" y="0" width="84" height="46" rx="7" />
           <text className="dg-box-title" x="42" y="21" textAnchor="middle">{es ? `unidad ${k + 1}` : `unit ${k + 1}`}</text>
-          <text className="dg-box-sub" x="42" y="36" textAnchor="middle">{'Σ in = Σ out'}</text>
+          <text className="dg-box-sub" x="42" y="36" textAnchor="middle">{es ? 'Σ entra = Σ sale' : 'Σ in = Σ out'}</text>
         </g>
       ))}
       <line className="dg-edge" x1="30" y1="93" x2="58" y2="93" markerEnd="url(#of-doc-arrow)" />
