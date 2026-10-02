@@ -82,7 +82,7 @@ needs the columns `Cu ppm`, `Fe ppm`, `S ppm`, `Si ppm` and `Al ppm`; any other 
 The output adds the three fitted models' predictions (`ridge_lct_pct`, `random_forest_lct_pct`,
 `gaussian_process_lct_pct`; about 86% for the example), the number of missing assays, a flag when an assay
 lies outside the range of the training tests, and the evidence boundary. On its own data the models
-barely separate (under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does), so read a prediction as what those 52 tests suggest
+barely separate: on the five fixed hole folds ridge beats the training mean by 0.42 points of RMSE (95% interval 0.02 to 0.82), but that partition sits at the 98.5th percentile of 200 random hole partitions; averaged over them the gain is 0.17 points (-0.39 to 0.71) and under leave one hole out 0.22 (-0.36 to 0.79), each interval widened for the six model pairs, and under spatial-zone folds no difference excludes zero either. No model separates from the training mean. Read a prediction as what those 52 tests suggest
 ([frameworks 04](../frameworks/04_scikit-learn/03_applying.md), [data contract 05](../data-contract/05_geomet-lane.md)).
 
 ## Reading the records instead

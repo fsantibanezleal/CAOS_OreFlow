@@ -102,9 +102,21 @@ def test_paired_bootstrap_over_holes():
 
 
 def test_documented_significance():
-    # docs/data-contract/05_geomet-lane.md: only ridge beats the training mean with an interval that
-    # excludes zero, and only under hole-grouped folds
+    """M-05: the fixed hole partition's ridge interval excludes zero, but that partition is extreme among random hole
+    partitions; over the partitions and under leave one hole out, with intervals widened for the six pairs, no pair
+    separates, so no surface may name a winner."""
     protocols = load()["protocols"]
     significant = {name: {pair for pair, d in p["paired_bootstrap"]["rmse_differences"].items() if d["excludes_zero"]}
                    for name, p in protocols.items()}
     assert significant == {"hole": {"train_mean-ridge"}, "zone": set()}
+    robust = protocols["hole"]["robust"]
+    gain = robust["repeated_partitions"]["ridge_gain_over_mean_pp"]
+    assert gain["published_percentile"] > 95.0 and gain["mean"] < gain["published_partition"] / 2.0
+    for scheme in ("repeated_partitions", "leave_one_hole_out"):
+        assert robust[scheme]["pairs"] == 6
+        assert not any(d["excludes_zero"] for d in robust[scheme]["rmse_differences"].values()), scheme
+    root = Path(__file__).resolve().parents[1]
+    for surface in ("docs/data-contract/05_geomet-lane.md", "docs/design/SDD.md", "docs/frameworks/04_scikit-learn/02_usage.md",
+                    "docs/frameworks/04_scikit-learn/03_applying.md", "docs/guides/03_use-on-other-data.md",
+                    "manuscript/oreflow-digital-twin.md", "frontend/src/content/lanes.tsx"):
+        assert "only ridge beats" not in (root / surface).read_text(encoding="utf-8"), surface

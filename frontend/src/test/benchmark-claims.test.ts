@@ -278,7 +278,8 @@ describe('the Benchmark page says what the records hold', () => {
   it('measured lanes: the GeoMet bootstrap and the HZDR probability errors as quoted', () => {
     const g = read<{
       source: { raw_rows: number; usable_rows: number; holes: number };
-      protocols: Record<'hole' | 'zone', { folds: unknown[]; paired_bootstrap: { samples: number; rmse_differences: Record<string, { mean_pp: number; interval_95_pp: [number, number]; excludes_zero: boolean }> } }>;
+      protocols: Record<'hole' | 'zone', { folds: unknown[]; paired_bootstrap: { samples: number; rmse_differences: Record<string, { mean_pp: number; interval_95_pp: [number, number]; excludes_zero: boolean }> };
+        robust?: Record<'repeated_partitions' | 'leave_one_hole_out', { rmse_differences: Record<string, { difference_pp: number; interval_adjusted_pp: [number, number]; excludes_zero: boolean }>; ridge_gain_over_mean_pp?: { mean: number; published_percentile: number } }> }>;
     }>('source/geomet_lct_benchmark.json');
     expect([g.source.raw_rows, g.source.usable_rows, g.source.holes]).toEqual([53, 52, 29]);
     expect([g.protocols.hole.folds.length, g.protocols.zone.folds.length]).toEqual([5, 3]);
@@ -288,6 +289,14 @@ describe('the Benchmark page says what the records hold', () => {
     const ridge = hole.rmse_differences['train_mean-ridge'];
     expect([round(ridge.mean_pp, 2), round(ridge.interval_95_pp[0], 2), round(ridge.interval_95_pp[1], 2)]).toEqual([0.42, 0.02, 0.82]);
     expect(Object.values(zone.rmse_differences).some(d => d.excludes_zero)).toBe(false);
+    // M-05: the fixed partition is extreme; over partitions and leaving a hole out nothing separates
+    const robust = g.protocols.hole.robust!;
+    const rp = robust.repeated_partitions, lo = robust.leave_one_hole_out;
+    expect([rp.ridge_gain_over_mean_pp!.published_percentile, round(rp.ridge_gain_over_mean_pp!.mean, 2)]).toEqual([98.5, 0.18]);
+    const rr = rp.rmse_differences['train_mean-ridge'], lr = lo.rmse_differences['train_mean-ridge'];
+    expect([round(rr.difference_pp, 2), round(rr.interval_adjusted_pp[0], 2), round(rr.interval_adjusted_pp[1], 2)]).toEqual([0.17, -0.39, 0.71]);
+    expect([round(lr.difference_pp, 2), round(lr.interval_adjusted_pp[0], 2), round(lr.interval_adjusted_pp[1], 2)]).toEqual([0.22, -0.36, 0.79]);
+    expect([...Object.values(rp.rmse_differences), ...Object.values(lo.rmse_differences)].some(d => d.excludes_zero)).toBe(false);
     const p = read<{
       protocol: { train_rows: number; validation_rows: number; test_rows: number };
       cases: Array<{ case: string; test_rows: number; excluded_test_rows: number; models: Record<string, { rmse: number }> }>;

@@ -142,4 +142,4 @@ Unchanged in purpose and kept separate from the simulator: the GeoMet locked-cyc
 (`data-pipeline/run_geomet.py`, 52 tests from 29 holes, hole and spatial-zone holdouts) and the HZDR
 particle lane (`data-pipeline/pipeline/stages/particle_experiment.py`). The GeoMet lane adds paired
 bootstrap intervals over holes for the error difference of every pair of models, because on 52 tests
-the point estimates do not rank the models: under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does.
+the point estimates do not rank the models: on the five fixed hole folds ridge beats the training mean by 0.42 points of RMSE (95% interval 0.02 to 0.82), but that partition sits at the 98.5th percentile of 200 random hole partitions; averaged over them the gain is 0.17 points (-0.39 to 0.71) and under leave one hole out 0.22 (-0.36 to 0.79), each interval widened for the six model pairs, and under spatial-zone folds no difference excludes zero either. No model separates from the training mean.
