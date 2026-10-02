@@ -227,6 +227,7 @@
         511.11,
         412.63
       ],
+      "discharge_size_um": 150.0,
       "discharge_grg_below_150um_pct": [
         88.09,
         87.77,
@@ -276,7 +277,8 @@
     },
     "authored": {
       "ore": "Quartz with 60% silicate_fe and 2% pyrite (SG 2.79); 80.4% of the gold as GRG, the rest in pyrite. The mill, fresh feed and cyclone sharpness are the gold case's; installed power is unlimited so the solver meets the published P80 and load.",
-      "unit_size_scale_um": 20.0
+      "unit_size_scale_um": 20.0,
+      "ore_fractions": {"pyrite": 0.02, "silicate_fe": 0.6}
     },
     "fit": {
       "parameter": "max_recovery",

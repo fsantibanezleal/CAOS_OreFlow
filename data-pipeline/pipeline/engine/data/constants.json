@@ -101,6 +101,21 @@
       "unit": "kPa/psi",
       "source": "Definition."
     },
+    "units.cm_per_inch": {
+      "value": 2.54,
+      "unit": "cm/in",
+      "source": "Definition (the international inch)."
+    },
+    "oracles.input_match_relative": {
+      "value": 1e-06,
+      "unit": "1",
+      "source": "Design: a published input the oracle re-solves (P80, circulating load) counts as met within this relative error; the solver closes to about 1e-13."
+    },
+    "learning.coverage_floor": {
+      "value": 0.8,
+      "unit": "1",
+      "source": "Design: a held-out fold whose 95% intervals cover fewer than 80% of its rows is counted as under-covered in the learning findings."
+    },
     "plitt.d50_coefficient": {
       "value": 50.5,
       "unit": "um (cm, L/min, t/m3 units)",

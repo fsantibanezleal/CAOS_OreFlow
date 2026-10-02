@@ -42,7 +42,7 @@ const linspace = (lo: number, hi: number, n: number, integer: boolean) => {
 function roundCount(lo: number, hi: number, around: number): number {
   const digits = (step: number) => {
     for (let d = 0; d <= 6; d += 1) {
-      const scaled = step / 10 ** (Math.floor(Math.log10(step)) - d);
+      const scaled = step / 10 ** (Math.floor(Math.log10(step)) - d); // not-engine: the significant digits of a tick step
       if (Math.abs(scaled - Math.round(scaled)) < 1e-9) return d + 1;
     }
     return 8;
