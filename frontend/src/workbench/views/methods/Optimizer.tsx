@@ -47,7 +47,12 @@ const TEXT = {
   water: { en: 'Process water per tonne', es: 'Agua de proceso por tonelada' },
   atLeast: { en: 'at least', es: 'al menos' },
   atMost: { en: 'at most', es: 'como máximo' },
-  optimal: { en: 'Optimum found', es: 'Óptimo encontrado' },
+  optimal: {
+    en: (w: number) => `Best weighted objective at ${w}% weight on metal`,
+    es: (w: number) => `Mejor objetivo ponderado con ${w}% de peso en el metal`,
+  },
+  metalChangeLine: { en: 'recovered metal', es: 'metal recuperado' },
+  energyChangeLine: { en: 'specific energy', es: 'energía específica' },
   weightNote: {
     en: 'With part of the weight on energy, the optimum gives up recovered metal for lower energy per tonne. The weight is a modelling choice, not a price, so this point is not advice.',
     es: 'Con parte del peso en la energía, el óptimo cede metal recuperado a cambio de menos energía por tonelada. El peso es una elección de modelo, no un precio, así que este punto no es una recomendación.',
@@ -251,8 +256,14 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
     ...(record.constraints.water ? [{ id: 'water' as const, label: TEXT.water[lang], limit: `${TEXT.atMost[lang]} ${formatWithUnit(record.constraints.water.maximum_m3_t, 'm3/t', lang)}` }] : []),
   ];
   const slackUnit = { grade: gradeUnit, power: 'kW', water: 'm3/t' };
+  // T-17: the weight the optimum answers to, and what it changes in metal and in energy, neither called good
+  const sign = (v: number) => (v >= 0 ? '+' : '');
+  const energyChange = record.optimum ? record.optimum.values.energy_kwh_t - record.base.values.energy_kwh_t : 0;
+  const energyPct = record.optimum && record.base.values.energy_kwh_t ? 100 * (energyChange / record.base.values.energy_kwh_t) : null;
   const status = record.optimum
-    ? `${TEXT.optimal[lang]}: ${(record.gain_tph ?? 0) >= 0 ? '+' : ''}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)} ${TEXT.gain[lang]}${record.gain_pct != null ? ` (${record.gain_pct >= 0 ? '+' : ''}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
+    ? `${TEXT.optimal[lang](Math.round(100 * record.weights.recovered_metal))}: ${TEXT.metalChangeLine[lang]} ${sign(record.gain_tph ?? 0)}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)}`
+      + `${record.gain_pct != null ? ` (${sign(record.gain_pct)}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
+      + `, ${TEXT.energyChangeLine[lang]} ${sign(energyChange)}${formatFixed(energyChange, lang, 2)} kWh/t${energyPct !== null ? ` (${sign(energyPct)}${formatSignificant(energyPct, lang, 3)}%)` : ''}`
     : TEXT.noFeasible[lang];
   const screenTotals = record.screened ? {
     screened: starts.reduce((s, r) => s + (r.screen?.screened ?? 0), 0), guard: starts.reduce((s, r) => s + (r.screen?.rejected.guard ?? 0), 0),

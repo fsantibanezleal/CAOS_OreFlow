@@ -570,7 +570,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
                 const good = getComputedStyle(document.documentElement).getPropertyValue('--color-good').trim();
                 const probe = document.createElement('span'); probe.style.color = good; document.body.append(probe);
                 const goodRgb = getComputedStyle(probe).color; probe.remove();
-                const loss = /: -|: \u2212/.test(line?.textContent ?? '');
+                const loss = /(recovered metal|metal recuperado) -|: -|: \u2212/.test(line?.textContent ?? '');
                 return { loss, green: line ? getComputedStyle(line).color === goodRgb : null,
                   note: /not advice|no es una recomendaci/.test(document.querySelector('.of-view-methods .of-aside')?.textContent ?? '') };
               });
@@ -801,7 +801,7 @@ if (REVIEW) {
   await methodsTab(/^(Optimizer|Optimizador)$/);
   await settleCharts(page, 1);
   const gold = await page.evaluate(() => [...document.querySelectorAll('.of-view-methods .of-aside > .of-status-line')].at(-1)?.textContent ?? '');
-  record(`${tag} U-05 gold gain in kg/h`, /kg\/h/.test(gold) && !/:\s*[+-]?0[.,]0+\s/.test(gold), { status: gold });
+  record(`${tag} U-05 gold gain in kg/h`, /kg\/h/.test(gold) && !/(metal|recuperado|:)\s*[+-]?0[.,]0+\s/.test(gold), { status: gold });
 
   // U-06, U-11: the hard porphyry's finer classifier cut raises a flag: no raw code anywhere, the flagged facts in the
   // warning colour, and the full sentences under the tab row
