@@ -307,6 +307,8 @@ describe('the Benchmark page says what the records hold', () => {
     const better = (model: string) => p.cases.filter(c => c.models[model].rmse < c.models.published_reference.rmse).map(c => c.case);
     expect(better('particle_mlp')).toEqual(['1', '3', '4']);
     expect(better('l1_logistic')).toEqual(['1', '2', '3']);
+    // M-09: the network against the linear model, the ordering the sentence once read as the opposite
+    expect(p.cases.filter(c => c.models.l1_logistic.rmse < c.models.particle_mlp.rmse).map(c => c.case)).toEqual(['1', '2']);
     expect([round(c4.models.l1_logistic.rmse, 2), round(c4.models.published_reference.rmse, 3), round(c4.models.particle_mlp.rmse, 3)]).toEqual([0.19, 0.037, 0.023]);
   });
 });
