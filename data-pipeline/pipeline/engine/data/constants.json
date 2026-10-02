@@ -771,6 +771,29 @@
       ],
       "unit": "1 (ore selection over GRG selection)",
       "source": "Banisi measured gold breaking six times slower than the ore at 50 to 100 um and twenty times slower at 500 to 1000 um, from its malleability (cited by Vincent 1997, chapter 5). Interpolated in log-log between the range centres and held constant outside."
+    },
+    "learning.ood_shifts": {
+      "value": [
+        0.02,
+        0.05,
+        0.1,
+        0.25,
+        0.5,
+        1.0
+      ],
+      "unit": "fraction of the feature's training range",
+      "source": "Authored (M-16, review of 2026-10-02): the guard's acceptance of out-of-envelope probes is reported over these distances, above the maximum and below the minimum, instead of at 0.5 of a range above only."
+    },
+    "learning.mlp_seed_offsets": {
+      "value": [
+        0,
+        11,
+        22,
+        33,
+        44
+      ],
+      "unit": "1 (added to learning.seed)",
+      "source": "Authored (M-21, review of 2026-10-02): the network's transfer numbers are reported over five training seeds; the offset 0 is the record's own seed."
     }
   }
 }
