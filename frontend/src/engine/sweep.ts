@@ -4,7 +4,7 @@
  */
 import { simulate } from './circuit';
 import { validate, type OperatingContract } from './contract';
-import type { OperatingPoint, Ore, Plant } from './model';
+import { InfeasibleState, type OperatingPoint, type Ore, type Plant } from './model';
 
 export type Axis = { input: string; values: number[] };
 export type SweepRequest = {
@@ -42,7 +42,13 @@ export function sweepCell(request: SweepRequest, contract: OperatingContract, in
     return { index, point: values, accepted: false, metrics: {}, flags: [], errors: verdict.errors.map(e => e.code) };
   }
   const point = verdict.point as unknown as OperatingPoint;
-  const result = simulate(request.ore, request.plant, point);
+  let result: ReturnType<typeof simulate>;
+  try {
+    result = simulate(request.ore, request.plant, point);
+  } catch (error) {   // refused by the engine (E-01): a rejected cell, with its code
+    if (error instanceof InfeasibleState) return { index, point: verdict.point, accepted: false, metrics: {}, flags: [], errors: [error.code] };
+    throw error;
+  }
   const metrics: Record<string, number> = {};
   for (const key of request.outputs) if (key in result.metrics) metrics[key] = result.metrics[key];
   return { index, point: verdict.point, accepted: true, metrics, flags: result.flags.map(f => f.code), errors: [] };

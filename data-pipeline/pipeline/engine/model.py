@@ -239,6 +239,22 @@ def operating_from_dict(data: dict[str, Any]) -> OperatingPoint:
     return OperatingPoint(**{k: data[k] for k in OPERATING_FIELDS if k in data})
 
 
+class InfeasibleState(ValueError):
+    """A state the contract accepts but the engine cannot bring to a steady state (E-01, review of 2026-10-02): a
+    cut-mode cut at which the mill cannot draw its installed power, or that sets a circulating load above the
+    declared bound. It is a refusal, with a code the contract's messages carry, never a solved state."""
+
+    def __init__(self, code: str, input_name: str, value: float, limit: float | None = None):
+        super().__init__(f"{code}: {input_name}={value}")
+        self.code, self.input, self.value, self.limit = code, input_name, value, limit
+
+    def error(self) -> dict:
+        out = {"code": self.code, "input": self.input, "value": self.value}
+        if self.limit is not None:
+            out["max"] = self.limit
+        return out
+
+
 @dataclass
 class Flags:
     items: list[dict[str, str]] = field(default_factory=list)

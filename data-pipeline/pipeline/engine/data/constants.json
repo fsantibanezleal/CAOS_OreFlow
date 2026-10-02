@@ -322,6 +322,11 @@
       "unit": "kWh per t of mill feed per pass",
       "source": "Numerics: search bracket."
     },
+    "grinding.cut_mode_load_max": {
+      "value": 6.0,
+      "unit": "1 (underflow solids over new feed)",
+      "source": "Authored (E-01, review of 2026-10-02): the cut mode refuses a state whose circulating load exceeds 600%. Plant practice reports loads up to about 600% in secondary statements; the primary sources (Neesse et al. 2004, Minerals Engineering 17:1237-1240) were not opened. Research: CAOS_MANAGE wip/oreflow/research-2026-10-02-0.08.md section 1."
+    },
     "grinding.cut_mode_load_range": {
       "value": [
         1.0,

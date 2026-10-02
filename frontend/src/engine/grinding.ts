@@ -12,7 +12,7 @@ import { constant } from './constants';
 import { correctedCut, reducedPartition, sizeCluster, type PlittSizing } from './cyclone';
 import { grid, type SizeGrid, type Vec } from './grid';
 import { minusDiagonal, solve } from './linalg';
-import type { Flags, OperatingPoint, Plant } from './model';
+import { InfeasibleState, type Flags, type OperatingPoint, type Plant } from './model';
 import type { ResolvedOre } from './ore';
 import { RootError, solveDecreasing } from './roots';
 import { partitionSpecies, speciesDefs, toMinerals, toSpecies, type Species, type SpeciesDef } from './species';
@@ -295,8 +295,8 @@ export class GrindingCircuit {
       energy = Math.exp(solveDecreasing(f, Math.min(Math.max(guess, lo), hi), Math.log(2.0), lo, hi));
     } catch (error) {
       if (!(error instanceof RootError)) throw error;
-      this.flags.add('power_unreachable_at_cut', 'The installed power cannot be drawn at this cut within the energy search range; the mill runs at the nearest end of it.');
-      energy = f(hi) > 0.0 ? Math.exp(hi) : Math.exp(lo);
+      // no steady state at installed power at this cut (E-01): refused, as engine/grinding.py does
+      throw new InfeasibleState('power_unreachable_at_cut', 'd50c_um', cut);
     }
     return [energy, this.runAtCut(energy, cut)];
   }
@@ -350,6 +350,8 @@ export class GrindingCircuit {
     const cut = this.op.d50c_um;
     const [energy, result] = this.solveAtCut(cut, this.plant.mill.installed_power_kw);
     const load = result.circulatingLoad;
+    const bound = constant<number>('grinding.cut_mode_load_max');
+    if (load > bound) throw new InfeasibleState('circulating_load_above_bound', 'd50c_um', cut, bound);
     const [low, high] = constant<number[]>('grinding.cut_mode_load_range');
     if (!(low <= load && load <= high)) {
       this.flags.add('circulating_load_out_of_range',

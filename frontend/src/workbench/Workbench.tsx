@@ -10,7 +10,7 @@
 import { useShellLang } from '@fasl-work/caos-app-shell';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { evaluateInWorker } from '../engine/client';
+import { evaluateInWorker, RefusedState } from '../engine/client';
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
 import type { Trace } from '../engine/trace';
@@ -150,7 +150,11 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     setComputing(true);
     evaluateInWorker(sample ? sample.ore : artifact.definition.ore, artifact.definition.plant, valid).then(
       next => { setTrace(next); setAccepted(valid); setComputing(false); },
-      error => { if (String(error?.message ?? error) !== 'superseded') setComputing(false); },
+      error => {
+        // a state the engine refuses (E-01) is a rejection like the contract's: its error shows, no result is current
+        if (error instanceof RefusedState) { setErrors([error.error]); setComputing(false); return; }
+        if (String(error?.message ?? error) !== 'superseded') setComputing(false);
+      },
     );
   }, [loaded, artifact, point, caseId, source, sample]);
 

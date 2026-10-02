@@ -22,7 +22,7 @@ from .comminution import MillOperator, bond_energy, breakage_matrix, selection_e
 from .constants import constant
 from .cyclone import PlittSizing, corrected_cut, reduced_partition, size_cluster
 from .grid import grid
-from .model import Flags, OperatingPoint, Plant
+from .model import Flags, InfeasibleState, OperatingPoint, Plant
 from .ore import ResolvedOre
 from .roots import RootError, solve_decreasing
 from .species import SpeciesDef, partition_species, species_defs, to_minerals, to_species
@@ -231,8 +231,9 @@ class GrindingCircuit:
 
     def solve_at_cut(self, cut: float, power_kw: float) -> tuple[float, PassResult]:
         """The energy per pass at which the mill draws ``power_kw`` with the host cut held at ``cut`` (CM-02). The
-        power rises with the energy at every measured state, so the root is unique where it exists; outside the
-        energy bracket the state is flagged and runs at the bracket end nearest the power."""
+        power rises with the energy at every measured state, so the root is unique where it exists. Where it does not,
+        the mill cannot draw its installed power at this cut and there is no steady state: the state is refused
+        (E-01). Until 0.08.000 it ran at the bracket end, with loads up to millions of percent."""
         lo, hi = (math.log(float(v)) for v in constant("grinding.energy_bracket_kwh_t"))
 
         def f(x: float) -> float:
@@ -244,9 +245,7 @@ class GrindingCircuit:
         try:
             energy = math.exp(solve_decreasing(f, min(max(guess, lo), hi), math.log(2.0), lo, hi))
         except RootError:
-            self.flags.add("power_unreachable_at_cut",
-                           "The installed power cannot be drawn at this cut within the energy search range; the mill runs at the nearest end of it.")
-            energy = math.exp(hi) if f(hi) > 0.0 else math.exp(lo)
+            raise InfeasibleState("power_unreachable_at_cut", "d50c_um", cut) from None
         return energy, self.run_at_cut(energy, cut)
 
     def overflow_p80(self, energy_per_pass: float) -> float:
@@ -294,6 +293,9 @@ class GrindingCircuit:
         cut = self.op.d50c_um
         energy, result = self.solve_at_cut(cut, self.plant.mill.installed_power_kw)
         load = result.circulating_load
+        bound = float(constant("grinding.cut_mode_load_max"))
+        if load > bound:
+            raise InfeasibleState("circulating_load_above_bound", "d50c_um", cut, bound)
         low, high = (float(v) for v in constant("grinding.cut_mode_load_range"))
         if not low <= load <= high:
             self.flags.add("circulating_load_out_of_range",

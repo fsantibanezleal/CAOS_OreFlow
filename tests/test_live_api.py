@@ -73,3 +73,13 @@ def test_engine_failure_is_reported(monkeypatch):
     assert response.status_code == 500
     body = response.json()
     assert body["schema"] == "oreflow.engine-error/v1" and "solver diverged" in body["message"]
+
+
+def test_engine_refusal_is_a_rejection():
+    # E-01: a cut-mode state with no steady state at installed power was answered 200 with a load of 691,849%
+    response = client.post("/api/simulate", json={"case_id": "copper_porphyry_soft", "point": {"throughput_tph": 1080.0, "d50c_um": 147.127261101}})
+    assert response.status_code == 422
+    body = response.json()
+    assert body["schema"] == "oreflow.rejection/v1"
+    assert [e["code"] for e in body["errors"]] == ["power_unreachable_at_cut"]
+    assert body["errors"][0]["input"] == "d50c_um" and "steady state" in body["errors"][0]["message"]

@@ -91,6 +91,20 @@ export type OperatingPoint = {
 
 export type Flag = { code: string; message: string };
 
+/** A state the contract accepts but the engine cannot bring to a steady state (E-01, review of 2026-10-02): a
+ * cut-mode cut at which the mill cannot draw its installed power, or that sets a circulating load above the declared
+ * bound. A refusal with a code the contract's messages carry, never a solved state; engine/model.py's twin. */
+export class InfeasibleState extends Error {
+  constructor(readonly code: string, readonly input: string, readonly value: number, readonly limit: number | null = null) {
+    super(`${code}: ${input}=${value}`);
+    this.name = 'InfeasibleState';
+  }
+
+  error(): { code: string; input: string; value: number; max?: number } {
+    return this.limit === null ? { code: this.code, input: this.input, value: this.value } : { code: this.code, input: this.input, value: this.value, max: this.limit };
+  }
+}
+
 export class Flags {
   readonly items: Flag[] = [];
 

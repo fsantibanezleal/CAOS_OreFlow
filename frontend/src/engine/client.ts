@@ -17,6 +17,14 @@ type SweepHandlers = { onCell: (cell: SweepCell, done: number, total: number) =>
 
 let worker: Worker | null = null;
 let nextId = 1;
+/** The engine's refusal of a state the contract accepted (E-01), with the error the views show as a rejection. */
+export class RefusedState extends Error {
+  constructor(readonly error: { code: string; input: string; value: number; max?: number }) {
+    super(error.code);
+    this.name = 'RefusedState';
+  }
+}
+
 let latestEvaluate = 0;
 const evaluations = new Map<number, Pending>();
 const sweeps = new Map<number, SweepHandlers>();
@@ -42,6 +50,13 @@ function engineWorker(): Worker {
       runs.get(message.id)?.onProgress(message.done, message.total);
     } else if (message.type === 'record') {
       runs.get(message.id)?.resolve(message.record);
+      runs.delete(message.id);
+    } else if (message.type === 'refused') {
+      // the engine refused the state (E-01): a rejection carrying its contract code, not a failure
+      const error = new RefusedState(message.error);
+      evaluations.get(message.id)?.reject(error);
+      evaluations.delete(message.id);
+      runs.get(message.id)?.reject(error);
       runs.delete(message.id);
     } else if (message.type === 'error') {
       const error = new Error(message.message);

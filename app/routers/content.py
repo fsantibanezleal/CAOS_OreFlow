@@ -71,7 +71,7 @@ def _message(document: dict[str, Any], code: str) -> str:
 def simulate(request: SimulationRequest) -> Any:
     from pipeline.cases.catalog import CASE_BY_ID
     from pipeline.engine.circuit import simulate as run_circuit
-    from pipeline.engine.model import operating_from_dict
+    from pipeline.engine.model import InfeasibleState, operating_from_dict
     from pipeline.engine.trace import trace
     from pipeline.io.contract import validate
 
@@ -85,6 +85,10 @@ def simulate(request: SimulationRequest) -> Any:
     point = operating_from_dict(result["point"])
     try:
         circuit = run_circuit(case.ore, case.plant, point)
+    except InfeasibleState as refusal:   # accepted by the contract, refused by the engine (E-01): a rejection, not a 500
+        error = {**refusal.error(), "message": _message(document, refusal.code)}
+        return JSONResponse(status_code=422, content={"schema": "oreflow.rejection/v1", "contract_digest": document["digest"],
+                                                      "case_id": request.case_id, "errors": [error]})
     except Exception as exc:  # an accepted state must solve; report the failure instead of hiding it
         return JSONResponse(status_code=500, content={"schema": "oreflow.engine-error/v1", "case_id": request.case_id,
                                                       "point": result["point"], "message": f"{type(exc).__name__}: {exc}"})
