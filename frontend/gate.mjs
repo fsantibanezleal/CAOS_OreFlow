@@ -848,6 +848,18 @@ if (REVIEW) {
   const off = await page.evaluate(() => /off: the cut follows|apagado: el corte sigue/.test(document.querySelector('.of-context')?.textContent ?? ''));
   record(`${tag} U-28 the cut reads off`, off, { off });
 
+  // S-12, S-20: a sample link with a changed control opens with that control (0.07.000 reset it to 720 t/h), and the
+  // sample's fixed sliders sit on their own value
+  await page.goto(`${BASE}/?case=copper_porphyry_soft&source=sample&sample=lct-9&set=throughput_tph:360`, { waitUntil: 'networkidle', timeout: 90000 });
+  await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
+  await page.waitForTimeout(800);
+  const sampleLink = await page.evaluate(() => ({
+    url: location.search.includes('throughput_tph%3A360') || location.search.includes('throughput_tph:360'),
+    throughput: Number(document.querySelector('.of-rail input[type=range][id$="-throughput_tph"]')?.value ?? NaN),
+    fixedSteps: [...document.querySelectorAll('.of-rail .of-knob.fixed input[type=range]')].map(i => i.getAttribute('step')),
+  }));
+  record(`${tag} S-12 S-20 sample link and fixed sliders`, sampleLink.url && sampleLink.throughput === 360 && sampleLink.fixedSteps.length > 0 && sampleLink.fixedSteps.every(s => s === 'any'), sampleLink);
+
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();
 }
