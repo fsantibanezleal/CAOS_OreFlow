@@ -337,8 +337,6 @@ class GrindingCircuit:
         rho_mean = mill_solids / solids_volume
         sizing = size_cluster(plant.cyclone, corrected_cut(cut, self.rho_host, rho_mean), solids_volume,
                               water_cyclone_feed / water_density, mill_solids, water_cyclone_feed)
-        if not sizing.in_pressure_window:
-            self.flags.add("cyclone_pressure", f"Plitt pressure {sizing.pressure_kpa:.0f} kPa lies outside the declared operating window.")
         sharp = plant.cyclone.sharpness
         partition = {"host": list(self.bypass + (1.0 - self.bypass) * reduced_partition(cut, sharp))}
         for m in ore.valuable:

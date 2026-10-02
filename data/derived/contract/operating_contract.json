@@ -693,7 +693,7 @@
     "water_m3_t": 2.4,
     "crusher_css_mm": 8.0,
     "work_index_kwh_t": 13.5,
-    "head_grade": 26.5,
+    "head_grade": 29.7,
     "collector_gpt": 0.0,
     "jg_cm_s": 0.0,
     "rougher_cells": 0,
@@ -739,18 +739,18 @@
      "unit": "kWh/t"
     },
     "head_grade": {
-     "min": 13.25,
-     "max": 39.75,
-     "step": 0.265,
+     "min": 14.85,
+     "max": 44.55,
+     "step": 0.297,
      "unit": "%"
     },
     "d50c_um": {
-     "min": 65.3131923483,
-     "max": 130.626384697,
-     "step": 0.816414904353,
+     "min": 65.3255679306,
+     "max": 130.651135861,
+     "step": 0.816569599132,
      "unit": "um",
      "off": 0.0,
-     "reference": 81.6414904353363
+     "reference": 81.65695991321677
     }
    }
   },
@@ -1813,5 +1813,5 @@
    2.089063508436509e-101
   ]
  },
- "digest": "3785bf7d65907747af269c271092726eaaa48e310826d27f3072c1b2aa4f3e6c"
+ "digest": "ef4deff1b2f963d2969dfded459e4503fff25757cc3779bdcbf7f95644e768a3"
 }

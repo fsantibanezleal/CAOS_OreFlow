@@ -31,7 +31,6 @@ export type PlittSizing = {
   volume_split: number;
   sharpness: number;
   feed_solids_vol_pct: number;
-  in_pressure_window: boolean;
 };
 
 const k = (name: string) => constant(`plitt.${name}`);
@@ -86,10 +85,8 @@ export function sizeCluster(c: Cyclone, requiredD50Um: number, solidsM3H: number
   const rhoFeed = (solidsTH + waterTH) / volume;
   const head = pressure / (constant('gravity.acceleration_m_s2') * rhoFeed);
   const split = plittSplit(c, head, cvPct);
-  const [lo, hi] = constant<number[]>('plitt.pressure_window_kpa');
   return {
     cyclones: count, flow_l_min: flow, d50c_um: plittCut(c, flow, cvPct, rhoS), required_d50c_um: requiredD50Um,
     pressure_kpa: pressure, volume_split: split, sharpness: plittSharpness(c, flow, split), feed_solids_vol_pct: cvPct,
-    in_pressure_window: lo <= pressure && pressure <= hi,
   };
 }

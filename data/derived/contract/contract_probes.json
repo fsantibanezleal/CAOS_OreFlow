@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "3785bf7d65907747af269c271092726eaaa48e310826d27f3072c1b2aa4f3e6c",
+ "digest": "ef4deff1b2f963d2969dfded459e4503fff25757cc3779bdcbf7f95644e768a3",
  "probes": [
   {
    "case_id": "no_such_case",
@@ -3178,7 +3178,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 13.25
+    "head_grade": 14.85
    },
    "expected": {
     "accepted": true,
@@ -3188,7 +3188,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 39.75
+    "head_grade": 44.55
    },
    "expected": {
     "accepted": true,
@@ -3198,7 +3198,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 12.985
+    "head_grade": 14.552999999999999
    },
    "expected": {
     "accepted": false,
@@ -3213,7 +3213,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "head_grade": 40.015
+    "head_grade": 44.846999999999994
    },
    "expected": {
     "accepted": false,
@@ -3245,7 +3245,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 65.3131923483
+    "d50c_um": 65.3255679306
    },
    "expected": {
     "accepted": true,
@@ -3255,7 +3255,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 130.626384697
+    "d50c_um": 130.651135861
    },
    "expected": {
     "accepted": true,
@@ -3265,7 +3265,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 64.66006042481301
+    "d50c_um": 64.672312251296
    },
    "expected": {
     "accepted": false,
@@ -3280,7 +3280,7 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
-    "d50c_um": 131.279516620487
+    "d50c_um": 131.304391540304
    },
    "expected": {
     "accepted": false,

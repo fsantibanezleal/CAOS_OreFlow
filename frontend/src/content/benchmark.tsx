@@ -72,7 +72,23 @@ const TEXT = {
   p80: { en: 'Overflow P80 (µm)', es: 'P80 del rebose (µm)' },
   cl: { en: 'Circulating load', es: 'Carga circulante' },
   energy: { en: 'Specific energy (kWh/t)', es: 'Energía específica (kWh/t)' },
-  molycopCaption: { en: 'Moly-Cop BallSim_Direct base case with its default breakage parameters, re-solved by the engine.', es: 'Caso base BallSim_Direct de Moly-Cop con sus parámetros de fractura por defecto, resuelto de nuevo por el motor.' },
+  netEnergy: { en: 'Net specific energy (kWh/t)', es: 'Energía específica neta (kWh/t)' },
+  grossEnergy: { en: 'Gross specific energy at the published losses (kWh/t)', es: 'Energía específica bruta con las pérdidas publicadas (kWh/t)' },
+  cutRow: { en: 'Corrected cut d50c (µm)', es: 'Corte corregido d50c (µm)' },
+  bypassRow: { en: 'Water bypass', es: 'Cortocircuito de agua' },
+  overflowRow: { en: 'Overflow size distribution, largest gap over the 20 sieves', es: 'Distribución granulométrica del rebose, mayor diferencia en los 20 tamices' },
+  gapPoints: { en: 'points', es: 'puntos' },
+  input: { en: 'input', es: 'entrada' },
+  met: { en: 'met', es: 'cumplida' },
+  molycopCaption: { en: 'Moly-Cop BallSim_Direct base case with every input it publishes (fresh feed, its own breakage parameters, classifier, densities), re-solved by the engine. P80 and circulating load are inputs the solver meets; the rest are comparisons, and only the net energy has a tolerance.', es: 'Caso base BallSim_Direct de Moly-Cop con todas las entradas que publica (alimentación fresca, sus propios parámetros de fractura, clasificador, densidades), resuelto de nuevo por el motor. El P80 y la carga circulante son entradas que el solucionador cumple; el resto son comparaciones, y solo la energía neta tiene tolerancia.' },
+  sizingCaption: { en: 'Plitt\'s uncalibrated sizing at Moly-Cop\'s two published classifier states. The factors that reproduce each state differ in the ratio {cut} on the cut and {p} on the pressure, against {a2} and {a1} between Moly-Cop\'s own printed constants.', es: 'El dimensionado de Plitt sin calibrar en los dos estados de clasificación publicados por Moly-Cop. Los factores que reproducen cada estado difieren en la razón {cut} en el corte y {p} en la presión, frente a {a2} y {a1} entre las constantes impresas por el propio Moly-Cop.' },
+  molycopExample: { en: 'Moly-Cop example', es: 'Ejemplo de Moly-Cop' },
+  pubCluster: { en: 'Published cluster', es: 'Batería publicada' },
+  plittCut: { en: 'Plitt cut at the published flow, µm (published d50c)', es: 'Corte de Plitt con el caudal publicado, µm (d50c publicado)' },
+  plittPressure: { en: 'Plitt pressure at the published flow', es: 'Presión de Plitt con el caudal publicado' },
+  engCluster: { en: 'Cluster the engine sizes for the published cut', es: 'Batería que dimensiona el motor para el corte publicado' },
+  calibration: { en: 'Factors that reproduce it (cut, pressure)', es: 'Factores que lo reproducen (corte, presión)' },
+  cluster: { en: '{n} at {p} kPa', es: '{n} a {p} kPa' },
   example: { en: 'Worked example', es: 'Ejemplo resuelto' },
   reduction: { en: 'Reduction (µm)', es: 'Reducción (µm)' },
   wio: { en: 'Operating work index (kWh/t)', es: 'Índice de trabajo operacional (kWh/t)' },
@@ -161,8 +177,20 @@ export function Reading({ text, lang }: { text: string | null; lang: Lang }) {
   return <p className="of-doc-reading" aria-live="polite">{text ?? TEXT.reading[lang]}</p>;
 }
 
+type Pair = { published: number; engine: number; relative_error: number };
+type Sizing = {
+  published: { cyclones: number; pressure_kpa: number; d50c_um: number };
+  plitt_at_published_flow: { cut_um: number; pressure_kpa: number };
+  sized_for_published_cut: { cyclones: number; pressure_kpa: number };
+  calibration: { cut: number; pressure: number };
+};
 type Oracles = {
-  molycop: { published: Record<string, number>; engine: Record<string, number>; relative_error: Record<string, number>; tolerance: Record<string, number>; within_tolerance: boolean };
+  molycop: {
+    inputs: { p80_um: Pair; circulating_load: Pair };
+    comparison: { net_specific_energy_kwh_t: Pair; gross_specific_energy_kwh_t: Pair; cut_um: Pair; water_bypass: Pair; overflow_passing_max_abs_difference_pct: number };
+    tolerance: { net_specific_energy_kwh_t: number }; within_tolerance: boolean;
+    sizing: { examples: Record<string, Sizing>; ratio: { engine_cut: number; engine_pressure: number; molycop_a2: number; molycop_a1: number } };
+  };
   gmg: { examples: Array<Record<string, number>>; tolerance_abs_kwh_t: number; within_tolerance: boolean };
   laplante: { published: { bleed: number[]; gold_recovery_pct: number[]; grg_circulating_load_pct: number[] }; engine: { bleed: number[]; gravity_recovery_pct: number[]; gold_circulating_load_pct: number[]; ore_circulating_load_pct: number[] } };
   zandrivierspoort: { published: { grind_p80_um: number[]; concentrate_fe_pct: number[] }; engine: { grind_p80_um: number[]; concentrate_fe_pct: number[]; magnetite_recovery_pct: number[] }; grade_difference_pct_points: { engine: number; published: number } };
@@ -202,11 +230,21 @@ function OracleTables({ lang }: { lang: Lang }) {
       {() => {
         const o = oracles(benchmark.value!);
         const m = o.molycop;
-        const rows: Array<[Bi, string, (v: number) => string]> = [
-          [TEXT.p80, 'p80_um', v => formatFixed(v, lang, 1)],
-          [TEXT.cl, 'circulating_load', v => formatFraction(v, lang, 0)],
-          [TEXT.energy, 'gross_specific_energy_kwh_t', v => formatFixed(v, lang, 2)],
+        const c = m.comparison;
+        const rel = (e: number) => (Math.abs(e) < 1e-9 ? '< 1e-9' : `${formatSignificant(100 * e, lang, 2)}%`);
+        const input = (e: number) => (Math.abs(e) <= 1e-6 ? TEXT.met[lang] : TEXT.no[lang]);
+        const net = c.net_specific_energy_kwh_t, tol = m.tolerance.net_specific_energy_kwh_t;
+        // label, published, engine, relative error, tolerance, within
+        const rows: Array<[Bi, string, string, string, string, string]> = [
+          [TEXT.p80, formatFixed(m.inputs.p80_um.published, lang, 1), formatFixed(m.inputs.p80_um.engine, lang, 1), rel(m.inputs.p80_um.relative_error), TEXT.input[lang], input(m.inputs.p80_um.relative_error)],
+          [TEXT.cl, formatFraction(m.inputs.circulating_load.published, lang, 0), formatFraction(m.inputs.circulating_load.engine, lang, 0), rel(m.inputs.circulating_load.relative_error), TEXT.input[lang], input(m.inputs.circulating_load.relative_error)],
+          [TEXT.netEnergy, formatFixed(net.published, lang, 2), formatFixed(net.engine, lang, 2), rel(net.relative_error), formatFraction(tol, lang, 0), Math.abs(net.relative_error) <= tol ? TEXT.yes[lang] : TEXT.no[lang]],
+          [TEXT.grossEnergy, formatFixed(c.gross_specific_energy_kwh_t.published, lang, 2), formatFixed(c.gross_specific_energy_kwh_t.engine, lang, 2), rel(c.gross_specific_energy_kwh_t.relative_error), '-', '-'],
+          [TEXT.cutRow, formatFixed(c.cut_um.published, lang, 1), formatFixed(c.cut_um.engine, lang, 1), rel(c.cut_um.relative_error), '-', '-'],
+          [TEXT.bypassRow, formatFraction(c.water_bypass.published, lang, 1), formatFraction(c.water_bypass.engine, lang, 1), rel(c.water_bypass.relative_error), '-', '-'],
+          [TEXT.overflowRow, '-', `${formatFixed(c.overflow_passing_max_abs_difference_pct, lang, 2)} ${TEXT.gapPoints[lang]}`, '-', '-', '-'],
         ];
+        const ratio = m.sizing.ratio;
         const z = o.zandrivierspoort;
         const l = o.laplante;
         const x = l.engine.bleed.map(v => 100 * v); // not-engine: a fraction shown in percent
@@ -215,14 +253,24 @@ function OracleTables({ lang }: { lang: Lang }) {
             <table className="of-doc-table of-doc-table-data">
               <caption>{TEXT.molycopCaption[lang]}</caption>
               <thead><tr>{[TEXT.quantity, TEXT.published, TEXT.engine, TEXT.error, TEXT.tolerance, TEXT.within].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
-              <tbody>{rows.map(([label, key, show]) => (
-                <tr key={key}>
+              <tbody>{rows.map(([label, ...cells]) => (
+                <tr key={label.en}>
                   <th scope="row">{label[lang]}</th>
-                  <td>{show(m.published[key])}</td>
-                  <td>{show(m.engine[key])}</td>
-                  <td>{Math.abs(m.relative_error[key]) < 1e-9 ? '< 1e-9' : `${formatSignificant(100 * m.relative_error[key], lang, 2)}%`}</td>
-                  <td>{formatFraction(m.tolerance[key], lang, 1)}</td>
-                  <td>{Math.abs(m.relative_error[key]) <= m.tolerance[key] ? TEXT.yes[lang] : TEXT.no[lang]}</td>
+                  {cells.map((v, i) => <td key={i}>{v}</td>)}
+                </tr>
+              ))}</tbody>
+            </table>
+            <table className="of-doc-table of-doc-table-data">
+              <caption>{fill(TEXT.sizingCaption[lang], { cut: formatFixed(ratio.engine_cut, lang, 2), p: formatFixed(ratio.engine_pressure, lang, 2), a2: formatFixed(ratio.molycop_a2, lang, 2), a1: formatFixed(ratio.molycop_a1, lang, 2) })}</caption>
+              <thead><tr>{[TEXT.molycopExample, TEXT.pubCluster, TEXT.plittCut, TEXT.plittPressure, TEXT.engCluster, TEXT.calibration].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+              <tbody>{Object.entries(m.sizing.examples).map(([id, s]) => (
+                <tr key={id}>
+                  <th scope="row">{id}</th>
+                  <td>{fill(TEXT.cluster[lang], { n: String(s.published.cyclones), p: formatFixed(s.published.pressure_kpa, lang, 0) })}</td>
+                  <td>{`${formatFixed(s.plitt_at_published_flow.cut_um, lang, 0)} (${formatFixed(s.published.d50c_um, lang, 1)})`}</td>
+                  <td>{`${formatFixed(s.plitt_at_published_flow.pressure_kpa, lang, 0)} kPa`}</td>
+                  <td>{fill(TEXT.cluster[lang], { n: String(s.sized_for_published_cut.cyclones), p: formatFixed(s.sized_for_published_cut.pressure_kpa, lang, 0) })}</td>
+                  <td>{`${formatFixed(s.calibration.cut, lang, 3)}, ${formatFixed(s.calibration.pressure, lang, 3)}`}</td>
                 </tr>
               ))}</tbody>
             </table>
@@ -586,8 +634,10 @@ const ORACLES: Topic = {
   id: 'oracles',
   title: { en: 'Published examples the engine reproduces', es: 'Ejemplos publicados que reproduce el motor' },
   paragraphs: [
-    { en: 'No open plant campaign joins operating states with measured metallurgy, so the engine is checked against published examples, each labelled as a published example and not as plant data. The Moly-Cop BallSim base case is re-solved with its default breakage parameters: the closed-circuit solver meets the published overflow P80 and circulating load to round-off, and its specific energy is 9.13 kWh/t against the published 8.56, 6.7% above it and inside the 20% tolerance the requirement sets. The difference is expected: the example\'s feed shape and cyclone geometry are not stated, and it uses a different cut model.',
-      es: 'Ninguna campaña de planta abierta une estados de operación con metalurgia medida, así que el motor se contrasta con ejemplos publicados, cada uno rotulado como ejemplo publicado y no como datos de planta. El caso base BallSim de Moly-Cop se resuelve de nuevo con sus parámetros de fractura por defecto: el solucionador de circuito cerrado cumple el P80 del rebose y la carga circulante publicados al redondeo, y su energía específica es 9,13 kWh/t frente a 8,56 publicados, 6,7% sobre ellos y dentro de la tolerancia de 20% que fija el requisito. La diferencia es esperable: la forma de la alimentación y la geometría del ciclón del ejemplo no se indican, y usa otro modelo de corte.' },
+    { en: 'No open plant campaign joins operating states with measured metallurgy, so the engine is checked against published examples, each labelled as a published example and not as plant data. The Moly-Cop BallSim base case is re-solved with every input it publishes: the fresh-feed size distribution, its own breakage parameters, the cyclone geometry, Plitt\'s parameter and the stream densities. The solver meets the published overflow P80 and circulating load, which are inputs. What it then computes is compared: the net specific energy is 7.30 kWh/t against the published 7.71 (3,885 kW net over 504 t/h), 5.2% below it and inside the 20% the requirement set before the first run; the corrected cut is 188 µm against 183.3, the water bypass 37.4% against 37.5%, and the overflow size distribution lies within 0.5 points of the published one at all 20 sieves. Until 0.08.000 this oracle used another example\'s parameter guesses, an authored feed and an authored classifier, and compared its energy with the published gross value.',
+      es: 'Ninguna campaña de planta abierta une estados de operación con metalurgia medida, así que el motor se contrasta con ejemplos publicados, cada uno rotulado como ejemplo publicado y no como datos de planta. El caso base BallSim de Moly-Cop se resuelve de nuevo con todas las entradas que publica: la distribución granulométrica de la alimentación fresca, sus propios parámetros de fractura, la geometría de los ciclones, el parámetro de Plitt y las densidades de las corrientes. El solucionador cumple el P80 del rebose y la carga circulante publicados, que son entradas. Lo que calcula después se compara: la energía específica neta es 7,30 kWh/t frente a 7,71 publicados (3.885 kW netos sobre 504 t/h), 5,2% bajo ellos y dentro del 20% que fijó el requisito antes de la primera corrida; el corte corregido es 188 µm frente a 183,3, el cortocircuito de agua 37,4% frente a 37,5%, y la distribución granulométrica del rebose queda dentro de 0,5 puntos de la publicada en los 20 tamices. Hasta 0.08.000 este oráculo usaba los valores iniciales de parámetros de otro ejemplo, una alimentación y un clasificador de autor, y comparaba su energía con el valor bruto publicado.' },
+    { en: 'The same example tests the cyclone sizing, and the sizing fails. At Moly-Cop\'s two published classifier states, Plitt\'s uncalibrated equations give a cut 1.66 and 1.38 times the published one and a pressure 2.2 and 1.7 times the published one. Sizing a cluster from the cut amplifies that: for BallSim the engine asks for 2 cyclones at 816 kPa against the published 6 at 53 kPa. Moly-Cop calibrates the equations per survey, and the factors that reproduce each example differ in the same ratio as its printed constants, so the equations are Moly-Cop\'s and only the calibration is missing. The count and pressure are therefore shown as an uncalibrated estimate, never as a result or a flag.',
+      es: 'El mismo ejemplo pone a prueba el dimensionado de ciclones, y el dimensionado falla. En los dos estados de clasificación publicados por Moly-Cop, las ecuaciones de Plitt sin calibrar dan un corte 1,66 y 1,38 veces el publicado y una presión 2,2 y 1,7 veces la publicada. Dimensionar una batería a partir del corte lo amplifica: para BallSim el motor pide 2 ciclones a 816 kPa frente a los 6 publicados a 53 kPa. Moly-Cop calibra las ecuaciones por muestreo, y los factores que reproducen cada ejemplo difieren en la misma razón que sus constantes impresas, así que las ecuaciones son las de Moly-Cop y solo falta la calibración. Por eso el número de ciclones y la presión se muestran como una estimación sin calibrar, nunca como un resultado ni un aviso.' },
     { en: 'The GMG guideline\'s two worked examples of the Bond operating work index are reproduced within 0.03 kWh/t (14.38 against 14.4 and 11.71 against 11.7), inside the 0.05 kWh/t tolerance.',
       es: 'Los dos ejemplos resueltos de la guía GMG del índice de trabajo operacional de Bond se reproducen dentro de 0,03 kWh/t (14,38 frente a 14,4 y 11,71 frente a 11,7), dentro de la tolerancia de 0,05 kWh/t.' },
     { en: 'Two oracles are trends, because the published plant is not the engine\'s case. In the Laplante and Staunton gravity example, treating 10 to 60% of the underflow raises the plant\'s gold recovery from 64.1 to 77.1% with diminishing returns; in the engine\'s gold case the gravity recovery rises from 13.7 to 31.7% over the same bleeds, also with diminishing returns, and gold circulates at 556 to 271% against the ore\'s 250%, falling as the bleed grows, as the published gravity-recoverable gold does (2016 to 413%).',

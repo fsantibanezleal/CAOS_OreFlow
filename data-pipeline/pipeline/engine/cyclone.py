@@ -38,7 +38,6 @@ class PlittSizing:
     volume_split: float
     sharpness: float
     feed_solids_vol_pct: float
-    in_pressure_window: bool
 
 
 def _k(name: str) -> float:
@@ -81,7 +80,9 @@ def plitt_sharpness(c: Cyclone, flow_l_min: float, volume_split: float) -> float
 
 def size_cluster(c: Cyclone, required_d50_um: float, solids_m3_h: float, water_m3_h: float,
                  solids_t_h: float, water_t_h: float) -> PlittSizing:
-    """Number of cyclones and operating point that deliver the required cut (Plitt)."""
+    """Number of cyclones and operating point that deliver the required cut by Plitt's uncalibrated equations: a design
+    estimate, never a result or a flag. On Moly-Cop's published base case it sizes 2 cyclones at 816 kPa against the
+    published 6 at 53 kPa (E-07, review of 2026-10-02; methods.oracles.molycop records the comparison)."""
     litres = float(constant("units.litres_per_m3"))
     minutes = float(constant("time.minutes_per_hour"))
     volume = solids_m3_h + water_m3_h
@@ -95,6 +96,5 @@ def size_cluster(c: Cyclone, required_d50_um: float, solids_m3_h: float, water_m
     rho_feed = (solids_t_h + water_t_h) / volume
     head = pressure / (float(constant("gravity.acceleration_m_s2")) * rho_feed)
     split = plitt_split(c, head, cv_pct)
-    lo, hi = (float(v) for v in constant("plitt.pressure_window_kpa"))
     return PlittSizing(count, flow, plitt_cut(c, flow, cv_pct, rho_s), required_d50_um, pressure, split,
-                       plitt_sharpness(c, flow, split), cv_pct, lo <= pressure <= hi)
+                       plitt_sharpness(c, flow, split), cv_pct)

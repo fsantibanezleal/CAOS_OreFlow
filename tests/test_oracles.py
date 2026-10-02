@@ -3,17 +3,51 @@ trend (PE-18), Zandrivierspoort grind-grade trend (PE-19). Each is a published e
 The records come from pipeline.methods.oracles, the same computation the benchmark stores."""
 from __future__ import annotations
 
+import pytest
+
+from pipeline.engine.grid import grid
 from pipeline.methods import oracles
 
 
 def test_molycop_base_case():
-    # BallSim_Direct base case: 504 t/h, F80 6913 um, P80 169.4 um, CL 277%, gross 8.56 kWh/t, with the
-    # BallParam_Direct default breakage parameters.
+    """PE-08: the BallSim_Direct base case with every published input and its own breakage parameters. P80 and the
+    circulating load are inputs the solver meets. The net specific energy is compared with the published 3,885 kW over
+    504 t/h within 20%; the corrected cut, the water bypass and the overflow distribution with the published classifier
+    state. Until 0.08.000 the oracle used another example's parameter guesses, an authored feed and classifier, and
+    compared with the gross energy (E-05, E-08)."""
     record = oracles.molycop()
-    assert abs(record["relative_error"]["p80_um"]) <= 0.005
-    assert abs(record["relative_error"]["circulating_load"]) <= 0.005
-    assert abs(record["relative_error"]["gross_specific_energy_kwh_t"]) <= 0.20
-    assert record["within_tolerance"]
+    for key in ("p80_um", "circulating_load"):
+        assert abs(record["inputs"][key]["relative_error"]) <= 1e-6, key
+    c = record["comparison"]
+    assert c["net_specific_energy_kwh_t"]["published"] == pytest.approx(3885.0 / 504.0)
+    assert abs(c["net_specific_energy_kwh_t"]["relative_error"]) <= 0.20 and record["within_tolerance"]
+    assert abs(c["cut_um"]["relative_error"]) < 0.05
+    assert abs(c["water_bypass"]["engine"] - c["water_bypass"]["published"]) < 0.005
+    assert c["overflow_passing_max_abs_difference_pct"] < 1.0
+
+
+def test_molycop_feed_is_the_published_distribution():
+    pub = oracles.oracle_data()["molycop"]["published"]
+    feed = oracles.molycop_feed()
+    assert feed.sum() == pytest.approx(1.0)
+    # the top sieve (100% at 25.4 mm) carries the grid's class-width interpolation, 0.63 points; the rest is within 0.3
+    gaps = [abs(got - want) for got, want in zip(oracles.passing_at(feed, pub["size_um"]), pub["feed_passing_pct"])]
+    assert gaps[0] < 1.0 and max(gaps[1:]) < 0.3, gaps
+    assert abs(grid().p80(feed) / pub["feed_f80_um"] - 1.0) < 0.01
+
+
+def test_plitt_sizing_is_a_stated_failure():
+    """E-07: the engine's uncalibrated Plitt equations miss both published classifier states, and the cluster sized from
+    the cut is smaller than the published one. The factors that reproduce each state differ in the ratio of Moly-Cop's
+    own printed constants (a2 on the cut, a1 on the pressure), so the form matches and only the calibration is missing."""
+    sizing = oracles.molycop()["sizing"]
+    for name, example in sizing["examples"].items():
+        assert example["plitt_at_published_flow"]["cut_um"] > 1.3 * example["published"]["d50c_um"], name
+        assert example["plitt_at_published_flow"]["pressure_kpa"] > 1.5 * example["published"]["pressure_kpa"], name
+        assert example["sized_for_published_cut"]["cyclones"] < example["published"]["cyclones"], name
+    r = sizing["ratio"]
+    assert abs(r["engine_cut"] / r["molycop_a2"] - 1.0) < 0.1
+    assert abs(r["engine_pressure"] / r["molycop_a1"] - 1.0) < 0.1
 
 
 def test_gmg_examples():

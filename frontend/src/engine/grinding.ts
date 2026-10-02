@@ -410,7 +410,6 @@ export class GrindingCircuit {
     const rhoMean = millSolids / solidsVolume;
     const sizing = sizeCluster(plant.cyclone, correctedCut(cut, this.rhoHost, rhoMean), solidsVolume,
       waterCycloneFeed / waterDensity, millSolids, waterCycloneFeed);
-    if (!sizing.in_pressure_window) this.flags.add('cyclone_pressure', `Plitt pressure ${sizing.pressure_kpa.toFixed(0)} kPa lies outside the declared operating window.`);
     const sharp = plant.cyclone.sharpness;
     const withBypass = (y: Vec) => Array.from(y, v => this.bypass + (1.0 - this.bypass) * v);
     const partition: Record<string, number[]> = { host: withBypass(reducedPartition(cut, sharp)) };

@@ -35,17 +35,17 @@ with $H$ the pressure head in metres of slurry.
 The circuit solver of page 03 finds the cut the circuit needs. `cyclone.size_cluster` then answers
 the equipment question: at the solved cyclone feed (solids and water flows, volume concentration,
 mean density), how much flow per cyclone gives that cut by Plitt's equation, how many cyclones that
-means (nearest integer), and the Plitt cut, pressure, volume split and sharpness at that count. A
-pressure outside 35 to 200 kPa is flagged, not rejected.
+means (nearest integer), and the Plitt cut, pressure, volume split and sharpness at that count. The
+equations are uncalibrated, so these are an estimate that never flags or rejects a state.
 
 ## Parameters
 
 | Parameter | Value | Unit | Source |
 |---|---|---|---|
-| sharpness $m$ | 2.0 | 1 | authored; Moly-Cop example 1.66 |
+| sharpness $m$ | 2.0 | 1 | authored; Moly-Cop's two examples print 1.34 and 1.66 |
 | underflow solids | 75 | % w/w | authored |
 | geometry ratios $D_i, D_o, D_u, h$ | 0.256, 0.335, 0.197, 2.95 times $D_c$ | 1 | typical proportions |
-| $D_c$ | 25 to 91 cm by case | cm | chosen so nominal Plitt pressure lies in the window |
+| $D_c$ | 25 to 91 cm by case | cm | authored per case |
 | Plitt coefficients | as above | see equations | Plitt (1976) |
 
 ## Verification
@@ -58,7 +58,20 @@ pressure outside 35 to 200 kPa is flagged, not rejected.
 
 ## What it is not
 
-Plitt's equations are uncalibrated here (a plant applies correction factors fitted to a survey), so
-the cyclone count and pressure are a design check, not a selection. The published Moly-Cop base case,
-which uses a different (CIMM) cut model, runs six 26-inch cyclones at 53 kPa where uncalibrated Plitt
-suggests fewer at higher pressure. No roping, no fish-hook.
+Plitt's equations are uncalibrated here. Moly-Cop calibrates the same equations per survey: its two
+examples print different constants (a1 7.596 and 9.677 on the pressure, a2 1.109 and 1.428 on the cut).
+At the two published classifier states (BallSim_Direct, six 26-inch cyclones at 7.7 psi; BallParam_Direct,
+ten 20-inch cyclones at 7.98 psi) the engine's Plitt cut is 1.66 and 1.38 times the published corrected
+cut and its pressure 2.2 and 1.7 times the published pressure, at the published flow per cyclone. The
+factors that reproduce each state differ in the ratio 1.20 on the cut and 1.30 on the pressure, against
+1.29 and 1.27 between Moly-Cop's own constants, so the form is Moly-Cop's and only the calibration is
+missing (`tests/test_oracles.py::test_plitt_sizing_is_a_stated_failure`).
+
+Sizing a cluster inverts the cut equation (the flow per cyclone scales as the cut to the power -2.22),
+which amplifies the error: at the BallSim_Direct state the engine sizes 2 cyclones at 816 kPa against the
+published 6 at 53 kPa. One survey's calibration does not carry over either: applied to the cases, which
+feed their cyclones at 24 to 31% solids by volume against Moly-Cop's 36%, it asks for about three times as
+many cyclones at pressures below the practical range. The count and pressure are therefore an estimate,
+never a result or a flag. Until 0.08.000 a Plitt pressure outside 35 to 200 kPa raised the
+`cyclone_pressure` flag and the case diameters were chosen to keep it inside; both are retired (review of
+2026-10-02, E-07). No roping, no fish-hook.

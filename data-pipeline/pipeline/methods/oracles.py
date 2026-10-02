@@ -13,13 +13,20 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
+import numpy as np
+
 from ..cases.catalog import CASE_BY_ID, CASES
 from ..engine.circuit import simulate
 from ..engine.comminution import operating_work_index
+from ..engine.constants import constant
+from ..engine.cyclone import plitt_cut, plitt_pressure, size_cluster
 from ..engine.grid import grid
 from ..engine.grinding import GrindingCircuit
 from ..engine.model import Carrier, Cyclone, Flags, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant
 from ..engine.ore import resolve
+
+INCH_CM = 2.54
+PSI_KPA = 6.894757
 
 DATA = Path(__file__).resolve().parent / "data" / "oracles.json"
 
@@ -33,9 +40,64 @@ def _relative(engine: float, published: float) -> float:
     return (engine - published) / published
 
 
+def molycop_feed() -> np.ndarray:
+    """The published BallSim_Direct fresh feed on the engine grid: the cumulative passing interpolated in log size,
+    extended below the last sieve by the Gaudin-Schuhmann slope of the last two (authored)."""
+    pub = oracle_data()["molycop"]["published"]
+    g = grid()
+    size = np.asarray(pub["size_um"], float)
+    passing = np.asarray(pub["feed_passing_pct"], float) / 100.0
+    slope = math.log(passing[-2] / passing[-1]) / math.log(size[-2] / size[-1])
+    cum = np.array([1.0 if u >= size[0] else passing[-1] * (u / size[-1]) ** slope if u <= size[-1]
+                    else float(np.interp(math.log(u), np.log(size[::-1]), passing[::-1])) for u in g.upper])
+    mass = np.append(cum[:-1] - cum[1:], cum[-1])
+    return mass / mass.sum()
+
+
+def passing_at(mass: np.ndarray, sizes: list[float]) -> list[float]:
+    """Cumulative percent passing of a class distribution at given sizes (log interpolation on the grid bounds)."""
+    g = grid()
+    upper, passing = np.log(g.upper[::-1]), g.passing(mass)[::-1]
+    return [100.0 * float(np.interp(math.log(s), upper, passing)) for s in sizes]
+
+
+def _pair(engine: float, published: float) -> dict[str, float]:
+    return {"published": published, "engine": engine, "relative_error": _relative(engine, published)}
+
+
+def _cyclone(state: dict[str, Any], underflow_solids: float) -> Cyclone:
+    return Cyclone(sharpness=state["plitt_parameter"], underflow_solids=underflow_solids, diameter_cm=state["diameter_in"] * INCH_CM,
+                   inlet_cm=state["inlet_in"] * INCH_CM, vortex_cm=state["vortex_in"] * INCH_CM, apex_cm=state["apex_in"] * INCH_CM,
+                   free_vortex_height_cm=state["height_in"] * INCH_CM)
+
+
+def _plitt_at(state: dict[str, Any], rho: float, underflow_solids: float) -> dict[str, Any]:
+    """The engine's uncalibrated Plitt equations at a published classifier state (E-07): the cut and pressure at the
+    published flow per cyclone, the cluster the engine sizes for the published cut, and the factors on the cut and
+    pressure coefficients that would reproduce the state."""
+    c = _cyclone(state, underflow_solids)
+    solids = state["ore_t_h"] / rho
+    water = state["water_m3_h"]
+    cv = 100.0 * solids / (solids + water)
+    flow = (solids + water) * float(constant("units.litres_per_m3")) / float(constant("time.minutes_per_hour")) / state["cyclones"]
+    cut, pressure = plitt_cut(c, flow, cv, rho), plitt_pressure(c, flow, cv)
+    sized = size_cluster(c, state["d50c_um"], solids, water, state["ore_t_h"], water * float(constant("water.density_t_m3")))
+    published = {"cyclones": state["cyclones"], "pressure_kpa": state["pressure_psi"] * PSI_KPA, "d50c_um": state["d50c_um"]}
+    return {"published": published, "feed_solids_vol_pct": cv,
+            "plitt_at_published_flow": {"cut_um": cut, "pressure_kpa": pressure},
+            "sized_for_published_cut": {"cyclones": sized.cyclones, "pressure_kpa": sized.pressure_kpa},
+            "calibration": {"cut": state["d50c_um"] / cut, "pressure": published["pressure_kpa"] / pressure},
+            "molycop_constants": state["constants"]}
+
+
 def molycop() -> dict[str, Any]:
+    """PE-08 and E-07: the Moly-Cop BallSim_Direct base case with every input it publishes and its own breakage
+    parameters. P80 and circulating load are inputs the solver meets; the net specific energy, the corrected cut, the
+    water bypass and the overflow size distribution are compared with the published ones. The Plitt sizing is compared
+    with both published classifier states."""
     d = oracle_data()["molycop"]
     pub, par, aut = d["published"], d["parameters"], d["authored"]
+    state = pub["classifiers"]["BallSim_Direct"]
     wi = aut["work_index_kwh_t"]
     ore = Ore(minerals=(MineralSpec(id="chalcopyrite"), MineralSpec(id="quartz")),
               payables=(Payable("Cu", "%", (Carrier("chalcopyrite", 1.0),), aut["head_grade_pct"]),),
@@ -43,23 +105,39 @@ def molycop() -> dict[str, Any]:
     mill = Mill(installed_power_kw=math.inf, alpha0=par["alpha0"], alpha1=par["alpha1"], alpha2=par["alpha2"],
                 critical_size_um=par["critical_size_um"], reference_work_index_kwh_t=wi, beta0=par["beta0"],
                 beta1=par["beta1"], beta2=par["beta2"], discharge_solids=pub["discharge_solids"])
-    cyclone = Cyclone(sharpness=aut["cyclone_sharpness"], underflow_solids=aut["underflow_solids"],
-                      diameter_cm=pub["cyclone_diameter_cm"], inlet_cm=aut["inlet_cm"], vortex_cm=aut["vortex_cm"],
-                      apex_cm=aut["apex_cm"], free_vortex_height_cm=aut["free_vortex_height_cm"])
-    # the crusher is not part of this oracle: the new feed is the published F80 directly
-    plant = Plant(family="rougher", crusher=CASES[0].plant.crusher, mill=mill, cyclone=cyclone)
+    # the crusher is not part of this oracle: the new feed is the published distribution directly
+    plant = Plant(family="rougher", crusher=CASES[0].plant.crusher, mill=mill, cyclone=_cyclone(state, pub["underflow_solids"]))
+    # the overflow water per tonne of new feed follows from the published overflow solids
+    water = (1.0 - pub["overflow_solids"]) / pub["overflow_solids"]
     op = OperatingPoint(throughput_tph=pub["feed_tph"], target_p80_um=pub["p80_um"], circulating_load=pub["circulating_load"],
-                        water_m3_t=aut["overflow_water_m3_t"], crusher_css_mm=CASES[0].nominal.crusher_css_mm,
-                        work_index_kwh_t=wi, head_grade=aut["head_grade_pct"])
+                        water_m3_t=water, crusher_css_mm=CASES[0].nominal.crusher_css_mm, work_index_kwh_t=wi,
+                        head_grade=aut["head_grade_pct"])
     resolved = resolve(ore, op)
-    shape = grid().rosin_rammler(pub["feed_f80_um"], aut["feed_slope"])
+    shape = molycop_feed()
     feed = {m: pub["feed_tph"] * resolved.fraction[m] * shape for m in resolved.ids}
     result = GrindingCircuit(resolved, plant, op, feed, Flags()).solve()
-    engine = {"p80_um": result.p80_um, "circulating_load": result.circulating_load,
-              "gross_specific_energy_kwh_t": result.specific_energy_kwh_t}
-    return {"id": "molycop", "source": d["source"], "published": pub, "parameters": par, "authored": aut, "engine": engine,
-            "relative_error": {k: _relative(engine[k], pub[k]) for k in engine}, "tolerance": d["tolerance"],
-            "within_tolerance": all(abs(_relative(engine[k], pub[k])) <= d["tolerance"][k] for k in engine)}
+    overflow = passing_at(sum(result.streams["cyclone_overflow"].solids.values()), pub["size_um"])
+    net = result.specific_energy_kwh_t   # Herbst and Fuerstenau's selection function is normalised by net power
+    comparison = {
+        "net_specific_energy_kwh_t": _pair(net, pub["net_power_kw"] / pub["feed_tph"]),
+        "gross_specific_energy_kwh_t": _pair(net / (1.0 - pub["power_losses"]), pub["gross_specific_energy_kwh_t"]),
+        "cut_um": _pair(result.cut_um, state["d50c_um"]),
+        "water_bypass": _pair(result.bypass, state["water_bypass"]),
+        "overflow_passing_max_abs_difference_pct": max(abs(e - q) for e, q in zip(overflow, pub["overflow_passing_pct"])),
+    }
+    inputs = {"p80_um": _pair(result.p80_um, pub["p80_um"]), "circulating_load": _pair(result.circulating_load, pub["circulating_load"])}
+    sizing = {k: _plitt_at(s, pub["ore_density_t_m3"], pub["underflow_solids"]) for k, s in pub["classifiers"].items()}
+    a, b = sizing["BallSim_Direct"], sizing["BallParam_Direct"]
+    ka, kb = a["molycop_constants"], b["molycop_constants"]
+    ratio = {"engine_cut": b["calibration"]["cut"] / a["calibration"]["cut"], "engine_pressure": b["calibration"]["pressure"] / a["calibration"]["pressure"],
+             "molycop_a2": kb["a2"] / ka["a2"], "molycop_a1": kb["a1"] / ka["a1"]}
+    tolerance = d["tolerance"]
+    return {"id": "molycop", "source": d["source"], "published": pub, "parameters": par, "authored": aut,
+            "inputs": inputs, "engine": {"overflow_passing_pct": overflow}, "comparison": comparison,
+            "tolerance": tolerance, "tolerance_basis": d["tolerance_basis"],
+            "within_tolerance": (abs(comparison["net_specific_energy_kwh_t"]["relative_error"]) <= tolerance["net_specific_energy_kwh_t"]
+                                 and all(abs(v["relative_error"]) <= 1e-6 for v in inputs.values())),
+            "sizing": {"examples": sizing, "ratio": ratio}}
 
 
 def gmg() -> dict[str, Any]:

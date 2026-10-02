@@ -44,7 +44,7 @@ if not verdict["accepted"]:
     raise SystemExit(verdict["errors"])
 point = operating_from_dict(verdict["point"])
 result = simulate(case.ore, case.plant, point)
-print(result.metrics["recovery_pct"], [f["code"] for f in result.flags])     # 96.08 ['power_limited', 'cyclone_pressure']
+print(result.metrics["recovery_pct"], [f["code"] for f in result.flags])     # 96.07 ['power_limited']
 ```
 
 To describe a different ore or plant, change the case's own definitions with `dataclasses.replace`;

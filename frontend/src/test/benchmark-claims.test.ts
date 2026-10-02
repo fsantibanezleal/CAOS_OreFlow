@@ -25,7 +25,12 @@ type OptimizationRecord = {
 };
 const benchmark = read<{
   oracles: {
-    molycop: { published: Record<string, number>; engine: Record<string, number>; relative_error: Record<string, number>; tolerance: Record<string, number> };
+    molycop: {
+      inputs: Record<'p80_um' | 'circulating_load', { published: number; engine: number; relative_error: number }>;
+      comparison: Record<'net_specific_energy_kwh_t' | 'gross_specific_energy_kwh_t' | 'cut_um' | 'water_bypass', { published: number; engine: number; relative_error: number }> & { overflow_passing_max_abs_difference_pct: number };
+      tolerance: { net_specific_energy_kwh_t: number };
+      sizing: { examples: Record<string, { published: { cyclones: number; pressure_kpa: number }; sized_for_published_cut: { cyclones: number; pressure_kpa: number }; calibration: { cut: number; pressure: number } }> };
+    };
     gmg: { examples: Array<Record<string, number>>; tolerance_abs_kwh_t: number };
     laplante: { published: Record<string, number[]>; engine: Record<string, number[]> };
     zandrivierspoort: { published: Record<string, number[]>; engine: Record<string, number[]>; grade_difference_pct_points: { engine: number; published: number } };
@@ -43,13 +48,23 @@ const learning = read<{
 
 describe('the Benchmark page says what the records hold', () => {
   it('published examples: Moly-Cop, GMG, Laplante and Zandrivierspoort as quoted', () => {
+    // E-05 and E-08: every published input, net energy against net; P80 and the load are inputs
     const m = benchmark.oracles.molycop;
-    expect(Math.abs(m.relative_error.p80_um)).toBeLessThan(1e-9);
-    expect(Math.abs(m.relative_error.circulating_load)).toBeLessThan(1e-9);
-    expect(round(m.engine.gross_specific_energy_kwh_t, 2)).toBe(9.13);
-    expect(m.published.gross_specific_energy_kwh_t).toBe(8.56);
-    expect(round(100 * m.relative_error.gross_specific_energy_kwh_t, 1)).toBe(6.7);
-    expect(m.tolerance.gross_specific_energy_kwh_t).toBe(0.2);
+    expect(Math.abs(m.inputs.p80_um.relative_error)).toBeLessThan(1e-9);
+    expect(Math.abs(m.inputs.circulating_load.relative_error)).toBeLessThan(1e-9);
+    const c = m.comparison;
+    expect([round(c.net_specific_energy_kwh_t.engine, 2), round(c.net_specific_energy_kwh_t.published, 2)]).toEqual([7.3, 7.71]);
+    expect(round(100 * c.net_specific_energy_kwh_t.relative_error, 1)).toBe(-5.2);
+    expect(m.tolerance.net_specific_energy_kwh_t).toBe(0.2);
+    expect([Math.round(c.cut_um.engine), c.cut_um.published]).toEqual([188, 183.3]);
+    expect([round(100 * c.water_bypass.engine, 1), round(100 * c.water_bypass.published, 1)]).toEqual([37.4, 37.5]);
+    expect(c.overflow_passing_max_abs_difference_pct).toBeLessThan(0.5);
+    // E-07: the sizing fails both published classifier states, by the factors the page quotes
+    const bs = m.sizing.examples.BallSim_Direct, bp = m.sizing.examples.BallParam_Direct;
+    expect([round(1 / bs.calibration.cut, 2), round(1 / bp.calibration.cut, 2)]).toEqual([1.66, 1.38]);
+    expect([round(1 / bs.calibration.pressure, 1), round(1 / bp.calibration.pressure, 1)]).toEqual([2.2, 1.7]);
+    expect([bs.sized_for_published_cut.cyclones, Math.round(bs.sized_for_published_cut.pressure_kpa)]).toEqual([2, 816]);
+    expect([bs.published.cyclones, Math.round(bs.published.pressure_kpa)]).toEqual([6, 53]);
     const gmg = benchmark.oracles.gmg;
     expect(gmg.examples.map(e => round(e.engine_operating_work_index_kwh_t, 2))).toEqual([14.38, 11.71]);
     expect(gmg.examples.map(e => e.operating_work_index_kwh_t)).toEqual([14.4, 11.7]);

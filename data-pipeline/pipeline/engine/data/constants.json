@@ -231,14 +231,6 @@
       "unit": "1",
       "source": "Plitt (1976)."
     },
-    "plitt.pressure_window_kpa": {
-      "value": [
-        35.0,
-        200.0
-      ],
-      "unit": "kPa",
-      "source": "Flag window, authored: the Moly-Cop base case runs at 53 kPa; values outside the window are reported, not rejected."
-    },
     "flotation.sb_factor": {
       "value": 60.0,
       "unit": "(1/s) per ((cm/s)/mm)",
