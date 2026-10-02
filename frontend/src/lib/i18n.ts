@@ -37,7 +37,7 @@ const METRICS: Record<string, T> = {
   specific_energy_grinding_kwh_t: { en: 'Grinding energy', es: 'Energía de molienda' },
   specific_energy_regrind_kwh_t: { en: 'Regrind energy', es: 'Energía de remolienda' },
   specific_energy_total_kwh_t: { en: 'Specific energy', es: 'Energía específica' },
-  bond_energy_kwh_t: { en: 'Bond energy for the reduction', es: 'Energía de Bond de la reducción' },
+  bond_energy_kwh_t: { en: 'Bond energy, standard circuit', es: 'Energía de Bond, circuito estándar' },
   operating_work_index_kwh_t: { en: 'Operating work index', es: 'Índice de trabajo operacional' },
   bond_efficiency_ratio: { en: 'Bond efficiency ratio', es: 'Razón de eficiencia de Bond' },
   energy_rittinger_kwh_t: { en: 'Rittinger (comparison)', es: 'Rittinger (comparación)' },

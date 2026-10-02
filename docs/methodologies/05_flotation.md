@@ -66,7 +66,7 @@ of gangue; a cell-by-cell grade-recovery profile of the rougher; recovery by siz
 |---|---|---|---|
 | $J_g$ | 1.3 to 1.4 (control) | cm/s | gas-dispersion literature range 0.5 to 2.5 |
 | $D_{32}$ | 0.8 + 0.45 $J_g$ | mm | declared linear form of the reported increase |
-| $P$ sulphide, liberated | 1.8e-4 to 3.2e-4 | 1 | authored per case so nominal KPIs fall in literature ranges |
+| $P$ sulphide, liberated | 1.8e-4 to 3.2e-4 | 1 | authored per case so nominal KPIs fall in their plausibility ranges (cited or authored) |
 | $x_{opt}$, fine and coarse widths | 30 to 70 um, 1.1 to 1.6, 0.6 to 0.8 | um, ln units | authored within Trahar's size behaviour |
 | $K$ valuable, gangue | 12 to 60, 40 to 1500 | g/t | authored; gangue saturates later |
 | $\xi$, $\delta$ | 30 to 60 um, 1 | um, 1 | inside the Savassi and Hoang fits |

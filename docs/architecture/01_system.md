@@ -23,8 +23,8 @@ scientist asking how far a learned surrogate of a process can be trusted when th
 
 The non-goals are those of the [software design document](../design/SDD.md):
 
-- It is not a calibrated plant simulator. Parameters are authored inside published ranges and each
-  carries its source; no case is fitted to a plant.
+- It is not a calibrated plant simulator. Parameters are authored, each with its source or the label
+  authored; no case is fitted to a plant.
 - It is not an economic optimizer: the optimizer maximizes recovered metal under grade, power and
   water constraints, and there are no prices.
 - It is not a dynamic simulator: every stream is a steady-state balance, with no control-loop or

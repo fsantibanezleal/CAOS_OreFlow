@@ -53,6 +53,20 @@ def test_water_capacity_is_five_percent_above_nominal(case):
     assert 1.04 <= case.plant.water_limit_m3_t / nominal <= 1.06, (case.plant.water_limit_m3_t, nominal)
 
 
+def test_refractory_grade_ceiling_is_reachable():
+    """E-19: the refractory gold grade ceiling is a concentrate of pure carrier sulphides at the nominal head."""
+    from pipeline.cases.catalog import CASE_BY_ID
+
+    case = CASE_BY_ID["refractory_gold"]
+    payable = case.ore.payables[0]
+    carriers = {c.mineral for c in payable.carriers}
+    sulphides = sum(m.fraction for m in case.ore.minerals if m.id in carriers)
+    assert case.kpi_ranges["concentrate_grade"][1] == round(payable.head_grade / sulphides, 1) == 38.6
+    # E-20: the Mo range's source is a rougher statement read from a summary, and it says so
+    mo = CASE_BY_ID["copper_molybdenum"].kpi_sources["recovery_Mo_pct"]
+    assert "UNVERIFIED" in mo[0] and "NO VERIFICADO" in mo[1] and "whole circuit" in mo[0]
+
+
 def test_every_plausibility_range_has_a_classified_source():
     # T-02 (review of 2026-10-02): the pages count cited, partly authored and authored ranges from the benchmark,
     # which classifies each range's source; an unsourced range would be counted as cited, so every range has one

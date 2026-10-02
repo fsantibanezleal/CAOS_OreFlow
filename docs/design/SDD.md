@@ -17,8 +17,8 @@ by particle size and mineral.
 
 Non-goals, stated so they cannot be implied:
 
-- It is not a calibrated plant simulator. Parameters are authored inside published ranges and each
-  carries its source; no case is fitted to a plant.
+- It is not a calibrated plant simulator. Parameters are authored, each with its source or the label
+  authored; no case is fitted to a plant.
 - It is not an economic optimizer. The optimizer maximizes recovered metal subject to physical and
   quality constraints; there are no prices.
 - It is not a dynamic simulator. There is no control-loop or start-up behaviour.

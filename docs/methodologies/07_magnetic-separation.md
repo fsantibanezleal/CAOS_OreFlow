@@ -42,8 +42,8 @@ grade by dilution. The Sobol record's "head grade drives recovery" for this case
 
 - `tests/test_separation.py::test_grade_rises_with_finer_grind` (PE-19): magnetite recovery above
   90% and Fe grade rising from 75 to 60 to 45 um.
-- `tests/test_oracles.py::test_zandrivierspoort_trend`: grade at 75 um near 63 to 67% Fe and at 45 um
-  near 66 to 71% Fe, a rise of more than 1.5 points, as published.
+- `tests/test_oracles.py::test_zandrivierspoort_trend`: grade at 75 um between 62 and 67% Fe and at
+  45 um between 66 and 71% Fe (published 64.9 and 69.0), a rise of more than 1.5 points, as published.
 
 ## What it is not
 

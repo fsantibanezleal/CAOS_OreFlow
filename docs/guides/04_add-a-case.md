@@ -1,6 +1,6 @@
 # 04 Add a case
 
-A case is an authored ore, plant and operating point inside published ranges, with eight variants that change
+A case is an authored ore, plant and operating point, each parameter and plausibility range cited or labelled authored, with eight variants that change
 one input each (the last two run the grinding circuit in the cut mode). Adding one touches the catalog, the prose, a few pinned counts and the bake. The tests say
 when each part is right.
 

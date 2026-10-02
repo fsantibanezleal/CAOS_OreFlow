@@ -43,3 +43,20 @@ describe('the interface names the precompute, the simulator and the port in plai
     expect(nav).toMatch(/en: "Workbench", es: "Simulador"/);
   });
 });
+
+describe('the review of 0.07.000 disclosures stay on the pages', () => {
+  // E-06: 9 of the 29 plausibility ranges are authored and 10 more carry an authored bound, so no page calls the
+  // ranges published or the literature's
+  it('no plausibility range is called published', () => {
+    const rx = /published (plausibility )?ranges?|published plant practice|literature ranges|rangos? (de plausibilidad )?publicados?|rangos de la literatura/i;
+    expect(strings.filter(s => rx.test(s.text)).map(s => `${s.where}: ${s.text.slice(0, 60)}`)).toEqual([]);
+  });
+
+  it('the Bond figure is the standard circuit, and the GMG check is the formula, not a circuit (E-18, E-21)', () => {
+    const read = (path: string) => readFileSync(join(src, path), 'utf-8');
+    expect(read('lib/i18n.ts')).toMatch(/bond_energy_kwh_t: \{ en: 'Bond energy, standard circuit', es: 'Energía de Bond, circuito estándar' \}/);
+    expect(read('content/methodology/comminution.tsx')).toMatch(/oversize-feed factor\s+EF4/);
+    expect(read('content/benchmark.tsx')).toMatch(/it tests the arithmetic, simulates no circuit/);
+    expect(read('content/benchmark.tsx')).toMatch(/prueba la aritmética, no simula ningún circuito/);
+  });
+});

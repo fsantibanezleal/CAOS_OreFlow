@@ -36,6 +36,6 @@ results, and each measures its own error against the engine it approximates.
 | [16 Iron-plant soft sensor](methodologies/16_industrial-soft-sensor.md) | next-hour silica from hourly sensor medians, forward windows with an embargo, persistence baseline | `run_iron_plant.py` |
 
 What the whole engine is not: it is not calibrated to any plant, it is not dynamic, and its numbers
-are consequences of authored parameters inside published ranges. Its tests establish that the
+are consequences of authored parameters, each cited or labelled authored. Its tests establish that the
 declared physics is implemented correctly and that it moves in the directions mineral processing
 expects; they do not establish plant accuracy.

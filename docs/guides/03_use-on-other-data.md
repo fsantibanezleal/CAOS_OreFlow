@@ -1,7 +1,7 @@
 # 03 Use it on other data
 
 Four ways to put your own numbers through OreFlow, from the lightest to the heaviest. None of them
-calibrates the engine: the cases are authored plants inside published ranges, and a result for your plant
+calibrates the engine: the cases are authored plants, each parameter and range cited or labelled authored, and a result for your plant
 is the engine's answer for the ore and plant you describe, nothing more.
 
 ## 1. Move the controls of a case (no installation)

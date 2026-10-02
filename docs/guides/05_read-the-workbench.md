@@ -9,7 +9,7 @@ comes from one of three places, and knowing which one tells you how far a number
 | **Baked**: the Methods records (optimizer, uncertainty, Sobol) and the Case comparison | computed by the Python engine in the bake, for the variant's state | the committed records, re-checked by `scripts/check_artifacts.py`; when you change a control, the panel says it was baked for the variant state |
 | **Learned**: the Methods view's learned lane | a neural surrogate of the engine, with a guard | its scores against the engine on held-out states and on held-out cases, printed beside it |
 
-None of it is a measurement of a plant: the cases are authored inside published ranges.
+None of it is a measurement of a plant: the cases are authored, each parameter and plausibility range cited or labelled authored.
 
 ## The rail
 

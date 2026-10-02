@@ -19,6 +19,28 @@ def test_gmg_worked_example():
     assert bond_energy(16.1, 1000.0, 212.0) == pytest.approx(5.97, abs=0.01)
 
 
+def test_bond_feed_factor_disclosure():
+    """E-18: the Methodology's figures for the oversize-feed factor the Bond requirement leaves out (Rowland's EF4 at
+    F0 = 4000 (13/Wi)^0.5 um) and the efficiency ratios with and without it."""
+    import math
+
+    from pipeline.cases.catalog import CASES
+
+    ratio, ef4, eff, eff4 = [], [], [], []
+    for case in CASES:
+        m = run_variant(case.id, "nominal").metrics
+        wi, feed, product = case.nominal.work_index_kwh_t, m["crusher_p80_um"], m["p80_um"]
+        assert feed == pytest.approx(8418.0, abs=1.0)
+        f0 = 4000.0 * math.sqrt(13.0 / wi)
+        rr = feed / product
+        factor = (rr + (wi - 7.0) * (feed - f0) / f0) / rr
+        ratio.append(feed / f0), ef4.append(factor), eff.append(m["bond_efficiency_ratio"]), eff4.append(m["bond_efficiency_ratio"] * factor)
+    assert (round(min(ratio), 1), round(max(ratio), 1)) == (1.7, 2.5)
+    assert (round(min(ef4), 2), round(max(ef4), 2)) == (1.02, 1.34)
+    assert (round(min(eff), 2), round(max(eff), 2)) == (0.83, 0.91)
+    assert (round(min(eff4), 2), round(max(eff4), 2)) == (0.88, 1.17)
+
+
 def test_laws_calibrated_and_not_summed():
     wi = 14.0
     reference = bond_energy(wi, 10000.0, 150.0)

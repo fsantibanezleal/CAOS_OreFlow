@@ -13,13 +13,25 @@ WITH_AIR_VARIANT = [c for c in NO_SLIMES_REJECTION if any(v["id"] == "more_air" 
 
 @pytest.mark.parametrize("case_id", flotation_cases())
 def test_collector_trades_grade_for_recovery(case_id):
+    # E-17: more collector never lowers recovery by more than 0.01 points over one to three times the dose (past
+    # its peak the oxide copper loses 0.009 points); the grade falls
     case = CASE_BY_ID[case_id]
-    doses = [case.nominal.collector_gpt * f for f in (1.0, 1.6, 3.0)]
+    doses = [case.nominal.collector_gpt * f for f in (1.0, 1.6, 2.0, 2.5, 3.0)]
     metrics = [run_point(case_id, case.nominal.with_values(collector_gpt=d)).metrics for d in doses]
     recoveries = [m["recovery_pct"] for m in metrics]
     grades = [m["concentrate_grade"] for m in metrics]
-    assert recoveries[0] <= recoveries[1] + 1e-9 <= recoveries[2] + 2e-9
-    assert grades[2] < grades[0]
+    assert all(r >= max(recoveries[:i + 1]) - 0.01 for i, r in enumerate(recoveries))
+    assert recoveries[1] > recoveries[0]
+    assert grades[-1] < grades[0]
+
+
+def test_oxide_collector_peak():
+    """E-17: the one case whose recovery passes a peak inside three times the dose, and by how little."""
+    case = CASE_BY_ID["copper_oxide"]
+    rec = {f: run_point("copper_oxide", case.nominal.with_values(collector_gpt=case.nominal.collector_gpt * f)).metrics["recovery_pct"]
+           for f in (2.0, 2.5, 3.0)}
+    assert rec[2.5] > rec[2.0] and rec[2.5] > rec[3.0]
+    assert 0.005 < rec[2.5] - rec[3.0] < 0.01
 
 
 def test_head_grade_direction():
@@ -96,6 +108,20 @@ def test_aeration_raises_entrainment(case_id):
                    for d in f.defs if d.kind == "free")
 
     assert entrained(more_air) > entrained(nominal)
+
+
+def test_aeration_raises_grade_through_the_cleaners():
+    """E-16: more air dilutes every rougher concentrate and shortens the cleaner residence; the final grade still rises
+    in seven of the nine cases (falling in the nickel and the refractory gold), through the cleaners."""
+    rises = []
+    for case_id in WITH_AIR_VARIANT:
+        n, a = run_variant(case_id, "nominal").metrics, run_variant(case_id, "more_air").metrics
+        assert a["rougher_concentrate_grade"] < n["rougher_concentrate_grade"], case_id
+        assert a["cleaner_residence_min"] < n["cleaner_residence_min"], case_id
+        if a["concentrate_grade"] > n["concentrate_grade"]:
+            rises.append(case_id)
+    assert len(WITH_AIR_VARIANT) == 9 and len(rises) == 7
+    assert sorted(set(WITH_AIR_VARIANT) - set(rises)) == ["nickel_sulphide", "refractory_gold"]
 
 
 @pytest.mark.parametrize("case_id", ["copper_porphyry_soft", "zinc_sulfide", "nickel_sulphide", "iron_magnetite_fine"])

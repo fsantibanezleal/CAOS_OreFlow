@@ -66,8 +66,8 @@ KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
     "low_grade_copper": _PORPHYRY,
     "mixed_ore_high_clay": _PORPHYRY,
     "copper_molybdenum": {**_PORPHYRY, "recovery_Mo_pct": ((82.0, 92.0), (
-        "Molybdenite recovers 2 to 12 points below copper in bulk roughers (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001), taken at this case's copper recovery.",
-        "La molibdenita se recupera 2 a 12 puntos bajo el cobre en rougher colectivo (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001), tomado en la recuperación de cobre de este caso."))},
+        "Molybdenite recovers 2 to 12 points below copper in bulk roughers (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001; from a summary, the full text UNVERIFIED). A rougher statement, applied here to the whole circuit and taken at this case's copper recovery, so the range moves with the engine's own copper recovery.",
+        "La molibdenita se recupera 2 a 12 puntos bajo el cobre en rougher colectivo (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001; desde un resumen, el texto completo NO VERIFICADO). Es una afirmación sobre el rougher, aplicada aquí al circuito completo y tomada en la recuperación de cobre de este caso, así que el rango se mueve con la propia recuperación de cobre del motor."))},
     "gold_free_milling": {
         "recovery_pct": ((85.0, 98.0), (
             "Authored. Until 0.08.000 the ceiling was 97%; the rebuilt gravity model recovers coarse gold that flotation partly missed, and the nominal state moved to about 97.7%. Secondary reports of gravity plus flotation tests give 93.6 to 95.6% (unverified), so this case is on the optimistic side.",
@@ -110,8 +110,9 @@ KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
     },
     "refractory_gold": {
         "recovery_pct": ((80.0, 95.0), _AUTHORED),
-        "concentrate_grade": ((12.0, 60.0), ("Authored: refractory gold concentrate grades are ore specific and no verified typical value was found; the band is wide on purpose.",
-                                              "De autor: las leyes de concentrado de oro refractario dependen de la mena y no se encontró un valor típico verificado; la banda es amplia a propósito.")),
+        # E-19: the ceiling is reachable: a concentrate of pure pyrite and arsenopyrite at the nominal head
+        "concentrate_grade": ((12.0, 38.6), ("Authored: refractory gold concentrate grades are ore specific and no verified typical value was found. The floor is authored; the ceiling, 38.6 g/t, is a concentrate of pure sulphides at the nominal head (2.2 g/t over 5.7% pyrite and arsenopyrite).",
+                                              "De autor: las leyes de concentrado de oro refractario dependen de la mena y no se encontró un valor típico verificado. El piso es de autor; el techo, 38,6 g/t, es un concentrado de sulfuros puros con la cabeza nominal (2,2 g/t sobre 5,7% de pirita y arsenopirita).")),
     },
 }
 

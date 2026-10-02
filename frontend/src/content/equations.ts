@@ -28,8 +28,8 @@ export const CIRCUIT: Formula[] = [
     caption: { en: 'Liberated fraction of a valuable mineral in size class i, with liberation size $x_L$ and slope $n_L$ (after King 1979); the rest is held in composites of declared mineral content.',
       es: 'Fracción liberada de un mineral valioso en la clase i, con tamaño de liberación $x_L$ y pendiente $n_L$ (según King 1979); el resto queda en mixtos de contenido declarado.' } },
   { tex: r`\begin{gathered} W = W_i\left(\frac{10}{\sqrt{P_{80}}} - \frac{10}{\sqrt{F_{80}}}\right) \\ W_{i,o} = \frac{P/T}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}} \end{gathered}`,
-    caption: { en: 'Bond energy for a reduction (kWh/t, sizes in µm) and the operating work index recovered from the circuit\'s own specific energy P/T.',
-      es: 'Energía de Bond para una reducción (kWh/t, tamaños en µm) y el índice de trabajo operacional obtenido de la propia energía específica del circuito P/T.' } },
+    caption: { en: 'Bond energy of the standard circuit for a reduction, with one work index and no oversize-feed factor (kWh/t, sizes in µm), and the operating work index recovered from the circuit\'s own specific energy P/T.',
+      es: 'Energía de Bond del circuito estándar para una reducción, con un solo índice de trabajo y sin factor de alimentación sobredimensionada (kWh/t, tamaños en µm), y el índice de trabajo operacional obtenido de la propia energía específica del circuito P/T.' } },
 ];
 
 export const FLOTATION: Formula[] = [

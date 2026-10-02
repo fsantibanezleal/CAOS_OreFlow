@@ -95,7 +95,7 @@ the Python engine behind the same operating contract. See [architecture](docs/ar
 
 ## What the results are, and are not
 
-The cases are authored scenarios inside published ranges, not calibrated plants; the directions of the
+The cases are authored scenarios, each parameter and plausibility range cited or labelled authored, not calibrated plants; the directions of the
 effects are the engine's physics, their sizes depend on the authored parameters. The optimizer has no
 prices. The learned lane approximates this engine, and its held-out-case scores bound how it transfers to
 another authored plant, not to a real one. The measured lanes are separate evidence and calibrate nothing in
