@@ -488,3 +488,6 @@ input, select, textarea { font: inherit; }
 .of-facts > .of-fact-warn dt, .of-facts > .of-fact-warn dd, .of-readout-item.warn strong { color: var(--color-warn); }
 /* U-15: a view the source has nothing for */
 .of-bench .tablist.of-viewbar .tab:disabled { opacity: 0.4; cursor: not-allowed; }
+/* U-33: the key of a category axis whose names did not fit (the Sobol factors on a phone) */
+.of-plot-key { flex: none; display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 4px 0 0; padding: 0 4px; list-style: none; font-size: 0.75rem; color: var(--color-fg-subtle); }
+.of-plot-key b { margin-right: 4px; color: var(--color-fg); font-weight: 600; }

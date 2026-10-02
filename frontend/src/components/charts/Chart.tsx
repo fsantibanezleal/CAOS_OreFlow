@@ -125,6 +125,8 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
   const plotRef = useRef<uPlot | null>(null);
   const cursorRef = useRef<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
+  // U-33: categories whose names do not fit their slots are numbered on the axis and named in a key below
+  const [keyed, setKeyed] = useState(false);
   const [hidden, setHidden] = useState<Set<string>>(() => new Set());
   const hiddenRef = useRef(hidden);
   hiddenRef.current = hidden;
@@ -304,9 +306,19 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
     const textWidth = (s: string) => measure?.measureText(s).width ?? 6 * s.length;
     const categoryValues = (self: uPlot) => {
       const plot = self.bbox?.width ? self.bbox.width / uPlot.pxRatio : host.clientWidth - 72;
-      const { values, cut } = categoryTicks(categories ?? [], plot / Math.max(1, categories?.length ?? 1) - 8, textWidth);
-      host.dataset.ticksCut = String(cut);
-      return values;
+      const slot = plot / Math.max(1, categories?.length ?? 1) - 8;
+      const { values, cut } = categoryTicks(categories ?? [], slot, textWidth);
+      if (cut === 0) {
+        host.dataset.ticksCut = '0';
+        delete host.dataset.ticksKeyed;
+        setKeyed(false);
+        return values;
+      }
+      const numbers = (categories ?? []).map((_, i) => String(i + 1));
+      host.dataset.ticksCut = String(categoryTicks(numbers, slot, textWidth).cut);
+      host.dataset.ticksKeyed = String(cut);
+      setKeyed(true);
+      return numbers;
     };
     // uPlot's x axis is 50 px; a wrapped label takes 16.5 px a line more, and a few px keep its last line
     // off the axis title
@@ -450,6 +462,11 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         </div>
       )}
       <div className="of-plot-area" ref={hostRef} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
+      {keyed && categories && (
+        <ol className="of-plot-key" aria-hidden="true">
+          {categories.map((c, i) => <li key={i}><b>{i + 1}</b>{c}</li>)}
+        </ol>
+      )}
       {zoomed && <button type="button" className="of-plot-reset" onClick={reset}>{t(UI.resetZoom, lang)}</button>}
       {/* a table ignores the 1 px width of the hidden class and would widen the page's scroll area, so a
           block holds it */}
