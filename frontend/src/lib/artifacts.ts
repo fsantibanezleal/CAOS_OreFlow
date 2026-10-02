@@ -116,6 +116,13 @@ export type RealSamples = {
     engine_minus_measured_pp: { mean: number; rmse: number; min: number; max: number };
     geomet_lane_minus_measured_pp: Record<string, { mean: number; rmse: number }>; power_limited: number;
   };
+  /** S-01 to S-09: what the comparison depends on (the assumed laboratory grind, the residence, the host, the authored choices). */
+  sensitivity?: {
+    measured_population_sd_pp: number;
+    gap_by_assumed_p80: Array<{ p80_um: number; mean_gap_pp: number; rmse_pp: number; pearson: number }>;
+    target_grind_throughput: { mean_gap_pp: number; residence_share_pp: number };
+    hosts: Record<string, { mean_gap_pp: number }>;
+  };
 };
 export const loadRealSamples = () => get<RealSamples>('real_samples.json');
 

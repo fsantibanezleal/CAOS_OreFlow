@@ -16,7 +16,7 @@ import { cancelOptimize, optimizeInWorker } from '../../../engine/client';
 import { validateControl, type OperatingContract } from '../../../engine/contract';
 import type { OperatingPoint, Ore, Plant } from '../../../engine/model';
 import type { OptimizationRecord, OptimumSummary } from '../../../lib/artifacts.types';
-import { formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
+import { formatFixed, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
 import { formulaText, metricLabel } from '../../../lib/i18n';
 import { Chart } from '../../../components/charts/Chart';
 
@@ -106,6 +106,11 @@ const TEXT = {
   failed: { en: 'The run failed', es: 'La corrida falló' },
   weight: { en: 'weight on recovered metal', es: 'peso del metal recuperado' },
   method: { en: 'pattern search with a progressive barrier', es: 'búsqueda por patrones con barrera progresiva' },
+  atBound: { en: 'at its bound', es: 'en su cota' },
+  costNote: {
+    en: 'The objective weighs recovered metal against grinding energy only: collector and air cost nothing in it, so an optimum can sit at their upper bounds.',
+    es: 'El objetivo pondera el metal recuperado contra la energía de molienda solamente: el colector y el aire no cuestan nada en él, así que un óptimo puede quedar en sus cotas superiores.',
+  },
 };
 
 const RESULTS: Array<{ key: keyof OptimumSummary | 'grade' | 'required_power_kw' | 'water_m3_t' | 'energy_kwh_t'; metric: string; unit?: string }> = [
@@ -148,6 +153,9 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
   const entry = contract.cases[caseId];
   const declared = Object.fromEntries(contract.inputs.map(spec => [spec.name, spec]));
   const gradeUnit = entry.primary.unit;
+  // U-05: a gold plant recovers kilograms an hour, so its metal reads in kg/h, not as 0.0009 t/h
+  const metalUnit = gradeUnit === 'g/t' ? 'kg/h' : 't/h';
+  const metal = (v: number | null | undefined) => (v == null ? v : gradeUnit === 'g/t' ? 1000 * v : v);
   const unitOf = (name: string) => (declared[name].unit === 'case' ? gradeUnit : declared[name].unit);
   const outcome = record.optimum ?? record.least_violating ?? null;
   const starts = record.starts;
@@ -194,12 +202,12 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
       return (
         <Chart data={[xs, points.map(p => 100 * (p.m / baseM - 1)), points.map(p => 100 * (p.e / baseE - 1))] as uPlot.AlignedData}
           xLabel={TEXT.weightAxis[lang]} yLabel={TEXT.change[lang]} title={TEXT.pathTitle[lang]} levels={[{ y: 0, label: TEXT.base[lang] }]}
-          series={[{ label: TEXT.metalChange[lang], colour: 'good', points: true }, { label: TEXT.energyChange[lang], colour: 'warn', points: true }]}
+          series={[{ label: TEXT.metalChange[lang], colour: 'accent', points: true }, { label: TEXT.energyChange[lang], colour: 'warn', points: true }]}
           summary={TEXT.pathSummary[lang]} format={(v, axis) => (axis === 'x' ? `${v}%` : `${formatSignificant(v ?? Number.NaN, lang, 3)}%`)}
           onCursor={reading => {
             if (!reading) { onCursor(null); return; }
             const p = points[reading.index];
-            onCursor(`${Math.round(100 * p.weight)}% ${TEXT.weight[lang]}: ${formatWithUnit(p.m, 't/h', lang)}, ${formatWithUnit(p.e, 'kWh/t', lang)}`);
+            onCursor(`${Math.round(100 * p.weight)}% ${TEXT.weight[lang]}: ${formatWithUnit(metal(p.m), metalUnit, lang)}, ${formatWithUnit(p.e, 'kWh/t', lang)}`);
           }} />
       );
     }
@@ -215,22 +223,23 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
       );
     }
     const xs = starts.map((_, i) => i);
-    const reached = starts.map(s => s.end.recovered_tph);
+    const reached = starts.map(s => metal(s.end.recovered_tph) as number);
+    const baseMetal = metal(record.base.recovered_tph) as number;
     // the axis spans the base and every end point: starts that agree to round-off must read as one point
-    const lo = Math.min(record.base.recovered_tph, ...reached);
-    const hi = Math.max(record.base.recovered_tph, ...reached);
+    const lo = Math.min(baseMetal, ...reached);
+    const hi = Math.max(baseMetal, ...reached);
     const pad = Math.max(0.15 * (hi - lo), 0.002 * Math.abs(hi), 1e-9);
-    const levels = [{ y: record.base.recovered_tph, label: TEXT.base[lang] }, ...(record.optimum ? [{ y: record.optimum.recovered_tph, label: TEXT.optimum[lang] }] : [])];
+    const levels = [{ y: baseMetal, label: TEXT.base[lang] }, ...(record.optimum ? [{ y: metal(record.optimum.recovered_tph) as number, label: TEXT.optimum[lang] }] : [])];
     return (
-      <Chart data={[xs, starts.map(s => (s.end.feasible ? s.end.recovered_tph : null)), starts.map(s => (s.end.feasible ? null : s.end.recovered_tph))] as uPlot.AlignedData}
-        categories={starts.map((_, i) => String(i + 1))} xLabel={TEXT.start[lang]} yLabel={TEXT.recovered[lang]} levels={levels} title={TEXT.title[lang]} yRange={[lo - pad, hi + pad]}
+      <Chart data={[xs, starts.map((s, i) => (s.end.feasible ? reached[i] : null)), starts.map((s, i) => (s.end.feasible ? null : reached[i]))] as uPlot.AlignedData}
+        categories={starts.map((_, i) => String(i + 1))} xLabel={TEXT.start[lang]} yLabel={TEXT.recovered[lang].replace('t/h', metalUnit)} levels={levels} title={TEXT.title[lang]} yRange={[lo - pad, hi + pad]}
         series={[{ label: TEXT.feasible[lang], colour: 'good', points: true }, { label: TEXT.infeasible[lang], colour: 'bad', points: true }]}
-        summary={TEXT.summary[lang]} format={(v, axis) => (axis === 'x' ? String(v) : formatWithUnit(v, 't/h', lang))}
+        summary={TEXT.summary[lang]} format={(v, axis) => (axis === 'x' ? String(v) : formatWithUnit(v, metalUnit, lang))}
         onCursor={reading => {
           if (!reading) { onCursor(null); return; }
           const run = starts[reading.index];
           onCursor(`${TEXT.start[lang]} ${reading.index + 1}${reading.index === 0 ? ` (${TEXT.first[lang]})` : ''}: ${decisionText(run.end.decisions)}; `
-            + `${formatWithUnit(run.end.recovered_tph, 't/h', lang)}, ${run.evaluations} ${TEXT.evaluations[lang]}`);
+            + `${formatWithUnit(metal(run.end.recovered_tph), metalUnit, lang)}, ${run.evaluations} ${TEXT.evaluations[lang]}`);
         }} />
     );
   })();
@@ -243,7 +252,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
   ];
   const slackUnit = { grade: gradeUnit, power: 'kW', water: 'm3/t' };
   const status = record.optimum
-    ? `${TEXT.optimal[lang]}: ${(record.gain_tph ?? 0) >= 0 ? '+' : ''}${formatWithUnit(record.gain_tph ?? 0, 't/h', lang)} ${TEXT.gain[lang]}${record.gain_pct != null ? ` (${record.gain_pct >= 0 ? '+' : ''}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
+    ? `${TEXT.optimal[lang]}: ${(record.gain_tph ?? 0) >= 0 ? '+' : ''}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)} ${TEXT.gain[lang]}${record.gain_pct != null ? ` (${record.gain_pct >= 0 ? '+' : ''}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
     : TEXT.noFeasible[lang];
   const screenTotals = record.screened ? {
     screened: starts.reduce((s, r) => s + (r.screen?.screened ?? 0), 0), guard: starts.reduce((s, r) => s + (r.screen?.rejected.guard ?? 0), 0),
@@ -272,7 +281,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
             </div>
             {failure && <p className="of-note">{`${TEXT.failed[lang]}: ${failure}`}</p>}
             {live && <div className="of-actions">
-              <p className="of-status-line">{`${TEXT.live[lang]}: ${Math.round(100 * live.weights.recovered_metal)}% ${TEXT.weight[lang]}`}</p>
+              <p className="of-status-line neutral">{`${TEXT.live[lang]}: ${Math.round(100 * live.weights.recovered_metal)}% ${TEXT.weight[lang]}`}</p>
               <button type="button" className="of-revert" onClick={() => setLive(null)}>{TEXT.showBaked[lang]}</button></div>}
           </div>
         )}
@@ -284,24 +293,35 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
         </div>
         {view === 'screen' && !proposals.length && <p className="of-note">{record.screened ? TEXT.noProposals[lang] : TEXT.unscreened[lang]}</p>}
         {/* a gain is good news; a loss at a partial weight is a trade the weight asked for, shown neutral, never green */}
-        <p className={!record.optimum ? 'of-status-line warn' : (record.gain_tph ?? 0) < 0 ? 'of-status-line neutral' : 'of-status-line'}>{status}</p>
+        {/* U-35: while a re-run is on its way, the previous record's status is not shown under its progress */}
+        {progress === null && <p className={!record.optimum ? 'of-status-line warn' : (record.gain_tph ?? 0) < 0 ? 'of-status-line neutral' : 'of-status-line'}>{status}</p>}
         {record.optimum && record.weights.recovered_metal < 1 && <p className="of-note">{TEXT.weightNote[lang]}</p>}
         <table className="of-table">
           <thead><tr><th scope="col">{TEXT.quantity[lang]}</th><th scope="col">{TEXT.baseCol[lang]}</th>
             <th scope="col">{record.optimum ? TEXT.optimumCol[lang] : TEXT.leastCol[lang]}</th><th scope="col">{TEXT.bounds[lang]}</th></tr></thead>
           <tbody>
-            {record.decisions.map(n => (
+            {record.decisions.map(n => {
+              // U-04: a decision within one contract step of its bound is the search box's corner, and says so
+              const [low, high] = record.bounds[n];
+              const step = contract.cases[caseId]?.inputs[n]?.step ?? 0.005 * (high - low);
+              const d = outcome?.decisions[n];
+              const atBound = record.optimum !== null && d !== undefined && (Math.abs(d - low) <= step || Math.abs(high - d) <= step);
+              return (
               <tr key={n}><th scope="row">{`${declared[n].label[lang]} (${unitLabel(unitOf(n)) || '-'})`}</th>
                 <td>{formatValue(record.base.decisions[n], unitOf(n), lang)}</td>
-                <td>{formatValue(outcome?.decisions[n], unitOf(n), lang)}</td>
+                <td>{formatValue(d, unitOf(n), lang)}{atBound ? <span className="of-tag">{TEXT.atBound[lang]}</span> : null}</td>
                 <td>{`${formatValue(record.bounds[n][0], unitOf(n), lang)} – ${formatValue(record.bounds[n][1], unitOf(n), lang)}`}</td></tr>
-            ))}
+              );
+            })}
             {RESULTS.map(row => {
-              const unit = row.unit ?? gradeUnit;
+              // U-05, U-30: recovered metal in the plant's own unit, to the resolution the status line quotes
+              const isMetal = row.key === 'recovered_tph';
+              const unit = isMetal ? metalUnit : row.unit ?? gradeUnit;
+              const show = (v: number | null | undefined) => (isMetal ? (v == null ? formatValue(v, unit, lang) : formatFixed(metal(v) as number, lang, 3)) : formatValue(v, unit, lang));
               return (
                 <tr key={row.metric} className="of-table-group"><th scope="row">{`${metricLabel(row.metric, lang)} (${unitLabel(unit)})`}</th>
-                  <td>{formatValue(value(record.base, row.key), unit, lang)}</td>
-                  <td>{formatValue(value(outcome, row.key), unit, lang)}</td><td /></tr>
+                  <td>{show(value(record.base, row.key))}</td>
+                  <td>{show(value(outcome, row.key))}</td><td /></tr>
               );
             })}
           </tbody>
@@ -339,7 +359,8 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
           {meanError !== null && `; ${TEXT.disagreement[lang]}: ${formatSignificant(meanError, lang, 3)} ${lang === 'es' ? 'puntos' : 'points'}`}
           {'.'}
         </p>
-        {record.path && <p className="of-footnote">{record.path.map(s => `${Math.round(100 * s.weight)}%: ${s.status === 'optimal' ? formatWithUnit(s.recovered_tph, 't/h', lang) : TEXT.infeasible[lang]}`).join('; ')}</p>}
+        {record.path && <p className="of-footnote">{record.path.map(s => `${Math.round(100 * s.weight)}%: ${s.status === 'optimal' ? formatWithUnit(metal(s.recovered_tph), metalUnit, lang) : TEXT.infeasible[lang]}`).join('; ')}</p>}
+        {record.optimum && <p className="of-footnote">{TEXT.costNote[lang]}</p>}
       </div>
     </div>
   );

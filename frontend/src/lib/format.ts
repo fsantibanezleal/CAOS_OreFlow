@@ -56,6 +56,7 @@ export function formatSignificant(value: number | null | undefined, lang: Lang, 
 const DECIMALS: Record<string, (value: number) => number> = {
   '%': v => (Math.abs(v) >= 10 ? 1 : 2),
   't/h': v => (Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 1 ? 1 : 4),
+  'kg/h': v => (Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 1 ? 2 : 3),
   um: v => (Math.abs(v) >= 100 ? 0 : 1),
   mm: () => 1,
   'kWh/t': () => 2,

@@ -88,8 +88,15 @@ export function Heatmap({ title, xs, ys, z, xLabel, yLabel, zLabel, summary, con
   }, []);
 
   const values = z.flat().filter((v): v is number => v !== null && Number.isFinite(v));
-  const zMin = values.length ? Math.min(...values) : 0;
+  const zLowest = values.length ? Math.min(...values) : 0;
   const zMax = values.length ? Math.max(...values) : 1;
+  // U-13: when the lowest tenth of the cells spans more than a quarter of the range (a degenerate row such as no
+  // collector), the scale starts at that tenth, so the rest of the surface keeps its colours; cells below take the
+  // first colour and the legend says so
+  const sorted = [...values].sort((a, b) => a - b);
+  const tenth = sorted.length ? sorted[Math.floor(0.1 * (sorted.length - 1))] : zLowest;
+  const clipped = sorted.length > 9 && tenth - zLowest > 0.25 * (zMax - zLowest);
+  const zMin = clipped ? tenth : zLowest;
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -231,8 +238,8 @@ export function Heatmap({ title, xs, ys, z, xLabel, yLabel, zLabel, summary, con
       <div className="of-heatmap-plot" ref={hostRef} tabIndex={0} onKeyDown={onKey}>
         <canvas ref={canvasRef} aria-hidden="true" onMouseMove={onMove} onMouseLeave={() => { setFocus(null); onCell?.(null); }} />
       </div>
-      <div className="of-heatmap-scale" aria-hidden="true">
-        <span>{format(zMin, 'z')}</span>
+      <div className="of-heatmap-scale" aria-hidden="true" data-z-clipped={clipped ? '1' : '0'}>
+        <span>{clipped ? `≤ ${format(zMin, 'z')}` : format(zMin, 'z')}</span>
         <span className="of-heatmap-ramp" style={{ background: `linear-gradient(90deg, ${Array.from({ length: 10 }, (_, k) => viridis(k / 9)).join(',')})` }} />
         <span>{format(zMax, 'z')}</span>
         <span className="of-heatmap-zlabel">{zLabel}</span>

@@ -47,7 +47,9 @@ export function SamplePicker({ record, lang }: { record: RealSamples; lang: Lang
   const [query, setQuery] = useState('');
   const shown = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return record.samples.filter(s => !q || s.id.toLowerCase().includes(q) || `${TEXT.hole.en} ${s.hole}`.includes(q) || String(s.hole).startsWith(q));
+    const named = q.match(/^(?:hole|sondaje)\s*(\S+)$/);
+    if (named) return record.samples.filter(s => String(s.hole).toLowerCase() === named[1]);
+    return record.samples.filter(s => !q || s.id.toLowerCase().includes(q) || String(s.hole).toLowerCase() === q);
   }, [record, query]);
   const current = record.samples.find(s => s.id === sampleId) ?? null;
   return (

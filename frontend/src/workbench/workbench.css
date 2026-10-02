@@ -11,7 +11,8 @@ input, select, textarea { font: inherit; }
 /* ---- the App route: rail | readout, views, instrument ---- */
 .page-body.wide.of-bench {
   display: grid;
-  grid-template-columns: clamp(250px, 20vw, 320px) minmax(0, 1fr);
+  /* U-24: at 250 px the case, variant and window selects cut their own text (255 px in 192 in Spanish) */
+  grid-template-columns: clamp(320px, 22vw, 360px) minmax(0, 1fr);
   gap: 12px;
   min-width: 0;
   min-height: 0;
@@ -33,6 +34,7 @@ input, select, textarea { font: inherit; }
   background: var(--color-surface);
 }
 .of-rail .cs-select { max-width: none; }
+.of-rail select, .of-rail .select { font-size: 0.8rem; }
 .of-rail-question { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--color-fg-subtle); }
 .of-rail-question strong { color: var(--color-fg); font-weight: 600; }
 .of-rail-sections { display: flex; gap: 4px; }
@@ -61,6 +63,8 @@ input, select, textarea { font: inherit; }
 .of-knob label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
 /* a long name wraps rather than hiding its end; the value keeps its line */
 .of-knob label span { min-width: 0; overflow-wrap: break-word; }
+.of-knob label.of-field { display: grid; justify-content: stretch; gap: 3px; }
+.of-knob label.of-field span { overflow-wrap: normal; }
 .of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
@@ -75,7 +79,7 @@ input, select, textarea { font: inherit; }
 .of-segmented button:hover { color: var(--color-fg); }
 .of-segmented button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
 .of-knob.follows label, .of-knob.follows output { color: var(--color-fg-faint); }
-.of-knob.follows input[type='range'] { opacity: 0.45; }
+.of-knob.follows input[type='range'], .of-knob.follows .of-knob-base { display: none; }
 .of-knob.fixed label, .of-knob.fixed output { color: var(--color-fg-faint); }
 .of-knob.fixed input[type='range'] { opacity: 0.45; }
 .of-knob-error, .of-rail > .of-knob-error { margin: 0; font-size: 0.72rem; line-height: 1.35; color: var(--color-bad); }
@@ -113,6 +117,7 @@ input, select, textarea { font: inherit; }
 .of-readout-item strong { font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-fg); }
 .of-readout-flags { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--color-good); font-size: 0.74rem; }
 .of-readout-flags.warn { color: var(--color-warn); }
+.of-flags-line { flex: none; margin: 0; padding: 0 2px; font-size: 0.74rem; line-height: 1.35; color: var(--color-warn); }
 .of-readout-busy { flex: none; color: var(--color-accent); font-size: 0.72rem; }
 .of-readout-cursor { flex: 0 1 auto; max-width: 48%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg); }
 
@@ -213,7 +218,7 @@ input, select, textarea { font: inherit; }
 .of-controls, .of-response-controls, .of-fields { display: flex; flex-wrap: nowrap; gap: 10px; align-items: end; min-width: 0; overflow-x: auto; flex: none; }
 .of-aside .of-fields { flex-wrap: wrap; overflow: visible; }
 .of-field { display: grid; gap: 3px; min-width: 0; font-size: 0.74rem; color: var(--color-fg-subtle); }
-.of-field select, .of-field input[type="number"] {
+.of-field select, .of-field input[type="number"], .of-field input[type="search"] {
   min-width: 0;
   max-width: 100%;
   padding: 5px 8px;
@@ -313,10 +318,11 @@ input, select, textarea { font: inherit; }
 /* ten columns must fit the view host at 1280 px: headers wrap, the variant name truncates (its full text
    is the cell title and the chart's cursor reading), and the change column wraps */
 .of-compare-table thead th { white-space: normal; vertical-align: bottom; }
-.of-compare-table tbody th { max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-compare-table tbody th { max-width: 210px; white-space: normal; }
+.of-compare-table td:nth-child(3), .of-compare-table td:last-child { white-space: normal; min-width: 9ch; text-align: left; }
 .of-compare-table th:nth-child(2) { text-align: left; }
 /* the table owns its long content: if it cannot fit under the charts it scrolls in its own box (ADR-0071 rule 1) */
-.of-table-scroll { flex: 0 1 auto; min-height: 0; overflow: auto; }
+.of-table-scroll { flex: 0 1 auto; min-height: 0; overflow: auto; border: 1px solid var(--color-border); border-radius: 6px; }
 .of-table-scroll thead th { position: sticky; top: 0; background: var(--color-bg); }
 .of-compare-charts { min-height: 220px; }
 .of-muted { color: var(--color-fg-faint); font-weight: 400; font-size: 0.72rem; }
@@ -378,7 +384,7 @@ input, select, textarea { font: inherit; }
  * 220 px, and the column scrolls where the frame is shorter than its content */
 .of-hour-main { display: grid; grid-template-rows: minmax(220px, 1fr) auto auto; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
 .of-sample-text { margin: 0; font-size: 0.8rem; line-height: 1.5; color: var(--color-fg); }
-.of-view-sample .of-table td, .of-view-sample .of-table th { white-space: normal; overflow-wrap: anywhere; }
+.of-view-sample .of-table td, .of-view-sample .of-table th { white-space: normal; overflow-wrap: break-word; }
 .of-progress { font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg-subtle); white-space: nowrap; }
 .of-failure { margin: 1rem; padding: 12px; border: 1px solid var(--color-bad); border-radius: 8px; color: var(--color-bad); }
 
@@ -443,4 +449,36 @@ input, select, textarea { font: inherit; }
   /* the legend under the title, across the chart: beside it, six series took six lines and left the
      size-distribution plot about 50 px on a phone */
   .of-plot-head { flex-wrap: wrap; row-gap: 2px; }
+}
+
+/* U-03: a rejected state: the rail names it at the top, the view host replaces the stale views */
+.of-rail-rejected { margin: 0; font-size: 0.72rem; line-height: 1.3; color: var(--color-warn); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.of-rejection { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 1.2rem; border: 1px solid var(--color-warn); border-radius: 8px; max-width: 46rem; }
+.of-rejection p { margin: 0; }
+.of-rejection-title { font-weight: 700; color: var(--color-warn); }
+.of-rejection-note { font-size: 0.8rem; color: var(--color-fg-faint); }
+/* U-07: a power-limited sample state is named in the warning colour beside its recovery */
+.of-table tr.of-row-warn th, .of-table tr.of-row-warn td { color: var(--color-warn); }
+
+/* U-12: a panel that scrolls shows it, with a shadow at the edge that hides content */
+.of-side, .of-panel, .of-aside {
+  background:
+    linear-gradient(var(--color-surface) 30%, transparent) top / 100% 24px no-repeat local,
+    linear-gradient(transparent, var(--color-surface) 70%) bottom / 100% 24px no-repeat local,
+    radial-gradient(farthest-side at 50% 0, color-mix(in oklab, var(--color-fg) 22%, transparent), transparent) top / 100% 8px no-repeat scroll,
+    radial-gradient(farthest-side at 50% 100%, color-mix(in oklab, var(--color-fg) 22%, transparent), transparent) bottom / 100% 8px no-repeat scroll,
+    var(--color-surface);
+}
+/* U-35: the optimizer's side tables wrap their headers rather than cutting the last column at the aside's edge */
+.of-aside .of-table thead th { white-space: normal; vertical-align: bottom; }
+/* U-18: on a phone the view chain takes its content's height; inner scroll boxes would hide rows under the frame */
+@media (max-width: 860px) {
+  .of-view-host, .of-view, .of-split, .of-stack, .of-compare-charts, .of-view-sample, .of-view-hour,
+  .of-view-tabbed > .subtabs, .of-view-tabbed > .subtabs > .subtabpanels, .of-view-tabbed > .subtabs > .subtabpanels > .subtabpanel { min-height: auto; }
+  .of-compare-charts { grid-auto-rows: 260px; }
+  .of-hour-main, .of-sample-main, .of-split > .of-aside, .of-panel, .of-side { overflow: visible; }
+  .of-hour-main { grid-template-rows: 260px auto auto; }
+  .of-table-scroll { overflow-x: auto; overflow-y: visible; }
+  .of-table-scroll thead th { position: static; }
+  .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }
 }

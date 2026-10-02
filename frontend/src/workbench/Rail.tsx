@@ -73,12 +73,13 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, samples
   const sections = (Object.keys(SECTION_INPUTS) as Section[]).filter(s => SECTION_INPUTS[s].some(name => name in inputs));
   const active = sections.includes(section) ? section : sections[0];
   const hasError = (s: Section) => errors.some(e => e.input !== null && SECTION_INPUTS[s].includes(e.input as keyof OperatingPoint));
-  const ruleErrors = errors.filter(e => e.input === null);
 
   const sampleMode = source === 'sample';
   return (
     <aside className="of-rail" aria-label={t(UI.case, lang)}>
       <SourceSwitch lang={lang} />
+      {/* U-03: the rejection shows at the top whatever section is open; the marked control carries it too */}
+      {errors.length > 0 && <p role="alert" className="of-rail-rejected">{errors.map(e => contractMessage(contract, e, '', lang)).join(' · ')}</p>}
       {sampleMode ? (samples ? <SamplePicker record={samples} lang={lang} /> : <p className="of-hint" role="status">{t(UI.loading, lang)}</p>) : <>
       <CaseSelector cases={cases} selectedId={toCode[caseId]} onSelect={code => setCase(toCase[code] ?? code)} layout="select" lang={lang} ariaLabel={t(UI.case, lang)}
         modifiedFromId={modified ? toCode[caseId] : null} onResetToCanonical={reset}
@@ -103,8 +104,8 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, samples
         ))}
       </div>
       <ControlList contract={contract} caseId={caseId} names={SECTION_INPUTS[active]} variantPoint={sampleMode ? base : variant?.point ?? null} errors={errors} lang={lang}
-        fixed={sampleMode ? SAMPLE_FIXED : {}} />
-      {ruleErrors.map(e => <p key={e.code} role="alert" className="of-knob-error">{contractMessage(contract, e, '', lang)}</p>)}
+        fixed={sampleMode ? SAMPLE_FIXED : {}} baseLabel={sampleMode ? t(UI.sampleBase, lang) : undefined} />
+      {sampleMode && modified && <button type="button" className="of-revert" onClick={reset}>{t(UI.backToSample, lang)}</button>}
       <button type="button" className="of-focus-open" onClick={onFocus}>{t(UI.openFocus, lang)}</button>
     </aside>
   );
