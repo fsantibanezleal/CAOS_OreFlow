@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from functools import lru_cache
 from typing import Any
 
-from ..engine.model import (Bank, Carrier, Crusher, Cyclone, DeslimePlant, Flotability, FlotationPlant, GradeSpec,
+from ..engine.model import (Bank, Carrier, Crusher, Cyclone, DeslimePlant, Flotability, FlotationPlant, GradeSpec, GrainSize,
                             GravityPlant, MagneticPlant, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant)
 
 SOURCES = {
@@ -36,6 +36,29 @@ _PORPHYRY = {
                                           "Desde 25% Cu, el piso de la práctica en pórfidos (911metallurgist, fuente secundaria), hasta 34,6% Cu, el límite estequiométrico de la calcopirita.")),
 }
 _AUTHORED = ("Authored: no published range was found for this case type.", "De autor: no se encontró un rango publicado para este tipo de caso.")
+
+# Snip's measured gravity-recoverable gold by size (Vincent 1997, McGill M.Eng. thesis, Table 5.1, the second test):
+# percent of the ore's gold in the classes +850, +600, +420, +300, +212, +150, +105, +75, +53, +38, +25 and -25 um.
+# Vincent calls it extremely fine. The -25 um class spreads down to 10 um, the laboratory Knelson's lower limit
+# (Laplante, a standardized GRG test). methods/data/oracles.json carries the same record for the gravity oracle.
+SNIP_GRG_SIEVES_UM = (850.0, 600.0, 420.0, 300.0, 212.0, 150.0, 105.0, 75.0, 53.0, 38.0, 25.0)
+SNIP_GRG_CLASSES = (0.0, 0.4, 0.4, 1.4, 2.6, 4.6, 6.4, 7.8, 8.3, 7.7, 6.3, 11.8)
+GRG_LOWER_UM = 10.0
+
+
+def grains_from_classes(sieves: tuple[float, ...], classes: tuple[float, ...], lower_um: float) -> GrainSize:
+    """A GRG test's percent of the gold per class (coarsest first, the last below the last sieve) as grain sizes."""
+    if classes[0] != 0.0:
+        raise ValueError("GRG retained on the top sieve has no upper size")
+    total = left = float(sum(classes))
+    passing = []
+    for share in classes[:-1]:
+        left -= share          # what passes sieve i is every class finer than it
+        passing.append(left / total)
+    return GrainSize(tuple(sieves), tuple(passing), lower_um)
+
+
+SNIP_GRG = grains_from_classes(SNIP_GRG_SIEVES_UM, SNIP_GRG_CLASSES, GRG_LOWER_UM)
 KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
     "copper_porphyry_soft": _PORPHYRY,
     "copper_porphyry_hard": _PORPHYRY,
@@ -45,9 +68,12 @@ KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
         "Molybdenite recovers 2 to 12 points below copper in bulk roughers (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001), taken at this case's copper recovery.",
         "La molibdenita se recupera 2 a 12 puntos bajo el cobre en rougher colectivo (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001), tomado en la recuperación de cobre de este caso."))},
     "gold_free_milling": {
-        "recovery_pct": ((85.0, 97.0), _AUTHORED),
-        "gravity_recovery_pct": ((25.0, 70.0), ("Inside the gravity-recoverable gold content of 25 to 92% measured on 13 ores (Laplante and Staunton, AMIRA P420B), since a plant recovers only part of it; the 70% ceiling is authored.",
-                                                 "Dentro del contenido de oro recuperable por gravedad de 25 a 92% medido en 13 menas (Laplante y Staunton, AMIRA P420B), pues una planta recupera solo parte; el techo de 70% es de autor.")),
+        "recovery_pct": ((85.0, 98.0), (
+            "Authored. Until 0.08.000 the ceiling was 97%; the rebuilt gravity model recovers coarse gold that flotation partly missed, and the nominal state moved to about 97.7%. Secondary reports of gravity plus flotation tests give 93.6 to 95.6% (unverified), so this case is on the optimistic side.",
+            "De autor. Hasta 0.08.000 el techo era 97%; el modelo gravimétrico reconstruido recupera oro grueso que la flotación perdía en parte, y el estado nominal pasó a cerca de 97,7%. Reportes secundarios de pruebas de gravedad más flotación dan 93,6 a 95,6% (sin verificar), así que este caso queda del lado optimista.")),
+        "gravity_recovery_pct": ((15.0, 30.0), (
+            "A plant recovers about a third to two thirds of its gravity-recoverable gold: Vincent (1997) measured 20 to 40% of the gold recovered by gravity at four plants whose ores or Knelson feeds held 57 to 73% GRG, and Laplante (a standardized GRG test) puts two thirds of the GRG as a ceiling never observed in plants. For this case's 45% GRG that is 15 to 30% of the gold.",
+            "Una planta recupera entre un tercio y dos tercios de su oro recuperable por gravedad: Vincent (1997) midió 20 a 40% del oro recuperado por gravedad en cuatro plantas cuyos minerales o alimentaciones Knelson tenían 57 a 73% de GRG, y Laplante (una prueba GRG estandarizada) sitúa dos tercios del GRG como techo nunca observado en planta. Para el 45% de GRG de este caso son 15 a 30% del oro.")),
     },
     "iron_magnetite_fine": {
         "recovery_pct": ((70.0, 92.0), _AUTHORED),
@@ -251,11 +277,11 @@ def _cases() -> tuple[CaseDef, ...]:
         cyclone_cm=50.8, liberation_um=120.0, composite=0.42, floatability=3.2e-4, water_limit=2.25))
     cases.append(CaseDef(
         "gold_free_milling", "classification", ("Free-milling gold with gravity", "Oro de molienda libre con gravimetría"),
-        ("Free gold liberated in the grinding circuit is dense and malleable, so cyclones return it to the mill; a gravity unit on an underflow bleed recovers it before flotation takes the gold held in pyrite.",
-         "El oro libre liberado en la molienda es denso y maleable, por lo que los ciclones lo devuelven al molino; una unidad gravimétrica en una purga del underflow lo recupera antes de que la flotación tome el oro contenido en pirita."),
+        ("Gravity-recoverable gold is dense and malleable, so cyclones return it to the mill and it builds up in the circulating load; a gravity unit on a bleed of the cyclone underflow recovers it before flotation takes the gold held in pyrite.",
+         "El oro recuperable por gravedad es denso y maleable, por lo que los ciclones lo devuelven al molino y se acumula en la carga circulante; una unidad gravimétrica en una purga de la descarga del ciclón lo recupera antes de que la flotación tome el oro contenido en pirita."),
         ("How much gold does a gravity bleed capture from the circulating load?", "¿Cuánto oro captura una purga gravimétrica de la carga circulante?"),
-        Ore(minerals=(MineralSpec(id="electrum", grindability=0.15, liberation_size_um=400.0, liberation_slope=1.5, composite_content=0.1,
-                                  host="quartz", flotation=_sulphide(2.5e-4, optimum=60.0, coarse=0.6), gravity=True),
+        # E-11: the gold not in pyrite is gravity-recoverable gold with Snip's measured sizes, entering liberated
+        Ore(minerals=(MineralSpec(id="electrum", flotation=_sulphide(2.5e-4, optimum=60.0, coarse=0.6), gravity=True, grains=SNIP_GRG),
                       MineralSpec(id="pyrite", fraction=0.03, grindability=0.8, liberation_size_um=150.0, liberation_slope=1.5,
                                   composite_content=0.5, host="quartz", flotation=_sulphide(2.0e-4, half=15.0)),
                       MineralSpec(id="quartz", fraction=0.0, flotation=QUARTZ)),
@@ -263,9 +289,11 @@ def _cases() -> tuple[CaseDef, ...]:
             work_index_kwh_t=15.5, crushing_work_index_kwh_t=17.0),
         Plant(family="gravity_rougher", crusher=_crusher(), mill=_mill(4570.0), cyclone=_cyclone(25.4),
               flotation=_flotation(45.0, 6.0, None, 0.0), grade_spec=GradeSpec("Au", 40.0), water_limit_m3_t=2.21,
-              gravity=GravityPlant(max_recovery=0.8, size_scale_um=30.0, composite_recovery=0.03, gangue_yield=0.001)),
+              # E-11: 70% per pass at design load (Camchib, Laplante et al.), slightly lower below 37 um (Meston, Vincent 1997)
+              gravity=GravityPlant(max_recovery=0.7, size_scale_um=20.0, composite_recovery=0.03, gangue_yield=0.001)),
+        # the unit treats 10% of the circulating load, inside the 6 to 25% that practice and Vincent's simulations use
         OperatingPoint(throughput_tph=260.0, target_p80_um=106.0, circulating_load=2.5, water_m3_t=2.1, crusher_css_mm=8.0,
-                       work_index_kwh_t=15.5, head_grade=3.4, collector_gpt=40.0, jg_cm_s=1.4, rougher_cells=7, gravity_bleed=0.3),
+                       work_index_kwh_t=15.5, head_grade=3.4, collector_gpt=40.0, jg_cm_s=1.4, rougher_cells=7, gravity_bleed=0.1),
         _gravity_variants(), _kpi("gold_free_milling"),
         ("breakage", "crusher", "cyclone", "gravity", "flotation", "water", "kpi"), kpi_sources=_kpi_sources("gold_free_milling")))
     cases.append(CaseDef(

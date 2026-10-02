@@ -99,18 +99,18 @@ const TEXT = {
   feEng: { en: 'Concentrate Fe, engine (%)', es: 'Fe del concentrado, motor (%)' },
   magRec: { en: 'Magnetite recovery, engine (%)', es: 'Recuperación de magnetita, motor (%)' },
   zandCaption: { en: 'Zandrivierspoort magnetite: a finer grind raises the concentrate grade by {pub} points in the published tests and by {eng} in the engine\'s case.', es: 'Magnetita de Zandrivierspoort: una molienda más fina sube la ley del concentrado en {pub} puntos en los ensayos publicados y en {eng} en el caso del motor.' },
-  bleed: { en: 'Gravity bleed (% of the underflow)', es: 'Purga gravimétrica (% de la descarga)' },
   recovery: { en: 'Recovery (%)', es: 'Recuperación (%)' },
-  pubGold: { en: 'Published plant gold recovery', es: 'Recuperación de oro de la planta publicada' },
-  engGravity: { en: 'Engine gravity recovery', es: 'Recuperación gravimétrica del motor' },
-  laplanteTitle: { en: 'Gold recovery against the gravity bleed', es: 'Recuperación de oro contra la purga gravimétrica' },
-  laplanteSummary: { en: 'The published plant\'s gold recovery and the engine\'s gravity recovery, both rising with the bleed with diminishing returns.', es: 'La recuperación de oro de la planta publicada y la recuperación gravimétrica del motor, ambas subiendo con la purga con rendimientos decrecientes.' },
+  laplanteTitle: { en: 'GRG recovery against the share treated', es: 'Recuperación de GRG contra la fracción tratada' },
+  shareTreated: { en: 'Share of the mill discharge treated (%)', es: 'Fracción tratada de la descarga del molino (%)' },
+  pubGrgRec: { en: 'Published GRG recovery', es: 'Recuperación de GRG publicada' },
+  engDeclared: { en: 'Engine, Snip\'s GRG (declared)', es: 'Motor, GRG de Snip (declarado)' },
+  engCoarse: { en: 'Engine, no GRG below 25 µm (diagnosis)', es: 'Motor, sin GRG bajo 25 µm (diagnóstico)' },
+  laplanteSummary: { en: 'The published GRG recovery and the engine\'s, like for like: with Snip\'s fine GRG the engine is 5 to 10 points low even with a perfect unit; without the GRG below 25 µm it is within about a point from the 20% row on.', es: 'La recuperación de GRG publicada y la del motor, en igualdad de condiciones: con el GRG fino de Snip el motor queda 5 a 10 puntos abajo aun con una unidad perfecta; sin el GRG bajo 25 µm queda a menos de un punto desde la fila de 20%.' },
   cload: { en: 'Circulating load (%)', es: 'Carga circulante (%)' },
   pubGrg: { en: 'Published gravity-recoverable gold', es: 'Oro recuperable por gravedad publicado' },
-  engGold: { en: 'Engine gold', es: 'Oro del motor' },
   engOre: { en: 'Engine ore', es: 'Mineral del motor' },
   cloadTitle: { en: 'Circulating loads against the bleed', es: 'Cargas circulantes contra la purga' },
-  cloadSummary: { en: 'Gold circulates far above the ore in both the published plant and the engine, and less as the bleed grows.', es: 'El oro circula muy por encima del mineral en la planta publicada y en el motor, y menos a medida que crece la purga.' },
+  cloadSummary: { en: 'The GRG circulates far above the ore in the published example, and two to four times less in the engine: its unit recovery does not fall with the feed rate, and its fine GRG escapes the cyclone.', es: 'El GRG circula muy por sobre el mineral en el ejemplo publicado, y dos a cuatro veces menos en el motor: su recuperación por unidad no cae con el caudal, y su GRG fino escapa del ciclón.' },
   reading: { en: 'Point at the chart to read it', es: 'Apunte al gráfico para leerlo' },
   model: { en: 'Model', es: 'Modelo' },
   fits: { en: 'Fits', es: 'Ajustes' },
@@ -178,6 +178,7 @@ export function Reading({ text, lang }: { text: string | null; lang: Lang }) {
 }
 
 type Pair = { published: number; engine: number; relative_error: number };
+type GrgSeries = { max_recovery: number; fit_at_bound: boolean; grg_recovery_pct: number[]; grg_circulating_load_pct: number[]; ore_circulating_load_pct: number[]; within_tolerance: boolean };
 type Sizing = {
   published: { cyclones: number; pressure_kpa: number; d50c_um: number };
   plitt_at_published_flow: { cut_um: number; pressure_kpa: number };
@@ -192,7 +193,10 @@ type Oracles = {
     sizing: { examples: Record<string, Sizing>; ratio: { engine_cut: number; engine_pressure: number; molycop_a2: number; molycop_a1: number } };
   };
   gmg: { examples: Array<Record<string, number>>; tolerance_abs_kwh_t: number; within_tolerance: boolean };
-  laplante: { published: { bleed: number[]; gold_recovery_pct: number[]; grg_circulating_load_pct: number[] }; engine: { bleed: number[]; gravity_recovery_pct: number[]; gold_circulating_load_pct: number[]; ore_circulating_load_pct: number[] } };
+  laplante: {
+    published: { bleed: number[]; grg_recovery_pct: number[]; gold_recovery_pct: number[]; grg_circulating_load_pct: number[] };
+    engine: GrgSeries & { bleed: number[] }; without_grg_below_25um: GrgSeries; tolerance: { grg_recovery_points: number; grg_circulating_load_relative: number };
+  };
   zandrivierspoort: { published: { grind_p80_um: number[]; concentrate_fe_pct: number[] }; engine: { grind_p80_um: number[]; concentrate_fe_pct: number[]; magnetite_recovery_pct: number[] }; grade_difference_pct_points: { engine: number; published: number } };
 };
 const oracles = (b: Benchmark) => b.oracles as unknown as Oracles;
@@ -208,11 +212,11 @@ function LaplanteChart({ lang }: { lang: Lang }) {
         return (
           <div className="of-doc-panel">
             <div className="of-doc-chart of-doc-chart-narrow">
-              <Chart data={[x, l.published.gold_recovery_pct, l.engine.gravity_recovery_pct] as uPlot.AlignedData}
-                xLabel={TEXT.bleed[lang]} yLabel={TEXT.recovery[lang]} title={TEXT.laplanteTitle[lang]} summary={TEXT.laplanteSummary[lang]}
-                series={[{ label: TEXT.pubGold[lang], colour: 'subtle', points: true }, { label: TEXT.engGravity[lang], colour: 'accent', points: true }]}
+              <Chart data={[x, l.published.grg_recovery_pct, l.engine.grg_recovery_pct, l.without_grg_below_25um.grg_recovery_pct] as uPlot.AlignedData}
+                xLabel={TEXT.shareTreated[lang]} yLabel={TEXT.recovery[lang]} title={TEXT.laplanteTitle[lang]} summary={TEXT.laplanteSummary[lang]}
+                series={[{ label: TEXT.pubGrgRec[lang], colour: 'subtle', points: true }, { label: TEXT.engDeclared[lang], colour: 'warn', points: true }, { label: TEXT.engCoarse[lang], colour: 'accent', dash: [5, 4], points: true }]}
                 format={(v, axis) => (v === null ? '-' : axis === 'x' ? `${formatFixed(v, lang, 0)}%` : `${formatFixed(v, lang, 1)}%`)}
-                onCursor={c => setReading(c ? `${formatFixed(c.x, lang, 0)}%: ${TEXT.pubGold[lang]} ${formatFixed(c.values[0], lang, 1)}%, ${TEXT.engGravity[lang]} ${formatFixed(c.values[1], lang, 1)}%` : null)} />
+                onCursor={c => setReading(c ? `${formatFixed(c.x, lang, 0)}%: ${TEXT.pubGrgRec[lang]} ${formatFixed(c.values[0], lang, 1)}%, ${TEXT.engDeclared[lang]} ${formatFixed(c.values[1], lang, 1)}%, ${TEXT.engCoarse[lang]} ${formatFixed(c.values[2], lang, 1)}%` : null)} />
             </div>
             <Reading text={reading} lang={lang} />
           </div>
@@ -301,11 +305,11 @@ function OracleTables({ lang }: { lang: Lang }) {
               ))}</tbody>
             </table>
             <div className="of-doc-chart">
-              <Chart data={[x, l.published.grg_circulating_load_pct, l.engine.gold_circulating_load_pct, l.engine.ore_circulating_load_pct] as uPlot.AlignedData}
-                xLabel={TEXT.bleed[lang]} yLabel={TEXT.cload[lang]} title={TEXT.cloadTitle[lang]} summary={TEXT.cloadSummary[lang]}
-                series={[{ label: TEXT.pubGrg[lang], colour: 'subtle', points: true }, { label: TEXT.engGold[lang], colour: 'warn', points: true }, { label: TEXT.engOre[lang], colour: 'accent', dash: [5, 4] }]}
+              <Chart data={[x, l.published.grg_circulating_load_pct, l.engine.grg_circulating_load_pct, l.without_grg_below_25um.grg_circulating_load_pct, l.engine.ore_circulating_load_pct] as uPlot.AlignedData}
+                xLabel={TEXT.shareTreated[lang]} yLabel={TEXT.cload[lang]} title={TEXT.cloadTitle[lang]} summary={TEXT.cloadSummary[lang]}
+                series={[{ label: TEXT.pubGrg[lang], colour: 'subtle', points: true }, { label: TEXT.engDeclared[lang], colour: 'warn', points: true }, { label: TEXT.engCoarse[lang], colour: 'accent', points: true }, { label: TEXT.engOre[lang], colour: 'subtle', dash: [5, 4] }]}
                 format={(v, axis) => (v === null ? '-' : `${formatFixed(v, lang, 0)}%`)}
-                onCursor={c => setReading(c ? `${formatFixed(c.x, lang, 0)}%: ${TEXT.pubGrg[lang]} ${formatFixed(c.values[0], lang, 0)}%, ${TEXT.engGold[lang]} ${formatFixed(c.values[1], lang, 0)}%, ${TEXT.engOre[lang]} ${formatFixed(c.values[2], lang, 0)}%` : null)} />
+                onCursor={c => setReading(c ? `${formatFixed(c.x, lang, 0)}%: ${TEXT.pubGrg[lang]} ${formatFixed(c.values[0], lang, 0)}%, ${TEXT.engDeclared[lang]} ${formatFixed(c.values[1], lang, 0)}%, ${TEXT.engCoarse[lang]} ${formatFixed(c.values[2], lang, 0)}%, ${TEXT.engOre[lang]} ${formatFixed(c.values[3], lang, 0)}%` : null)} />
             </div>
             <Reading text={reading} lang={lang} />
           </div>
@@ -640,20 +644,21 @@ const ORACLES: Topic = {
       es: 'El mismo ejemplo pone a prueba el dimensionado de ciclones, y el dimensionado falla. En los dos estados de clasificación publicados por Moly-Cop, las ecuaciones de Plitt sin calibrar dan un corte 1,66 y 1,38 veces el publicado y una presión 2,2 y 1,7 veces la publicada. Dimensionar una batería a partir del corte lo amplifica: para BallSim el motor pide 2 ciclones a 816 kPa frente a los 6 publicados a 53 kPa. Moly-Cop calibra las ecuaciones por muestreo, y los factores que reproducen cada ejemplo difieren en la misma razón que sus constantes impresas, así que las ecuaciones son las de Moly-Cop y solo falta la calibración. Por eso el número de ciclones y la presión se muestran como una estimación sin calibrar, nunca como un resultado ni un aviso.' },
     { en: 'The GMG guideline\'s two worked examples of the Bond operating work index are reproduced within 0.03 kWh/t (14.38 against 14.4 and 11.71 against 11.7), inside the 0.05 kWh/t tolerance.',
       es: 'Los dos ejemplos resueltos de la guía GMG del índice de trabajo operacional de Bond se reproducen dentro de 0,03 kWh/t (14,38 frente a 14,4 y 11,71 frente a 11,7), dentro de la tolerancia de 0,05 kWh/t.' },
-    { en: 'Two oracles are trends, because the published plant is not the engine\'s case. In the Laplante and Staunton gravity example, treating 10 to 60% of the underflow raises the plant\'s gold recovery from 64.1 to 77.1% with diminishing returns; in the engine\'s gold case the gravity recovery rises from 13.7 to 31.7% over the same bleeds, also with diminishing returns, and gold circulates at 556 to 271% against the ore\'s 250%, falling as the bleed grows, as the published gravity-recoverable gold does (2016 to 413%).',
-      es: 'Dos oráculos son tendencias, porque la planta publicada no es el caso del motor. En el ejemplo gravimétrico de Laplante y Staunton, tratar de 10 a 60% de la descarga sube la recuperación de oro de la planta de 64,1 a 77,1% con rendimientos decrecientes; en el caso de oro del motor la recuperación gravimétrica sube de 13,7 a 31,7% sobre las mismas purgas, también con rendimientos decrecientes, y el oro circula entre 556 y 271% frente al 250% del mineral, bajando a medida que crece la purga, como el oro recuperable por gravedad publicado (2016 a 413%).' },
-    { en: 'At Zandrivierspoort a grind from 75 to 45 µm raised the magnetite concentrate from 64.9 to 69.0% Fe; the engine\'s magnetite case, a different ore, rises from 63.8 to 67.8%, a difference of 4.0 points against the published 4.1. Its magnetite recovery, 94.9 and 93.5% over the rougher and cleaner drums, is not comparable with the published rougher recovery above 98%.',
-      es: 'En Zandrivierspoort una molienda de 75 a 45 µm subió el concentrado de magnetita de 64,9 a 69,0% Fe; el caso de magnetita del motor, un mineral distinto, sube de 63,8 a 67,8%, una diferencia de 4,0 puntos frente a los 4,1 publicados. Su recuperación de magnetita, 94,9 y 93,5% sobre los tambores rougher y cleaner, no es comparable con la recuperación rougher publicada sobre 98%.' },
+    { en: 'The Laplante and Staunton simulator example is run like for like: its 150 t/h, 2.0 g/t circuit at 80% passing 75 µm and 250% circulating load, with an ore of 80.4% gravity-recoverable gold (GRG) and the unit on 10 to 60% of the mill discharge. The unit\'s maximum recovery is fitted at the printed 30% row and the other rows are compared within tolerances set before the first run, 5 points on GRG recovery and 35% on the GRG circulating load. With Snip\'s measured GRG, which is very fine, the run misses: even a perfect unit gives 69.5 to 90.7% against 79.8 to 95.9%, and the GRG circulates 65 to 80% less than the printed 2016 to 413%, because 9 to 31% of the GRG, almost all finer than about 37 µm, leaves by the overflow. The one shape check agrees: 86.7 to 88.3% of the discharge GRG is below 150 µm against the printed 87.7%. Without the GRG finer than 25 µm the fitted maximum is 0.74 and the GRG recovery comes within 1.1 points from the 20% row on, while the circulating load stays 50 to 69% low; the example\'s GRG vector is not printed, and its unit recovery falls as the feed grows, which the engine\'s does not.',
+      es: 'El ejemplo de simulador de Laplante y Staunton se corre en igualdad de condiciones: su circuito de 150 t/h y 2,0 g/t, con 80% bajo 75 µm y 250% de carga circulante, un mineral con 80,4% de oro recuperable por gravedad (GRG) y la unidad sobre 10 a 60% de la descarga del molino. La recuperación máxima de la unidad se ajusta en la fila impresa de 30% y las demás filas se comparan con tolerancias fijadas antes de la primera corrida, 5 puntos en la recuperación de GRG y 35% en la carga circulante de GRG. Con el GRG medido en Snip, que es muy fino, la corrida no cumple: aun una unidad perfecta da 69,5 a 90,7% frente a 79,8 a 95,9%, y el GRG circula 65 a 80% menos que los 2016 a 413% impresos, porque 9 a 31% del GRG, casi todo más fino que unos 37 µm, sale por el rebose. La única verificación de forma coincide: 86,7 a 88,3% del GRG de la descarga queda bajo 150 µm frente al 87,7% impreso. Sin el GRG más fino que 25 µm el máximo ajustado es 0,74 y la recuperación de GRG queda a menos de 1,1 puntos desde la fila de 20%, mientras la carga circulante sigue 50 a 69% baja; el vector de GRG del ejemplo no se imprime, y su recuperación por unidad cae al crecer la alimentación, lo que la del motor no hace.' },
+    { en: 'Zandrivierspoort is a trend, because its ore is not the engine\'s case. There a grind from 75 to 45 µm raised the magnetite concentrate from 64.9 to 69.0% Fe; the engine\'s magnetite case, a different ore, rises from 63.8 to 67.8%, a difference of 4.0 points against the published 4.1. Its magnetite recovery, 94.9 and 93.5% over the rougher and cleaner drums, is not comparable with the published rougher recovery above 98%.',
+      es: 'Zandrivierspoort es una tendencia, porque su mineral no es el caso del motor. Allí una molienda de 75 a 45 µm subió el concentrado de magnetita de 64,9 a 69,0% Fe; el caso de magnetita del motor, un mineral distinto, sube de 63,8 a 67,8%, una diferencia de 4,0 puntos frente a los 4,1 publicados. Su recuperación de magnetita, 94,9 y 93,5% sobre los tambores rougher y cleaner, no es comparable con la recuperación rougher publicada sobre 98%.' },
   ],
   equations: [
     { tex: r`\epsilon = \frac{y_{E} - y_{P}}{y_{P}}`, caption: { en: 'The relative error of an engine result y_E against the published value y_P.', es: 'El error relativo de un resultado del motor y_E frente al valor publicado y_P.' } },
-    { tex: r`R(b_{k+1}) > R(b_k),\qquad R(b_{k+1}) - R(b_k) < R(b_k) - R(b_{k-1})`, caption: { en: 'The trend oracle of the gravity bleed b: recovery rises with the bleed, with diminishing returns.', es: 'El oráculo de tendencia de la purga gravimétrica b: la recuperación sube con la purga, con rendimientos decrecientes.' } },
+    { tex: r`\left(T^{-1}(e) - \mathrm{diag}\big[C\,(1 - bR)\big]\right) p = f,\qquad d = b\,R\,p`, caption: { en: 'The GRG balance with the unit on a share b of the mill discharge p: the engine\'s form of the published model, with the mill operator T at the energy per pass, the GRG partition C and the unit\'s recovery R.', es: 'El balance de GRG con la unidad sobre una fracción b de la descarga del molino p: la forma del motor del modelo publicado, con el operador del molino T a la energía por pasada, la partición del GRG C y la recuperación de la unidad R.' } },
+    { tex: r`R(b_{k+1}) > R(b_k),\qquad R(b_{k+1}) - R(b_k) < R(b_k) - R(b_{k-1})`, caption: { en: 'The trend the gravity recovery also keeps: it rises with the bleed b, with diminishing returns.', es: 'El oráculo de tendencia de la purga gravimétrica b: la recuperación sube con la purga, con rendimientos decrecientes.' } },
   ],
   limits: [
     { en: 'Published examples test that the engine reproduces documented behaviour; they are not measurements of the authored plants.', es: 'Los ejemplos publicados prueban que el motor reproduce comportamientos documentados; no son mediciones de las plantas de autor.' },
-    { en: 'The trend oracles check directions and proportions, not levels, because their plants are not the engine\'s cases.', es: 'Los oráculos de tendencia verifican direcciones y proporciones, no niveles, porque sus plantas no son los casos del motor.' },
+    { en: 'The gravity oracle fits one parameter, the unit\'s maximum recovery, at one printed row; its other rows are predictions, and its miss is shown, not tuned away. The Zandrivierspoort trend checks a direction and a proportion, not a level, because its ore is not the engine\'s case.', es: 'El oráculo gravimétrico ajusta un parámetro, la recuperación máxima de la unidad, en una fila impresa; sus otras filas son predicciones, y su desajuste se muestra, no se ajusta para ocultarlo. La tendencia de Zandrivierspoort verifica una dirección y una proporción, no un nivel, porque su mineral no es el caso del motor.' },
   ],
-  figure: { caption: { en: 'The published plant\'s gold recovery and the engine\'s gravity recovery against the bleed: different levels, the same diminishing trend.', es: 'La recuperación de oro de la planta publicada y la recuperación gravimétrica del motor contra la purga: niveles distintos, la misma tendencia decreciente.' }, render: lang => <LaplanteChart lang={lang} /> },
+  figure: { caption: { en: 'The published GRG recovery against the share of the mill discharge treated, with the engine\'s declared run and its diagnosis without the GRG below 25 µm.', es: 'La recuperación de GRG publicada contra la fracción tratada de la descarga del molino, con la corrida declarada del motor y su diagnóstico sin el GRG bajo 25 µm.' }, render: lang => <LaplanteChart lang={lang} /> },
   data: lang => <OracleTables lang={lang} />,
   refs: ['molycop', 'gmg2021', 'laplante-staunton', 'laplante2005', 'muthaphuli2014'],
 };

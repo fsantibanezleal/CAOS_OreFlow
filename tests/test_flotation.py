@@ -73,9 +73,12 @@ def test_recovery_by_size_is_empty_only_in_the_tails(case_id):
 
 
 def test_stage_and_overall_recovery_are_distinct():
-    for case_id in ("gold_free_milling", "phosphate_clay"):
-        m = run_variant(case_id, "nominal").metrics
-        assert abs(m["flotation_recovery_pct"] - m["recovery_pct"]) > 1.0
+    # the gravity unit takes its share first, so the overall recovery is g + (1 - g) f, not the flotation stage's
+    m = run_variant("gold_free_milling", "nominal").metrics
+    g, f = m["gravity_recovery_pct"], m["flotation_recovery_pct"]
+    assert m["recovery_pct"] == pytest.approx(g + (100.0 - g) * f / 100.0, abs=1e-6) and abs(f - m["recovery_pct"]) > 0.5
+    m = run_variant("phosphate_clay", "nominal").metrics
+    assert abs(m["flotation_recovery_pct"] - m["recovery_pct"]) > 1.0
     for case_id in flotation_cases():
         m = run_variant(case_id, "nominal").metrics
         assert m["rougher_recovery_pct"] != pytest.approx(m["recovery_pct"], abs=0.05)

@@ -63,6 +63,14 @@ class GrindingResult:
     cut_mode: bool = False             # the cut was given and the P80 and the load follow (CM-03)
 
 
+def grg_slowdown(size: np.ndarray) -> np.ndarray:
+    """How many times slower than the ore gravity-recoverable gold breaks at each size: Banisi's six times at 50 to
+    100 um and twenty at 500 to 1000 um (cited by Vincent 1997), log-log between the range centres, constant outside."""
+    sizes = np.log(np.asarray(constant("gravity.grg_selection_sizes_um"), dtype=float))
+    slower = np.log(np.asarray(constant("gravity.grg_selection_slowdown"), dtype=float))
+    return np.exp(np.interp(np.log(size), sizes, slower))
+
+
 class GrindingCircuit:
     def __init__(self, ore: ResolvedOre, plant: Plant, op: OperatingPoint, new_feed: dict[str, np.ndarray], flags: Flags) -> None:
         self.ore, self.plant, self.op, self.feed, self.flags = ore, plant, op, new_feed, flags
@@ -80,7 +88,10 @@ class GrindingCircuit:
         self.operators: dict[str, MillOperator] = {}
         for m in ore.ids:
             spec = ore.spec[m]
-            if m in ore.valuable:
+            if spec.grains is not None:
+                # gravity-recoverable grains break slower than the ore, by Banisi's ratio (E-11)
+                selection = base * self.mean_grindability / grg_slowdown(self.g.size)
+            elif m in ore.valuable:
                 lib = ore.liberation[m]
                 # liberated grains break at their own rate, composites at the ore's rate
                 selection = base * (lib * spec.grindability + (1.0 - lib) * self.mean_grindability)
@@ -94,6 +105,10 @@ class GrindingCircuit:
         self.water_under = op.circulating_load * self.new_feed_tph * (1.0 - su) / su
         self.bypass = self.water_under / (self.water_under + self.water_over)
         self.bleed = op.gravity_bleed if plant.gravity is not None else 0.0
+        if plant.gravity is not None and plant.gravity.position not in ("underflow", "mill_discharge"):
+            raise ValueError(f"unknown gravity position {plant.gravity.position!r}")
+        # Laplante's model and its published example treat a share of the mill discharge before the cyclone (E-11)
+        self.at_discharge = plant.gravity is not None and plant.gravity.position == "mill_discharge"
         self.rho_host = ore.density[ore.host]
         self._cut_guess = math.log(max(op.target_p80_um, 1.0))
         self._load_guess = op.circulating_load
@@ -102,6 +117,10 @@ class GrindingCircuit:
             host = ore.spec[m].host
             if ore.spec[m].composite_content > 0.0 and host and host != ore.host:
                 raise ValueError(f"composites of {m} must be hosted by the balance gangue {ore.host}")
+
+    def exponent(self, m: str) -> float:
+        """The density-correction exponent of a mineral's cut: fitted for gravity-recoverable grains, Stokes otherwise."""
+        return float(constant("cyclone.grg_density_exponent")) if self.ore.spec[m].grains is not None else 0.5
 
     def _gravity_curve(self) -> np.ndarray:
         gp = self.plant.gravity
@@ -124,25 +143,43 @@ class GrindingCircuit:
             unliberated = 1.0 - ore.liberation[m]
             locked_fraction = unliberated * scale if c > 0.0 else np.zeros(self.g.n)
             free_fraction = 1.0 - locked_fraction
-            y_lib = reduced_partition(corrected_cut(cut, self.rho_host, ore.density[m]), sharp)
+            y_lib = reduced_partition(corrected_cut(cut, self.rho_host, ore.density[m], self.exponent(m)), sharp)
             y_comp = reduced_partition(corrected_cut(cut, self.rho_host, ore.composite_density(m)), sharp) if c > 0.0 else y_lib
             a_lib = rf + (1.0 - rf) * y_lib
             a_comp = rf + (1.0 - rf) * y_comp
-            c_under = free_fraction * a_lib + locked_fraction * a_comp
-            if bleed > 0.0 and spec.gravity:
-                gp = self.plant.gravity
-                g_frac = bleed * (self._gravity_curve() * free_fraction * a_lib + gp.composite_recovery * locked_fraction * a_comp)
-            elif bleed > 0.0:
-                g_frac = bleed * self.plant.gravity.gangue_yield * c_under
+            survive = 1.0          # share of the locked class that reaches the cyclone
+            if self.at_discharge and bleed > 0.0:
+                # the unit takes its share of the mill discharge; the cyclone classifies what it leaves
+                if spec.gravity:
+                    gp = self.plant.gravity
+                    take = bleed * self._gravity_curve()
+                    g_frac = take * free_fraction + bleed * gp.composite_recovery * locked_fraction
+                    c_under = free_fraction * (1.0 - take) * a_lib + locked_fraction * (1.0 - bleed * gp.composite_recovery) * a_comp
+                    survive = 1.0 - bleed * gp.composite_recovery
+                else:
+                    gy = bleed * self.plant.gravity.gangue_yield
+                    g_frac = np.full(self.g.n, gy)
+                    c_under = (1.0 - gy) * (free_fraction * a_lib + locked_fraction * a_comp)
+                    survive = 1.0 - gy
+                returned = c_under
             else:
-                g_frac = np.zeros(self.g.n)
-            matrix = self.operators[m].inverse(energy_per_pass) - np.diag(c_under - g_frac)
+                c_under = free_fraction * a_lib + locked_fraction * a_comp
+                if bleed > 0.0 and spec.gravity:
+                    gp = self.plant.gravity
+                    g_frac = bleed * (self._gravity_curve() * free_fraction * a_lib + gp.composite_recovery * locked_fraction * a_comp)
+                elif bleed > 0.0:
+                    g_frac = bleed * self.plant.gravity.gangue_yield * c_under
+                else:
+                    g_frac = np.zeros(self.g.n)
+                returned = c_under - g_frac
+            matrix = self.operators[m].inverse(energy_per_pass) - np.diag(returned)
             p = np.linalg.solve(matrix, self.feed[m])
             product[m], under[m], grav[m] = p, c_under * p, g_frac * p
-            over[m] = p - under[m]
+            over[m] = p - grav[m] - under[m] if self.at_discharge else p - under[m]
             if c > 0.0:
                 demand += unliberated * p * (1.0 - c) / c
-                host_source += (1.0 - rf) * locked_fraction * p * (1.0 - c) / c * (y_comp - y_host)
+                composite_host = (1.0 - rf) * locked_fraction * p * (1.0 - c) / c * (y_comp - y_host)
+                host_source += composite_host * survive if self.at_discharge else composite_host
         for m in ore.ids:
             if m in ore.valuable:
                 continue
@@ -151,10 +188,17 @@ class GrindingCircuit:
             g_yield = bleed * self.plant.gravity.gangue_yield if bleed > 0.0 else 0.0
             source = host_source if m == ore.host else np.zeros(self.g.n)
             matrix = self.operators[m].inverse(energy_per_pass) - np.diag((1.0 - g_yield) * c0)
-            p = np.linalg.solve(matrix, self.feed[m] + (1.0 - g_yield) * source)
-            u = c0 * p + source
-            product[m], under[m], grav[m] = p, u, g_yield * u
-            over[m] = p - u
+            if self.at_discharge:
+                # the unit's gangue yield leaves the mill discharge; the whole underflow returns
+                p = np.linalg.solve(matrix, self.feed[m] + source)
+                u = (1.0 - g_yield) * c0 * p + source
+                product[m], under[m], grav[m] = p, u, g_yield * p
+                over[m] = p - grav[m] - u
+            else:
+                p = np.linalg.solve(matrix, self.feed[m] + (1.0 - g_yield) * source)
+                u = c0 * p + source
+                product[m], under[m], grav[m] = p, u, g_yield * u
+                over[m] = p - u
         total_under = float(sum(float(np.sum(u)) for u in under.values()))
         return PassResult(product, under, over, grav, total_under / self.new_feed_tph), demand
 
@@ -190,7 +234,8 @@ class GrindingCircuit:
         rf, sharp = self.bypass, self.plant.cyclone.sharpness
         out: dict[str, np.ndarray] = {}
         for d in defs:
-            y = reduced_partition(corrected_cut(cut, self.rho_host, d.density), sharp)
+            exponent = self.exponent(d.mineral) if d.kind == "liberated" else 0.5
+            y = reduced_partition(corrected_cut(cut, self.rho_host, d.density, exponent), sharp)
             out[d.id] = rf + (1.0 - rf) * y
         return out
 
@@ -317,37 +362,45 @@ class GrindingCircuit:
             self.flags.add("mill_water_negative", "The recycled underflow carries more water than the declared mill discharge density allows.")
         if sump_addition < 0.0:
             self.flags.add("sump_water_negative", "The declared mill discharge is wetter than the cyclone feed; no sump dilution is possible.")
-        recycle = {m: r.underflow[m] - r.gravity[m] for m in ore.ids}
+        discharge = self.at_discharge and self.bleed > 0.0
+        # at the discharge the unit's tails rejoin the cyclone feed and the whole underflow returns
+        recycle = {m: r.underflow[m].copy() if discharge else r.underflow[m] - r.gravity[m] for m in ore.ids}
+        cyclone_solids = {m: r.product[m] - r.gravity[m] if discharge else r.product[m].copy() for m in ore.ids}
         streams = {
             "new_feed": Stream({m: self.feed[m].copy() for m in ore.ids}, 0.0),
             "mill_feed": Stream({m: self.feed[m] + recycle[m] for m in ore.ids}, water_mill_discharge),
             "mill_discharge": Stream({m: r.product[m].copy() for m in ore.ids}, water_mill_discharge),
-            "cyclone_feed": Stream({m: r.product[m].copy() for m in ore.ids}, water_cyclone_feed),
+            "cyclone_feed": Stream({m: cyclone_solids[m].copy() for m in ore.ids}, water_cyclone_feed),
             "cyclone_underflow": Stream({m: r.underflow[m].copy() for m in ore.ids}, self.water_under),
             "cyclone_overflow": Stream({m: r.overflow[m].copy() for m in ore.ids}, self.water_over),
             "recycle": Stream(recycle, self.water_under),
         }
-        if self.bleed > 0.0:
+        if discharge:
+            streams["gravity_feed"] = Stream({m: self.bleed * r.product[m] for m in ore.ids}, self.bleed * water_mill_discharge)
+            streams["gravity_concentrate"] = Stream({m: r.gravity[m].copy() for m in ore.ids}, 0.0)
+            streams["sump_feed"] = Stream({m: cyclone_solids[m].copy() for m in ore.ids}, water_mill_discharge)
+        elif self.bleed > 0.0:
             streams["gravity_feed"] = Stream({m: self.bleed * r.underflow[m] for m in ore.ids}, self.bleed * self.water_under)
             streams["gravity_concentrate"] = Stream({m: r.gravity[m].copy() for m in ore.ids}, 0.0)
         total_over = np.zeros(g.n)
         for mass in r.overflow.values():
             total_over += mass
-        solids_volume = sum(float(np.sum(r.product[m])) / ore.density[m] for m in ore.ids)
-        rho_mean = mill_solids / solids_volume
+        solids_volume = sum(float(np.sum(cyclone_solids[m])) / ore.density[m] for m in ore.ids)
+        cyclone_solids_tph = float(sum(float(np.sum(v)) for v in cyclone_solids.values())) if discharge else mill_solids
+        rho_mean = cyclone_solids_tph / solids_volume
         sizing = size_cluster(plant.cyclone, corrected_cut(cut, self.rho_host, rho_mean), solids_volume,
-                              water_cyclone_feed / water_density, mill_solids, water_cyclone_feed)
+                              water_cyclone_feed / water_density, cyclone_solids_tph, water_cyclone_feed)
         sharp = plant.cyclone.sharpness
         partition = {"host": list(self.bypass + (1.0 - self.bypass) * reduced_partition(cut, sharp))}
         for m in ore.valuable:
-            partition[m] = list(self.bypass + (1.0 - self.bypass) * reduced_partition(corrected_cut(cut, self.rho_host, ore.density[m]), sharp))
+            partition[m] = list(self.bypass + (1.0 - self.bypass) * reduced_partition(corrected_cut(cut, self.rho_host, ore.density[m], self.exponent(m)), sharp))
         gold = [m for m in ore.valuable if ore.spec[m].gravity]
         gold_cl = None
         if gold:
             feed_gold = sum(float(np.sum(self.feed[m])) for m in gold)
             gold_cl = sum(float(np.sum(r.underflow[m])) for m in gold) / feed_gold if feed_gold > 0.0 else 0.0
         defs = species_defs(ore)
-        product_species = to_species(Stream(r.product, 0.0), ore, defs, self.flags)
+        product_species = to_species(Stream(cyclone_solids, 0.0), ore, defs, self.flags)
         _, overflow_species = partition_species(product_species, self.species_underflow(cut, defs))
         rebuilt = to_minerals(overflow_species, defs, ore)
         scale = max(float(np.max(np.abs(r.overflow[m]))) for m in ore.ids)

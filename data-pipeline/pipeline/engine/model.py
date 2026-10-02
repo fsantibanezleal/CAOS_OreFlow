@@ -40,6 +40,16 @@ class Payable:
 
 
 @dataclass(frozen=True)
+class GrainSize:
+    """A mineral's own grain sizes, as a gravity-recoverable-gold test measures them (E-11): cumulative passing
+    fractions at descending sieve sizes, all of it passing the first; the fraction passing the last sieve spreads
+    log-uniformly down to ``lower_um``."""
+    size_um: tuple[float, ...]
+    passing: tuple[float, ...]
+    lower_um: float
+
+
+@dataclass(frozen=True)
 class MineralSpec:
     id: str                        # key into engine/data/minerals.json
     fraction: float = 0.0          # declared ore mass fraction (gangue proportion or trace carrier)
@@ -51,6 +61,9 @@ class MineralSpec:
     flotation: Flotability | None = None
     magnetic: bool = False
     gravity: bool = False
+    # gravity-recoverable grains (GRG): the mineral enters the mill liberated with these sizes, breaks at Banisi's
+    # slower rate and classifies with the GRG density correction, instead of riding the rock and the liberation model
+    grains: GrainSize | None = None
 
 
 @dataclass(frozen=True)
@@ -129,6 +142,7 @@ class GravityPlant:
     size_scale_um: float           # size at which recovery reaches 63% of the maximum
     composite_recovery: float      # per-pass recovery of gold locked in composites (fraction)
     gangue_yield: float            # mass yield of gangue to the gravity concentrate (fraction)
+    position: str = "underflow"    # the stream a share of which the unit treats: "underflow" or "mill_discharge"
 
 
 @dataclass(frozen=True)
@@ -204,9 +218,14 @@ def _build(cls: type, data: dict[str, Any] | None) -> Any:
     return cls(**data)
 
 
+def _grains(data: dict[str, Any] | None) -> GrainSize | None:
+    return None if data is None else GrainSize(tuple(data["size_um"]), tuple(data["passing"]), data["lower_um"])
+
+
 def ore_from_dict(data: dict[str, Any]) -> Ore:
     minerals = tuple(
-        MineralSpec(**{**m, "flotation": _build(Flotability, m.get("flotation"))}) for m in data["minerals"]
+        MineralSpec(**{**m, "flotation": _build(Flotability, m.get("flotation")), "grains": _grains(m.get("grains"))})
+        for m in data["minerals"]
     )
     payables = tuple(
         Payable(p["species"], p["unit"], tuple(Carrier(**c) for c in p["carriers"]), p["head_grade"])

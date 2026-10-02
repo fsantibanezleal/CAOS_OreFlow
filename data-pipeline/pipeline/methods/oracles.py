@@ -22,7 +22,8 @@ from ..engine.constants import constant
 from ..engine.cyclone import plitt_cut, plitt_pressure, size_cluster
 from ..engine.grid import grid
 from ..engine.grinding import GrindingCircuit
-from ..engine.model import Carrier, Cyclone, Flags, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant
+from ..engine.comminution import crush
+from ..engine.model import Carrier, Cyclone, Flags, GrainSize, GravityPlant, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant
 from ..engine.ore import resolve
 
 INCH_CM = 2.54
@@ -152,38 +153,152 @@ def gmg() -> dict[str, Any]:
             "within_tolerance": all(abs(r["error_kwh_t"]) <= d["tolerance_abs_kwh_t"] for r in rows)}
 
 
-def laplante() -> dict[str, Any]:
-    d = oracle_data()["laplante"]
+_FIT_STEPS = 30   # bisection steps on the unit's maximum recovery: 2^-30 of its bracket
+
+
+def grg_grains(record: dict[str, Any]) -> GrainSize:
+    """A GRG vector given as percent of the gold per class (coarsest first, the last class below the last sieve) as the
+    engine's grain distribution."""
+    classes = record["class_pct_of_gold"]
+    if classes[0] != 0.0:
+        raise ValueError("GRG retained on the top sieve has no upper size")
+    total = left = float(sum(classes))
+    passing = []
+    for share in classes[:-1]:
+        left -= share          # what passes sieve i is every class finer than it
+        passing.append(left / total)
+    return GrainSize(tuple(record["size_um"]), tuple(passing), record["lower_um"])
+
+
+def _laplante_run(pub: dict[str, Any], grains: GrainSize, bleed: float, max_recovery: float, scale_um: float) -> dict[str, float]:
+    """The published example's grinding circuit with the gravity unit on a share of the mill discharge (E-11)."""
     case = CASE_BY_ID["gold_free_milling"]
-    recovery, gold_cl, ore_cl = [], [], []
-    for bleed in d["published"]["bleed"]:
-        m = simulate(case.ore, case.plant, case.nominal.with_values(gravity_bleed=bleed)).metrics
-        recovery.append(m["gravity_recovery_pct"])
-        gold_cl.append(m["gold_circulating_load_pct"])
-        ore_cl.append(m["circulating_load_pct"])
+    share = pub["grg_share_of_gold"]
+    ore = Ore(minerals=(MineralSpec(id="electrum", gravity=True, grains=grains), MineralSpec(id="pyrite", fraction=0.02),
+                        MineralSpec(id="silicate_fe", fraction=0.6), MineralSpec(id="quartz")),
+              payables=(Payable("Au", "g/t", (Carrier("electrum", share), Carrier("pyrite", 1.0 - share, "trace")), pub["head_grade_gpt"]),),
+              work_index_kwh_t=case.ore.work_index_kwh_t, crushing_work_index_kwh_t=case.ore.crushing_work_index_kwh_t)
+    plant = replace(case.plant, mill=replace(case.plant.mill, installed_power_kw=math.inf),
+                    cyclone=replace(case.plant.cyclone, underflow_solids=pub["underflow_solids"]),
+                    gravity=GravityPlant(max_recovery=max_recovery, size_scale_um=scale_um, composite_recovery=case.plant.gravity.composite_recovery,
+                                         gangue_yield=case.plant.gravity.gangue_yield, position=pub["bleed_stream"]))
+    op = case.nominal.with_values(throughput_tph=pub["feed_tph"], target_p80_um=pub["p80_um"], circulating_load=pub["circulating_load"],
+                                  water_m3_t=(1.0 - pub["overflow_solids"]) / pub["overflow_solids"], head_grade=pub["head_grade_gpt"],
+                                  gravity_bleed=bleed)
+    resolved = resolve(ore, op)
+    g = grid()
+    rock = g.rosin_rammler(plant.crusher.feed_f80_um, plant.crusher.feed_slope)
+    grain = g.from_passing(grains.size_um, grains.passing, grains.lower_um)
+    css = op.crusher_css_mm * float(constant("units.um_per_mm"))
+    feed = {m: pub["feed_tph"] * resolved.fraction[m] * grain if m == "electrum"
+            else crush(pub["feed_tph"] * resolved.fraction[m] * rock, css, plant.crusher) for m in resolved.ids}
+    s = GrindingCircuit(resolved, plant, op, feed, Flags()).solve().streams
+    grg_feed = s["new_feed"].mineral_tph("electrum")
+    au = lambda name: s[name].species_tph("Au", resolved.composition)  # noqa: E731
+    discharge = s["mill_discharge"].solids["electrum"]
+    out = {"grg_circulating_load_pct": 100.0 * s["cyclone_underflow"].mineral_tph("electrum") / grg_feed,
+           "grg_to_overflow_pct": 100.0 * s["cyclone_overflow"].mineral_tph("electrum") / grg_feed,
+           "discharge_grg_below_150um_pct": passing_at(discharge, [150.0])[0],
+           "ore_circulating_load_pct": 100.0 * s["cyclone_underflow"].tph() / pub["feed_tph"]}
+    if "gravity_concentrate" in s:
+        out["grg_recovery_pct"] = 100.0 * s["gravity_concentrate"].mineral_tph("electrum") / grg_feed
+        out["gold_recovery_pct"] = 100.0 * au("gravity_concentrate") / au("new_feed")
+    else:
+        under, over = s["cyclone_underflow"], s["cyclone_overflow"]
+        out["underflow_over_overflow_au_grade"] = under.grade("Au", resolved.composition) / over.grade("Au", resolved.composition)
+        out["underflow_grg_share"] = under.mineral_tph("electrum") * resolved.composition["electrum"]["Au"] / au("cyclone_underflow")
+        out["overflow_grg_share"] = over.mineral_tph("electrum") * resolved.composition["electrum"]["Au"] / au("cyclone_overflow")
+    return out
+
+
+def _fit_max_recovery(pub: dict[str, Any], grains: GrainSize, fit: dict[str, Any], scale_um: float) -> tuple[float, bool]:
+    """The unit's maximum recovery that meets the printed GRG recovery at the fit row, by bisection; at the bound when
+    even that bound cannot reach it."""
+    row = pub["bleed"].index(fit["row"])
+    target = pub["grg_recovery_pct"][row]
+    lo, hi = (float(v) for v in fit["bounds"])
+    if _laplante_run(pub, grains, fit["row"], hi, scale_um)["grg_recovery_pct"] < target:
+        return hi, True
+    for _ in range(_FIT_STEPS):
+        mid = 0.5 * (lo + hi)
+        if _laplante_run(pub, grains, fit["row"], mid, scale_um)["grg_recovery_pct"] < target:
+            lo = mid
+        else:
+            hi = mid
+    return 0.5 * (lo + hi), False
+
+
+def laplante() -> dict[str, Any]:
+    """E-11: the published simulator example run like for like. The engine takes the printed inputs, an ore of 80.4%
+    GRG with Snip's measured GRG by size, and the unit on a share of the mill discharge; the unit's maximum recovery
+    is fitted at the 30% row; the GRG recovery and GRG circulating load at every bleed are compared within the
+    tolerances set before the first run. A diagnosis reruns it without the GRG finer than 25 um."""
+    d = oracle_data()["laplante"]
+    pub, fit, tol = d["published"], d["fit"], d["tolerance"]
+    scale = d["authored"]["unit_size_scale_um"]
+
+    def series(grains: GrainSize) -> dict[str, Any]:
+        r_max, at_bound = _fit_max_recovery(pub, grains, fit, scale)
+        rows = [_laplante_run(pub, grains, b, r_max, scale) for b in pub["bleed"]]
+        out: dict[str, Any] = {"max_recovery": r_max, "fit_at_bound": at_bound}
+        for key in ("grg_recovery_pct", "gold_recovery_pct", "grg_circulating_load_pct", "grg_to_overflow_pct",
+                    "discharge_grg_below_150um_pct", "ore_circulating_load_pct"):
+            out[key] = [row[key] for row in rows]
+        out["grg_recovery_difference_points"] = [e - q for e, q in zip(out["grg_recovery_pct"], pub["grg_recovery_pct"])]
+        out["grg_circulating_load_relative_error"] = [_relative(e, q) for e, q in zip(out["grg_circulating_load_pct"], pub["grg_circulating_load_pct"])]
+        out["within_tolerance"] = (all(abs(x) <= tol["grg_recovery_points"] for x in out["grg_recovery_difference_points"])
+                                   and all(abs(x) <= tol["grg_circulating_load_relative"] for x in out["grg_circulating_load_relative_error"]))
+        return out
+
+    grains = grg_grains(d["grg"])
+    engine = series(grains)
+    coarse = dict(d["grg"])
+    coarse["class_pct_of_gold"] = d["grg"]["class_pct_of_gold"][:-1] + [0.0]
+    without_fines = series(grg_grains(coarse))
+    audit = _laplante_run(pub, grains, 0.0, engine["max_recovery"], scale)
+    recovery = engine["grg_recovery_pct"]
     steps = [b - a for a, b in zip(recovery, recovery[1:])]
-    return {"id": "laplante", "source": d["source"], "why": d["why"], "published": d["published"],
-            "engine": {"bleed": d["published"]["bleed"], "gravity_recovery_pct": recovery, "gold_circulating_load_pct": gold_cl,
-                       "ore_circulating_load_pct": ore_cl},
+    return {"id": "laplante", "source": d["source"], "why": d["why"], "published": pub, "grg": d["grg"], "fit": fit,
+            "tolerance": tol, "tolerance_basis": d["tolerance_basis"], "engine": {"bleed": pub["bleed"], **engine},
+            "without_grg_below_25um": without_fines, "audit": audit,
+            "within_tolerance": engine["within_tolerance"],
             "rising": all(s > 0.0 for s in steps), "diminishing": all(b <= a for a, b in zip(steps, steps[1:])),
-            "gold_above_ore": all(g > o for g, o in zip(gold_cl, ore_cl))}
+            # without gravity the GRG circulates far above the ore, as every audited plant shows
+            "grg_above_ore_without_gravity": audit["grg_circulating_load_pct"] > audit["ore_circulating_load_pct"]}
 
 
 def zandrivierspoort() -> dict[str, Any]:
+    """E-10: the magnetite case at the published grinds, with installed power unlimited. The grade step is the trend
+    compared; the levels, the gap, the silica and the rougher stage at 75 um are recorded beside it."""
     d = oracle_data()["zandrivierspoort"]
+    pub = d["published"]
     case = CASE_BY_ID["iron_magnetite_fine"]
     plant = replace(case.plant, mill=replace(case.plant.mill, installed_power_kw=math.inf))   # the published grinds
-    grades, recoveries = [], []
-    for p80 in d["published"]["grind_p80_um"]:
-        m = simulate(case.ore, plant, case.nominal.with_values(target_p80_um=p80)).metrics
+    grades, silica, recoveries, rougher = [], [], [], None
+    for p80 in pub["grind_p80_um"]:
+        result = simulate(case.ore, plant, case.nominal.with_values(target_p80_um=p80))
+        m = result.metrics
         grades.append(m["concentrate_grade"])
+        silica.append(m["concentrate_SiO2"])
         recoveries.append(m["magnetite_recovery_pct"])
-    published = d["published"]["concentrate_fe_pct"]
-    return {"id": "zandrivierspoort", "source": d["source"], "why": d["why"], "published": d["published"],
-            "engine": {"grind_p80_um": d["published"]["grind_p80_um"], "concentrate_fe_pct": grades,
-                       "magnetite_recovery_pct": recoveries},
+        if rougher is None:   # the rougher stage at the first (75 um) grind only, as published
+            s = result.streams
+            comp = simulate_compositions(case)
+            rougher = {"magnetite_recovery_pct": 100.0 * s["lims_rougher_concentrate"].mineral_tph("magnetite") / s["lims_feed"].mineral_tph("magnetite"),
+                       "concentrate_fe_pct": 100.0 * s["lims_rougher_concentrate"].grade("Fe", comp),
+                       "concentrate_silica_pct": 100.0 * s["lims_rougher_concentrate"].grade("SiO2", comp)}
+    published = pub["concentrate_fe_pct"]
+    return {"id": "zandrivierspoort", "source": d["source"], "why": d["why"], "published": pub,
+            "engine": {"grind_p80_um": pub["grind_p80_um"], "concentrate_fe_pct": grades, "concentrate_silica_pct": silica,
+                       "magnetite_recovery_pct": recoveries, "rougher_75": rougher},
+            "gap_fe_pct_points": [e - q for e, q in zip(grades, published)],
             "finer_grind_raises_grade": grades[1] > grades[0],
             "grade_difference_pct_points": {"engine": grades[1] - grades[0], "published": published[1] - published[0]}}
+
+
+def simulate_compositions(case: Any) -> dict[str, dict[str, float]]:
+    """The resolved mineral compositions of a case, for assaying its streams."""
+    return resolve(case.ore, case.nominal).composition
 
 
 def all_oracles() -> dict[str, Any]:

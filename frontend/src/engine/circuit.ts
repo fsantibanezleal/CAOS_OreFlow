@@ -42,16 +42,23 @@ export function simulate(ore: Ore, plant: Plant, op: OperatingPoint): CircuitRes
   const r = resolve(ore, op);
   const g = grid();
   const shape = g.rosinRammler(plant.crusher.feed_f80_um, plant.crusher.feed_slope);
+  // gravity-recoverable grains carry their own sizes, which the crusher passes unchanged (E-11)
+  const grains: Record<string, Vec> = {};
+  for (const m of r.ids) {
+    const declared = r.spec[m].grains ?? null;
+    if (declared !== null) grains[m] = g.fromPassing(declared.size_um, declared.passing, declared.lower_um);
+  }
   const feedSolids: Record<string, Vec> = {};
   for (const m of r.ids) {
     const v = new Float64Array(g.n);
-    for (let i = 0; i < g.n; i += 1) v[i] = op.throughput_tph * r.fraction[m] * shape[i];
+    const s = grains[m] ?? shape;
+    for (let i = 0; i < g.n; i += 1) v[i] = op.throughput_tph * r.fraction[m] * s[i];
     feedSolids[m] = v;
   }
   const crusherFeed = new Stream(feedSolids, 0.0);
   const cssUm = op.crusher_css_mm * constant('units.um_per_mm');
   const newFeed: Record<string, Vec> = {};
-  for (const m of r.ids) newFeed[m] = crush(crusherFeed.solids[m], cssUm, plant.crusher);
+  for (const m of r.ids) newFeed[m] = m in grains ? Float64Array.from(crusherFeed.solids[m]) : crush(crusherFeed.solids[m], cssUm, plant.crusher);
   const circuit = new GrindingCircuit(r, plant, op, newFeed, flags);
   const grinding = circuit.solve();
   const streams: Record<string, Stream> = { crusher_feed: crusherFeed, ...grinding.streams };
@@ -62,14 +69,20 @@ export function simulate(ore: Ore, plant: Plant, op: OperatingPoint): CircuitRes
   const tails: string[] = [];
   const overflow = streams.cyclone_overflow;
   let freshWater = grinding.water.mill_addition_tph + grinding.water.sump_addition_tph;
+  const atDischarge = 'sump_feed' in streams;
   const units: Array<[string, string[], string[], number]> = [
     ['crusher', ['crusher_feed'], ['new_feed'], 0.0],
     ['mill_feed_junction', ['new_feed', 'recycle'], ['mill_feed'], grinding.water.mill_addition_tph],
     ['mill', ['mill_feed'], ['mill_discharge'], 0.0],
-    ['sump', ['mill_discharge'], ['cyclone_feed'], grinding.water.sump_addition_tph],
+    ['sump', [atDischarge ? 'sump_feed' : 'mill_discharge'], ['cyclone_feed'], grinding.water.sump_addition_tph],
     ['cyclone', ['cyclone_feed'], ['cyclone_underflow', 'cyclone_overflow'], 0.0],
   ];
-  if ('gravity_concentrate' in streams) {
+  if (atDischarge) {
+    // the unit treats a share of the mill discharge; its tails rejoin the cyclone feed
+    units.splice(3, 0, ['gravity_split', ['mill_discharge'], ['sump_feed', 'gravity_concentrate'], 0.0]);
+    units.push(['underflow_return', ['cyclone_underflow'], ['recycle'], 0.0]);
+    concentrates.push('gravity_concentrate');
+  } else if ('gravity_concentrate' in streams) {
     units.push(['gravity_split', ['cyclone_underflow'], ['recycle', 'gravity_concentrate'], 0.0]);
     concentrates.push('gravity_concentrate');
   } else {
@@ -199,7 +212,18 @@ function computeMetrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, stream
   put('water_use_m3_h', freshWater / waterDensity, 'm3/h');
   put('water_intensity_m3_t', freshWater / waterDensity / op.throughput_tph, 'm3/t');
   if (grinding.gold_circulating_load !== null) put('gold_circulating_load_pct', 100.0 * grinding.gold_circulating_load, '%');
-  if ('gravity_concentrate' in streams) put('gravity_recovery_pct', 100.0 * streams.gravity_concentrate.speciesTph(primary, comp) / feedPrimary, '%');
+  if ('gravity_concentrate' in streams) {
+    put('gravity_recovery_pct', 100.0 * streams.gravity_concentrate.speciesTph(primary, comp) / feedPrimary, '%');
+    const grg = r.ids.filter(m => (r.spec[m].grains ?? null) !== null);
+    let grgFeed = 0.0;
+    for (const m of grg) grgFeed += streams.new_feed.mineralTph(m);
+    if (grgFeed > 0.0) {
+      // the share of the gravity-recoverable gold the unit recovers, Laplante's "GRG recovery" (E-11)
+      let grgConcentrate = 0.0;
+      for (const m of grg) grgConcentrate += streams.gravity_concentrate.mineralTph(m);
+      put('grg_recovery_pct', 100.0 * grgConcentrate / grgFeed, '%');
+    }
+  }
   if (flotation !== null) {
     const f = flotation.streams;
     const finalName = finalStreamName(flotation);

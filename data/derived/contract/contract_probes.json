@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "ef4deff1b2f963d2969dfded459e4503fff25757cc3779bdcbf7f95644e768a3",
+ "digest": "dbeb20842d2c693bd19a1b8b288f8cf93b68c0f7bfc58822446f50b4b73bb2de",
  "probes": [
   {
    "case_id": "no_such_case",
@@ -2604,7 +2604,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 103.080171284
+    "d50c_um": 103.094353581
    },
    "expected": {
     "accepted": true,
@@ -2614,7 +2614,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 206.160342569
+    "d50c_um": 206.188707162
    },
    "expected": {
     "accepted": true,
@@ -2624,7 +2624,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 102.04936957115
+    "d50c_um": 102.06341004519
    },
    "expected": {
     "accepted": false,
@@ -2639,7 +2639,7 @@
   {
    "case_id": "gold_free_milling",
    "values": {
-    "d50c_um": 207.19114428185
+    "d50c_um": 207.21965069780998
    },
    "expected": {
     "accepted": false,

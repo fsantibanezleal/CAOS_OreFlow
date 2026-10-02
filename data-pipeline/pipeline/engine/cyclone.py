@@ -17,9 +17,12 @@ from .grid import grid
 from .model import Cyclone
 
 
-def corrected_cut(d50_ref: float, rho_ref: float, rho: float) -> float:
+def corrected_cut(d50_ref: float, rho_ref: float, rho: float, exponent: float = 0.5) -> float:
+    """The cut of a particle of density ``rho`` when the reference density's is ``d50_ref``. Plitt's Stokes form has
+    the exponent 0.5; gravity-recoverable gold takes the exponent fitted to measured GRG partitions (E-11)."""
     water = float(constant("water.density_t_m3"))
-    return d50_ref * math.sqrt((rho_ref - water) / (rho - water))
+    ratio = (rho_ref - water) / (rho - water)
+    return d50_ref * (math.sqrt(ratio) if exponent == 0.5 else ratio ** exponent)
 
 
 def reduced_partition(d50: float, sharpness: float) -> np.ndarray:

@@ -750,6 +750,27 @@
       "value": 0.99,
       "unit": "fraction of the upper bound",
       "source": "Design: a fitted length scale above this share of its upper bound is reported as switched off."
+    },
+    "cyclone.grg_density_exponent": {
+      "value": 1.0,
+      "unit": "1",
+      "source": "Fitted to the GRG and solids partition curves of Laplante and Staunton (AMIRA P420B), Figure 9: 1.13 at Jundee, 0.87 at Marvel Loch. Stokes' 0.5 puts the GRG cut three to four times too coarse there; every other mineral keeps 0.5 for want of a measurement of its own (review of 2026-10-02, E-11)."
+    },
+    "gravity.grg_selection_sizes_um": {
+      "value": [
+        75.0,
+        707.0
+      ],
+      "unit": "um",
+      "source": "The centres of Banisi's two size ranges, 50 to 100 um and 500 to 1000 um (cited by Vincent 1997, McGill M.Eng. thesis, chapter 5)."
+    },
+    "gravity.grg_selection_slowdown": {
+      "value": [
+        6.0,
+        20.0
+      ],
+      "unit": "1 (ore selection over GRG selection)",
+      "source": "Banisi measured gold breaking six times slower than the ore at 50 to 100 um and twenty times slower at 500 to 1000 um, from its malleability (cited by Vincent 1997, chapter 5). Interpolated in log-log between the range centres and held constant outside."
     }
   }
 }

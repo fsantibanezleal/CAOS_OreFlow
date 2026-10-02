@@ -23,7 +23,12 @@ export type MineralSpec = {
   flotation: Flotability | null;
   magnetic: boolean;
   gravity: boolean;
+  /** Gravity-recoverable grains (E-11): the mineral enters the mill liberated with these sizes. */
+  grains?: GrainSize | null;
 };
+/** A mineral's own grain sizes, as a GRG test measures them: cumulative passing at descending sieves, all passing the
+ * first; the fraction passing the last sieve spreads log-uniformly down to `lower_um` (engine/model.py GrainSize). */
+export type GrainSize = { size_um: number[]; passing: number[]; lower_um: number };
 export type Ore = {
   minerals: MineralSpec[];
   payables: Payable[];
@@ -52,7 +57,11 @@ export type FlotationPlant = {
   /** The cleaner tail returns to the rougher feed (the default); false sends it to the final tail (the ablation). */
   cleaner_tail_to_rougher?: boolean;
 };
-export type GravityPlant = { max_recovery: number; size_scale_um: number; composite_recovery: number; gangue_yield: number };
+export type GravityPlant = {
+  max_recovery: number; size_scale_um: number; composite_recovery: number; gangue_yield: number;
+  /** The stream a share of which the unit treats: 'underflow' (the default) or 'mill_discharge' (E-11). */
+  position?: string;
+};
 export type MagneticPlant = {
   max_capture: number; fine_scale_um: number; composite_threshold: number; entrapment_base: number;
   entrapment_fines: number; entrapment_scale_um: number; cleaner_factor: number; concentrate_solids: number;

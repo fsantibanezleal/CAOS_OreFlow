@@ -48,6 +48,28 @@ class SizeGrid:
     def p80(self, mass: np.ndarray) -> float:
         return self.percentile(mass, float(constant("psd.p80_level")))
 
+    def from_passing(self, size_um: tuple[float, ...], passing: tuple[float, ...], lower_um: float) -> np.ndarray:
+        """Class mass fractions of a distribution declared as cumulative passing at descending sieve sizes (all of it
+        passing the first), interpolated in log size; the fraction passing the last sieve spreads log-uniformly down to
+        ``lower_um``, below which there is none."""
+        sizes = np.asarray(size_um, float)
+        cum_at = np.asarray(passing, float)
+        log_last, log_lower = math.log(sizes[-1]), math.log(lower_um)
+        cumulative = np.empty(self.n)
+        for i, u in enumerate(self.upper):
+            if u >= sizes[0]:
+                cumulative[i] = 1.0
+            elif u <= lower_um:
+                cumulative[i] = 0.0
+            elif u <= sizes[-1]:
+                cumulative[i] = cum_at[-1] * (math.log(u) - log_lower) / (log_last - log_lower)
+            else:
+                cumulative[i] = float(np.interp(math.log(u), np.log(sizes[::-1]), cum_at[::-1]))
+        mass = np.empty(self.n)
+        mass[:-1] = cumulative[:-1] - cumulative[1:]
+        mass[-1] = cumulative[-1]
+        return mass / np.sum(mass)
+
     def rosin_rammler(self, p80_um: float, slope: float) -> np.ndarray:
         """Class mass fractions of a Rosin-Rammler distribution with the given P80."""
         level = float(constant("psd.p80_level"))

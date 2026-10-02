@@ -108,7 +108,7 @@ passes when every one of its cases does.
 | PE-15 | `tests/test_flotation.py::test_savassi_entrainment` | `test_savassi_entrainment` passed |
 | PE-16 | `tests/test_flotation.py::test_cleaner_recycle_converges` | `test_cleaner_recycle_converges` passed (11 cases) |
 | PE-17 | `tests/test_flotation.py::test_stage_and_overall_recovery_are_distinct` | `test_stage_and_overall_recovery_are_distinct` passed |
-| PE-18 | `tests/test_separation.py::test_bleed_response_and_gold_circulating_load`; `tests/test_oracles.py::test_laplante_trend` | `test_bleed_response_and_gold_circulating_load` passed; `test_laplante_trend` passed |
+| PE-18 | `tests/test_separation.py::test_bleed_response_and_gold_circulating_load`; `tests/test_oracles.py::test_laplante_like_for_like` | `test_bleed_response_and_gold_circulating_load` passed; `test_laplante_trend` passed |
 | PE-19 | `tests/test_separation.py::test_grade_rises_with_finer_grind`; `tests/test_oracles.py::test_zandrivierspoort_trend` | `test_grade_rises_with_finer_grind` passed; `test_zandrivierspoort_trend` passed |
 | PE-20 | `tests/test_separation.py::test_deslime_cut_tradeoff` | `test_deslime_cut_tradeoff` passed |
 | PE-21 | `tests/test_directions.py::test_collector_trades_grade_for_recovery` | `test_collector_trades_grade_for_recovery` passed (11 cases) |

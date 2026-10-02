@@ -315,7 +315,7 @@ def check_benchmark(derived: Path, version: str, digest: str | None) -> list[str
     o = b.get("oracles", {})
     checks = [o.get("molycop", {}).get("within_tolerance"), o.get("gmg", {}).get("within_tolerance"),
               o.get("laplante", {}).get("rising"), o.get("laplante", {}).get("diminishing"),
-              o.get("laplante", {}).get("gold_above_ore"), o.get("zandrivierspoort", {}).get("finer_grind_raises_grade")]
+              o.get("laplante", {}).get("grg_above_ore_without_gravity"), o.get("zandrivierspoort", {}).get("finer_grind_raises_grade")]
     if not all(checks):
         errors.append("an oracle check failed")
     # the benchmark links the measured lanes it was built beside. A 0.06.000 candidate whose sandbox lacked the

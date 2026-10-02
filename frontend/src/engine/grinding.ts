@@ -10,6 +10,7 @@
 import { bondEnergy, breakageMatrix, MillOperator, selectionEnergy } from './comminution';
 import { constant } from './constants';
 import { correctedCut, reducedPartition, sizeCluster, type PlittSizing } from './cyclone';
+import { interp } from './grid';
 import { grid, type SizeGrid, type Vec } from './grid';
 import { minusDiagonal, solve } from './linalg';
 import { InfeasibleState, type Flags, type OperatingPoint, type Plant } from './model';
@@ -49,6 +50,15 @@ export type GrindingResult = {
 
 const vsum = (v: Vec) => { let s = 0.0; for (let i = 0; i < v.length; i += 1) s += v[i]; return s; };
 
+/** How many times slower than the ore gravity-recoverable gold breaks at each size (engine/grinding.py grg_slowdown). */
+export function grgSlowdown(size: Vec): Vec {
+  const sizes = constant<number[]>('gravity.grg_selection_sizes_um').map(Math.log);
+  const slower = constant<number[]>('gravity.grg_selection_slowdown').map(Math.log);
+  const out = new Float64Array(size.length);
+  for (let i = 0; i < size.length; i += 1) out[i] = Math.exp(interp(Math.log(size[i]), sizes, slower));
+  return out;
+}
+
 export class GrindingCircuit {
   readonly g: SizeGrid;
   readonly operators: Record<string, MillOperator> = {};
@@ -58,6 +68,7 @@ export class GrindingCircuit {
   bypass: number;
   readonly bleed: number;
   readonly rhoHost: number;
+  readonly atDischarge: boolean;
   readonly meanGrindability: number;
   private cutGuess: number;
   private loadGuess: number;
@@ -79,10 +90,14 @@ export class GrindingCircuit {
     this.meanGrindability = meanGrindability;
     const base = selectionEnergy(mill, op.work_index_kwh_t);
     for (let i = 0; i < base.length; i += 1) base[i] /= meanGrindability;
+    const slow = grgSlowdown(this.g.size);
     for (const m of ore.ids) {
       const spec = ore.spec[m];
       const selection = new Float64Array(this.g.n);
-      if (ore.valuable.includes(m)) {
+      if ((spec.grains ?? null) !== null) {
+        // gravity-recoverable grains break slower than the ore, by Banisi's ratio (E-11)
+        for (let i = 0; i < this.g.n; i += 1) selection[i] = base[i] * meanGrindability / slow[i];
+      } else if (ore.valuable.includes(m)) {
         const lib = ore.liberation[m];
         // liberated grains break at their own rate, composites at the ore's rate
         for (let i = 0; i < this.g.n; i += 1) selection[i] = base[i] * (lib[i] * spec.grindability + (1.0 - lib[i]) * meanGrindability);
@@ -100,6 +115,10 @@ export class GrindingCircuit {
     this.waterUnder = op.circulating_load * this.newFeedTph * (1.0 - su) / su;
     this.bypass = this.waterUnder / (this.waterUnder + this.waterOver);
     this.bleed = plant.gravity !== null ? op.gravity_bleed : 0.0;
+    const position = plant.gravity?.position ?? 'underflow';
+    if (plant.gravity !== null && position !== 'underflow' && position !== 'mill_discharge') throw new Error(`unknown gravity position '${position}'`);
+    // Laplante's model and its published example treat a share of the mill discharge before the cyclone (E-11)
+    this.atDischarge = plant.gravity !== null && position === 'mill_discharge';
     this.rhoHost = ore.density[ore.host];
     this.cutGuess = Math.log(Math.max(op.target_p80_um, 1.0));
     this.loadGuess = op.circulating_load;
@@ -110,6 +129,11 @@ export class GrindingCircuit {
         throw new Error(`composites of ${m} must be hosted by the balance gangue ${ore.host}`);
       }
     }
+  }
+
+  /** The density-correction exponent of a mineral's cut: fitted for gravity-recoverable grains, Stokes otherwise. */
+  exponent(m: string): number {
+    return (this.ore.spec[m].grains ?? null) !== null ? constant('cyclone.grg_density_exponent') : 0.5;
   }
 
   private gravityCurve(): Vec {
@@ -137,7 +161,7 @@ export class GrindingCircuit {
       const spec = ore.spec[m];
       const c = spec.composite_content;
       const lib = ore.liberation[m];
-      const yLib = reducedPartition(correctedCut(cut, this.rhoHost, ore.density[m]), sharp);
+      const yLib = reducedPartition(correctedCut(cut, this.rhoHost, ore.density[m], this.exponent(m)), sharp);
       const yComp = c > 0.0 ? reducedPartition(correctedCut(cut, this.rhoHost, ore.compositeDensity(m)), sharp) : yLib;
       const gc = bleed > 0.0 && spec.gravity ? this.gravityCurve() : null;
       const lockedFraction = new Float64Array(n);
@@ -146,32 +170,53 @@ export class GrindingCircuit {
       const aComp = new Float64Array(n);
       const cUnder = new Float64Array(n);
       const gFrac = new Float64Array(n);
+      const returning = new Float64Array(n);
+      const discharge = this.atDischarge && bleed > 0.0;
+      const gp = this.plant.gravity;
+      let survive = 1.0;          // share of the locked class that reaches the cyclone
+      if (discharge && gp !== null) survive = spec.gravity ? 1.0 - bleed * gp.composite_recovery : 1.0 - bleed * gp.gangue_yield;
       for (let i = 0; i < n; i += 1) {
         const unliberated = 1.0 - lib[i];
         lockedFraction[i] = c > 0.0 ? unliberated * scale[i] : 0.0;
         freeFraction[i] = 1.0 - lockedFraction[i];
         aLib[i] = rf + (1.0 - rf) * yLib[i];
         aComp[i] = rf + (1.0 - rf) * yComp[i];
-        cUnder[i] = freeFraction[i] * aLib[i] + lockedFraction[i] * aComp[i];
-        if (gc !== null) {
-          const gp = this.plant.gravity as NonNullable<Plant['gravity']>;
-          gFrac[i] = bleed * (gc[i] * freeFraction[i] * aLib[i] + gp.composite_recovery * lockedFraction[i] * aComp[i]);
-        } else if (bleed > 0.0) {
-          gFrac[i] = bleed * (this.plant.gravity as NonNullable<Plant['gravity']>).gangue_yield * cUnder[i];
+        if (discharge && gp !== null) {
+          // the unit takes its share of the mill discharge; the cyclone classifies what it leaves
+          if (spec.gravity) {
+            const take = bleed * (gc as Vec)[i];
+            gFrac[i] = take * freeFraction[i] + bleed * gp.composite_recovery * lockedFraction[i];
+            cUnder[i] = freeFraction[i] * (1.0 - take) * aLib[i] + lockedFraction[i] * (1.0 - bleed * gp.composite_recovery) * aComp[i];
+          } else {
+            const gy = bleed * gp.gangue_yield;
+            gFrac[i] = gy;
+            cUnder[i] = (1.0 - gy) * (freeFraction[i] * aLib[i] + lockedFraction[i] * aComp[i]);
+          }
+          returning[i] = cUnder[i];
+        } else {
+          cUnder[i] = freeFraction[i] * aLib[i] + lockedFraction[i] * aComp[i];
+          if (gc !== null) {
+            gFrac[i] = bleed * (gc[i] * freeFraction[i] * aLib[i] + (gp as NonNullable<Plant['gravity']>).composite_recovery * lockedFraction[i] * aComp[i]);
+          } else if (bleed > 0.0) {
+            gFrac[i] = bleed * (gp as NonNullable<Plant['gravity']>).gangue_yield * cUnder[i];
+          }
+          returning[i] = cUnder[i] - gFrac[i];
         }
       }
-      const returning = new Float64Array(n);
-      for (let i = 0; i < n; i += 1) returning[i] = cUnder[i] - gFrac[i];
       const p = solve(minusDiagonal(this.operators[m].inverse(energyPerPass), returning), this.feed[m]);
       const u = new Float64Array(n);
       const gv = new Float64Array(n);
       const o = new Float64Array(n);
-      for (let i = 0; i < n; i += 1) { u[i] = cUnder[i] * p[i]; gv[i] = gFrac[i] * p[i]; o[i] = p[i] - u[i]; }
+      for (let i = 0; i < n; i += 1) {
+        u[i] = cUnder[i] * p[i]; gv[i] = gFrac[i] * p[i];
+        o[i] = this.atDischarge ? p[i] - gv[i] - u[i] : p[i] - u[i];
+      }
       product[m] = p; under[m] = u; grav[m] = gv; over[m] = o;
       if (c > 0.0) {
         for (let i = 0; i < n; i += 1) {
           demand[i] += (1.0 - lib[i]) * p[i] * (1.0 - c) / c;
-          hostSource[i] += (1.0 - rf) * lockedFraction[i] * p[i] * (1.0 - c) / c * (yComp[i] - yHost[i]);
+          const compositeHost = (1.0 - rf) * lockedFraction[i] * p[i] * (1.0 - c) / c * (yComp[i] - yHost[i]);
+          hostSource[i] += this.atDischarge ? compositeHost * survive : compositeHost;
         }
       }
     }
@@ -186,7 +231,8 @@ export class GrindingCircuit {
         c0[i] = rf + (1.0 - rf) * y[i];
         returning[i] = (1.0 - gYield) * c0[i];
         const source = m === ore.host ? hostSource[i] : 0.0;
-        rhs[i] = this.feed[m][i] + (1.0 - gYield) * source;
+        // at the discharge the unit's gangue yield leaves the mill discharge and the whole underflow returns
+        rhs[i] = this.atDischarge ? this.feed[m][i] + source : this.feed[m][i] + (1.0 - gYield) * source;
       }
       const p = solve(minusDiagonal(this.operators[m].inverse(energyPerPass), returning), rhs);
       const u = new Float64Array(n);
@@ -194,9 +240,15 @@ export class GrindingCircuit {
       const o = new Float64Array(n);
       for (let i = 0; i < n; i += 1) {
         const source = m === ore.host ? hostSource[i] : 0.0;
-        u[i] = c0[i] * p[i] + source;
-        gv[i] = gYield * u[i];
-        o[i] = p[i] - u[i];
+        if (this.atDischarge) {
+          u[i] = (1.0 - gYield) * c0[i] * p[i] + source;
+          gv[i] = gYield * p[i];
+          o[i] = p[i] - gv[i] - u[i];
+        } else {
+          u[i] = c0[i] * p[i] + source;
+          gv[i] = gYield * u[i];
+          o[i] = p[i] - u[i];
+        }
       }
       product[m] = p; under[m] = u; grav[m] = gv; over[m] = o;
     }
@@ -236,7 +288,8 @@ export class GrindingCircuit {
     const sharp = this.plant.cyclone.sharpness;
     const out: Species = {};
     for (const d of defs) {
-      const y = reducedPartition(correctedCut(cut, this.rhoHost, d.density), sharp);
+      const exponent = d.kind === 'liberated' ? this.exponent(d.mineral) : 0.5;
+      const y = reducedPartition(correctedCut(cut, this.rhoHost, d.density, exponent), sharp);
       const v = new Float64Array(y.length);
       for (let i = 0; i < y.length; i += 1) v[i] = rf + (1.0 - rf) * y[i];
       out[d.id] = v;
@@ -375,11 +428,19 @@ export class GrindingCircuit {
     const sumpAddition = waterCycloneFeed - waterMillDischarge;
     if (millAddition < 0.0) this.flags.add('mill_water_negative', 'The recycled underflow carries more water than the declared mill discharge density allows.');
     if (sumpAddition < 0.0) this.flags.add('sump_water_negative', 'The declared mill discharge is wetter than the cyclone feed; no sump dilution is possible.');
+    const discharge = this.atDischarge && this.bleed > 0.0;
+    // at the discharge the unit's tails rejoin the cyclone feed and the whole underflow returns
     const recycle: ByMineral = {};
+    const cycloneSolids: ByMineral = {};
     for (const m of ore.ids) {
       const v = new Float64Array(n);
-      for (let i = 0; i < n; i += 1) v[i] = r.underflow[m][i] - r.gravity[m][i];
+      const c = new Float64Array(n);
+      for (let i = 0; i < n; i += 1) {
+        v[i] = discharge ? r.underflow[m][i] : r.underflow[m][i] - r.gravity[m][i];
+        c[i] = discharge ? r.product[m][i] - r.gravity[m][i] : r.product[m][i];
+      }
       recycle[m] = v;
+      cycloneSolids[m] = c;
     }
     const pick = (source: ByMineral, fn?: (m: string, i: number) => number) => {
       const out: ByMineral = {};
@@ -394,26 +455,35 @@ export class GrindingCircuit {
       new_feed: new Stream(pick(this.feed), 0.0),
       mill_feed: new Stream(pick(this.feed, (m, i) => this.feed[m][i] + recycle[m][i]), waterMillDischarge),
       mill_discharge: new Stream(pick(r.product), waterMillDischarge),
-      cyclone_feed: new Stream(pick(r.product), waterCycloneFeed),
+      cyclone_feed: new Stream(pick(cycloneSolids), waterCycloneFeed),
       cyclone_underflow: new Stream(pick(r.underflow), this.waterUnder),
       cyclone_overflow: new Stream(pick(r.overflow), this.waterOver),
       recycle: new Stream(recycle, this.waterUnder),
     };
-    if (this.bleed > 0.0) {
+    if (discharge) {
+      streams.gravity_feed = new Stream(pick(r.product, (m, i) => this.bleed * r.product[m][i]), this.bleed * waterMillDischarge);
+      streams.gravity_concentrate = new Stream(pick(r.gravity), 0.0);
+      streams.sump_feed = new Stream(pick(cycloneSolids), waterMillDischarge);
+    } else if (this.bleed > 0.0) {
       streams.gravity_feed = new Stream(pick(r.underflow, (m, i) => this.bleed * r.underflow[m][i]), this.bleed * this.waterUnder);
       streams.gravity_concentrate = new Stream(pick(r.gravity), 0.0);
     }
     const totalOver = g.zeros();
     for (const mass of Object.values(r.overflow)) for (let i = 0; i < n; i += 1) totalOver[i] += mass[i];
     let solidsVolume = 0.0;
-    for (const m of ore.ids) solidsVolume += vsum(r.product[m]) / ore.density[m];
-    const rhoMean = millSolids / solidsVolume;
+    for (const m of ore.ids) solidsVolume += vsum(cycloneSolids[m]) / ore.density[m];
+    let cycloneSolidsTph = millSolids;
+    if (discharge) {
+      cycloneSolidsTph = 0.0;
+      for (const v of Object.values(cycloneSolids)) cycloneSolidsTph += vsum(v);
+    }
+    const rhoMean = cycloneSolidsTph / solidsVolume;
     const sizing = sizeCluster(plant.cyclone, correctedCut(cut, this.rhoHost, rhoMean), solidsVolume,
-      waterCycloneFeed / waterDensity, millSolids, waterCycloneFeed);
+      waterCycloneFeed / waterDensity, cycloneSolidsTph, waterCycloneFeed);
     const sharp = plant.cyclone.sharpness;
     const withBypass = (y: Vec) => Array.from(y, v => this.bypass + (1.0 - this.bypass) * v);
     const partition: Record<string, number[]> = { host: withBypass(reducedPartition(cut, sharp)) };
-    for (const m of ore.valuable) partition[m] = withBypass(reducedPartition(correctedCut(cut, this.rhoHost, ore.density[m]), sharp));
+    for (const m of ore.valuable) partition[m] = withBypass(reducedPartition(correctedCut(cut, this.rhoHost, ore.density[m], this.exponent(m)), sharp));
     const gold = ore.valuable.filter(m => ore.spec[m].gravity);
     let goldCl: number | null = null;
     if (gold.length > 0) {
@@ -423,7 +493,7 @@ export class GrindingCircuit {
       goldCl = feedGold > 0.0 ? underGold / feedGold : 0.0;
     }
     const defs = speciesDefs(ore);
-    const productSpecies = toSpecies(new Stream(r.product, 0.0), ore, defs);
+    const productSpecies = toSpecies(new Stream(cycloneSolids, 0.0), ore, defs);
     const overflowSpecies = partitionSpecies(productSpecies, this.speciesUnderflow(cut, defs))[1];
     const rebuilt = toMinerals(overflowSpecies, defs, ore);
     let scale = 0.0;

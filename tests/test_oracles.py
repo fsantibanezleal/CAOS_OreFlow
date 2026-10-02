@@ -56,11 +56,27 @@ def test_gmg_examples():
     assert [round(r["engine_operating_work_index_kwh_t"], 1) for r in record["examples"]] == [14.4, 11.7]
 
 
-def test_laplante_trend():
-    # gravity gold recovery rises with the fraction of underflow treated, with diminishing returns, and
-    # gold circulating load far exceeds the ore's, as in the Laplante and Staunton simulator example
+def test_laplante_like_for_like():
+    """E-11: the published simulator example run like for like, with the tolerances set before the first run. The
+    declared run (Snip's measured GRG) misses: even a perfect unit leaves the GRG recovery 5 to 10 points low, because
+    GRG finer than about 37 um escapes the cyclone. Without the GRG finer than 25 um the printed recovery returns
+    within about a point from the 20% row on. The record says which, and the trends and the shape check hold."""
     record = oracles.laplante()
-    assert record["rising"] and record["diminishing"] and record["gold_above_ore"]
+    pub, e, w = record["published"], record["engine"], record["without_grg_below_25um"]
+    assert pub["grg_circulating_load_pct"] == [2016.31, 1125.32, 784.35, 602.84, 511.11, 412.63]
+    assert pub["bleed_stream"] == "mill_discharge"
+    tol = record["tolerance"]
+    for series in (e, w):
+        stated = (all(abs(x) <= tol["grg_recovery_points"] for x in series["grg_recovery_difference_points"])
+                  and all(abs(x) <= tol["grg_circulating_load_relative"] for x in series["grg_circulating_load_relative_error"]))
+        assert series["within_tolerance"] == stated
+    assert e["fit_at_bound"] and e["max_recovery"] == 1.0
+    assert all(-11.0 < x < -5.0 for x in e["grg_recovery_difference_points"])
+    assert not w["fit_at_bound"] and all(abs(x) < 1.5 for x in w["grg_recovery_difference_points"][1:])
+    assert all(abs(x - q) < 1.5 for x, q in zip(e["discharge_grg_below_150um_pct"], pub["discharge_grg_below_150um_pct"]))
+    assert record["rising"] and record["diminishing"] and record["grg_above_ore_without_gravity"]
+    for x, q in zip(e["gold_recovery_pct"], e["grg_recovery_pct"]):
+        assert x == pytest.approx(pub["grg_share_of_gold"] * q, abs=0.05)   # plus the pyrite gold in the unit's gangue yield
 
 
 def test_zandrivierspoort_trend():
@@ -70,3 +86,10 @@ def test_zandrivierspoort_trend():
     coarse, fine = record["engine"]["concentrate_fe_pct"]
     assert record["finer_grind_raises_grade"] and fine - coarse > 1.5
     assert 62.0 < coarse < 67.0 and 66.0 < fine < 71.0
+    # E-10: the gap, the silica and the rougher stage at 75 um are recorded; the 45 um point is a regrind product
+    assert record["gap_fe_pct_points"] == [e - q for e, q in zip(record["engine"]["concentrate_fe_pct"], record["published"]["concentrate_fe_pct"])]
+    silica = record["engine"]["concentrate_silica_pct"]
+    assert silica[1] < silica[0]
+    rougher = record["engine"]["rougher_75"]
+    assert 90.0 < rougher["magnetite_recovery_pct"] <= 100.0 and rougher["concentrate_fe_pct"] < coarse
+    assert "regrind" in record["published"]["grinds"][1] and record["published"]["grind_75_passing_pct"] == 66.8

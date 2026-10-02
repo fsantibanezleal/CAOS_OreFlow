@@ -131,6 +131,17 @@ def resolve(ore: Ore, op: OperatingPoint) -> ResolvedOre:
         raise ValueError("declared and derived mineral fractions exceed the ore")
     fraction[balance[0]] = remainder
     g = grid()
+    for m in ids:
+        grains = spec[m].grains
+        if grains is None:
+            continue
+        # gravity-recoverable grains enter liberated with their own sizes (E-11): no liberation curve, no composites
+        if spec[m].liberation_size_um > 0.0 or spec[m].composite_content > 0.0:
+            raise ValueError(f"{m}: declared grains are liberated; a liberation size or composites cannot apply")
+        sizes, passing = grains.size_um, grains.passing
+        if (len(sizes) != len(passing) or any(b >= a for a, b in zip(sizes, sizes[1:])) or passing[0] != 1.0
+                or any(b > a for a, b in zip(passing, passing[1:])) or passing[-1] < 0.0 or not 0.0 < grains.lower_um < sizes[-1]):
+            raise ValueError(f"{m}: grains need descending sizes, all passing the first, non-increasing passing and a lower size below the last")
     liberation = {}
     for m in valuable:
         s = spec[m]

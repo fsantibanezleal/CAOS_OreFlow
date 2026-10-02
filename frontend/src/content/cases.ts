@@ -98,21 +98,21 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   gold_free_milling: {
     problem: [
-      { en: 'Cyclones send free gold to the underflow at sizes far finer than the gangue, so it circulates in the grinding loop at many times the ore circulating load, and flotation then takes the gold carried by pyrite.',
-        es: 'Los ciclones envían el oro libre al underflow a tamaños mucho más finos que la ganga, por lo que circula en la molienda a muchas veces la carga circulante del mineral, y la flotación toma luego el oro contenido en la pirita.' },
-      { en: 'Plant audits measured about 90% of the underflow gold as gravity recoverable, and a published simulator example shows gold recovery rising with the share of underflow treated while the gold circulating load falls. The case asks how much a bleed is worth.',
-        es: 'Auditorías de planta midieron cerca de 90% del oro del underflow como recuperable por gravedad, y un ejemplo de simulador publicado muestra la recuperación de oro subiendo con la fracción de underflow tratada mientras cae la carga circulante de oro. El caso pregunta cuánto vale una purga.' },
+      { en: 'Cyclones send gravity-recoverable gold (GRG) to the underflow at sizes several times finer than the gangue, so it circulates in the grinding loop at many times the ore circulating load, and flotation then takes the gold carried by pyrite.',
+        es: 'Los ciclones envían el oro recuperable por gravedad (GRG) a la descarga a tamaños varias veces más finos que la ganga, por lo que circula en la molienda a muchas veces la carga circulante del mineral, y la flotación toma luego el oro contenido en la pirita.' },
+      { en: 'Plant audits measure about 90% of the underflow gold as gravity recoverable, and plants recover about a third to two thirds of their GRG by gravity. The case asks how much a bleed is worth.',
+        es: 'Las auditorías de planta miden cerca de 90% del oro de la descarga como recuperable por gravedad, y las plantas recuperan por gravedad entre un tercio y dos tercios de su GRG. El caso pregunta cuánto vale una purga.' },
     ],
     scope: [
-      { en: 'Gold is a species with its own density, slow breakage and a size window for gravity capture; composites and gangue report to the gravity concentrate at small fixed yields.', es: 'El oro es una especie con su propia densidad, fractura lenta y una ventana de tamaños para la captura gravimétrica; mixtos y ganga reportan al concentrado gravimétrico con rendimientos pequeños y fijos.' },
-      { en: 'The gravity model is checked against the direction of the Laplante simulator example, not calibrated to a plant.', es: 'El modelo gravimétrico se contrasta con la tendencia del ejemplo de simulador de Laplante, no se calibra a una planta.' },
+      { en: '45% of the gold is GRG with Snip\'s measured sizes (Vincent 1997), an extremely fine vector; it breaks at Banisi\'s slower rate and classifies with the density exponent fitted to measured GRG partitions. The other 55% is carried in pyrite.', es: '45% del oro es GRG con los tamaños medidos en Snip (Vincent 1997), un vector muy fino; se fractura al ritmo más lento de Banisi y se clasifica con el exponente de densidad ajustado a particiones de GRG medidas. El otro 55% va en la pirita.' },
+      { en: 'The unit treats 10% of the underflow and recovers up to 70% per pass, slightly less below 37 µm; these are authored, anchored to Camchib and Meston. At the nominal state it recovers 60% of the GRG, 27% of all the gold. The model is checked against the published simulator example on the Benchmark, not calibrated to a plant.', es: 'La unidad trata 10% de la descarga y recupera hasta 70% por pasada, algo menos bajo 37 µm; son valores de autor, anclados a Camchib y Meston. En el estado nominal recupera 60% del GRG, 27% de todo el oro. El modelo se contrasta con el ejemplo de simulador publicado en el Benchmark, no se calibra a una planta.' },
     ],
     read: [
       { en: 'Circuit: the gravity unit sits on the underflow return; its concentrate is a product and its tail returns to the mill.', es: 'Circuito: la unidad gravimétrica está sobre el retorno del underflow; su concentrado es un producto y su relave vuelve al molino.' },
-      { en: 'Separation: the gravity and flotation recoveries are reported separately, with the gold circulating load.', es: 'Separación: las recuperaciones gravimétrica y de flotación se informan por separado, con la carga circulante de oro.' },
+      { en: 'Separation: the gravity and flotation recoveries are reported separately, with the GRG recovery and the GRG circulating load.', es: 'Separación: las recuperaciones gravimétrica y de flotación se informan por separado, con la recuperación de GRG y la carga circulante de GRG.' },
       { en: 'Response: sweep the gravity bleed to see recovery saturate.', es: 'Respuesta: barra la purga gravimétrica para ver cómo se satura la recuperación.' },
     ],
-    refs: ['laplante-staunton', 'laplante2005', 'plitt1976'],
+    refs: ['laplante-staunton', 'laplante2005', 'vincent1997', 'laplante-grg-test', 'plitt1976'],
   },
   iron_magnetite_fine: {
     problem: [

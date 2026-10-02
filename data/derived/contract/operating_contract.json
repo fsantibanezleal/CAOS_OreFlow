@@ -599,7 +599,7 @@
     "collector_gpt": 40.0,
     "jg_cm_s": 1.4,
     "rougher_cells": 7,
-    "gravity_bleed": 0.3,
+    "gravity_bleed": 0.1,
     "deslime_cut_um": 0.0,
     "d50c_um": 0.0
    },
@@ -671,12 +671,12 @@
      "unit": "1"
     },
     "d50c_um": {
-     "min": 103.080171284,
-     "max": 206.160342569,
-     "step": 1.28850214106,
+     "min": 103.094353581,
+     "max": 206.188707162,
+     "step": 1.28867941976,
      "unit": "um",
      "off": 0.0,
-     "reference": 128.85021410551468
+     "reference": 128.86794197621327
     }
    }
   },
@@ -1813,5 +1813,5 @@
    2.089063508436509e-101
   ]
  },
- "digest": "ef4deff1b2f963d2969dfded459e4503fff25757cc3779bdcbf7f95644e768a3"
+ "digest": "dbeb20842d2c693bd19a1b8b288f8cf93b68c0f7bfc58822446f50b4b73bb2de"
 }

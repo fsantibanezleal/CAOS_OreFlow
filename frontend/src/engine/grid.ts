@@ -60,6 +60,30 @@ export class SizeGrid {
     return this.percentile(mass, constant('psd.p80_level'));
   }
 
+  /** Class mass fractions of a distribution declared as cumulative passing at descending sieves (grid.py from_passing). */
+  fromPassing(sizeUm: number[], passing: number[], lowerUm: number): Vec {
+    const last = sizeUm.length - 1;
+    const logSizes = sizeUm.map(Math.log).reverse();
+    const cumReversed = [...passing].reverse();
+    const logLast = Math.log(sizeUm[last]);
+    const logLower = Math.log(lowerUm);
+    const cumulative = new Float64Array(this.n);
+    for (let i = 0; i < this.n; i += 1) {
+      const u = this.upper[i];
+      if (u >= sizeUm[0]) cumulative[i] = 1.0;
+      else if (u <= lowerUm) cumulative[i] = 0.0;
+      else if (u <= sizeUm[last]) cumulative[i] = passing[last] * (Math.log(u) - logLower) / (logLast - logLower);
+      else cumulative[i] = interp(Math.log(u), logSizes, cumReversed);
+    }
+    const mass = new Float64Array(this.n);
+    for (let i = 0; i < this.n - 1; i += 1) mass[i] = cumulative[i] - cumulative[i + 1];
+    mass[this.n - 1] = cumulative[this.n - 1];
+    let total = 0.0;
+    for (let i = 0; i < this.n; i += 1) total += mass[i];
+    for (let i = 0; i < this.n; i += 1) mass[i] /= total;
+    return mass;
+  }
+
   /** Class mass fractions of a Rosin-Rammler distribution with the given P80. */
   rosinRammler(p80Um: number, slope: number): Vec {
     const level = constant('psd.p80_level');
@@ -75,6 +99,17 @@ export class SizeGrid {
     for (let i = 0; i < this.n; i += 1) mass[i] /= total;
     return mass;
   }
+}
+
+/** numpy.interp for increasing `xp`: constant outside the table, linear inside. */
+export function interp(x: number, xp: number[], fp: number[]): number {
+  const last = xp.length - 1;
+  if (x <= xp[0]) return fp[0];
+  if (x >= xp[last]) return fp[last];
+  let j = 0;
+  while (x >= xp[j + 1]) j += 1;
+  const slope = (fp[j + 1] - fp[j]) / (xp[j + 1] - xp[j]);
+  return slope * (x - xp[j]) + fp[j];
 }
 
 let shared: SizeGrid | null = null;

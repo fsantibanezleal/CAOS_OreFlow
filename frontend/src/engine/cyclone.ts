@@ -8,9 +8,11 @@ import { grid, type Vec } from './grid';
 import type { Cyclone } from './model';
 import { roundHalfEven } from './roots';
 
-export function correctedCut(d50Ref: number, rhoRef: number, rho: number): number {
+/** The cut of a particle of density `rho` given the reference density's; Stokes' 0.5 unless the GRG exponent applies (E-11). */
+export function correctedCut(d50Ref: number, rhoRef: number, rho: number, exponent = 0.5): number {
   const water = constant('water.density_t_m3');
-  return d50Ref * Math.sqrt((rhoRef - water) / (rho - water));
+  const ratio = (rhoRef - water) / (rho - water);
+  return d50Ref * (exponent === 0.5 ? Math.sqrt(ratio) : Math.pow(ratio, exponent));
 }
 
 /** Corrected (bypass-free) fraction of each class reporting to underflow. */

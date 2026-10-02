@@ -117,6 +117,18 @@ export function resolve(ore: Ore, op: OperatingPoint): ResolvedOre {
   if (remainder <= 0.0) throw new Error('declared and derived mineral fractions exceed the ore');
   fraction[balance[0]] = remainder;
   const g = grid();
+  for (const m of ids) {
+    const grains = spec[m].grains ?? null;
+    if (grains === null) continue;
+    // gravity-recoverable grains enter liberated with their own sizes (E-11): no liberation curve, no composites
+    if (spec[m].liberation_size_um > 0.0 || spec[m].composite_content > 0.0) {
+      throw new Error(`${m}: declared grains are liberated; a liberation size or composites cannot apply`);
+    }
+    const sizes = grains.size_um, passing = grains.passing;
+    let bad = sizes.length !== passing.length || passing[0] !== 1.0 || passing[passing.length - 1] < 0.0 || !(0.0 < grains.lower_um && grains.lower_um < sizes[sizes.length - 1]);
+    for (let i = 1; i < sizes.length; i += 1) if (sizes[i] >= sizes[i - 1] || passing[i] > passing[i - 1]) bad = true;
+    if (bad) throw new Error(`${m}: grains need descending sizes, all passing the first, non-increasing passing and a lower size below the last`);
+  }
   const liberation: Record<string, Vec> = {};
   for (const m of valuable) {
     const s = spec[m];

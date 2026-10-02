@@ -168,8 +168,16 @@
     "tolerance_abs_kwh_t": 0.05
   },
   "laplante": {
-    "source": "Laplante and Staunton, gravity recovery of gold, simulator example (AMIRA P420B); dossier section 4.",
+    "source": "Laplante and Staunton, Gravity recovery of gold, an overview of recent developments (AMIRA P420B), Figures 10 and 11, read from the images; the GRG model of Laplante, Woodcock and Noaparast (1995) as Vincent (1997, McGill M.Eng. thesis, chapter 5) states it; Snip's measured GRG by size from Vincent's Table 5.1. Gravity research note of 2026-10-02, sections 7 and 8.",
     "published": {
+      "feed_tph": 150.0,
+      "ore_sg": 2.8,
+      "head_grade_gpt": 2.0,
+      "p80_um": 75.0,
+      "circulating_load": 2.5,
+      "cyclone_feed_solids": 0.6,
+      "overflow_solids": 0.4,
+      "underflow_solids": 0.75,
       "bleed": [
         0.1,
         0.2,
@@ -178,27 +186,116 @@
         0.5,
         0.6
       ],
+      "bleed_stream": "mill_discharge",
+      "gravity_feed_tph": [
+        53.0,
+        105.0,
+        158.0,
+        210.0,
+        263.0,
+        315.0
+      ],
+      "units": [
+        "Knelson XT30",
+        "Knelson XT48",
+        "Knelson XT48",
+        "Knelson XT48",
+        "Knelson XT48",
+        "Knelson XT70"
+      ],
+      "grg_recovery_pct": [
+        79.78,
+        88.28,
+        91.79,
+        93.74,
+        94.75,
+        95.85
+      ],
       "gold_recovery_pct": [
-        64.1,
-        71.0,
+        64.14,
+        70.97,
         73.8,
-        75.4,
-        76.2,
-        77.1
+        75.37,
+        76.18,
+        77.07
       ],
       "grg_circulating_load_pct": [
-        2016.0,
-        1125.0,
-        784.0,
-        683.0,
-        511.0,
-        413.0
-      ]
+        2016.31,
+        1125.32,
+        784.35,
+        602.84,
+        511.11,
+        412.63
+      ],
+      "discharge_grg_below_150um_pct": [
+        88.09,
+        87.77,
+        87.72,
+        87.71,
+        87.72,
+        87.73
+      ],
+      "grg_share_of_gold": 0.804,
+      "audit": {
+        "underflow_au_gpt": 28.9,
+        "underflow_grg_share": 0.903,
+        "overflow_au_gpt": 2.29,
+        "overflow_grg_share": 0.558
+      }
     },
-    "why": "A trend oracle: the published plant (150 t/h, 2.0 g/t, 250% circulating load) is not the engine's gold case, so the check is the direction and the diminishing returns, and that gold circulates far more than the ore."
+    "grg": {
+      "size_um": [
+        850.0,
+        600.0,
+        420.0,
+        300.0,
+        212.0,
+        150.0,
+        105.0,
+        75.0,
+        53.0,
+        38.0,
+        25.0
+      ],
+      "class_pct_of_gold": [
+        0.0,
+        0.4,
+        0.4,
+        1.4,
+        2.6,
+        4.6,
+        6.4,
+        7.8,
+        8.3,
+        7.7,
+        6.3,
+        11.8
+      ],
+      "lower_um": 10.0,
+      "why": "The published example's GRG by size is not printed (only 87.7% of the discharge GRG below 150 um). The oracle declares Snip's measured GRG (Vincent 1997, Table 5.1, the second test), which Vincent calls extremely fine; its -25 um class spreads log-uniformly over 10 to 25 um, the laboratory Knelson's lower limit."
+    },
+    "authored": {
+      "ore": "Quartz with 60% silicate_fe and 2% pyrite (SG 2.79); 80.4% of the gold as GRG, the rest in pyrite. The mill, fresh feed and cyclone sharpness are the gold case's; installed power is unlimited so the solver meets the published P80 and load.",
+      "unit_size_scale_um": 20.0
+    },
+    "fit": {
+      "parameter": "max_recovery",
+      "row": 0.3,
+      "bounds": [
+        0.05,
+        1.0
+      ],
+      "why": "The Knelson's maximum recovery per pass is fitted at the printed 30% row and labelled fitted; the other rows are predictions."
+    },
+    "tolerance": {
+      "grg_recovery_points": 5.0,
+      "grg_circulating_load_relative": 0.35
+    },
+    "tolerance_basis": "Set in the research note before the first run (2026-10-02, section 8); a miss is recorded, not tuned away.",
+    "why": "Until 0.08.000 this was a trend oracle comparing the gold case's recovery of all its gold with the published GRG figures. It now runs the published example's inputs with an ore of 80.4% GRG and compares GRG recovery and GRG circulating load at each bleed."
   },
   "zandrivierspoort": {
-    "source": "Muthaphuli, P. (2014), Production of pelletizing concentrates from Zandrivierspoort magnetite/haematite ore by magnetic separation, J. S. Afr. Inst. Min. Metall. 114(7); dossier section 5.",
+    "source": "Muthaphuli, P. (2014), Production of pelletizing concentrates from Zandrivierspoort magnetite/haematite ore by magnetic separation, J. S. Afr. Inst. Min. Metall. 114(7), read on scielo.org.za.",
     "published": {
       "grind_p80_um": [
         75.0,
@@ -212,8 +309,17 @@
         7.7,
         2.25
       ],
-      "rougher_magnetite_recovery_min_pct": 98.0
+      "grind_75_passing_pct": 66.8,
+      "grinds": [
+        "The ball-mill circuit targeted 80% passing 75 um and reached only 66.8% (an in-house screen); the concentrate came from rougher, cleaner and recleaner LIMS stages.",
+        "The 75 um concentrate was IsaMilled to 80% passing 45 um and cleaned in three LIMS stages: a regrind product, not a finer primary grind."
+      ],
+      "rougher_75": {
+        "magnetite_recovery_pct": 98.1,
+        "concentrate_fe_pct": 63.8,
+        "concentrate_silica_pct": 9.0
+      }
     },
-    "why": "A trend oracle: the published ore is magnetite with haematite; the engine's case is magnetite in an iron silicate, so the check is that a finer grind raises the concentrate grade within the published range."
+    "why": "A trend oracle: the published ore is magnetite with haematite, and the engine's case is magnetite in an iron silicate. The engine reaches 45 um by a finer primary grind with two drums, where the published product is a regrind with three cleaning stages, and its 75 um grind is finer than the published one. The direction and the size of the grade step are compared, the levels and the silica are shown beside them, and the rougher stage is compared at 75 um only, the one campaign that had it."
   }
 }
