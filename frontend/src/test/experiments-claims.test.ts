@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { VARIANT_KINDS } from '../content/design';
+import { kpiMargin } from '../lib/format';
 
 // The Experiments page states the design, the protocols and what every variant did; each of those
 // statements is checked here against the committed artifacts, so a bake that changes a factor, a count
@@ -13,7 +14,7 @@ const read = <T>(path: string): T => JSON.parse(readFileSync(join(derived, path)
 
 type Metrics = Record<string, number | boolean | string[]>;
 const benchmark = read<{
-  cases: Array<{ case_id: string; family: string; kpis: Record<string, { within: boolean }>; variants: Record<string, Metrics> }>;
+  cases: Array<{ case_id: string; family: string; kpis: Record<string, { within: boolean; value: number; range: number[] }>; variants: Record<string, Metrics> }>;
   kinetics: Record<string, { fits: number; converged_share: number }>;
   optimization: Record<string, Record<string, { decisions: Record<string, number> | null }>>;
 }>('benchmark.json');
@@ -84,6 +85,20 @@ describe('the Experiments page says what the bake did', () => {
       expect(c.variants.nominal.power_limited, c.case_id).toBe(false);
       for (const [key, kpi] of Object.entries(c.kpis)) expect(kpi.within, `${c.case_id}:${key}`).toBe(true);
     }
+  });
+
+  // E-12: "several within a point of a bound" and "most cases leave a range under at least one variant"
+  it('several checks sit within a point of a bound and most cases leave a range under a variant', () => {
+    const all = benchmark.cases.flatMap(c => Object.values(c.kpis));
+    expect(all.filter(k => kpiMargin(k.value, k.range).margin < 1).length).toBeGreaterThanOrEqual(3);
+    const leaving = benchmark.cases.filter(c => Object.entries(c.variants).some(([id, v]) => id !== 'nominal'
+      && (['recovery_pct', 'concentrate_grade'] as const).some(key => {
+        const kpi = c.kpis[key];
+        const x = v[key] as number;
+        return kpi && (x < kpi.range[0] || x > kpi.range[1]);
+      })));
+    expect(leaving.length).toBeGreaterThan(benchmark.cases.length / 2);
+    expect(kpiMargin(20.79, [15, 21])).toEqual({ margin: expect.closeTo(0.21, 9), floor: false });
   });
 
   it('harder ore: installed power everywhere, coarser product, more energy, lower grade; recovery falls except in magnetite', () => {

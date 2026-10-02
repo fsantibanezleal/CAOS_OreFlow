@@ -22,6 +22,38 @@ def test_collector_trades_grade_for_recovery(case_id):
     assert grades[2] < grades[0]
 
 
+def test_head_grade_direction():
+    """E-13: the direction the Methodology states, between each case's head-grade bounds in the contract: recovery falls
+    in nine cases (the zinc most), is flat in the two gold cases and rises in the magnetite case."""
+    from pipeline.io.contract import build_contract
+
+    bounds = build_contract()["cases"]
+    change = {}
+    for case_id, case in CASE_BY_ID.items():
+        b = bounds[case_id]["inputs"]["head_grade"]
+        r = [run_point(case_id, case.nominal.with_values(head_grade=g)).metrics["recovery_pct"] for g in (b["min"], b["max"])]
+        change[case_id] = r[1] - r[0]
+    flat = sorted(c for c, d in change.items() if abs(d) < 0.05)
+    assert flat == ["gold_free_milling", "refractory_gold"]
+    assert [c for c, d in change.items() if d >= 0.05] == ["iron_magnetite_fine"]
+    falls = {c: d for c, d in change.items() if d <= -0.05}
+    assert len(falls) == 9
+    assert min(falls, key=falls.get) == "zinc_sulfide" and round(-falls["zinc_sulfide"], 1) == 6.3
+
+
+def test_installed_power_margin():
+    """E-14: installed power is authored 1.02 to 1.20 times each nominal requirement, so every +25% variant is limited."""
+    ratios = {}
+    for case_id in CASE_BY_ID:
+        m = run_variant(case_id, "nominal").metrics
+        ratios[case_id] = m["installed_mill_power_kw"] / m["required_mill_power_kw"]
+    assert round(min(ratios.values()), 2) == 1.02 and min(ratios, key=ratios.get) == "copper_porphyry_hard"
+    assert round(max(ratios.values()), 2) == 1.20 and max(ratios, key=ratios.get) == "copper_oxide"
+    others = [r for c, r in ratios.items() if c not in ("copper_porphyry_hard", "copper_oxide")]
+    assert 1.115 <= min(others) and max(others) <= 1.135
+    assert max(ratios.values()) < 1.25
+
+
 @pytest.mark.parametrize("case_id", NO_SLIMES_REJECTION + ["iron_magnetite_fine"])
 def test_hardness_effects(case_id):
     case = CASE_BY_ID[case_id]

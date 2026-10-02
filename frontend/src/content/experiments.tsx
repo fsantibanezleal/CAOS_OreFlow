@@ -10,7 +10,7 @@ import type uPlot from 'uplot';
 import { Chart } from '../components/charts/Chart';
 import { loadBenchmark, loadContract, loadIndex } from '../lib/artifacts';
 import type { Benchmark } from '../lib/artifacts.types';
-import { formatFixed, formatRange, formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
+import { formatFixed, formatRange, formatValue, formatWithUnit, kpiMargin, unitLabel, type Lang } from '../lib/format';
 import { metricLabel } from '../lib/i18n';
 import { Loaded, useArtifact } from './data';
 import { VARIANT_KINDS } from './design';
@@ -174,6 +174,14 @@ const TEXT = {
     en: (n: number, cited: number, bound: number, authored: number) => `Of the ${n} ranges, ${cited} come from a cited source, ${bound} from a cited source with an authored or unverified bound, and ${authored} are authored.`,
     es: (n: number, cited: number, bound: number, authored: number) => `De los ${n} rangos, ${cited} vienen de una fuente citada, ${bound} de una fuente citada con un límite de autor o sin verificar, y ${authored} son de autor.`,
   },
+  margin: { en: 'Margin to the nearer bound', es: 'Margen al límite más cercano' },
+  pts: { en: 'points', es: 'puntos' },
+  overFloor: { en: 'above the floor', es: 'sobre el mínimo' },
+  underCeiling: { en: 'below the ceiling', es: 'bajo el máximo' },
+  kpiMargins: {
+    en: (near: number, n: number, outside: number, states: number, cases: number, total: number) => `${near} of the ${n} checks lie within one point of a bound. Of the ${states} variant states, ${outside} leave the recovery or grade range of their case, in ${cases} of the ${total} cases.`,
+    es: (near: number, n: number, outside: number, states: number, cases: number, total: number) => `${near} de las ${n} verificaciones quedan a menos de un punto de un límite. De los ${states} estados de variante, ${outside} salen del rango de recuperación o de ley de su caso, en ${cases} de los ${total} casos.`,
+  },
   points: { en: 'change (percentage points)', es: 'cambio (puntos porcentuales)' },
   relative: { en: 'change relative to nominal (%)', es: 'cambio relativo al nominal (%)' },
   absolute: { en: 'change', es: 'cambio' },
@@ -222,18 +230,30 @@ function KpiTable({ lang }: { lang: Lang }) {
         // T-02: the counts are the record's, never typed
         const all = benchmark.value!.cases.flatMap(c => Object.values(c.kpis));
         const count = (basis: string) => all.filter(k => k.basis === basis).length;
+        // E-12: the margins and the variants that leave a range, read from the record (the variant states carry the
+        // recovery and the grade, not the secondary checks)
+        const near = all.filter(k => kpiMargin(k.value, k.range).margin < 1).length;
+        const states = benchmark.value!.cases.flatMap(c => Object.entries(c.variants).filter(([id]) => id !== 'nominal').map(([, v]) => ({ c, v })));
+        const leaves = states.filter(({ c, v }) => (['recovery_pct', 'concentrate_grade'] as const).some(key => {
+          const kpi = c.kpis[key];
+          const x = v[key] as number | undefined;
+          return kpi && x != null && (x < kpi.range[0] || x > kpi.range[1]);
+        }));
+        const casesLeaving = new Set(leaves.map(({ c }) => c.case_id)).size;
         return (
         <table className="of-doc-table of-doc-table-data">
-          <caption>{`${TEXT.kpiCaption[lang]} ${TEXT.kpiCount[lang](all.length, count('cited'), count('authored_bound'), count('authored'))}`}</caption>
-          <thead><tr>{[TEXT.case, TEXT.kpi, TEXT.value, TEXT.range, TEXT.basis, TEXT.inside].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+          <caption>{`${TEXT.kpiCaption[lang]} ${TEXT.kpiCount[lang](all.length, count('cited'), count('authored_bound'), count('authored'))} ${TEXT.kpiMargins[lang](near, all.length, leaves.length, states.length, casesLeaving, benchmark.value!.cases.length)}`}</caption>
+          <thead><tr>{[TEXT.case, TEXT.kpi, TEXT.value, TEXT.range, TEXT.margin, TEXT.basis, TEXT.inside].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
           <tbody>{benchmark.value!.cases.flatMap(c => Object.entries(c.kpis).map(([key, kpi], i) => {
             const unit = key === 'concentrate_grade' ? contract.value!.cases[c.case_id].primary.unit : '%';
+            const m = kpiMargin(kpi.value, kpi.range);
             return (
               <tr key={`${c.case_id}-${key}`} className={i === 0 ? 'of-doc-group' : undefined}>
                 <th scope="row">{i === 0 ? index.value!.cases.find(e => e.case_id === c.case_id)?.title[lang] : ''}</th>
                 <td>{metricLabel(key, lang)}</td>
                 <td>{formatWithUnit(kpi.value, unit, lang)}</td>
                 <td>{formatRange(kpi.range[0], kpi.range[1], unit, lang)}</td>
+                <td>{`${formatFixed(m.margin, lang, 2)} ${unit === '%' ? TEXT.pts[lang] : unitLabel(unit)} ${m.floor ? TEXT.overFloor[lang] : TEXT.underCeiling[lang]}`}</td>
                 <td title={kpi.source?.[lang]}>{kpi.basis ? TEXT[kpi.basis][lang] : '-'}</td>
                 <td>{kpi.within ? TEXT.yes[lang] : TEXT.no[lang]}</td>
               </tr>
@@ -357,8 +377,8 @@ const METRICS: Topic = {
       es: 'Las leyes salen de las masas de minerales y los contenidos de elementos. El metal recuperado (t/h del pagable principal) es el objetivo del optimizador y la comparación más justa entre dos estados que tratan tonelajes distintos; el rendimiento en masa es la fracción de la alimentación que va al concentrado.' },
     { en: 'Specific energy is crushing plus grinding plus regrind, per tonne of ore; mill power is the grinding energy times the throughput. The Bond operating work index and its efficiency ratio are reported for the achieved reduction, and the Rittinger and Kick laws are comparisons calibrated to Bond, never added to it. Water intensity is the fresh water per tonne of ore.',
       es: 'La energía específica es chancado más molienda más remolienda, por tonelada de mineral; la potencia del molino es la energía de molienda por el tratamiento. El índice de trabajo operacional de Bond y su razón de eficiencia se informan para la reducción lograda, y las leyes de Rittinger y Kick son comparaciones calibradas con Bond, nunca sumadas a él. La intensidad de agua es el agua fresca por tonelada de mineral.' },
-    { en: 'Three constraints judge a state: the final grade at or above the case\'s specification, the required mill power at or below the installed power, and the process water within the plant\'s capacity. Each case\'s nominal results are also checked against plausibility ranges for its ore type, each taken from a cited source or labelled authored. At the nominal state no case is power-limited, and every check lies inside its range; the table reads each one, and how its range is sourced, from the precompute.',
-      es: 'Tres restricciones juzgan un estado: la ley final sobre la especificación del caso, la potencia requerida del molino bajo la instalada, y el agua de proceso dentro de la capacidad de la planta. Los resultados nominales de cada caso también se verifican frente a rangos de plausibilidad para su tipo de mineral, cada uno tomado de una fuente citada o marcado como de autor. En el estado nominal ningún caso está limitado por potencia, y cada verificación cae dentro de su rango; la tabla lee cada una, y cómo se obtuvo su rango, desde el precálculo.' },
+    { en: 'Three constraints judge a state: the final grade at or above the case\'s specification, the required mill power at or below the installed power, and the process water within the plant\'s capacity. Each case\'s nominal results are also compared with plausibility ranges for its ore type, each taken from a cited source or labelled authored. The ranges are authoring constraints, not evidence: each case\'s floatability and plant were authored so that its nominal results fall inside them. At the nominal state no case is power-limited and every check lies inside its range, several within a point of a bound, and most cases leave a range under at least one variant; the table reads each check, its margin to the nearer bound and how its range is sourced from the precompute.',
+      es: 'Tres restricciones juzgan un estado: la ley final sobre la especificación del caso, la potencia requerida del molino bajo la instalada, y el agua de proceso dentro de la capacidad de la planta. Los resultados nominales de cada caso también se comparan con rangos de plausibilidad para su tipo de mineral, cada uno tomado de una fuente citada o marcado como de autor. Los rangos son restricciones de autor, no evidencia: la flotabilidad y la planta de cada caso se escribieron para que sus resultados nominales queden dentro. En el estado nominal ningún caso está limitado por potencia y cada verificación cae dentro de su rango, varias a menos de un punto de un límite, y la mayoría de los casos sale de un rango con al menos una variante; la tabla lee cada verificación, su margen al límite más cercano y cómo se obtuvo su rango desde el precálculo.' },
     { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports an optimum only if it is feasible when simulated again from scratch, and otherwise the least-violating end point, labelled infeasible.',
       es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un óptimo solo si es factible al simularlo de nuevo desde cero, y si no, el punto final de menor violación, marcado como infactible.' },
   ],
@@ -379,12 +399,12 @@ const RESULTS: Topic = {
   id: 'responses',
   title: { en: 'What the variants did', es: 'Qué hicieron las variantes' },
   paragraphs: [
-    { en: 'Harder ore sends every case to installed power: the circuit can no longer reach its target, the product coarsens by 9 to 64 µm, specific energy rises by 0.5 to 2.5 kWh/t and concentrate grade falls in all twelve cases. Recovery falls in eleven; in the magnetite case the drums keep capturing the coarser composites, so total iron recovery rises while the grade falls.',
-      es: 'Un mineral más duro lleva cada caso a potencia instalada: el circuito ya no alcanza su objetivo, el producto engruesa entre 9 y 64 µm, la energía específica sube entre 0,5 y 2,5 kWh/t y la ley del concentrado baja en los doce casos. La recuperación baja en once; en el caso de magnetita los tambores siguen capturando los mixtos más gruesos, así que la recuperación total de hierro sube mientras la ley baja.' },
+    { en: 'Harder ore sends every case to installed power, as it must: each plant\'s installed power is authored at 1.02 to 1.20 times its nominal requirement, and a 25% higher work index asks for 25% more energy. The circuit can no longer reach its target, the product coarsens by 9 to 64 µm, specific energy rises by 0.5 to 2.5 kWh/t and concentrate grade falls in all twelve cases. Recovery falls in eleven; in the magnetite case the drums keep capturing the coarser composites, so total iron recovery rises while the grade falls.',
+      es: 'Un mineral más duro lleva cada caso a potencia instalada, como debe: la potencia instalada de cada planta es de autor, entre 1,02 y 1,20 veces su requerimiento nominal, y un índice de trabajo 25% mayor pide 25% más energía. El circuito ya no alcanza su objetivo, el producto engruesa entre 9 y 64 µm, la energía específica sube entre 0,5 y 2,5 kWh/t y la ley del concentrado baja en los doce casos. La recuperación baja en once; en el caso de magnetita los tambores siguen capturando los mixtos más gruesos, así que la recuperación total de hierro sube mientras la ley baja.' },
     { en: 'A coarser grind target saves 1.2 to 3.4 kWh/t and lowers concentrate grade in eleven cases, because fewer valuable grains are free (in the gold case the grade rises by 0.07 points); recovery falls in eleven cases and, again, rises in the magnetite case.',
       es: 'Un objetivo de molienda más grueso ahorra entre 1,2 y 3,4 kWh/t y baja la ley del concentrado en once casos, porque quedan menos granos valiosos libres (en el caso de oro la ley sube 0,07 puntos); la recuperación baja en once casos y, otra vez, sube en el caso de magnetita.' },
-    { en: 'Higher throughput also sends every case to installed power, so the energy per tonne falls by 0.6 to 2.8 kWh/t and the product coarsens. Recovery falls in eleven cases, but the metal recovered per hour rises in all twelve: the extra tonnes outweigh the lost recovery. Grade rises in nine cases and falls in the hard porphyry, the magnetite and the refractory gold.',
-      es: 'Más tratamiento también lleva cada caso a potencia instalada, así que la energía por tonelada baja entre 0,6 y 2,8 kWh/t y el producto engruesa. La recuperación baja en once casos, pero el metal recuperado por hora sube en los doce: las toneladas extra pesan más que la recuperación perdida. La ley sube en nueve casos y baja en el pórfido duro, la magnetita y el oro refractario.' },
+    { en: 'Higher throughput also sends every case to installed power, for the same reason, so the energy per tonne falls by 0.6 to 2.8 kWh/t and the product coarsens. Recovery falls in eleven cases, but the metal recovered per hour rises in all twelve: the extra tonnes outweigh the lost recovery. Grade rises in nine cases and falls in the hard porphyry, the magnetite and the refractory gold.',
+      es: 'Más tratamiento también lleva cada caso a potencia instalada, por la misma razón, así que la energía por tonelada baja entre 0,6 y 2,8 kWh/t y el producto engruesa. La recuperación baja en once casos, pero el metal recuperado por hora sube en los doce: las toneladas extra pesan más que la recuperación perdida. La ley sube en nueve casos y baja en el pórfido duro, la magnetita y el oro refractario.' },
     { en: 'More collector raises recovery in all eleven flotation cases, by 0.4 to 1.5 points, and lowers concentrate grade in all eleven: in the engine the valuable mineral saturates at a lower dose than the gangue, which keeps responding. More air raises recovery in all nine cases that carry the variant, by 0.8 to 1.3 points; grade rises in seven and falls in the nickel and the refractory gold. Of the families\' own levers, doubling the gold bleed adds 0.1 points of gold recovery, grinding the magnetite finer raises its concentrate by 1.3 points of Fe at 2.3 kWh/t more and at installed power, a finer crusher setting saves 0.17 kWh/t at the same product, and widening the phosphate desliming cut loses 5.3 points of recovery to the slimes.',
       es: 'Más colector sube la recuperación en los once casos de flotación, entre 0,4 y 1,5 puntos, y baja la ley del concentrado en los once: en el motor el mineral valioso se satura a una dosis menor que la ganga, que sigue respondiendo. Más aire sube la recuperación en los nueve casos que llevan la variante, entre 0,8 y 1,3 puntos; la ley sube en siete y baja en el níquel y el oro refractario. De las palancas propias de las familias, duplicar la purga de oro agrega 0,1 puntos de recuperación de oro, moler más fino la magnetita sube su concentrado en 1,3 puntos de Fe con 2,3 kWh/t más y a potencia instalada, una abertura de chancador menor ahorra 0,17 kWh/t con el mismo producto, y ampliar el corte de deslamado del fosfato pierde 5,3 puntos de recuperación en las lamas.' },
   ],

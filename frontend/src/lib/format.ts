@@ -139,6 +139,12 @@ export function formatRange(low: number | null | undefined, high: number | null 
   return label === '%' ? `${text}%` : `${text}\u202f${label}`;
 }
 
+/** A check's distance to the nearer bound of its range, in the check's unit, and which bound that is (E-12). */
+export function kpiMargin(value: number, range: readonly number[]): { margin: number; floor: boolean } {
+  const above = value - range[0], below = range[1] - value; // not-engine: a display distance of a baked value to its range
+  return above <= below ? { margin: above, floor: true } : { margin: below, floor: false };
+}
+
 /** A fraction shown as a percentage (0.25 as 25%). */
 export function formatFraction(value: number | null | undefined, lang: Lang, decimals = 1): string {
   return usable(value) ? `${formatFixed(100.0 * value, lang, decimals)}%` : MISSING;
