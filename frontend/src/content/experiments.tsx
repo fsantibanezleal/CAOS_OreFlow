@@ -10,7 +10,7 @@ import type uPlot from 'uplot';
 import { Chart } from '../components/charts/Chart';
 import { loadBenchmark, loadContract, loadIndex } from '../lib/artifacts';
 import type { Benchmark } from '../lib/artifacts.types';
-import { formatFixed, formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
+import { formatFixed, formatRange, formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
 import { metricLabel } from '../lib/i18n';
 import { Loaded, useArtifact } from './data';
 import { VARIANT_KINDS } from './design';
@@ -153,7 +153,11 @@ const TEXT = {
   metric: { en: 'Metric', es: 'Métrica' },
   kpi: { en: 'Checked result', es: 'Resultado verificado' },
   value: { en: 'Nominal value', es: 'Valor nominal' },
-  range: { en: 'Published range', es: 'Rango publicado' },
+  range: { en: 'Checked range', es: 'Rango de verificación' },
+  basis: { en: 'Range from', es: 'Rango desde' },
+  cited: { en: 'a cited source', es: 'una fuente citada' },
+  authored_bound: { en: 'a source, one bound authored', es: 'una fuente, un límite de autor' },
+  authored: { en: 'authored', es: 'de autor' },
   inside: { en: 'Inside', es: 'Dentro' },
   yes: { en: 'yes', es: 'sí' },
   no: { en: 'no', es: 'no' },
@@ -163,8 +167,12 @@ const TEXT = {
     es: 'El factor que cada variante aplica a su entrada, para las variantes que lleva cada caso en el benchmark; un guion marca una variante que el caso no tiene.',
   },
   kpiCaption: {
-    en: 'Every plausibility check of the nominal states, read from the benchmark; ranges are published plant practice for each ore type.',
-    es: 'Cada verificación de plausibilidad de los estados nominales, leída desde el benchmark; los rangos son práctica de planta publicada para cada tipo de mineral.',
+    en: 'Every plausibility check of the nominal states, read from the benchmark; each range is taken from a cited source or labelled authored, and the Case view gives each range\'s source.',
+    es: 'Cada verificación de plausibilidad de los estados nominales, leída desde el benchmark; cada rango viene de una fuente citada o está marcado como de autor, y la vista Caso da la fuente de cada rango.',
+  },
+  kpiCount: {
+    en: (n: number, cited: number, bound: number, authored: number) => `Of the ${n} ranges, ${cited} come from a cited source, ${bound} from a cited source with an authored or unverified bound, and ${authored} are authored.`,
+    es: (n: number, cited: number, bound: number, authored: number) => `De los ${n} rangos, ${cited} vienen de una fuente citada, ${bound} de una fuente citada con un límite de autor o sin verificar, y ${authored} son de autor.`,
   },
   points: { en: 'change (percentage points)', es: 'cambio (puntos porcentuales)' },
   relative: { en: 'change relative to nominal (%)', es: 'cambio relativo al nominal (%)' },
@@ -210,10 +218,14 @@ function KpiTable({ lang }: { lang: Lang }) {
   const benchmark = useArtifact(loadBenchmark);
   return (
     <Loaded lang={lang} errors={[index.error, contract.error, benchmark.error]} ready={Boolean(index.value && contract.value && benchmark.value)}>
-      {() => (
+      {() => {
+        // T-02: the counts are the record's, never typed
+        const all = benchmark.value!.cases.flatMap(c => Object.values(c.kpis));
+        const count = (basis: string) => all.filter(k => k.basis === basis).length;
+        return (
         <table className="of-doc-table of-doc-table-data">
-          <caption>{TEXT.kpiCaption[lang]}</caption>
-          <thead><tr>{[TEXT.case, TEXT.kpi, TEXT.value, TEXT.range, TEXT.inside].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+          <caption>{`${TEXT.kpiCaption[lang]} ${TEXT.kpiCount[lang](all.length, count('cited'), count('authored_bound'), count('authored'))}`}</caption>
+          <thead><tr>{[TEXT.case, TEXT.kpi, TEXT.value, TEXT.range, TEXT.basis, TEXT.inside].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
           <tbody>{benchmark.value!.cases.flatMap(c => Object.entries(c.kpis).map(([key, kpi], i) => {
             const unit = key === 'concentrate_grade' ? contract.value!.cases[c.case_id].primary.unit : '%';
             return (
@@ -221,13 +233,15 @@ function KpiTable({ lang }: { lang: Lang }) {
                 <th scope="row">{i === 0 ? index.value!.cases.find(e => e.case_id === c.case_id)?.title[lang] : ''}</th>
                 <td>{metricLabel(key, lang)}</td>
                 <td>{formatWithUnit(kpi.value, unit, lang)}</td>
-                <td>{`${formatValue(kpi.range[0], unit, lang)} - ${formatWithUnit(kpi.range[1], unit, lang)}`}</td>
+                <td>{formatRange(kpi.range[0], kpi.range[1], unit, lang)}</td>
+                <td title={kpi.source?.[lang]}>{kpi.basis ? TEXT[kpi.basis][lang] : '-'}</td>
                 <td>{kpi.within ? TEXT.yes[lang] : TEXT.no[lang]}</td>
               </tr>
             );
           }))}</tbody>
         </table>
-      )}
+        );
+      }}
     </Loaded>
   );
 }
@@ -300,7 +314,7 @@ function ResponsesPanel({ lang }: { lang: Lang }) {
 const COVERAGE_ROWS: Array<Array<string | Bi>> = [
   [{ en: 'Trace: streams, curves, balances, flags', es: 'Traza: corrientes, curvas, balances, avisos' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }],
   [{ en: 'Kinetic fits, five lumped models', es: 'Ajustes cinéticos, cinco modelos agrupados' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }, { en: 'not applicable', es: 'no aplica' }, { en: 'every variant', es: 'cada variante' }],
-  [{ en: 'Constrained optimization', es: 'Optimización con restricciones' }, { en: 'grind, collector, air', es: 'molienda, colector, aire' }, { en: 'grind, collector, air', es: 'molienda, colector, aire' }, { en: 'grind only', es: 'solo molienda' }, { en: 'grind, collector, air', es: 'molienda, colector, aire' }],
+  [{ en: 'Constrained optimization (in the cut mode the classifier cut stands for the grind)', es: 'Optimización con restricciones (en el modo de corte el corte del clasificador reemplaza a la molienda)' }, { en: 'grind, collector, air', es: 'molienda, colector, aire' }, { en: 'grind, collector, air', es: 'molienda, colector, aire' }, { en: 'grind only', es: 'solo molienda' }, { en: 'grind, collector, air', es: 'molienda, colector, aire' }],
   [{ en: 'Uncertainty, 128 draws', es: 'Incertidumbre, 128 sorteos' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }, { en: 'every variant', es: 'cada variante' }],
   [{ en: 'Sobol indices', es: 'Índices de Sobol' }, { en: 'nominal', es: 'nominal' }, { en: 'nominal', es: 'nominal' }, { en: 'nominal', es: 'nominal' }, { en: 'nominal', es: 'nominal' }],
   [{ en: 'Learned lane design', es: 'Diseño de la vía aprendida' }, { en: '256 states a case', es: '256 estados por caso' }, { en: '256 states a case', es: '256 estados por caso' }, { en: '256 states a case', es: '256 estados por caso' }, { en: '256 states a case', es: '256 estados por caso' }],
@@ -310,14 +324,14 @@ const DESIGN: Topic = {
   id: 'design',
   title: { en: 'Design of the experiments', es: 'Diseño de los experimentos' },
   paragraphs: [
-    { en: 'The numerical experiments are a designed matrix, not a sample of plants. Twelve cases span four circuit families and four teaching categories, and each carries a nominal state and five variants that each change exactly one operating or ore input by a declared factor; a test fails the bake if a variant changes a second input. Every variant runs through the full circuit and every method record, so the difference between a variant and its nominal is the effect of one input at one state, on the same plant.',
-      es: 'Los experimentos numéricos son una matriz diseñada, no una muestra de plantas. Doce casos cubren cuatro familias de circuito y cuatro categorías de enseñanza, y cada uno lleva un estado nominal y cinco variantes que cambian exactamente una entrada de operación o del mineral por un factor declarado; una prueba hace fallar el horneado si una variante cambia una segunda entrada. Cada variante pasa por el circuito completo y por cada registro de métodos, así que la diferencia entre una variante y su nominal es el efecto de una entrada en un estado, sobre la misma planta.' },
-    { en: 'The five common variants probe the levers every concentrator has: harder ore (Bond work index ×1.25), a coarser grind (target P80 ×1.35), higher throughput (×1.25), more collector (×1.6) and more air (gas velocity ×1.4). Three families replace some of them with their own lever: gold doubles the gravity bleed instead of adding air; magnetite, which has no flotation, grinds finer (×0.75) and closes the crusher (setting ×0.8); phosphate widens the desliming cut by half instead of adding air, and its collector step is ×1.4.',
-      es: 'Las cinco variantes comunes prueban las palancas que tiene todo concentrador: mineral más duro (índice de trabajo de Bond ×1,25), una molienda más gruesa (P80 objetivo ×1,35), más tonelaje (×1,25), más colector (×1,6) y más aire (velocidad de gas ×1,4). Tres familias reemplazan algunas con su propia palanca: el oro duplica la purga gravimétrica en vez de agregar aire; la magnetita, que no tiene flotación, muele más fino (×0,75) y cierra el chancador (abertura ×0,8); el fosfato amplía a la mitad el corte de deslamado en vez de agregar aire, y su paso de colector es ×1,4.' },
+    { en: 'The numerical experiments are a designed matrix, not a sample of plants. Twelve cases span four circuit families and four teaching categories, and each carries a nominal state, five variants that each change exactly one operating or ore input by a declared factor, and two that run the circuit the plant\'s way round, with the classifier cut held; a test fails the precompute if a variant changes a second input. Every variant runs through the full circuit and every method record, so the difference between a variant and its nominal is the effect of one input at one state, on the same plant.',
+      es: 'Los experimentos numéricos son una matriz diseñada, no una muestra de plantas. Doce casos cubren cuatro familias de circuito y cuatro categorías de enseñanza, y cada uno lleva un estado nominal, cinco variantes que cambian exactamente una entrada de operación o del mineral por un factor declarado, y dos que corren el circuito en el sentido de la planta, con el corte del clasificador fijo; una prueba hace fallar el precálculo si una variante cambia una segunda entrada. Cada variante pasa por el circuito completo y por cada registro de métodos, así que la diferencia entre una variante y su nominal es el efecto de una entrada en un estado, sobre la misma planta.' },
+    { en: 'The five common variants probe the levers every concentrator has: harder ore (Bond work index ×1.25), a coarser grind (target P80 ×1.35), higher throughput (×1.25), more collector (×1.6) and more air (gas velocity ×1.4). Three families replace some of them with their own lever: gold doubles the gravity bleed instead of adding air; magnetite, which has no flotation, grinds finer (×0.75) and closes the crusher (setting ×0.8); phosphate coarsens the desliming cut by half (×1.5) instead of adding air, and its collector step is ×1.4.',
+      es: 'Las cinco variantes comunes prueban las palancas que tiene todo concentrador: mineral más duro (índice de trabajo de Bond ×1,25), una molienda más gruesa (P80 objetivo ×1,35), más tratamiento (×1,25), más colector (×1,6) y más aire (velocidad de gas ×1,4). Tres familias reemplazan algunas con su propia palanca: el oro duplica la purga gravimétrica en vez de agregar aire; la magnetita, que no tiene flotación, muele más fino (×0,75) y cierra el chancador (abertura ×0,8); el fosfato aumenta el corte de deslamado en 50% (×1,5) en vez de agregar aire, y su paso de colector es ×1,4.' },
     { en: 'One factor at a time is chosen so that each result can be read on its own. The method records complement it: the constrained optimizer moves the decisions together, the uncertainty record samples the ore properties together, the Sobol design attributes each output\'s variance to each ore property and their interactions, and the learned lane is trained on a space-filling design over each case\'s whole envelope.',
       es: 'Un factor a la vez se elige para que cada resultado se pueda leer por sí solo. Los registros de métodos lo complementan: el optimizador con restricciones mueve las decisiones juntas, el registro de incertidumbre muestrea juntas las propiedades del mineral, el diseño de Sobol atribuye la varianza de cada salida a cada propiedad del mineral y sus interacciones, y la vía aprendida se entrena con un diseño de relleno sobre toda la envolvente de cada caso.' },
     { en: 'The hypotheses are stated in advance as requirements of the engine, each with the test that fails when it is violated: more collector never lowers recovery and, past the valuable mineral\'s saturation, lowers grade; harder ore raises the required energy and, at installed power, coarsens the product; more throughput shortens flotation residence; more air raises water recovery and entrained gangue; a finer grind costs energy and raises liberation; a coarser product loses less payable to slimes where the circuit deslimes.',
-      es: 'Las hipótesis se enuncian de antemano como requisitos del motor, cada una con la prueba que falla cuando se viola: más colector nunca baja la recuperación y, pasada la saturación del mineral valioso, baja la ley; un mineral más duro sube la energía requerida y, a potencia instalada, engruesa el producto; más tonelaje acorta la residencia de flotación; más aire sube la recuperación de agua y la ganga arrastrada; una molienda más fina cuesta energía y sube la liberación; un producto más grueso pierde menos pagable en lamas donde el circuito deslama.' },
+      es: 'Las hipótesis se enuncian de antemano como requisitos del motor, cada una con la prueba que falla cuando se viola: más colector nunca baja la recuperación y, pasada la saturación del mineral valioso, baja la ley; un mineral más duro sube la energía requerida y, a potencia instalada, engruesa el producto; más tratamiento acorta la residencia de flotación; más aire sube la recuperación de agua y la ganga arrastrada; una molienda más fina cuesta energía y sube la liberación; un producto más grueso pierde menos pagable en lamas donde el circuito deslama.' },
   ],
   equations: [
     { tex: r`\Delta_v m = m\big(x^{(v)}\big) - m\big(x^{(0)}\big),\qquad \delta_v m = \frac{\Delta_v m}{\big|m\big(x^{(0)}\big)\big|}`, caption: { en: 'The effect of variant v on a metric m: its change from the nominal state, and the relative change used where units differ between cases.', es: 'El efecto de la variante v sobre una métrica m: su cambio respecto del estado nominal, y el cambio relativo que se usa donde las unidades difieren entre casos.' } },
@@ -340,25 +354,25 @@ const METRICS: Topic = {
     { en: 'Overall recovery is the primary payable in the final concentrates (for gold, the gravity concentrate included) over the payable in the plant feed. Stage recoveries are computed on each stage\'s own feed, so the flotation recovery of a circuit that loses payable to slimes, or recovers it by gravity first, differs from the overall recovery; the two are never confused, and a test fails if they coincide where an upstream loss exists.',
       es: 'La recuperación total es el pagable principal en los concentrados finales (para el oro, incluido el concentrado gravimétrico) sobre el pagable en la alimentación de planta. Las recuperaciones de etapa se calculan sobre la propia alimentación de cada etapa, así que la recuperación de flotación de un circuito que pierde pagable en lamas, o que lo recupera antes por gravedad, difiere de la total; nunca se confunden, y una prueba falla si coinciden donde existe una pérdida aguas arriba.' },
     { en: 'Grades come from mineral masses and element contents. The recovered metal (t/h of the primary payable) is the optimizer\'s objective and the fairest comparison between two states that treat different tonnages; mass pull is the share of the feed that reports to concentrate.',
-      es: 'Las leyes salen de las masas de minerales y los contenidos de elementos. El metal recuperado (t/h del pagable principal) es el objetivo del optimizador y la comparación más justa entre dos estados que tratan tonelajes distintos; el rendimiento másico es la fracción de la alimentación que va al concentrado.' },
+      es: 'Las leyes salen de las masas de minerales y los contenidos de elementos. El metal recuperado (t/h del pagable principal) es el objetivo del optimizador y la comparación más justa entre dos estados que tratan tonelajes distintos; el rendimiento en masa es la fracción de la alimentación que va al concentrado.' },
     { en: 'Specific energy is crushing plus grinding plus regrind, per tonne of ore; mill power is the grinding energy times the throughput. The Bond operating work index and its efficiency ratio are reported for the achieved reduction, and the Rittinger and Kick laws are comparisons calibrated to Bond, never added to it. Water intensity is the fresh water per tonne of ore.',
-      es: 'La energía específica es chancado más molienda más remolienda, por tonelada de mineral; la potencia del molino es la energía de molienda por el tonelaje. El índice de trabajo operacional de Bond y su razón de eficiencia se informan para la reducción lograda, y las leyes de Rittinger y Kick son comparaciones calibradas con Bond, nunca sumadas a él. La intensidad de agua es el agua fresca por tonelada de mineral.' },
-    { en: 'Three constraints judge a state: the final grade at or above the case\'s specification, the required mill power at or below the installed power, and the process water within the plant\'s capacity. Each case\'s nominal results are also checked against published plant practice for its ore type. At the nominal state no case is power-limited, and every check lies inside its published range; the table reads each one from the bake.',
-      es: 'Tres restricciones juzgan un estado: la ley final sobre la especificación del caso, la potencia requerida del molino bajo la instalada, y el agua de proceso dentro de la capacidad de la planta. Los resultados nominales de cada caso también se verifican contra práctica de planta publicada para su tipo de mineral. En el estado nominal ningún caso está limitado por potencia, y cada verificación cae dentro de su rango publicado; la tabla lee cada una desde el horneado.' },
-    { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports a result only if it is feasible when simulated again from scratch.',
-      es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un resultado solo si es factible al simularlo de nuevo desde cero.' },
+      es: 'La energía específica es chancado más molienda más remolienda, por tonelada de mineral; la potencia del molino es la energía de molienda por el tratamiento. El índice de trabajo operacional de Bond y su razón de eficiencia se informan para la reducción lograda, y las leyes de Rittinger y Kick son comparaciones calibradas con Bond, nunca sumadas a él. La intensidad de agua es el agua fresca por tonelada de mineral.' },
+    { en: 'Three constraints judge a state: the final grade at or above the case\'s specification, the required mill power at or below the installed power, and the process water within the plant\'s capacity. Each case\'s nominal results are also checked against plausibility ranges for its ore type, each taken from a cited source or labelled authored. At the nominal state no case is power-limited, and every check lies inside its range; the table reads each one, and how its range is sourced, from the precompute.',
+      es: 'Tres restricciones juzgan un estado: la ley final sobre la especificación del caso, la potencia requerida del molino bajo la instalada, y el agua de proceso dentro de la capacidad de la planta. Los resultados nominales de cada caso también se verifican frente a rangos de plausibilidad para su tipo de mineral, cada uno tomado de una fuente citada o marcado como de autor. En el estado nominal ningún caso está limitado por potencia, y cada verificación cae dentro de su rango; la tabla lee cada una, y cómo se obtuvo su rango, desde el precálculo.' },
+    { en: 'Kinetics: for every variant of the flotation families the engine floats its own rougher feed in a virtual batch test from 0.5 to 16 minutes, fits the five lumped models by Levenberg-Marquardt, projects each to the plant bank through the bank\'s residence distribution, and records the lumping error, the projection minus the bank recovery the engine computes exactly from its class rates. Optimization starts from six fixed points (the variant\'s own and five declared interior points) and reports an optimum only if it is feasible when simulated again from scratch, and otherwise the least-violating end point, labelled infeasible.',
+      es: 'Cinética: para cada variante de las familias con flotación el motor flota su propia alimentación rougher en una prueba batch virtual de 0,5 a 16 minutos, ajusta los cinco modelos agrupados por Levenberg-Marquardt, proyecta cada uno al banco de planta por la distribución de residencia del banco, y registra el error de agregación, la proyección menos la recuperación del banco que el motor calcula exactamente desde sus tasas por clase. La optimización parte de seis puntos fijos (el de la propia variante y cinco puntos interiores declarados) e informa un óptimo solo si es factible al simularlo de nuevo desde cero, y si no, el punto final de menor violación, marcado como infactible.' },
   ],
   equations: [
     { tex: r`\varepsilon = \hat R_N - R_N`, caption: { en: 'The lumping error ε of a kinetic model: its projection to the bank of N cells minus the exact distributed bank recovery $R_N$.', es: 'El error de agregación ε de un modelo cinético: su proyección al banco de N celdas menos la recuperación exacta del banco distribuido $R_N$.' } },
     { tex: r`R = \frac{C_p}{F_p},\qquad R_s = \frac{C_{p,s}}{F_{p,s}}`, caption: { en: 'Overall recovery: the payable flow in the final concentrates $C_p$ over the payable flow in the plant feed $F_p$; a stage recovery $R_s$ on the stage s\'s own concentrate and feed.', es: 'Recuperación total: el flujo de pagable en los concentrados finales $C_p$ sobre el flujo de pagable en la alimentación de planta $F_p$; una recuperación de etapa $R_s$ sobre el concentrado y la alimentación propios de la etapa s.' } },
-    { tex: r`\dot m = R\,f\,F,\qquad W_{i,o} = \frac{E}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}}`, caption: { en: 'Recovered metal from recovery, head grade and throughput, and the Bond operating work index of the achieved reduction.', es: 'Metal recuperado desde la recuperación, la ley de cabeza y el tonelaje, y el índice de trabajo operacional de Bond de la reducción lograda.' } },
+    { tex: r`\dot m = R\,f\,F,\qquad W_{i,o} = \frac{E}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}}`, caption: { en: 'Recovered metal from recovery, head grade and throughput, and the Bond operating work index of the achieved reduction.', es: 'Metal recuperado desde la recuperación, la ley de cabeza y el tratamiento, y el índice de trabajo operacional de Bond de la reducción lograda.' } },
   ],
   limits: [
     { en: 'The metrics are engine outputs on authored plants; the plausibility ranges test that a case is a sensible instance of its ore type, not that it matches a specific plant.', es: 'Las métricas son salidas del motor sobre plantas de autor; los rangos de plausibilidad prueban que un caso es una instancia sensata de su tipo de mineral, no que coincida con una planta específica.' },
   ],
   figure: { caption: { en: 'Overall recovery is measured on the plant feed, a stage recovery on the stage\'s own feed; an upstream loss separates them.', es: 'La recuperación total se mide sobre la alimentación de planta, una recuperación de etapa sobre la alimentación propia de la etapa; una pérdida aguas arriba las separa.' }, render: lang => <RecoveryFigure lang={lang} /> },
   data: lang => <KpiTable lang={lang} />,
-  refs: ['gmg2021', 'porphyry-practice', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'marquardt1963', 'torczon1997'],
+  refs: ['gmg2021', 'porphyry-practice', 'kroha1985', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'marquardt1963', 'torczon1997'],
 };
 
 const RESULTS: Topic = {

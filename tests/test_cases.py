@@ -51,3 +51,19 @@ def test_water_capacity_is_five_percent_above_nominal(case):
     nominal = run_variant(case.id, "nominal").metrics["water_intensity_m3_t"]
     assert "water" in case.sources
     assert 1.04 <= case.plant.water_limit_m3_t / nominal <= 1.06, (case.plant.water_limit_m3_t, nominal)
+
+
+def test_every_plausibility_range_has_a_classified_source():
+    # T-02 (review of 2026-10-02): the pages count cited, partly authored and authored ranges from the benchmark,
+    # which classifies each range's source; an unsourced range would be counted as cited, so every range has one
+    from pipeline.stages.benchmark import kpi_basis
+
+    assert kpi_basis("Authored: no published range was found for this case type.") == "authored"
+    assert kpi_basis("Above 90% (secondary source); the 96% ceiling is authored.") == "authored_bound"
+    assert kpi_basis("About 20% Ni (review); UNVERIFIED upper bound.") == "authored_bound"
+    assert kpi_basis("From 25% Cu (Kroha and Wesis 1985) to 34.6% Cu, the stoichiometric limit of chalcopyrite.") == "cited"
+    for case in CASES:
+        assert set(case.kpi_sources) == set(case.kpi_ranges), case.id
+        for key, (en, es) in case.kpi_sources.items():
+            assert en and es, (case.id, key)
+            assert kpi_basis(en) in {"cited", "authored_bound", "authored"}

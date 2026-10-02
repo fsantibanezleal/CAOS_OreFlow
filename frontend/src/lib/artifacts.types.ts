@@ -109,7 +109,8 @@ export type LearningRecord = {
 
 export type BenchmarkCase = {
   case_id: string; family: Family; category: string;
-  kpis: Record<string, { value: number; range: [number, number]; within: boolean }>;
+  /** T-02: each range's source and how it is sourced (cited, a cited source with an authored bound, or authored). */
+  kpis: Record<string, { value: number; range: [number, number]; within: boolean; source: { en: string; es: string }; basis: 'cited' | 'authored_bound' | 'authored' }>;
   variants: Record<string, Record<string, number | boolean | string[]>>;
 };
 export type Benchmark = {
