@@ -23,7 +23,12 @@ export type MineralSpec = {
   flotation: Flotability | null;
   magnetic: boolean;
   gravity: boolean;
+  /** Gravity-recoverable grains (E-11): the mineral enters the mill liberated with these sizes. */
+  grains?: GrainSize | null;
 };
+/** A mineral's own grain sizes, as a GRG test measures them: cumulative passing at descending sieves, all passing the
+ * first; the fraction passing the last sieve spreads log-uniformly down to `lower_um` (engine/model.py GrainSize). */
+export type GrainSize = { size_um: number[]; passing: number[]; lower_um: number };
 export type Ore = {
   minerals: MineralSpec[];
   payables: Payable[];
@@ -52,7 +57,11 @@ export type FlotationPlant = {
   /** The cleaner tail returns to the rougher feed (the default); false sends it to the final tail (the ablation). */
   cleaner_tail_to_rougher?: boolean;
 };
-export type GravityPlant = { max_recovery: number; size_scale_um: number; composite_recovery: number; gangue_yield: number };
+export type GravityPlant = {
+  max_recovery: number; size_scale_um: number; composite_recovery: number; gangue_yield: number;
+  /** The stream a share of which the unit treats: 'underflow' (the default) or 'mill_discharge' (E-11). */
+  position?: string;
+};
 export type MagneticPlant = {
   max_capture: number; fine_scale_um: number; composite_threshold: number; entrapment_base: number;
   entrapment_fines: number; entrapment_scale_um: number; cleaner_factor: number; concentrate_solids: number;
@@ -90,6 +99,20 @@ export type OperatingPoint = {
 };
 
 export type Flag = { code: string; message: string };
+
+/** A state the contract accepts but the engine cannot bring to a steady state (E-01, review of 2026-10-02): a
+ * cut-mode cut at which the mill cannot draw its installed power, or that sets a circulating load above the declared
+ * bound. A refusal with a code the contract's messages carry, never a solved state; engine/model.py's twin. */
+export class InfeasibleState extends Error {
+  constructor(readonly code: string, readonly input: string, readonly value: number, readonly limit: number | null = null) {
+    super(`${code}: ${input}=${value}`);
+    this.name = 'InfeasibleState';
+  }
+
+  error(): { code: string; input: string; value: number; max?: number } {
+    return this.limit === null ? { code: this.code, input: this.input, value: this.value } : { code: this.code, input: this.input, value: this.value, max: this.limit };
+  }
+}
 
 export class Flags {
   readonly items: Flag[] = [];

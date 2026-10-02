@@ -17,7 +17,7 @@ import pandas as pd
 from sklearn.base import clone
 from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
 from sklearn.impute import SimpleImputer
-from sklearn.linear_model import Ridge
+from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -31,8 +31,14 @@ SOURCE_SHA256 = "fa1fb0c928d84366ec1bd315e0ed1380f5d5576525603458b49ea4cfe446d98
 CSV_NAME = "MiningProcess_Flotation_Plant_Database.csv"
 TARGET = "% Silica Concentrate"
 EXCLUDED = ("date", "% Iron Concentrate", TARGET)
-MODEL_NAMES = ("train_mean", "previous_lab", "ridge", "random_forest", "hist_gradient_boosting",
+MODEL_NAMES = ("train_mean", "previous_lab", "ar1_previous_lab", "ridge", "random_forest", "hist_gradient_boosting",
                "ridge_with_previous_lab", "boosting_with_previous_lab")
+# M-04 (review of 2026-10-02): the comparator for "do the sensors add to the last assay" is the last assay with a fitted
+# intercept and slope, an AR(1) regression, not raw persistence; the differences carry day-block bootstrap intervals
+COMPARISONS = (("ridge_with_previous_lab", "ar1_previous_lab"), ("ridge_with_previous_lab", "previous_lab"),
+               ("ar1_previous_lab", "previous_lab"), ("ridge", "train_mean"))
+BOOTSTRAP_RESAMPLES = 4000
+BOOTSTRAP_SEED = 20261002
 
 
 def source_archive(path: Path = RAW) -> tuple[Path, str]:
@@ -137,7 +143,7 @@ def score(y: np.ndarray, estimate: np.ndarray) -> dict:
     }
 
 
-def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict]:
+def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict, dict]:
     x = pairs[features].to_numpy(dtype=float)
     y = pairs["target_next_hour_pct"].to_numpy(dtype=float)
     previous = pairs["silica_lab_pct"].to_numpy(dtype=float)
@@ -146,6 +152,8 @@ def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict
     n = len(pairs)
     folds = []
     pooled_truth = []
+    pooled_days: list[str] = []
+    pooled_previous: list[float] = []
     pooled_predictions = {name: [] for name in MODEL_NAMES}
     for fold_id, (begin_fraction, end_fraction) in enumerate(((0.50, 0.65), (0.65, 0.80), (0.80, 1.0))):
         begin = int(n * begin_fraction)
@@ -155,9 +163,11 @@ def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict
         train = np.flatnonzero(dates < first_test - pd.Timedelta(hours=24))
         if len(train) < 200 or len(test) < 100 or dates[train[-1]] >= first_test - pd.Timedelta(hours=24):
             raise ValueError("insufficient embargoed chronological training/test rows")
+        ar1 = LinearRegression().fit(previous[train].reshape(-1, 1), y[train])
         predictions = {
             "train_mean": np.full(len(test), float(y[train].mean())),
             "previous_lab": previous[test],
+            "ar1_previous_lab": np.clip(ar1.predict(previous[test].reshape(-1, 1)), 0, 100),
         }
         for name, estimator in make_models().items():
             fit = clone(estimator).fit(x[train], y[train])
@@ -169,6 +179,8 @@ def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict
         for name, estimate in predictions.items():
             pooled_predictions[name].extend(estimate.tolist())
         pooled_truth.extend(y[test].tolist())
+        pooled_days.extend(str(d.date()) for d in dates[test])
+        pooled_previous.extend(previous[test].tolist())
         # The full test population determines metrics; sparse traces only control payload size.
         trace_indices = np.unique(np.linspace(0, len(test) - 1, min(180, len(test)), dtype=int))
         # each traced hour keeps its sensor medians and its own two assays, so the workbench can show the hour
@@ -185,12 +197,46 @@ def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict
             "train_first": str(dates[train[0]]), "train_last": str(dates[train[-1]]),
             "test_first": str(dates[test[0]]), "test_last": str(dates[test[-1]]),
             "embargo_hours_min": round(float((first_test - dates[train[-1]]) / pd.Timedelta(hours=1)), 3),
+            "ar1": {"slope": round(float(ar1.coef_[0]), 4), "intercept": round(float(ar1.intercept_), 4)},
             "scores": {name: score(y[test], estimate) for name, estimate in predictions.items()},
             "trace": trace,
         })
-    pooled = {name: score(np.asarray(pooled_truth), np.asarray(values))
-              for name, values in pooled_predictions.items()}
-    return folds, pooled
+    truth = np.asarray(pooled_truth)
+    pooled = {name: score(truth, np.asarray(values)) for name, values in pooled_predictions.items()}
+    extras = {"comparisons": paired_differences(truth, {k: np.asarray(v) for k, v in pooled_predictions.items()}, pooled_days),
+              # test pairs whose next assay repeats the current one exactly, which raw persistence scores as zero error
+              "repeated_assay_share": round(float(np.mean(truth == np.asarray(pooled_previous))), 4)}
+    return folds, pooled, extras
+
+
+def paired_differences(truth: np.ndarray, predictions: dict[str, np.ndarray], days: list[str]) -> list[dict]:
+    """MAE and RMSE differences (a minus b) over the pooled test pairs, with 95% intervals from a bootstrap that resamples
+    whole calendar days, so the hours inside a day stay together."""
+    labels, day_index = np.unique(np.asarray(days), return_inverse=True)
+    counts = np.bincount(day_index, minlength=len(labels)).astype(float)
+    rng = np.random.default_rng(BOOTSTRAP_SEED)
+    weights = rng.multinomial(len(labels), np.full(len(labels), 1.0 / len(labels)), size=BOOTSTRAP_RESAMPLES).astype(float)
+    n = weights @ counts
+
+    def sums(name: str) -> tuple[np.ndarray, np.ndarray]:
+        error = predictions[name] - truth
+        return (np.bincount(day_index, weights=np.abs(error), minlength=len(labels)),
+                np.bincount(day_index, weights=error * error, minlength=len(labels)))
+
+    out = []
+    for a, b in COMPARISONS:
+        (abs_a, sq_a), (abs_b, sq_b) = sums(a), sums(b)
+        for metric in ("mae", "rmse"):
+            if metric == "mae":
+                point = float(np.mean(np.abs(predictions[a] - truth)) - np.mean(np.abs(predictions[b] - truth)))
+                draws = (weights @ abs_a - weights @ abs_b) / n
+            else:
+                point = float(math.sqrt(np.mean((predictions[a] - truth) ** 2)) - math.sqrt(np.mean((predictions[b] - truth) ** 2)))
+                draws = np.sqrt(weights @ sq_a / n) - np.sqrt(weights @ sq_b / n)
+            low, high = np.quantile(draws, [0.025, 0.975])
+            out.append({"a": a, "b": b, "metric": metric, "difference_pct_points": round(point, 4),
+                        "interval_95": [round(float(low), 4), round(float(high), 4)]})
+    return out
 
 
 def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
@@ -198,7 +244,7 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
     hours, quality = prepare_hours(frame)
     pairs = make_pairs(hours)
     features = [column for column in frame if column not in EXCLUDED]
-    folds, pooled = evaluate(pairs, features)
+    folds, pooled, extras = evaluate(pairs, features)
     artifact = {
         "schema": "oreflow.iron-plant-soft-sensor/v1",
         "source": {"title": "Quality Prediction in a Mining Process", "url": SOURCE_PAGE,
@@ -209,11 +255,13 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
         "quality": quality,
         "protocol": {"target": "next-hour measured % silica concentrate",
                      "features": features, "excluded_features": list(EXCLUDED),
-                     "pair_rows": len(pairs), "sampling": "median of approximately 180 sensor rows per nominal hour; changing/interpolated lab-label hours excluded",
+                     "pair_rows": len(pairs),
+                     "bootstrap": f"{BOOTSTRAP_RESAMPLES} resamples of whole calendar days of the pooled test pairs, seed {BOOTSTRAP_SEED}",
+                     "sampling": "median of approximately 180 sensor rows per nominal hour; changing/interpolated lab-label hours excluded",
                      "splits": "three disjoint chronological future windows; expanding history; at least 24 h train/test embargo",
                      "interpretation": "observational one-plant quality forecast; no causal control effect, recovery or transfer claim",
                      "previous_lab_caveat": "persistence and lab-conditioned models assume previous hourly lab assay is already available; reporting latency is not established"},
-        "pooled_scores": pooled, "folds": folds,
+        "pooled_scores": pooled, **extras, "folds": folds,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(artifact, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")

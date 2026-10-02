@@ -87,6 +87,9 @@ export type IronPlant = {
     changing_lab_hours_excluded: number; changing_lab_rows_excluded: number; changing_lab_first_hour: string; gap_hours: number };
   protocol: { target: string; features: string[]; excluded_features: string[]; pair_rows: number; sampling: string; splits: string; interpretation: string; previous_lab_caveat: string };
   pooled_scores: Record<string, IronScores>;
+  /** M-04: paired MAE and RMSE differences (a minus b) with day-block bootstrap intervals. */
+  comparisons: Array<{ a: string; b: string; metric: 'mae' | 'rmse'; difference_pct_points: number; interval_95: [number, number] }>;
+  repeated_assay_share: number;
   folds: IronFold[];
 };
 export const loadIronPlant = () => get<IronPlant>('source/iron_plant_soft_sensor.json');
@@ -112,6 +115,13 @@ export type RealSamples = {
     bands: Record<string, number>; work_index_assignment: Record<string, number>;
     engine_minus_measured_pp: { mean: number; rmse: number; min: number; max: number };
     geomet_lane_minus_measured_pp: Record<string, { mean: number; rmse: number }>; power_limited: number;
+  };
+  /** S-01 to S-09: what the comparison depends on (the assumed laboratory grind, the residence, the host, the authored choices). */
+  sensitivity?: {
+    measured_population_sd_pp: number;
+    gap_by_assumed_p80: Array<{ p80_um: number; mean_gap_pp: number; rmse_pp: number; pearson: number }>;
+    target_grind_throughput: { mean_gap_pp: number; residence_share_pp: number };
+    hosts: Record<string, { mean_gap_pp: number }>;
   };
 };
 export const loadRealSamples = () => get<RealSamples>('real_samples.json');

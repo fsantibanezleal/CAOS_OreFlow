@@ -10,7 +10,7 @@
 import { useShellLang } from '@fasl-work/caos-app-shell';
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router';
-import { evaluateInWorker } from '../engine/client';
+import { evaluateInWorker, RefusedState } from '../engine/client';
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
 import type { Trace } from '../engine/trace';
@@ -18,8 +18,9 @@ import { loadBenchmark, loadCase, loadContract, loadIndex, loadIronPlant, loadRe
 import type { Benchmark, CaseArtifact, CaseIndex } from '../lib/artifacts.types';
 import type { Lang } from '../lib/format';
 import { t, UI } from '../lib/i18n';
+import { contractMessage } from './Controls';
 import { checkPoint, Rail } from './Rail';
-import { Readout } from './Readout';
+import { FlagsLine, Readout } from './Readout';
 import { changedInputs, parseSet, SOURCES, sourceQuery, stateQuery, useWorkbench, VIEWS, type Source, type View } from './state';
 import { ViewTabs } from './ViewTabs';
 import { CircuitView } from './views/CircuitView';
@@ -75,6 +76,8 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
   const [accepted, setAccepted] = useState<OperatingPoint | null>(null);
   const [errors, setErrors] = useState<ContractError[]>([]);
   const [computing, setComputing] = useState(false);
+  // U-03: a state the contract rejects or the engine refuses has no current result; the last valid one is hidden
+  const [rejected, setRejected] = useState(false);
   const pending = useRef<{ variant: string | null; set: Partial<Record<keyof OperatingPoint, number>> } | null>(null);
   const opened = useRef(false);
 
@@ -144,18 +147,24 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     const judged = sample ? { ...point, head_grade: nominal.head_grade, work_index_kwh_t: nominal.work_index_kwh_t } : point;
     const verdict = checkPoint(loaded.contract, caseId, judged);
     setErrors(verdict.errors);
-    if (!verdict.accepted || !verdict.point) return;
+    if (!verdict.accepted || !verdict.point) { setRejected(true); return; }
+    setRejected(false);
     const valid = (sample ? { ...verdict.point, head_grade: sample.point.head_grade, work_index_kwh_t: sample.point.work_index_kwh_t }
       : verdict.point) as unknown as OperatingPoint;
     setComputing(true);
     evaluateInWorker(sample ? sample.ore : artifact.definition.ore, artifact.definition.plant, valid).then(
       next => { setTrace(next); setAccepted(valid); setComputing(false); },
-      error => { if (String(error?.message ?? error) !== 'superseded') setComputing(false); },
+      error => {
+        // a state the engine refuses (E-01) is a rejection like the contract's: its error shows, no result is current
+        if (error instanceof RefusedState) { setErrors([error.error]); setRejected(true); setComputing(false); return; }
+        if (String(error?.message ?? error) !== 'superseded') setComputing(false);
+      },
     );
   }, [loaded, artifact, point, caseId, source, sample]);
 
   const variant = artifact?.variants.find(v => v.id === variantId) ?? null;
-  return { artifact, variant, trace: source === 'hour' ? null : trace, accepted, errors, computing, samples, lane, sample };
+  return { artifact, variant, trace: source === 'hour' ? null : trace, accepted, errors, computing, samples, lane, sample,
+    rejected: source !== 'hour' && rejected };
 }
 
 export default function Workbench() {
@@ -164,7 +173,7 @@ export default function Workbench() {
   const navigate = useNavigate();
   const { caseId, variantId, base, point, view, selectedUnit, source, sampleId, hourKey, setView, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
-  const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample } = useCaseState(loaded, params);
+  const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample, rejected } = useCaseState(loaded, params);
   const [cursor, setCursor] = useState<string | null>(null);
 
   // the state travels in the URL (replace, so the back button leaves the page instead of undoing a slider)
@@ -186,7 +195,17 @@ export default function Workbench() {
   const names = Object.fromEntries(VIEWS.map(v => [v, t(UI.views[v], lang)])) as Record<View, string>;
 
   let body: React.ReactNode = <p className="of-hint" role="status">{t(UI.loading, lang)}</p>;
-  if (source === 'hour') {
+  const rejection = rejected ? errors.map(e => contractMessage(contract, e, '', lang)) : null;
+  if (rejection) {
+    // U-03: no view draws the last valid state's results as if they were this state's
+    body = (
+      <div className="of-rejection" role="alert">
+        <p className="of-rejection-title">{t(UI.rejected, lang)}</p>
+        {rejection.map(m => <p key={m}>{m}</p>)}
+        <p className="of-rejection-note">{t(UI.rejectedHidden, lang)}</p>
+      </div>
+    );
+  } else if (source === 'hour') {
     // RS-07: an hour of the iron plant is shown, never simulated
     body = view === 'case' ? (lane ? <HourView lane={lane} hourKey={hourKey} lang={lang} onCursor={setCursor} /> : body) : <SourceStatement kind="hour" lang={lang} />;
   } else if (source === 'sample' && trace && accepted && sample && samples) {
@@ -195,7 +214,8 @@ export default function Workbench() {
     else if (view === 'separation') body = <SeparationView trace={trace} primary={primary} lang={lang} onCursor={setCursor} />;
     else if (view === 'response') body = <SourceStatement kind="sample-response" lang={lang} />;
     else if (view === 'methods') body = <SourceStatement kind="sample-methods" lang={lang} />;
-    else body = <SampleView record={samples} sample={sample} recovery={trace.metrics.recovery_pct ?? null} lang={lang} />;
+    else body = <SampleView record={samples} sample={sample} recovery={trace.metrics.recovery_pct ?? null} p80={trace.metrics.p80_um ?? null}
+      powerLimited={trace.metrics.power_limited === 1} lang={lang} />;
   } else if (source === 'case' && trace && accepted) {
     if (view === 'circuit') body = <CircuitView trace={trace} primary={primary} lang={lang} selected={selectedUnit} onSelect={selectUnit} />;
     else if (view === 'grinding') body = <GrindingView trace={trace} ore={artifact.definition.ore} lang={lang} onCursor={setCursor} />;
@@ -210,8 +230,9 @@ export default function Workbench() {
       <Rail index={index} contract={contract} artifact={artifact} lang={lang} errors={errors} onFocus={openFocus} samples={samples} lane={lane} />
       <section className="of-main" aria-label={artifact.title[lang]}>
         {source === 'hour' && lane ? <HourReadout lane={lane} hourKey={hourKey} lang={lang} cursor={cursor} />
-          : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} />}
+          : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} rejected={rejection} />}
         <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names} />
+        {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>
       </section>
     </div>

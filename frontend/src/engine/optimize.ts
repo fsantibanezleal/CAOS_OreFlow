@@ -8,7 +8,7 @@
 import { simulate } from './circuit';
 import { constant } from './constants';
 import { validate, type OperatingContract } from './contract';
-import type { OperatingPoint, Ore, Plant } from './model';
+import { InfeasibleState, type OperatingPoint, type Ore, type Plant } from './model';
 import { patternSearch, type Iteration, type Point, type SearchState } from './pattern_search';
 import type { PointScreen, Summary, Proposal, ScreenRecord, TraceRow, StartRecord, PathStep, OptimizationRecord } from './optimization-record';
 
@@ -70,7 +70,13 @@ class Problem {
   evaluatePoint(point: OperatingPoint): Evaluation {
     const verdict = validate(this.contract, this.caseId, point as unknown as Record<string, unknown>);
     if (!verdict.accepted) return { point, valid: false, recovered_tph: 0, values: {}, slacks: {}, relative: { contract: -1 } };
-    const m = simulate(this.ore, this.plant, point).metrics;
+    let m: ReturnType<typeof simulate>['metrics'];
+    try {
+      m = simulate(this.ore, this.plant, point).metrics;
+    } catch (error) {   // no steady state at this trial (E-01): infeasible, never a result (methods/optimization.py)
+      if (error instanceof InfeasibleState) return { point, valid: false, recovered_tph: 0, values: {}, slacks: {}, relative: { [error.code]: -1 } };
+      throw error;
+    }
     const spec = this.plant.grade_spec as { minimum: number };
     const values = { grade: m.concentrate_grade, required_power_kw: m.required_mill_power_kw, water_m3_t: m.water_intensity_m3_t, energy_kwh_t: m.specific_energy_total_kwh_t };
     const slacks: Record<string, number> = { grade: m.concentrate_grade - spec.minimum, power: m.installed_mill_power_kw - m.required_mill_power_kw };

@@ -98,21 +98,21 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   gold_free_milling: {
     problem: [
-      { en: 'Cyclones send free gold to the underflow at sizes far finer than the gangue, so it circulates in the grinding loop at many times the ore circulating load, and flotation then takes the gold carried by pyrite.',
-        es: 'Los ciclones envían el oro libre al underflow a tamaños mucho más finos que la ganga, por lo que circula en la molienda a muchas veces la carga circulante del mineral, y la flotación toma luego el oro contenido en la pirita.' },
-      { en: 'Plant audits measured about 90% of the underflow gold as gravity recoverable, and a published simulator example shows gold recovery rising with the share of underflow treated while the gold circulating load falls. The case asks how much a bleed is worth.',
-        es: 'Auditorías de planta midieron cerca de 90% del oro del underflow como recuperable por gravedad, y un ejemplo de simulador publicado muestra la recuperación de oro subiendo con la fracción de underflow tratada mientras cae la carga circulante de oro. El caso pregunta cuánto vale una purga.' },
+      { en: 'Cyclones send gravity-recoverable gold (GRG) to the underflow at sizes several times finer than the gangue, so it circulates in the grinding loop at many times the ore circulating load, and flotation then takes the gold carried by pyrite.',
+        es: 'Los ciclones envían el oro recuperable por gravedad (GRG) a la descarga a tamaños varias veces más finos que la ganga, por lo que circula en la molienda a muchas veces la carga circulante del mineral, y la flotación toma luego el oro contenido en la pirita.' },
+      { en: 'Plant audits measure about 90% of the underflow gold as gravity recoverable, and plants recover about a third to two thirds of their GRG by gravity. The case asks how much a bleed is worth.',
+        es: 'Las auditorías de planta miden cerca de 90% del oro de la descarga como recuperable por gravedad, y las plantas recuperan por gravedad entre un tercio y dos tercios de su GRG. El caso pregunta cuánto vale una purga.' },
     ],
     scope: [
-      { en: 'Gold is a species with its own density, slow breakage and a size window for gravity capture; composites and gangue report to the gravity concentrate at small fixed yields.', es: 'El oro es una especie con su propia densidad, fractura lenta y una ventana de tamaños para la captura gravimétrica; mixtos y ganga reportan al concentrado gravimétrico con rendimientos pequeños y fijos.' },
-      { en: 'The gravity model is checked against the direction of the Laplante simulator example, not calibrated to a plant.', es: 'El modelo gravimétrico se contrasta con la tendencia del ejemplo de simulador de Laplante, no se calibra a una planta.' },
+      { en: '45% of the gold is GRG with Snip\'s measured sizes (Vincent 1997), an extremely fine vector; it breaks at Banisi\'s slower rate and classifies with the density exponent fitted to measured GRG partitions. The other 55% is carried in pyrite.', es: '45% del oro es GRG con los tamaños medidos en Snip (Vincent 1997), un vector muy fino; se fractura al ritmo más lento de Banisi y se clasifica con el exponente de densidad ajustado a particiones de GRG medidas. El otro 55% va en la pirita.' },
+      { en: 'The unit treats 10% of the underflow and recovers up to 70% per pass, slightly less below 37 µm; these are authored, anchored to Camchib and Meston. At the nominal state it recovers 60% of the GRG, 27% of all the gold. The model is checked against the published simulator example on the Benchmark, not calibrated to a plant.', es: 'La unidad trata 10% de la descarga y recupera hasta 70% por pasada, algo menos bajo 37 µm; son valores de autor, anclados a Camchib y Meston. En el estado nominal recupera 60% del GRG, 27% de todo el oro. El modelo se contrasta con el ejemplo de simulador publicado en el Benchmark, no se calibra a una planta.' },
     ],
     read: [
       { en: 'Circuit: the gravity unit sits on the underflow return; its concentrate is a product and its tail returns to the mill.', es: 'Circuito: la unidad gravimétrica está sobre el retorno del underflow; su concentrado es un producto y su relave vuelve al molino.' },
-      { en: 'Separation: the gravity and flotation recoveries are reported separately, with the gold circulating load.', es: 'Separación: las recuperaciones gravimétrica y de flotación se informan por separado, con la carga circulante de oro.' },
+      { en: 'Separation: the gravity and flotation recoveries are reported separately, with the GRG recovery and the GRG circulating load.', es: 'Separación: las recuperaciones gravimétrica y de flotación se informan por separado, con la recuperación de GRG y la carga circulante de GRG.' },
       { en: 'Response: sweep the gravity bleed to see recovery saturate.', es: 'Respuesta: barra la purga gravimétrica para ver cómo se satura la recuperación.' },
     ],
-    refs: ['laplante-staunton', 'laplante2005', 'plitt1976'],
+    refs: ['laplante-staunton', 'laplante2005', 'vincent1997', 'laplante-grg-test', 'plitt1976'],
   },
   iron_magnetite_fine: {
     problem: [
@@ -124,6 +124,8 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     scope: [
       { en: 'There is no flotation: the rougher and cleaner drums capture by particle class, with ultrafine losses and gangue entrapment.', es: 'No hay flotación: los tambores rougher y de limpieza capturan por clase de partícula, con pérdidas de ultrafinos y atrapamiento de ganga.' },
       { en: 'The published grind-grade pairs are the oracle for the direction and size of the effect, not a calibration of this plant.', es: 'Los pares molienda-ley publicados son el oráculo para la dirección y el tamaño del efecto, no una calibración de esta planta.' },
+      { en: 'The head grade is the feed\'s total Fe assay. Magnetite carries 26.5 of its 29.7 points; the silicate gangue holds the rest at an authored 5% Fe, which no source gives. That iron is never magnetic, so the Fe recovery (total Fe) sits below the magnetite recovery and follows the head grade by dilution; the Methods view reports both.',
+        es: 'La ley de cabeza es el ensaye de Fe total de la alimentación. La magnetita lleva 26,5 de sus 29,7 puntos; la ganga silicatada lleva el resto con un 5% de Fe de autor, que ninguna fuente da. Ese hierro nunca es magnético, así que la recuperación de Fe (Fe total) queda bajo la recuperación de magnetita y sigue a la ley de cabeza por dilución; la vista de Métodos informa ambas.' },
     ],
     read: [
       { en: 'Separation: the LIMS capture curves by particle class show why composites lower the grade.', es: 'Separación: las curvas de captura LIMS por clase de partícula muestran por qué los mixtos bajan la ley.' },
@@ -152,12 +154,14 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     problem: [
       { en: 'Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.',
         es: 'Las lamas de arcilla consumen colector de ácidos grasos y se arrastran a la espuma, por eso las plantas deslaman; el fosfato de las clases finas se va con las lamas.' },
-      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
-        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso da una alimentación más limpia a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
+      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
+        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso envía menos arcilla a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
     ],
     scope: [
       { en: 'The desliming cyclone uses the Rosin-Rammler partition with a declared sharpness and water bypass; its cut is an operating control bounded by half the grind target.', es: 'El ciclón de deslamado usa la partición Rosin-Rammler con nitidez y cortocircuito de agua declarados; su corte es un control de operación acotado por la mitad del objetivo de molienda.' },
       { en: 'The phosphate practice figures come from a review summary (the full text was not reachable when the research was done).', es: 'Las cifras de práctica del fosfato vienen del resumen de una revisión (el texto completo no estaba disponible al hacer la investigación).' },
+      { en: 'Clay acts only through mass, size and entrainment. Slime coating and collector consumption by slimes, the reasons plants deslime, are not modelled, so the engine shows what the cut costs and not what it buys: a coarser cut lowers recovery and concentrate grade together, and only the flotation-stage recovery, a ratio, rises.',
+        es: 'La arcilla actúa solo por masa, tamaño y arrastre. El recubrimiento por lamas y el consumo de colector por las lamas, las razones por las que las plantas deslaman, no se modelan, así que el motor muestra lo que cuesta el corte y no lo que compra: un corte más grueso baja la recuperación y la ley del concentrado a la vez, y solo sube la recuperación de la etapa de flotación, que es una razón.' },
     ],
     read: [
       { en: 'Separation: the desliming partition by particle class shows what leaves with the slimes.', es: 'Separación: la partición del deslamado por clase de partícula muestra qué se va con las lamas.' },
@@ -226,7 +230,10 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     ],
     scope: [
       { en: 'Clay is soft, fine and barely floatable, so it reports almost entirely by entrainment with the recovered water.', es: 'La arcilla es blanda, fina y casi no flota, por lo que reporta casi por completo por arrastre con el agua recuperada.' },
-      { en: 'Rheology (the viscosity clay adds to the pulp) is outside the model.', es: 'La reología (la viscosidad que la arcilla agrega a la pulpa) queda fuera del modelo.' },
+      { en: 'The engine\'s answer is small: the three cleaning stages leave about 75 ppm of the flotation-feed clay in the final concentrate, the clay costs about 0.2 points of Cu grade, and froth washing and air move grade and recovery by the same amounts with or without it.',
+        es: 'La respuesta del motor es pequeña: las tres etapas de limpieza dejan unas 75 ppm de la arcilla de alimentación a flotación en el concentrado final, la arcilla cuesta unos 0,2 puntos de ley de Cu, y el lavado de espuma y el aire mueven la ley y la recuperación en lo mismo con o sin ella.' },
+      { en: 'Pulp rheology (the viscosity clay adds), slime coating, reagent consumption by fines and froth stability are outside the model, so the case shows the dilution by entrainment and nothing else clay does in a plant.',
+        es: 'La reología de la pulpa (la viscosidad que agrega la arcilla), el recubrimiento por lamas, el consumo de reactivos por los finos y la estabilidad de la espuma quedan fuera del modelo, así que el caso muestra la dilución por arrastre y nada más de lo que la arcilla hace en una planta.' },
     ],
     read: [
       { en: 'Separation: the entrained share of gangue by size and the rougher water recovery.', es: 'Separación: la fracción arrastrada de la ganga por tamaño y la recuperación de agua rougher.' },

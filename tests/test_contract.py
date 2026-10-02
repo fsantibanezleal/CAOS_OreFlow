@@ -10,7 +10,7 @@ import pytest
 
 from pipeline.cases.catalog import CASE_BY_ID, CASES
 from pipeline.engine.circuit import simulate
-from pipeline.engine.model import OPERATING_FIELDS, operating_from_dict
+from pipeline.engine.model import InfeasibleState, OPERATING_FIELDS, operating_from_dict
 from pipeline.engine.trace import trace
 from pipeline.io.contract import (CONTRACT_PATH, FAMILIES, INPUTS, PROBES_PATH, build_contract, decode_value, load_contract,
                                   probe_document, validate, verdict)
@@ -102,7 +102,11 @@ def test_engine_solves_the_envelope(case_id):
             assert [e["code"] for e in result["errors"]] == ["deslime_cut_above_half_target"], (state, result)
             continue
         point = operating_from_dict(result["point"])
-        circuit = simulate(case.ore, case.plant, point)
+        try:
+            circuit = simulate(case.ore, case.plant, point)
+        except InfeasibleState as refusal:   # E-01: the engine refuses a cut-mode state with no steady state
+            assert refusal.code in ("power_unreachable_at_cut", "circulating_load_above_bound"), (state, refusal)
+            continue
         body = trace(circuit, point, case.plant.family)
         json.dumps(body, allow_nan=False)
         codes = {f["code"] for f in body["flags"]}

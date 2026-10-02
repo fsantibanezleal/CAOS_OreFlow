@@ -397,7 +397,7 @@ const CONTRACTS: Topic = {
   ],
   limits: [
     { en: 'The envelope bounds where this engine, with each authored plant, is numerically sound; it does not say that a plant can run at every accepted state.', es: 'La envolvente acota dónde este motor, con cada planta de autor, es numéricamente sólido; no dice que una planta pueda operar en cada estado aceptado.' },
-    { en: 'A state inside the envelope can still carry engine flags, such as power-limited or a cyclone pressure outside the practical window: those are results, not rejections.', es: 'Un estado dentro de la envolvente puede llevar avisos del motor, como limitado por potencia o una presión de ciclón fuera de la ventana práctica: son resultados, no rechazos.' },
+    { en: 'A state inside the envelope can still carry engine flags, such as power-limited: those are results, not rejections.', es: 'Un estado dentro de la envolvente puede llevar avisos del motor, como limitado por potencia: son resultados, no rechazos.' },
   ],
   figure: { caption: { en: 'A state is validated against the contract, solved by the engine into a trace, baked per variant into the case artifact, and bound by its manifest into the index.', es: 'Un estado se valida contra el contrato, el motor lo resuelve en una traza, se hornea por variante en el artefacto de caso, y su manifiesto lo liga al índice.' }, render: lang => <ContractFigure lang={lang} /> },
   data: lang => <ArtifactTable lang={lang} />,

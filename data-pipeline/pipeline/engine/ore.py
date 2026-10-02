@@ -59,6 +59,35 @@ class ResolvedOre:
         return self.composition[mineral].get(species, 0.0)
 
 
+def _total_assay(ore: Ore, op: OperatingPoint, spec: dict, ids: list[str], composition: dict[str, dict[str, float]],
+                 fraction: dict[str, float], balance: str) -> None:
+    """The head grade is the ore's total assay of the payable (E-02, review of 2026-10-02). Where the balance gangue or
+    a declared mineral also holds the payable's element, the stoichiometric carriers carry only the rest: their grade
+    G_c solves G = G_c + F + c_b (1 - X_d - X_o - G_c K), with F and X_d the declared minerals' element and fraction,
+    X_o the other payables' carriers, c_b the balance gangue's content and K the carriers' sum of share over content.
+    Until 0.08.000 the magnetite case's control set the iron in magnetite only, and its feed assayed 12% more."""
+    for index, payable in enumerate(ore.payables):
+        own = {c.mineral for c in payable.carriers}
+        holders = [m for m in ids if m not in own and composition[m].get(payable.species, 0.0) > 0.0]
+        if not holders:
+            continue
+        others = {c.mineral for p in ore.payables if p is not payable for c in p.carriers}
+        if any(m in others for m in holders) or any(c.mode != "stoichiometric" for c in payable.carriers) or own & others:
+            raise ValueError(f"{payable.species}: a carrier of another payable, or a trace carrier, holds it; not supported")
+        grade = grade_to_fraction(op.head_grade if index == 0 else payable.head_grade, payable.unit)
+        declared = [m for m in ids if m not in own and m not in others and m != balance]
+        f_declared = sum(spec[m].fraction * composition[m].get(payable.species, 0.0) for m in declared)
+        x_declared = sum(spec[m].fraction for m in declared)
+        x_others = sum(fraction[m] for m in others)
+        c_balance = composition[balance].get(payable.species, 0.0)
+        k = sum(c.share / composition[c.mineral][payable.species] for c in payable.carriers)
+        carried = (grade - f_declared - c_balance * (1.0 - x_declared - x_others)) / (1.0 - c_balance * k)
+        if carried <= 0.0:
+            raise ValueError(f"{payable.species}: the head grade is below what the gangue holds")
+        for c in payable.carriers:
+            fraction[c.mineral] = carried * c.share / composition[c.mineral][payable.species]
+
+
 def resolve(ore: Ore, op: OperatingPoint) -> ResolvedOre:
     table = mineral_table()
     spec = {m.id: m for m in ore.minerals}
@@ -93,6 +122,7 @@ def resolve(ore: Ore, op: OperatingPoint) -> ResolvedOre:
     balance = [m for m in ids if m not in fraction and spec[m].fraction == 0.0]
     if len(balance) != 1:
         raise ValueError(f"exactly one balance gangue mineral is required, found {balance}")
+    _total_assay(ore, op, spec, ids, composition, fraction, balance[0])
     for m in ids:
         if m not in fraction and m not in balance:
             fraction[m] = spec[m].fraction
@@ -101,6 +131,17 @@ def resolve(ore: Ore, op: OperatingPoint) -> ResolvedOre:
         raise ValueError("declared and derived mineral fractions exceed the ore")
     fraction[balance[0]] = remainder
     g = grid()
+    for m in ids:
+        grains = spec[m].grains
+        if grains is None:
+            continue
+        # gravity-recoverable grains enter liberated with their own sizes (E-11): no liberation curve, no composites
+        if spec[m].liberation_size_um > 0.0 or spec[m].composite_content > 0.0:
+            raise ValueError(f"{m}: declared grains are liberated; a liberation size or composites cannot apply")
+        sizes, passing = grains.size_um, grains.passing
+        if (len(sizes) != len(passing) or any(b >= a for a, b in zip(sizes, sizes[1:])) or passing[0] != 1.0
+                or any(b > a for a, b in zip(passing, passing[1:])) or passing[-1] < 0.0 or not 0.0 < grains.lower_um < sizes[-1]):
+            raise ValueError(f"{m}: grains need descending sizes, all passing the first, non-increasing passing and a lower size below the last")
     liberation = {}
     for m in valuable:
         s = spec[m]

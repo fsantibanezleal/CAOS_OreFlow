@@ -170,6 +170,83 @@ def paired_bootstrap(rows: list[dict], samples: int = BOOTSTRAP_SAMPLES, seed: i
             "rmse_differences": differences}
 
 
+# M-05 (review of 2026-10-02): one GroupKFold partition put the ridge gain at the 99th percentile of its own
+# distribution over hole partitions. The comparison is repeated over random hole partitions and leave one hole out,
+# and every interval is widened for the six model pairs (Bonferroni), so no surface names a winner on one partition.
+PARTITIONS = 200
+PARTITION_SEED = 20261002
+ROBUST_SAMPLES = 4000
+
+
+def _features(frame: pd.DataFrame) -> tuple[np.ndarray, np.ndarray, np.ndarray]:
+    x = np.log1p(frame[list(FEATURES)].apply(pd.to_numeric, errors="coerce").clip(lower=0).to_numpy(dtype=float))
+    return x, frame["LCT"].to_numpy(dtype=float) * 100, frame["HOLEID"].to_numpy()
+
+
+def _out_of_fold(x: np.ndarray, y: np.ndarray, folds: list[np.ndarray]) -> dict[str, np.ndarray]:
+    predictions = {name: np.full(len(y), np.nan) for name in MODEL_NAMES}
+    everything = np.arange(len(y))
+    for test in folds:
+        train = np.setdiff1d(everything, test)
+        predictions["train_mean"][test] = y[train].mean()
+        for name, estimator in make_models().items():
+            predictions[name][test] = np.clip(clone(estimator).fit(x[train], y[train]).predict(x[test]), 0, 100)
+    return predictions
+
+
+def _hole_bootstrap(squared: dict[str, np.ndarray], holes: np.ndarray, samples: int, seed: int) -> dict:
+    """RMSE differences from per-row squared errors, resampling complete holes; Bonferroni over the model pairs."""
+    names = list(squared)
+    labels, index = np.unique(holes, return_inverse=True)
+    counts = np.bincount(index, minlength=len(labels)).astype(float)
+    rng = np.random.default_rng(seed)
+    weights = rng.multinomial(len(labels), np.full(len(labels), 1.0 / len(labels)), size=samples).astype(float)
+    n = weights @ counts
+    rmse = {name: np.sqrt(weights @ np.bincount(index, weights=squared[name], minlength=len(labels)) / n) for name in names}
+    pairs = [(a, b) for i, a in enumerate(names) for b in names[i + 1:]]
+    tail = 0.05 / len(pairs) / 2.0
+    out = {}
+    for a, b in pairs:
+        delta = rmse[a] - rmse[b]
+        point = float(math.sqrt(np.mean(squared[a])) - math.sqrt(np.mean(squared[b])))
+        low, high = np.quantile(delta, [tail, 1.0 - tail])
+        out[f"{a}-{b}"] = {"difference_pp": round(point, 4), "interval_adjusted_pp": [round(float(low), 4), round(float(high), 4)],
+                           "excludes_zero": bool(high < 0.0 or low > 0.0)}
+    return {"samples": samples, "seed": seed, "pairs": len(pairs), "adjustment": f"Bonferroni over {len(pairs)} pairs ({100 * (1 - 2 * tail * len(pairs)):.0f}% family-wise)",
+            "rmse_pp": {name: round(float(math.sqrt(np.mean(squared[name]))), 4) for name in names}, "rmse_differences": out}
+
+
+def robust_hole_comparison(frame: pd.DataFrame, published_rows: list[dict]) -> dict:
+    """The whole-hole comparison over random 5-fold hole partitions (squared errors averaged per row) and over leave
+    one hole out, each with the adjusted hole bootstrap, and where the published partition's ridge gain sits."""
+    x, y, holes = _features(frame)
+    unique = np.unique(holes)
+    rng = np.random.default_rng(PARTITION_SEED)
+    names = list(MODEL_NAMES)
+    squared_sum = {name: np.zeros(len(y)) for name in names}
+    gains = []
+    for _ in range(PARTITIONS):
+        shuffled = rng.permutation(unique)
+        folds = [np.flatnonzero(np.isin(holes, group)) for group in np.array_split(shuffled, 5)]
+        predictions = _out_of_fold(x, y, folds)
+        for name in names:
+            squared_sum[name] += (predictions[name] - y) ** 2
+        gains.append(math.sqrt(float(np.mean((predictions["train_mean"] - y) ** 2))) - math.sqrt(float(np.mean((predictions["ridge"] - y) ** 2))))
+    gains = np.asarray(gains)
+    observed = np.array([row["observed_lct_pct"] for row in published_rows])
+    published_gain = (math.sqrt(float(np.mean((np.array([r["predictions_pct"]["train_mean"] for r in published_rows]) - observed) ** 2)))
+                      - math.sqrt(float(np.mean((np.array([r["predictions_pct"]["ridge"] for r in published_rows]) - observed) ** 2))))
+    partitions = _hole_bootstrap({name: squared_sum[name] / PARTITIONS for name in names}, holes, ROBUST_SAMPLES, PARTITION_SEED)
+    partitions.update({"partitions": PARTITIONS, "partition_seed": PARTITION_SEED, "folds": 5,
+                       "ridge_gain_over_mean_pp": {"mean": round(float(gains.mean()), 4), "sd": round(float(gains.std(ddof=1)), 4),
+                                                   "min": round(float(gains.min()), 4), "max": round(float(gains.max()), 4),
+                                                   "published_partition": round(published_gain, 4),
+                                                   "published_percentile": round(float(100.0 * np.mean(gains < published_gain)), 1)}})
+    loho = _out_of_fold(x, y, [np.flatnonzero(holes == hole) for hole in unique])
+    leave_one_hole_out = _hole_bootstrap({name: (loho[name] - y) ** 2 for name in names}, holes, ROBUST_SAMPLES, PARTITION_SEED + 1)
+    return {"repeated_partitions": partitions, "leave_one_hole_out": leave_one_hole_out}
+
+
 def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
     data = source_bytes(source_path)
     frame, exclusions = load_rows(source_path)
@@ -196,6 +273,7 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
     }
     for protocol in artifact["protocols"].values():
         protocol["paired_bootstrap"] = paired_bootstrap(protocol["rows"])
+    artifact["protocols"]["hole"]["robust"] = robust_hole_comparison(frame, artifact["protocols"]["hole"]["rows"])
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(artifact, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
     return artifact

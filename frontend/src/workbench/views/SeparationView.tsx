@@ -148,7 +148,14 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
       {charts.bank_profile}
       {charts.deslime ?? charts.kinetics}
       <div className="of-panel">
-        {models.length > 0 && kinetics.bank && (
+        {/* U-12: the family's own answer first (slimes, gravity, a second payable), then the flotation facts */}
+        <Facts trace={trace} lang={lang} keys={['slimes_mass_pct', 'slimes_loss_pct', 'gravity_recovery_pct', 'grg_recovery_pct', 'gold_circulating_load_pct',
+          // a second payable's own recovery (molybdenum beside copper)
+          ...Object.keys(m).filter(k => /^recovery_[A-Za-z0-9]+_pct$/.test(k) && k !== `recovery_${primary.species}_pct`),
+          'flotation_recovery_pct', 'rougher_recovery_pct', 'cleaner_recovery_pct', 'recleaner_recovery_pct', 'rougher_residence_min',
+          'bubble_surface_flux_s', 'rougher_water_recovery_pct', 'entrained_gangue_share_pct', 'cleaner_recycle_tph'].filter(k => k in m)} />
+        {/* U-36: the kinetic table goes with its chart; where the desliming chart takes its place, so does the table */}
+        {models.length > 0 && kinetics.bank && !charts.deslime && (
           <table className="of-table">
             <caption>{`${TEXT.exact[lang]}: ${formatWithUnit(kinetics.bank.exact_true_flotation_pct, '%', lang)} · ${TEXT.engine[lang]}: ${formatWithUnit(kinetics.bank.engine_rougher_pct, '%', lang)}. ${TEXT.points[lang]}`}</caption>
             <thead><tr><th scope="col">{TEXT.model[lang]}</th><th scope="col">{TEXT.rmse[lang]}</th><th scope="col">{TEXT.projection[lang]}</th><th scope="col">{TEXT.lumping[lang]}</th><th scope="col">{TEXT.gap[lang]}</th></tr></thead>
@@ -159,10 +166,6 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
             ))}</tbody>
           </table>
         )}
-        <Facts trace={trace} lang={lang} keys={['flotation_recovery_pct', 'rougher_recovery_pct', 'cleaner_recovery_pct', 'recleaner_recovery_pct', 'rougher_residence_min',
-          'bubble_surface_flux_s', 'rougher_water_recovery_pct', 'entrained_gangue_share_pct', 'cleaner_recycle_tph', 'slimes_mass_pct', 'slimes_loss_pct', 'gravity_recovery_pct', 'gold_circulating_load_pct',
-          // a second payable's own recovery (molybdenum beside copper)
-          ...Object.keys(m).filter(k => /^recovery_[A-Za-z0-9]+_pct$/.test(k) && k !== `recovery_${primary.species}_pct`)].filter(k => k in m)} />
       </div>
     </div>
   );

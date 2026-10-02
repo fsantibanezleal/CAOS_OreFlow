@@ -7,7 +7,7 @@ import { ABLATIONS, UNCERTAINTY } from '../content/experiments-studies';
 // PG-03 for the uncertainty and ablations tabs: every number and ordering their prose states is recomputed from
 // studies.json (the committed record; OF_DERIVED points a development run at a sandbox bake).
 const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
-type Rec = { status: string; delta?: Record<string, number>; on?: Record<string, number> };
+type Rec = { status: string; delta?: Record<string, number>; on?: Record<string, number>; detail?: { on: Record<string, number>; off: Record<string, number> } };
 const studies = JSON.parse(readFileSync(join(derived, 'studies.json'), 'utf-8')) as {
   cases: Record<string, { ablations: Record<string, Rec>; seed_study: { seeds: number[]; samples: number; spread: { recovery_pct: Record<string, number>; all_constraints: number } } }>;
 };
@@ -28,6 +28,16 @@ describe('the uncertainty and ablations tabs say what the studies record holds',
     expect([fixed(100 * joint(argmin(cases, joint)), 1), argmax(cases, joint), fixed(100 * joint(argmax(cases, joint)), 1)]).toEqual([0.8, 'copper_oxide', 8.6]);
     const text = UNCERTAINTY.paragraphs.map(p => p.en).join(' ');
     expect(text).toMatch(/moves by 0\.17 points in the magnetite case to 0\.94 in the hard porphyry, the median by at most 0\.65 \(zinc\), and the probability of meeting every constraint by 0\.8 to 8\.6 percentage points, the most in oxide copper/);
+  });
+
+  it('ablations: the oxide copper entrainment detail is the record (M-18)', () => {
+    const d = studies.cases.copper_oxide.ablations.entrainment.detail!;
+    const one = (v: number) => fixed(v, 1);
+    expect([one(d.off.rougher_mass_pull_pct), one(d.on.rougher_mass_pull_pct)]).toEqual([28.5, 34.3]);
+    expect([Math.round(d.on.cleaner_recycle_tph), Math.round(d.off.cleaner_recycle_tph)]).toEqual([176, 142]);
+    expect([one(d.off.cleaner_residence_min), one(d.on.cleaner_residence_min), one(d.off.cleaner_recovery_pct), one(d.on.cleaner_recovery_pct)]).toEqual([6.5, 5.6, 75.5, 72.2]);
+    const text = ABLATIONS.paragraphs.map(p => p.en).join(' ');
+    expect(text).toMatch(/the rougher pulls 28\.5% of the feed instead of 34\.3%, the recycle falls from 176 to 142 t\/h, and the cleaner, whose volume is fixed, holds its smaller feed 6\.5 minutes instead of 5\.6 and recovers 75\.5% instead of 72\.2%/);
   });
 
   it('ablations: what each mechanism carries, as the prose states it', () => {

@@ -420,6 +420,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           const controls = { box: await rerun.count(), weight: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count(),
             charts: await page.locator('.of-view-methods .of-aside .of-fields select').last().locator('option').count() };
           let live = null;
+          let tone = null;
           if (!optimizerRunChecked && controls.box === 1) {
             optimizerRunChecked = true;
             await rerun.locator('select').selectOption('50');
@@ -427,10 +428,22 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
             live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 600000 }).then(() => true, () => false);
             if (live) {
               await page.screenshot({ path: join(OUT, `methods-optimizer-live-${tag}.png`) });
+              // a loss of recovered metal is never shown in the success colour, and a partial weight says it is not
+              // advice: at 50% the 0.07.000 build reported '-0.7418 t/h of recovered metal (-15%)' in green
+              tone = await page.evaluate(() => {
+                const line = [...document.querySelectorAll('.of-view-methods .of-aside > .of-status-line')].at(-1);
+                const good = getComputedStyle(document.documentElement).getPropertyValue('--color-good').trim();
+                const probe = document.createElement('span'); probe.style.color = good; document.body.append(probe);
+                const goodRgb = getComputedStyle(probe).color; probe.remove();
+                const loss = /: -|: \u2212/.test(line?.textContent ?? '');
+                return { loss, green: line ? getComputedStyle(line).color === goodRgb : null,
+                  note: /not advice|no es una recomendaci/.test(document.querySelector('.of-view-methods .of-aside')?.textContent ?? '') };
+              });
               await rerun.locator('.of-revert').click();
             }
           }
-          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false, { ...controls, live });
+          const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note);
+          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false && toneOk, { ...controls, live, tone });
         }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }

@@ -6,7 +6,7 @@ Phosphate plants deslime the flotation feed, commonly below about 20 um, because
 fatty-acid collector and entrain into the froth; the price is the apatite lost with the slimes
 (Brazilian practice at Catalao, Tapira and Cajati; review in Minerals 9(4):253, 2019,
 doi:10.3390/min9040253, cited through its summary because the full text was not reachable on
-2026-09-26). A coarser desliming cut makes a cleaner flotation feed and loses more phosphate.
+2026-09-26). A coarser desliming cut sends less clay to flotation and loses more phosphate.
 A coarser grind makes fewer slimes, which is why overgrinding a desliming feed costs recovery.
 
 ## Implementation
@@ -34,4 +34,10 @@ grinding balance rather than being assumed.
 
 ## What it is not
 
-No slime-coating or collector-consumption model; clays act through mass, size and entrainment only.
+No slime-coating, collector-consumption or rheology model; clays act through mass, size and entrainment
+only. The engine therefore shows what a coarser cut costs and not the benefit plants deslime for: from 8 to
+45 um, recovery and concentrate grade fall together, and only the flotation-stage recovery, a ratio, rises
+(`tests/test_case_premises.py`). Until 0.08.000 the phosphate case said the cut "trades lost P2O5 against a
+cleaner flotation feed", which the engine never showed (review of 2026-10-02, E-03). Erwin et al. (2023),
+citing Lima et al. (2020), states that slimes raise reagent consumption and lower froth stability and
+selectivity, without a rate that could be parameterized; a sourced slime model is in the backlog.

@@ -71,7 +71,7 @@ if none exists, so `--fit-checkpoint` is only needed to rebuild it.
 
 Read the predictions as what these 52 tests from one deposit suggest, not as a recovery for another
 ore: the source has no grind, reagent or residence information, and on its own data the models barely
-separate: under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does ([data contract 05](../../data-contract/05_geomet-lane.md)).
+separate: on the five fixed hole folds ridge beats the training mean by 0.42 points of RMSE (95% interval 0.02 to 0.82), but that partition sits at the 98.5th percentile of 200 random hole partitions; averaged over them the gain is 0.17 points (-0.39 to 0.71) and under leave one hole out 0.22 (-0.36 to 0.79), each interval widened for the six model pairs, and under spatial-zone folds no difference excludes zero either. No model separates from the training mean ([data contract 05](../../data-contract/05_geomet-lane.md)).
 
 ## Traps
 

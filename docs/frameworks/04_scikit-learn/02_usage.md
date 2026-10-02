@@ -92,7 +92,7 @@ folds over whole holes, and a three-fold split by spatial zone. `clone` gives ev
 unfitted copy. After the evaluation, `--fit-checkpoint` fits the models on all 52 tests and
 `joblib.dump` writes the checkpoint that `scripts/predict-geomet` loads to score a CSV of new assays.
 On 52 tests the point estimates do not rank the models, so the lane reports a paired bootstrap of every
-pair's error difference: under whole-hole folds only ridge beats the training mean with an interval that excludes zero (0.42 points of RMSE, 95% interval 0.02 to 0.82), and under spatial-zone folds no model does ([data contract 05](../../data-contract/05_geomet-lane.md)).
+pair's error difference: on the five fixed hole folds ridge beats the training mean by 0.42 points of RMSE (95% interval 0.02 to 0.82), but that partition sits at the 98.5th percentile of 200 random hole partitions; averaged over them the gain is 0.17 points (-0.39 to 0.71) and under leave one hole out 0.22 (-0.36 to 0.79), each interval widened for the six model pairs, and under spatial-zone folds no difference excludes zero either. No model separates from the training mean.
 
 ## Tests
 

@@ -139,7 +139,7 @@ def test_documented_findings_on_nominal_cases():
         rmse += [by_id["kelsall"]["rmse_pct"], by_id["gamma"]["rmse_pct"]]
         lumping += [abs(by_id["kelsall"]["lumping_error_pct"]), abs(by_id["gamma"]["lumping_error_pct"])]
         betas.append(by_id["stretched_exponential"]["parameters"]["beta"])
-    assert all(-7.0 <= v <= -3.0 for v in first), first          # "underestimates by 3 to 7 points"
+    assert all(-6.45 <= v <= -2.95 for v in first), first        # "underestimates by 3.0 to 6.4 points"
     assert max(rmse) < 0.2, rmse                                   # "within 0.2 points RMSE"
     assert max(lumping) < 1.7, lumping                             # "project within about 1.6 points"
     assert all(0.83 <= b <= 0.94 for b in betas), betas            # "beta between 0.83 and 0.94"

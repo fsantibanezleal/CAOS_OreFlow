@@ -282,9 +282,10 @@ The linear model fails only in case 4, where the network does not.
 (Hoffimann et al. 2022; Zenodo 7051975, CC BY 4.0), predicted from five assays by the training mean, ridge, a
 random forest and a Gaussian process, under five folds of whole holes and three spatial zones. RMSE ranges
 from 5.09 to 5.51 points (whole holes) and 5.15 to 5.69 (zones). A paired bootstrap over complete holes
-(2000 resamples) shows how little separates them: under whole-hole folds only ridge beats the training mean
-with an interval that excludes zero (0.42 points, 95% interval 0.02 to 0.82), and under spatial zones no model
-does. The source has no grind, reagent or residence information, so it cannot calibrate the engine's controls.
+(2000 resamples) shows how little separates them. On the five fixed hole folds ridge beats the training mean
+by 0.42 points (95% interval 0.02 to 0.82), but that partition sits at the 98.5th percentile of 200 random hole
+partitions; averaged over them the gain is 0.17 points (-0.39 to 0.71) and under leave one hole out 0.22 (-0.36 to
+0.79), each interval widened for the six model pairs, and under spatial zones no model separates either. The source has no grind, reagent or residence information, so it cannot calibrate the engine's controls.
 
 **The engine on the same samples.** The 52 samples also run through the engine, each on its own assays in the
 soft copper porphyry's circuit at that case's operating point. The work index comes from the nearest comminution

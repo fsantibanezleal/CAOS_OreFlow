@@ -133,11 +133,13 @@ INPUTS: tuple[InputSpec, ...] = (
               ("Corrected cut of the host gangue in the cyclone, set by its hardware and pressure. Off (0), the solver "
                "finds the cut that holds the circulating load and the energy that meets the grind target. On, the mill "
                "draws its installed power, and the P80 and the circulating load follow: a finer cut returns more to the "
-               "mill and grinds finer.",
+               "mill and grinds finer. A cut at which the mill cannot draw its installed power, or that would return "
+               "more than 600% to the mill, has no steady state and is refused.",
                "Corte corregido de la ganga huésped en el ciclón, fijado por su equipo y su presión. Apagado (0), el "
-               "solver busca el corte que sostiene la carga circulante y la energía que cumple el objetivo de molienda. "
+               "programa busca el corte que sostiene la carga circulante y la energía que cumple el objetivo de molienda. "
                "Encendido, el molino consume su potencia instalada, y el P80 y la carga circulante resultan: un corte "
-               "más fino devuelve más al molino y muele más fino.")),
+               "más fino devuelve más al molino y muele más fino. Un corte con el que el molino no puede consumir su "
+               "potencia instalada, o que devolvería más de 600% al molino, no tiene estado estacionario y se rechaza.")),
 )
 INPUT_BY_NAME = {spec.name: spec for spec in INPUTS}
 
@@ -158,6 +160,11 @@ MESSAGES = {
     "not_integer": {"en": "The value must be a whole number.", "es": "El valor debe ser un número entero."},
     "out_of_range": {"en": "The value is outside the operating envelope.", "es": "El valor está fuera de la envolvente de operación."},
     "off_step": {"en": "The value must be a multiple of the control's step.", "es": "El valor debe ser un múltiplo del paso del control."},
+    # the engine's refusals of states the contract accepts (E-01): served as rejections, never as solved states
+    "power_unreachable_at_cut": {"en": "At this classifier cut the mill cannot draw its installed power: there is no steady state. Choose a coarser cut, a lower throughput or a softer ore.",
+                                 "es": "Con este corte del clasificador el molino no puede consumir su potencia instalada: no hay estado estacionario. Elija un corte más grueso, un tratamiento menor o un mineral más blando."},
+    "circulating_load_above_bound": {"en": "At this classifier cut the circulating load would exceed the 600% the cut mode accepts. Choose a coarser cut or a lower throughput.",
+                                     "es": "Con este corte del clasificador la carga circulante superaría el 600% que acepta el modo de corte. Elija un corte más grueso o un tratamiento menor."},
 }
 
 

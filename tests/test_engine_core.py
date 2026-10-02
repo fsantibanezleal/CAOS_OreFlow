@@ -40,3 +40,17 @@ def test_stoichiometry_from_atomic_weights():
         assert set(composition) == set(ideal)
         for element, value in ideal.items():
             assert composition[element] == pytest.approx(value, abs=2e-4), (mineral, element)   # the Handbook used older atomic weights
+
+
+def test_head_grade_is_the_total_assay():
+    # E-02 (review of 2026-10-02): the primary head grade a case declares is the feed's total assay of the payable, at
+    # the nominal state and across the control's range. Until 0.08.000 the magnetite case's control set only the iron
+    # in magnetite while its silicate held 5% Fe, so its feed assayed 29.67% against a declared 26.5%
+    from pipeline.cases.catalog import CASES
+    from pipeline.engine.circuit import simulate
+
+    for case in CASES:
+        for factor in (0.5, 1.0, 1.5):
+            point = case.nominal.with_values(head_grade=case.nominal.head_grade * factor)
+            head = simulate(case.ore, case.plant, point).metrics["head_grade"]
+            assert abs(head / point.head_grade - 1.0) <= 1e-12, (case.id, factor, head, point.head_grade)

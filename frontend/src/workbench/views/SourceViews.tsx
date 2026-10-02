@@ -53,6 +53,10 @@ export const SOURCE_TEXT = {
     es: 'La planta y el punto nominal de operación del pórfido blando, sus parámetros de fractura y liberación, y sus parámetros de flotación: la bornita flota a 0,8 de la flotabilidad de la calcopirita y la calcosina a 1,5 veces la de la bornita, ambas definidas desde evidencia de laboratorio acotada; la magnetita flota como el cuarzo.',
   },
   engine: { en: 'Engine, this state', es: 'Motor, este estado' },
+  p80: { en: 'Achieved P80, this state', es: 'P80 alcanzado, este estado' },
+  mill: { en: 'Mill, this state', es: 'Molino, este estado' },
+  limited: { en: 'at installed power: the grind is coarser than the target', es: 'a potencia instalada: la molienda es más gruesa que el objetivo' },
+  free: { en: 'below installed power', es: 'bajo la potencia instalada' },
   measured: { en: 'Measured locked-cycle test', es: 'Ensayo en ciclo cerrado medido' },
   lane: { en: 'GeoMet lane, out of fold', es: 'Vía GeoMet, fuera de la partición' },
   comparison: {
@@ -87,7 +91,27 @@ export function SourceStatement({ kind, lang }: { kind: 'hour' | 'sample-methods
   return <div className="of-view of-view-statement"><p className="of-note" role="note">{text[lang]}</p></div>;
 }
 
-export function SampleView({ record, sample, recovery, lang }: { record: RealSamples; sample: RealSample; recovery: number | null; lang: Lang }) {
+/** U-07, S-01, S-03: the record's mean gap with what it depends on, every number from the record. */
+function gapFrame(record: RealSamples, lang: Lang): string {
+  const n = record.summary.samples;
+  const p80s = record.samples.map(s => s.metrics.p80_um);
+  const head = lang === 'es'
+    ? `${n} muestras en el estado nominal del caso (720 t/h): ${record.summary.power_limited} de ${n} operan el molino a potencia instalada (P80 de ${formatFixed(Math.min(...p80s), lang, 0)} a ${formatFixed(Math.max(...p80s), lang, 0)} µm), y la recuperación del motor menos la medida promedia ${formatFixed(record.summary.engine_minus_measured_pp.mean, lang, 1)} puntos.`
+    : `${n} samples at the case's nominal state (720 t/h): ${record.summary.power_limited} of ${n} run the mill at installed power (P80 ${formatFixed(Math.min(...p80s), lang, 0)} to ${formatFixed(Math.max(...p80s), lang, 0)} µm), and the engine's recovery minus the measured averages ${formatFixed(record.summary.engine_minus_measured_pp.mean, lang, 1)} points.`;
+  const curve = record.sensitivity?.gap_by_assumed_p80;
+  if (!curve) return head;
+  const at = (p: number) => curve.find(r => r.p80_um === p);
+  const [a, b, c] = [at(75), at(150), at(300)];
+  if (!a || !b || !c) return head;
+  const signed = (v: number) => `${v >= 0 ? '+' : ''}${formatFixed(v, lang, 1)}`;
+  return lang === 'es'
+    ? `${head} El déficit es sobre todo el tamaño del circuito anfitrión: con un molino dimensionado para la molienda, la diferencia media es ${signed(a.mean_gap_pp)} puntos con un P80 de laboratorio supuesto de 75 µm, ${signed(b.mean_gap_pp)} con 150 µm y ${signed(c.mean_gap_pp)} con 300 µm; la molienda del laboratorio no está en los datos abiertos.`
+    : `${head} The deficit is mostly the host circuit's size: with a mill sized for the grind, the mean difference is ${signed(a.mean_gap_pp)} points at an assumed laboratory P80 of 75 µm, ${signed(b.mean_gap_pp)} at 150 µm and ${signed(c.mean_gap_pp)} at 300 µm; the laboratory grind is not in the open data.`;
+}
+
+export function SampleView({ record, sample, recovery, p80, powerLimited, lang }: {
+  record: RealSamples; sample: RealSample; recovery: number | null; p80: number | null; powerLimited: boolean; lang: Lang;
+}) {
   const shares = Object.entries(sample.allocation.copper_shares).filter(([, v]) => v > 0);
   const lanePredictions = sample.geomet_lane?.predictions_pct ?? {};
   return (
@@ -116,6 +140,8 @@ export function SampleView({ record, sample, recovery, lang }: { record: RealSam
             <caption>{SOURCE_TEXT.compare[lang]}</caption>
             <tbody>
               <tr><th scope="row">{SOURCE_TEXT.engine[lang]}</th><td>{recovery === null ? '-' : `${formatFixed(recovery, lang, 1)}%`}</td></tr>
+              <tr><th scope="row">{SOURCE_TEXT.p80[lang]}</th><td>{p80 === null ? '-' : formatWithUnit(p80, 'um', lang)}</td></tr>
+              <tr className={powerLimited ? 'of-row-warn' : undefined}><th scope="row">{SOURCE_TEXT.mill[lang]}</th><td>{powerLimited ? SOURCE_TEXT.limited[lang] : SOURCE_TEXT.free[lang]}</td></tr>
               <tr><th scope="row">{SOURCE_TEXT.measured[lang]}</th><td>{`${formatFixed(sample.measured_recovery_pct, lang, 1)}%`}</td></tr>
               {Object.entries(lanePredictions).map(([m, v]) => (
                 <tr key={m}><th scope="row">{`${SOURCE_TEXT.lane[lang]}: ${LANE_MODEL[m]?.[lang] ?? m.replace(/_/g, ' ')}`}</th><td>{`${formatFixed(v, lang, 1)}%`}</td></tr>
@@ -123,7 +149,7 @@ export function SampleView({ record, sample, recovery, lang }: { record: RealSam
             </tbody>
           </table>
           <p className="of-footnote">{SOURCE_TEXT.comparison[lang]}</p>
-          <p className="of-footnote">{`${record.summary.samples} ${lang === 'es' ? 'muestras' : 'samples'}; ${metricLabel('recovery_pct', lang)} ${lang === 'es' ? 'del motor menos la medida, media' : 'of the engine minus the measured, mean'} ${formatFixed(record.summary.engine_minus_measured_pp.mean, lang, 1)} ${lang === 'es' ? 'puntos' : 'points'}.`}</p>
+          <p className="of-footnote">{gapFrame(record, lang)}</p>
         </div>
       </div>
     </div>

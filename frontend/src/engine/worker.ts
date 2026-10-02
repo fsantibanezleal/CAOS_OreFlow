@@ -7,11 +7,11 @@
  *   tick with its progress; posted only by a user action, and a newer run or a cancel stops it between runs.
  */
 import type { OperatingContract } from './contract';
-import type { OperatingPoint, Ore, Plant } from './model';
+import { InfeasibleState, type OperatingPoint, type Ore, type Plant } from './model';
 import { gridPoints, sweepCell, type SweepCell, type SweepRequest } from './sweep';
 import { evaluate } from './index';
 import type { Trace } from './trace';
-import { designFor, evaluateSample, factorsOf, summarize, type Evaluation, type UncertaintyRecord } from './uncertainty';
+import { designFor, evaluateSample, factorsOf, summarize, type Evaluation, type Refused, type UncertaintyRecord } from './uncertainty';
 
 export type Inbound =
   | { type: 'evaluate'; id: number; ore: Ore; plant: Plant; point: OperatingPoint }
@@ -24,6 +24,7 @@ export type Outbound =
   | { type: 'done'; id: number; cells: SweepCell[]; ms: number }
   | { type: 'progress'; id: number; done: number; total: number }
   | { type: 'record'; id: number; record: UncertaintyRecord; ms: number }
+  | { type: 'refused'; id: number; error: { code: string; input: string; value: number; max?: number } }
   | { type: 'error'; id: number; message: string };
 
 let currentSweep = 0;
@@ -42,7 +43,7 @@ scope.onmessage = event => {
       scope.postMessage({ type: 'error', id, message: error instanceof Error ? error.message : String(error) });
       return;
     }
-    const rows: Evaluation[] = [];
+    const rows: Array<Evaluation | Refused> = [];
     const step = () => {
       if (currentRun !== id) return;
       try {
@@ -55,7 +56,8 @@ scope.onmessage = event => {
         const record = summarize(design, rows, evaluateSample(ore, plant, point, {}));
         scope.postMessage({ type: 'record', id, record, ms: performance.now() - started });
       } catch (error) {
-        scope.postMessage({ type: 'error', id, message: error instanceof Error ? error.message : String(error) });
+        if (error instanceof InfeasibleState) scope.postMessage({ type: 'refused', id, error: error.error() });
+        else scope.postMessage({ type: 'error', id, message: error instanceof Error ? error.message : String(error) });
       }
     };
     step();
@@ -67,7 +69,8 @@ scope.onmessage = event => {
       const trace = evaluate(message.ore, message.plant, message.point);
       scope.postMessage({ type: 'trace', id: message.id, trace, ms: performance.now() - started });
     } catch (error) {
-      scope.postMessage({ type: 'error', id: message.id, message: error instanceof Error ? error.message : String(error) });
+      if (error instanceof InfeasibleState) scope.postMessage({ type: 'refused', id: message.id, error: error.error() });
+      else scope.postMessage({ type: 'error', id: message.id, message: error instanceof Error ? error.message : String(error) });
     }
     return;
   }

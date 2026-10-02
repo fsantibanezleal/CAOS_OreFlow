@@ -9,3 +9,5 @@ if ($LASTEXITCODE -ne 0) { throw "Process pipeline failed: $LASTEXITCODE" }
 if ($LASTEXITCODE -ne 0) { throw "Particle pipeline failed: $LASTEXITCODE" }
 & $vp data-pipeline/run_geomet.py --fit-checkpoint
 if ($LASTEXITCODE -ne 0) { throw "GeoMet LCT pipeline failed: $LASTEXITCODE" }
+& $vp data-pipeline/run_iron_plant.py
+if ($LASTEXITCODE -ne 0) { throw "Iron-plant soft-sensor pipeline failed: $LASTEXITCODE" }

@@ -50,6 +50,31 @@ export class ResolvedOre {
   }
 }
 
+/** The head grade is the ore's total assay of the payable (E-02): engine/ore.py's `_total_assay`, line for line. */
+function totalAssay(ore: Ore, op: OperatingPoint, spec: Record<string, MineralSpec>, ids: string[],
+  composition: Record<string, Record<string, number>>, fraction: Record<string, number>, balance: string): void {
+  ore.payables.forEach((payable, index) => {
+    const own = new Set(payable.carriers.map(c => c.mineral));
+    const holders = ids.filter(m => !own.has(m) && (composition[m][payable.species] ?? 0.0) > 0.0);
+    if (holders.length === 0) return;
+    const others = new Set(ore.payables.filter(p => p !== payable).flatMap(p => p.carriers.map(c => c.mineral)));
+    if (holders.some(m => others.has(m)) || payable.carriers.some(c => c.mode !== 'stoichiometric') || [...own].some(m => others.has(m))) {
+      throw new Error(`${payable.species}: a carrier of another payable, or a trace carrier, holds it; not supported`);
+    }
+    const grade = gradeToFraction(index === 0 ? op.head_grade : payable.head_grade, payable.unit);
+    const declared = ids.filter(m => !own.has(m) && !others.has(m) && m !== balance);
+    let fDeclared = 0.0, xDeclared = 0.0, xOthers = 0.0, k = 0.0;
+    for (const m of declared) fDeclared += spec[m].fraction * (composition[m][payable.species] ?? 0.0);
+    for (const m of declared) xDeclared += spec[m].fraction;
+    for (const m of others) xOthers += fraction[m];
+    const cBalance = composition[balance][payable.species] ?? 0.0;
+    for (const c of payable.carriers) k += c.share / composition[c.mineral][payable.species];
+    const carried = (grade - fDeclared - cBalance * (1.0 - xDeclared - xOthers)) / (1.0 - cBalance * k);
+    if (carried <= 0.0) throw new Error(`${payable.species}: the head grade is below what the gangue holds`);
+    for (const c of payable.carriers) fraction[c.mineral] = carried * c.share / composition[c.mineral][payable.species];
+  });
+}
+
 export function resolve(ore: Ore, op: OperatingPoint): ResolvedOre {
   const spec: Record<string, MineralSpec> = {};
   for (const m of ore.minerals) spec[m.id] = m;
@@ -84,6 +109,7 @@ export function resolve(ore: Ore, op: OperatingPoint): ResolvedOre {
   });
   const balance = ids.filter(m => !(m in fraction) && spec[m].fraction === 0.0);
   if (balance.length !== 1) throw new Error(`exactly one balance gangue mineral is required, found ${balance}`);
+  totalAssay(ore, op, spec, ids, composition, fraction, balance[0]);
   for (const m of ids) if (!(m in fraction) && !balance.includes(m)) fraction[m] = spec[m].fraction;
   let declaredTotal = 0.0;
   for (const v of Object.values(fraction)) declaredTotal += v;
@@ -91,6 +117,18 @@ export function resolve(ore: Ore, op: OperatingPoint): ResolvedOre {
   if (remainder <= 0.0) throw new Error('declared and derived mineral fractions exceed the ore');
   fraction[balance[0]] = remainder;
   const g = grid();
+  for (const m of ids) {
+    const grains = spec[m].grains ?? null;
+    if (grains === null) continue;
+    // gravity-recoverable grains enter liberated with their own sizes (E-11): no liberation curve, no composites
+    if (spec[m].liberation_size_um > 0.0 || spec[m].composite_content > 0.0) {
+      throw new Error(`${m}: declared grains are liberated; a liberation size or composites cannot apply`);
+    }
+    const sizes = grains.size_um, passing = grains.passing;
+    let bad = sizes.length !== passing.length || passing[0] !== 1.0 || passing[passing.length - 1] < 0.0 || !(0.0 < grains.lower_um && grains.lower_um < sizes[sizes.length - 1]);
+    for (let i = 1; i < sizes.length; i += 1) if (sizes[i] >= sizes[i - 1] || passing[i] > passing[i - 1]) bad = true;
+    if (bad) throw new Error(`${m}: grains need descending sizes, all passing the first, non-increasing passing and a lower size below the last`);
+  }
   const liberation: Record<string, Vec> = {};
   for (const m of valuable) {
     const s = spec[m];
