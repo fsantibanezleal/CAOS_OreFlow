@@ -55,6 +55,35 @@ const ascending = (x: number[], ...ys: (number | null)[][]): uPlot.AlignedData =
 };
 const PALETTE: Series['colour'][] = ['accent', 'good', 'warn', 'magenta', 'accent-2', 'bad'];
 
+/**
+ * U-36: curves on a 0 to 1 axis that stay within 0.01 of one another everywhere (1% of the axis, under a line's
+ * width) are one curve to a reader, so they are drawn once and the legend names every class it stands for: the
+ * LIMS capture of liberated magnetite and of its composites differ by at most 0.007.
+ */
+export function mergeCoincident(labels: string[], ys: Array<Array<number | null>>, lang: Lang, tolerance = 0.01): { labels: string[]; ys: Array<Array<number | null>> } {
+  const groups: Array<{ names: string[]; y: Array<number | null> }> = [];
+  ys.forEach((y, i) => {
+    const same = groups.find(g => g.y.every((v, k) => (v === null || y[k] === null ? v === y[k] : Math.abs(v - (y[k] as number)) <= tolerance)));
+    if (same) same.names.push(labels[i]);
+    else groups.push({ names: [labels[i]], y });
+  });
+  const join = (names: string[]) => (names.length === 1 ? names[0]
+    : `${names.slice(0, -1).join(', ')} ${lang === 'es' ? 'y' : 'and'} ${names[names.length - 1]} (${lang === 'es' ? 'coinciden' : 'coincide'})`);
+  return { labels: groups.map(g => join(g.names)), ys: groups.map(g => g.y) };
+}
+
+/**
+ * U-36: the index of the coarsest size class a separation sees: one class above the top of the stream that feeds it
+ * (the cyclone overflow). Sizes run coarse to fine; the record's grid reaches 137 mm, and above about 0.5 mm the
+ * flotation, LIMS and desliming axes were empty for 60% of their width.
+ */
+export function feedTop(psd: Record<string, number[]> | undefined): number {
+  const passing = psd?.cyclone_overflow;
+  if (!passing) return 0;
+  const first = passing.findIndex(p => p < 0.99999);
+  return first > 0 ? first - 1 : 0;
+}
+
 export type SeparationChart = 'recovery_by_size' | 'bank_profile' | 'kinetics' | 'deslime' | 'capture';
 export const SEPARATION_CHARTS: Record<SeparationChart, { en: string; es: string }> = {
   recovery_by_size: { en: 'Recovery by size', es: 'Recuperación por tamaño' },
@@ -67,7 +96,9 @@ export const SEPARATION_CHARTS: Record<SeparationChart, { en: string; es: string
 /** The separation charts a trace carries: flotation curves, the desliming partition, or the LIMS capture. */
 export function separationCharts(trace: Trace, primary: { species: string; unit: string }, lang: Lang, onCursor: (text: string | null) => void): Partial<Record<SeparationChart, ReactNode>> {
   const curves = trace.curves as Record<string, unknown>;
-  const size = curves.size_um as number[];
+  const from = feedTop(curves.psd as Record<string, number[]> | undefined);
+  const fed = <T,>(y: T[]) => y.slice(from);
+  const size = fed(curves.size_um as number[]);
   const fmtSize = (v: number | null, axis: 'x' | 'y') => (axis === 'x' ? formatWithUnit(v, 'um', lang) : formatSignificant(v, lang, 3));
   const report = (xUnit: string, labels: string[]) => (reading: CursorReading | null) => {
     if (!reading) { onCursor(null); return; }
@@ -77,10 +108,11 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
   if (curves.capture) {
     const capture = curves.capture as Record<string, number[]>;
     const keys = Object.keys(capture);
+    const drawn = mergeCoincident(keys.map(k => speciesName(k, lang)), keys.map(k => fed(capture[k])), lang);
     return {
       capture: (
-        <Chart key="capture" title={SEPARATION_CHARTS.capture[lang]} data={ascending(size, ...keys.map(k => capture[k]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.capture[lang]} yRange={[0, 1]}
-          series={keys.map((k, i) => ({ label: speciesName(k, lang), colour: PALETTE[i % PALETTE.length] }))} summary={TEXT.captureSummary[lang]} format={fmtSize} onCursor={report('um', keys.map(k => speciesName(k, lang)))} />
+        <Chart key="capture" title={SEPARATION_CHARTS.capture[lang]} data={ascending(size, ...drawn.ys)} logX xLabel={TEXT.size[lang]} yLabel={TEXT.capture[lang]} yRange={[0, 1]}
+          series={drawn.labels.map((label, i) => ({ label, colour: PALETTE[i % PALETTE.length] }))} summary={TEXT.captureSummary[lang]} format={fmtSize} onCursor={report('um', drawn.labels)} />
       ),
     };
   }
@@ -89,6 +121,7 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
   const bySize = curves.recovery_by_size as { primary: (number | null)[]; host_gangue: number[]; host_gangue_entrained_share: number[] };
   const profile = curves.bank_profile as Array<{ cell: number; recovery: number; grade: number }>;
   const deslime = curves.deslime_partition as Record<string, number[]> | undefined;
+  const deslimeDrawn = deslime ? mergeCoincident(Object.keys(deslime).map(k => speciesName(k, lang)), Object.values(deslime).map(fed), lang) : null;
   const gradeUnit = primary.unit;
   const gradeScale = gradeUnit === '%' ? 100.0 : 1.0e6;
   const dense = kinetics.dense_times_min ?? [];
@@ -99,7 +132,7 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
   const models = kinetics.models ?? [];
   return {
     recovery_by_size: (
-      <Chart key="recovery_by_size" title={SEPARATION_CHARTS.recovery_by_size[lang]} data={ascending(size, bySize.primary, bySize.host_gangue, bySize.host_gangue_entrained_share)} logX xLabel={TEXT.size[lang]} yLabel={TEXT.recovery[lang]} yRange={[0, 1]}
+      <Chart key="recovery_by_size" title={SEPARATION_CHARTS.recovery_by_size[lang]} data={ascending(size, fed(bySize.primary), fed(bySize.host_gangue), fed(bySize.host_gangue_entrained_share))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.recovery[lang]} yRange={[0, 1]}
         series={[{ label: `${TEXT.payable[lang]} ${formulaText(primary.species)}`, colour: 'good' }, { label: TEXT.host[lang], colour: 'bad' }, { label: TEXT.entrained[lang], colour: 'warn', dash: [5, 4] }]}
         summary={TEXT.sizeSummary[lang]} format={fmtSize} onCursor={report('um', [TEXT.payable[lang], TEXT.host[lang], TEXT.entrained[lang]])} />
     ),
@@ -117,11 +150,11 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
           onCursor={report('min', [TEXT.batch[lang], ...models.map(md => MODEL_NAMES[md.id][lang === 'es' ? 1 : 0])])} />
       ),
     } : {}),
-    ...(deslime ? {
+    ...(deslimeDrawn ? {
       deslime: (
-        <Chart key="deslime" title={SEPARATION_CHARTS.deslime[lang]} data={ascending(size, ...Object.values(deslime))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.under[lang]} yRange={[0, 1]}
-          series={Object.keys(deslime).map((k, i) => ({ label: speciesName(k, lang), colour: PALETTE[i % PALETTE.length] }))} summary={TEXT.deslimeSummary[lang]} format={fmtSize}
-          marks={[{ x: (trace.point as { deslime_cut_um: number }).deslime_cut_um, label: TEXT.cut[lang] }]} onCursor={report('um', Object.keys(deslime).map(k => speciesName(k, lang)))} />
+        <Chart key="deslime" title={SEPARATION_CHARTS.deslime[lang]} data={ascending(size, ...deslimeDrawn.ys)} logX xLabel={TEXT.size[lang]} yLabel={TEXT.under[lang]} yRange={[0, 1]}
+          series={deslimeDrawn.labels.map((label, i) => ({ label, colour: PALETTE[i % PALETTE.length] }))} summary={TEXT.deslimeSummary[lang]} format={fmtSize}
+          marks={[{ x: (trace.point as { deslime_cut_um: number }).deslime_cut_um, label: `${TEXT.cut[lang]} ${formatWithUnit((trace.point as { deslime_cut_um: number }).deslime_cut_um, 'um', lang)}` }]} onCursor={report('um', deslimeDrawn.labels)} />
       ),
     } : {}),
   };
