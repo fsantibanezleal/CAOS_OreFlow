@@ -8,7 +8,7 @@
  */
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
-import { formatValue, formatWithUnit, type Lang } from '../lib/format';
+import { formatRange, formatValue, formatWithUnit, type Lang } from '../lib/format';
 import { t, UI } from '../lib/i18n';
 import { useWorkbench } from './state';
 
@@ -17,7 +17,7 @@ export function contractMessage(contract: OperatingContract, error: ContractErro
   if (rule) return rule.message[lang];
   const text = contract.messages[error.code]?.[lang] ?? error.code;
   if (error.code === 'out_of_range' && error.min !== undefined && error.max !== undefined) {
-    return `${text} (${formatValue(error.min, unit, lang)} – ${formatWithUnit(error.max, unit, lang)})`;
+    return `${text} (${formatRange(error.min, error.max, unit, lang)})`;
   }
   return text;
 }

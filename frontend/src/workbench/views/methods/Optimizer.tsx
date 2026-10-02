@@ -16,7 +16,7 @@ import { cancelOptimize, optimizeInWorker } from '../../../engine/client';
 import { validateControl, type OperatingContract } from '../../../engine/contract';
 import type { OperatingPoint, Ore, Plant } from '../../../engine/model';
 import type { OptimizationRecord, OptimumSummary } from '../../../lib/artifacts.types';
-import { formatFixed, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
+import { formatFixed, formatRange, formatSignificant, formatValue, formatWithUnit, sharedDecimals, unitLabel, type Lang } from '../../../lib/format';
 import { formulaText, metricLabel } from '../../../lib/i18n';
 import { Chart } from '../../../components/charts/Chart';
 
@@ -306,18 +306,21 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
               const step = contract.cases[caseId]?.inputs[n]?.step ?? 0.005 * (high - low);
               const d = outcome?.decisions[n];
               const atBound = record.optimum !== null && d !== undefined && (Math.abs(d - low) <= step || Math.abs(high - d) <= step);
+              // U-30: a row's base, result and bounds at one precision
+              const rd = sharedDecimals([record.base.decisions[n], d, low, high], unitOf(n));
               return (
               <tr key={n}><th scope="row">{`${declared[n].label[lang]} (${unitLabel(unitOf(n)) || '-'})`}</th>
-                <td>{formatValue(record.base.decisions[n], unitOf(n), lang)}</td>
-                <td>{formatValue(d, unitOf(n), lang)}{atBound ? <span className="of-tag">{TEXT.atBound[lang]}</span> : null}</td>
-                <td>{`${formatValue(record.bounds[n][0], unitOf(n), lang)} – ${formatValue(record.bounds[n][1], unitOf(n), lang)}`}</td></tr>
+                <td>{formatFixed(record.base.decisions[n], lang, rd)}</td>
+                <td>{formatFixed(d, lang, rd)}{atBound ? <span className="of-tag">{TEXT.atBound[lang]}</span> : null}</td>
+                <td>{formatRange(low, high, unitOf(n), lang, false)}</td></tr>
               );
             })}
             {RESULTS.map(row => {
               // U-05, U-30: recovered metal in the plant's own unit, to the resolution the status line quotes
               const isMetal = row.key === 'recovered_tph';
               const unit = isMetal ? metalUnit : row.unit ?? gradeUnit;
-              const show = (v: number | null | undefined) => (isMetal ? (v == null ? formatValue(v, unit, lang) : formatFixed(metal(v) as number, lang, 3)) : formatValue(v, unit, lang));
+              const rd = sharedDecimals([value(record.base, row.key), value(outcome, row.key)], unit);
+              const show = (v: number | null | undefined) => (isMetal ? (v == null ? formatValue(v, unit, lang) : formatFixed(metal(v) as number, lang, 3)) : formatFixed(v, lang, rd));
               return (
                 <tr key={row.metric} className="of-table-group"><th scope="row">{`${metricLabel(row.metric, lang)} (${unitLabel(unit)})`}</th>
                   <td>{show(value(record.base, row.key))}</td>

@@ -8,7 +8,7 @@
 import type { ReactNode } from 'react';
 import type uPlot from 'uplot';
 import type { Trace } from '../../engine/trace';
-import { formatSignificant, formatWithUnit, type Lang } from '../../lib/format';
+import { formatFixed, formatSignificant, formatWithUnit, sharedDecimals, type Lang } from '../../lib/format';
 import { formulaText, metricLabel, speciesName } from '../../lib/i18n';
 import { Chart, type CursorReading, type Series } from '../../components/charts/Chart';
 
@@ -159,10 +159,13 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
           <table className="of-table">
             <caption>{`${TEXT.exact[lang]}: ${formatWithUnit(kinetics.bank.exact_true_flotation_pct, '%', lang)} · ${TEXT.engine[lang]}: ${formatWithUnit(kinetics.bank.engine_rougher_pct, '%', lang)}. ${TEXT.points[lang]}`}</caption>
             <thead><tr><th scope="col">{TEXT.model[lang]}</th><th scope="col">{TEXT.rmse[lang]}</th><th scope="col">{TEXT.projection[lang]}</th><th scope="col">{TEXT.lumping[lang]}</th><th scope="col">{TEXT.gap[lang]}</th></tr></thead>
+            {/* U-30: one precision per column, so "-1" never sits beside "-0.99" */}
             <tbody>{models.map(md => (
               <tr key={md.id}><th scope="row">{MODEL_NAMES[md.id][lang === 'es' ? 1 : 0]}{md.converged ? '' : ' *'}</th>
-                <td>{formatSignificant(md.rmse_pct, lang, 2)}</td><td>{formatWithUnit(md.bank_projection_pct, '%', lang)}</td>
-                <td>{formatSignificant(md.lumping_error_pct, lang, 2)}</td><td>{formatSignificant(md.ultimate_gap_pct, lang, 2)}</td></tr>
+                <td>{formatFixed(md.rmse_pct, lang, sharedDecimals(models.map(x => x.rmse_pct), '%'))}</td>
+                <td>{`${formatFixed(md.bank_projection_pct, lang, sharedDecimals(models.map(x => x.bank_projection_pct), '%'))}%`}</td>
+                <td>{formatFixed(md.lumping_error_pct, lang, sharedDecimals(models.map(x => x.lumping_error_pct), '%'))}</td>
+                <td>{formatFixed(md.ultimate_gap_pct, lang, sharedDecimals(models.map(x => x.ultimate_gap_pct), '%'))}</td></tr>
             ))}</tbody>
           </table>
         )}

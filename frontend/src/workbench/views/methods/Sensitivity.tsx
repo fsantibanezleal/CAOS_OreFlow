@@ -8,7 +8,7 @@
 import { useState } from 'react';
 import type uPlot from 'uplot';
 import type { SensitivityRecord } from '../../../lib/artifacts.types';
-import { formatFraction, formatSignificant, type Lang } from '../../../lib/format';
+import { formatEstimate, formatFixed, formatFraction, formatSignificant, intervalDecimals, type Lang } from '../../../lib/format';
 import { metricLabel } from '../../../lib/i18n';
 import { Chart } from '../../../components/charts/Chart';
 import { FACTOR_LABEL } from './Uncertainty';
@@ -37,7 +37,8 @@ export function Sensitivity({ record, atNominal, lang, onCursor }: {
   const [output, setOutput] = useState(outputs[0]);
   const indices = record.indices[output];
   const names = factors.map(f => FACTOR_LABEL[f][lang]);
-  const pm = (value: number, conf: number) => `${formatSignificant(value, lang, 2)} ± ${formatSignificant(conf, lang, 1)}`;
+  // U-30: an index to its interval's decimal place ("0.00 ± 0.01", not "0.0022 ± 0.01")
+  const pm = (value: number, conf: number) => formatEstimate(value, conf, lang);
 
   let chart: React.ReactNode = <p className="of-hint">{TEXT.constant[lang]}</p>;
   if (!('constant' in indices)) {
@@ -74,7 +75,7 @@ export function Sensitivity({ record, atNominal, lang, onCursor }: {
             <tbody>{factors.map((f, i) => (
               <tr key={f}><th scope="row">{names[i]} <span className="of-muted">{`±${formatFraction(record.inputs[f].half_width, lang, 0)}`}</span></th>
                 <td>{pm(indices.S1[f], indices.S1_conf[f])}</td><td>{pm(indices.ST[f], indices.ST_conf[f])}</td>
-                <td>{formatSignificant(indices.ST[f] - indices.S1[f], lang, 2)}</td></tr>
+                <td>{formatFixed(indices.ST[f] - indices.S1[f], lang, Math.max(intervalDecimals(indices.S1_conf[f]), intervalDecimals(indices.ST_conf[f])))}</td></tr>
             ))}</tbody>
           </table>
         )}

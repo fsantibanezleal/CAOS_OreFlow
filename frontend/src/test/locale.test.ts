@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatFixed, formatFraction, formatSignificant, formatValue, formatWithUnit, localizeAuthored, localizeTex, unitLabel } from '../lib/format';
+import { formatEstimate, formatFixed, formatFraction, formatRange, formatSignificant, formatValue, formatWithUnit, localizeAuthored, localizeTex, sharedDecimals, unitLabel } from '../lib/format';
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -29,6 +29,14 @@ describe('locale formatting', () => {
     expect(formatWithUnit(9.13, 'kWh/t', 'es')).toBe('9,13 kWh/t');
     expect(formatWithUnit(150, 'um', 'en')).toBe('150 µm');
     expect(formatWithUnit(26.2, '%', 'es')).toBe('26,2%');
+    // U-30: t/h below one at three significant digits; a range, a column and an interval at one precision
+    expect(formatValue(0.1953, 't/h', 'en')).toBe('0.195');
+    expect(formatValue(0.9452, 't/h', 'es')).toBe('0,945');
+    expect(formatRange(75, 300, 'um', 'en')).toBe('75 – 300\u202fµm');
+    expect(formatRange(5, 15, '%', 'es')).toBe('5,0 – 15,0%');
+    expect(sharedDecimals([15.1, 97], '%')).toBe(1);
+    expect(formatEstimate(0.0022, 0.01, 'en')).toBe('0.00\u00a0±\u00a00.01');
+    expect(formatEstimate(0.412, 0.0096, 'es')).toBe('0,41\u00a0±\u00a00,01');
     expect(unitLabel('m3/t')).toBe('m³/t');
     expect(formatFraction(0.25, 'es')).toBe('25,0%');
   });

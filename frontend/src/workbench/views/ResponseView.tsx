@@ -11,7 +11,7 @@ import type { OperatingContract } from '../../engine/contract';
 import type { OperatingPoint } from '../../engine/model';
 import type { SweepCell } from '../../engine/sweep';
 import type { CaseArtifact, OptimizationRecord } from '../../lib/artifacts.types';
-import { formatFixed, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../lib/format';
+import { formatFixed, formatValue, formatWithUnit, sharedDecimals, unitLabel, type Lang } from '../../lib/format';
 import { metricLabel, t, UI } from '../../lib/i18n';
 import { Chart } from '../../components/charts/Chart';
 import { Heatmap } from '../../components/charts/Heatmap';
@@ -149,6 +149,7 @@ export function ResponseView({ contract, artifact, optimization, point, lang, on
       return c && c.accepted ? fn(c) : null;
     }));
     const z = grid(c => c.metrics[metric] ?? null);
+    const zd = sharedDecimals(z.flat(), metricUnit);   // U-30: both ends of the colour scale at one precision
     const gradeSlack = grid(c => c.metrics.concentrate_grade - variantOpt.constraints.grade.minimum);
     const powerSlack = grid(c => c.metrics.installed_mill_power_kw - c.metrics.required_mill_power_kw);
     const points = [{ x: point[xInput as keyof OperatingPoint], y: point[yInput as keyof OperatingPoint], label: TEXT.current[lang] },
@@ -158,7 +159,7 @@ export function ResponseView({ contract, artifact, optimization, point, lang, on
         summary={`${metricLabel(metric, lang)} ${lang === 'es' ? 'sobre' : 'over'} ${declared[xInput].label[lang]} ${lang === 'es' ? 'y' : 'and'} ${declared[yInput].label[lang]}`}
         contours={[{ field: gradeSlack, label: TEXT.grade[lang], colour: '--color-fg' }, { field: powerSlack, label: TEXT.power[lang], colour: '--color-bad' }]}
         points={points}
-        format={(v, axis) => (axis === 'x' ? formatFixed(v, lang, xd) : axis === 'y' ? formatFixed(v, lang, yd) : formatSignificant(v, lang, 3))}
+        format={(v, axis) => (axis === 'x' ? formatFixed(v, lang, xd) : axis === 'y' ? formatFixed(v, lang, yd) : formatFixed(v, lang, zd))}
         onCell={cell => onCursor(cell ? `${declared[xInput].label[lang]} ${formatWithUnit(cell.x, unitOf(xInput), lang)}, ${declared[yInput].label[lang]} ${formatWithUnit(cell.y, unitOf(yInput), lang)}: ${cell.z === null ? t(UI.rejected, lang) : formatWithUnit(cell.z, metricUnit, lang)}` : null)} />
     );
   }

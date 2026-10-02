@@ -13,7 +13,7 @@ import type { OperatingPoint } from '../../engine/model';
 import { CASE_CONTEXT, VARIANT_NOTES } from '../../content/cases';
 import { familyFormulas } from '../../content/equations';
 import type { Benchmark, CaseArtifact, CaseIndex } from '../../lib/artifacts.types';
-import { formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
+import { formatRange, formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
 import { flagShort, formulaText, metricLabel, mineralName, provenanceText } from '../../lib/i18n';
 import { CompareView } from './CompareView';
 
@@ -134,6 +134,10 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
     const spec = declared[name];
     return spec.display_scale !== 1 ? `${formatValue(value * spec.display_scale, spec.display_unit, lang)}${spec.display_unit}` : formatWithUnit(value, unitOf(name), lang);
   };
+  const shownRange = (name: string, low: number, high: number) => {
+    const spec = declared[name];
+    return spec.display_scale !== 1 ? `${formatRange(low * spec.display_scale, high * spec.display_scale, spec.display_unit, lang, false)}${spec.display_unit}` : formatRange(low, high, unitOf(name), lang);
+  };
   const delta = (key: string, v: (typeof artifact.variants)[number]) => formatWithUnit(v.trace.metrics[key], units[key], lang);
 
   return (
@@ -160,7 +164,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
               return (
                 <Fragment key={key}>
                   <tr><th scope="row">{metricLabel(key, lang)}</th><td>{formatWithUnit(value, units[key], lang)}</td>
-                    <td>{`${formatValue(lo, units[key], lang)} – ${formatWithUnit(hi, units[key], lang)}`}</td>
+                    <td>{formatRange(lo, hi, units[key], lang)}</td>
                     <td><span className={inside ? 'of-tag ok' : 'of-tag'}>{inside ? TEXT.within[lang] : TEXT.outside[lang]}</span></td></tr>
                   {/* the range's own source: every range is taken from one, or labelled authored (#58) */}
                   {source && <tr className="of-kpi-source"><td colSpan={4}>{source}</td></tr>}
@@ -211,7 +215,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
               <tr key={name}><th scope="row">{declared[name].label[lang]}</th>
                 {/* U-28: a control whose nominal is its off value (the classifier cut) reads off, not 0.0 µm */}
                 <td>{entry.inputs[name].off !== undefined && artifact.nominal[name as keyof OperatingPoint] === entry.inputs[name].off ? TEXT.cutOff[lang] : shown(name, artifact.nominal[name as keyof OperatingPoint])}</td>
-                <td>{`${shown(name, entry.inputs[name].min)} – ${shown(name, entry.inputs[name].max)}`}</td></tr>
+                <td>{shownRange(name, entry.inputs[name].min, entry.inputs[name].max)}</td></tr>
             ))}</tbody>
           </table>
         </section>

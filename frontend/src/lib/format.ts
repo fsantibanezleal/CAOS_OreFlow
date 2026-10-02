@@ -52,10 +52,14 @@ export function formatSignificant(value: number | null | undefined, lang: Lang, 
   return /^-[0.,]*$/.test(text) ? text.slice(1) : text;
 }
 
+// the decimals that give a value below one three significant digits: 0.1953 reads 0.195, 0.0123 reads 0.0123
+const belowOne = (v: number) => (v === 0 ? 1 : Math.max(1, Math.min(6, 2 - Math.floor(Math.log10(Math.abs(v))))));
+
 /** Decimals that give a readable resolution for each engine unit. */
 const DECIMALS: Record<string, (value: number) => number> = {
   '%': v => (Math.abs(v) >= 10 ? 1 : 2),
-  't/h': v => (Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 1 ? 1 : 4),
+  // U-30: a stream below 1 t/h at three significant digits ("0.195 t/h"), not four decimals beside "5.0"
+  't/h': v => (Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 1 ? 1 : belowOne(v)),
   'kg/h': v => (Math.abs(v) >= 100 ? 0 : Math.abs(v) >= 1 ? 2 : 3),
   um: v => (Math.abs(v) >= 100 ? 0 : 1),
   mm: () => 1,
@@ -79,6 +83,36 @@ export function formatValue(value: number | null | undefined, unit: string, lang
   return decimals ? formatFixed(value, lang, decimals(value)) : formatSignificant(value, lang, 3);
 }
 
+/**
+ * The decimals a set of values that are read together prints at (a table column, a row of base, optimum and bounds,
+ * a range, a colour scale): the unit's rule at the set's largest magnitude, so 75 and 300 µm read "75 - 300", not
+ * "75.0 - 300", and a scale reads "15.1 ... 97.0", not "15.1 ... 97" (U-30). A unit without a rule takes three
+ * significant digits of the largest magnitude.
+ */
+export function sharedDecimals(values: Array<number | null | undefined>, unit: string): number {
+  const finite = values.filter(usable);
+  if (!finite.length) return 0;
+  const largest = Math.max(...finite.map(v => Math.abs(v)));
+  const rule = DECIMALS[unit];
+  if (rule) return rule(largest);
+  return largest === 0 ? 0 : Math.max(0, Math.min(12, 2 - Math.floor(Math.log10(largest))));
+}
+
+/** The decimal place of an interval's half-width rounded to one significant digit (0.0096 is 0.01: two places). */
+export function intervalDecimals(halfWidth: number | null | undefined): number {
+  if (!usable(halfWidth) || halfWidth === 0) return 2;
+  const rounded = Number(Math.abs(halfWidth).toPrecision(1));
+  return Math.max(0, Math.min(12, -Math.floor(Math.log10(rounded))));
+}
+
+/** An estimate with its half-width, both to the half-width's decimal place: "0.00 ± 0.01", never "0.0022 ± 0.01" (U-30). */
+export function formatEstimate(value: number | null | undefined, halfWidth: number | null | undefined, lang: Lang): string {
+  if (!usable(value)) return MISSING;
+  if (!usable(halfWidth)) return formatSignificant(value, lang, 2);
+  const d = intervalDecimals(halfWidth);
+  return `${formatFixed(value, lang, d)}\u00a0±\u00a0${formatFixed(Math.abs(halfWidth), lang, d)}`;
+}
+
 /** Engine unit names in ASCII (as the Python engine writes them) to their typeset form. */
 const UNIT_LABEL: Record<string, string> = {
   um: 'µm', 'm3/t': 'm³/t', 'm3/h': 'm³/h', 't/m3': 't/m³', '1/s': 's⁻¹', '1/min': 'min⁻¹', '1': '', flag: '',
@@ -94,6 +128,15 @@ export function formatWithUnit(value: number | null | undefined, unit: string, l
   const text = formatValue(value, unit, lang);
   if (!label || text === MISSING) return text;
   return label === '%' ? `${text}%` : `${text} ${label}`;
+}
+
+/** A range at one precision, with the unit once after its upper end (pass `withUnit` false where a header names it). */
+export function formatRange(low: number | null | undefined, high: number | null | undefined, unit: string, lang: Lang, withUnit = true): string {
+  const d = sharedDecimals([low, high], unit);
+  const text = `${formatFixed(low, lang, d)} – ${formatFixed(high, lang, d)}`;
+  const label = unitLabel(unit);
+  if (!withUnit || !label || !usable(low) || !usable(high)) return text;
+  return label === '%' ? `${text}%` : `${text}\u202f${label}`;
 }
 
 /** A fraction shown as a percentage (0.25 as 25%). */
