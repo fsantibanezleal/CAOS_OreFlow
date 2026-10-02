@@ -42,6 +42,12 @@ def test_declaration_covers_the_operating_point():
         assert spec.low <= spec.high and spec.step > 0.0
         for text in (*spec.label, *spec.help):
             assert text.strip() and not any(ch in text for ch in BANNED)
+        # T-50: the Spanish help names the solver in Spanish
+        assert "solver" not in spec.help[1], spec.name
+    # E-15: the cut mode's cyclone cluster is sized again for every cut, never the plant's fixed hardware
+    cut_help = next(s for s in INPUTS if s.name == "d50c_um").help
+    assert "hardware and pressure" not in cut_help[0] and "sized again for every cut" in cut_help[0]
+    assert "se dimensiona de nuevo para cada corte" in cut_help[1]
     for case in CASES:
         entry = document["cases"][case.id]
         assert entry["family"] == case.plant.family
