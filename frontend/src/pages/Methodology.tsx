@@ -7,6 +7,7 @@ import { useShellLang } from '@fasl-work/caos-app-shell';
 import { DocPage, TopicGroups } from '../content/doc';
 import { COMMINUTION } from '../content/methodology/comminution';
 import { METHODS } from '../content/methodology/methods';
+import { MEASURED } from '../content/methodology/measured';
 import { SEPARATION } from '../content/methodology/separation';
 import { STREAMS } from '../content/methodology/streams';
 import type { Lang } from '../lib/format';
@@ -22,6 +23,7 @@ const T = {
   comminution: { en: 'Comminution', es: 'Conminución' },
   separation: { en: 'Classification and separation', es: 'Clasificación y separación' },
   methods: { en: 'Method records', es: 'Registros de métodos' },
+  measured: { en: 'Measured data', es: 'Datos medidos' },
 };
 
 export default function Methodology() {
@@ -33,6 +35,8 @@ export default function Methodology() {
         { id: 'comminution', label: T.comminution, topics: COMMINUTION },
         { id: 'separation', label: T.separation, topics: SEPARATION },
         { id: 'methods', label: T.methods, topics: METHODS },
+        // T-10, S-15: the real samples that run in the engine and the plant-hour soft sensor
+        { id: 'measured', label: T.measured, topics: MEASURED },
       ]} />
     </DocPage>
   );

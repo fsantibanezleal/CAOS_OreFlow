@@ -73,6 +73,13 @@ export const CONTENT_CITATIONS: Citation[] = [
   // measured lanes
   { id: 'hzdr', label: 'HZDR RODARE 336', citation: 'HZDR RODARE, constructed-case particle mineralogy data, record 336 (CC BY 4.0).', doi: '10.14278/rodare.336', url: 'https://doi.org/10.14278/rodare.336' },
   { id: 'particle-paper', label: 'Pereira et al. 2021', citation: 'Pereira, L., Frenzel, M., Khodadadzadeh, M., Tolosana-Delgado, R. and Gutzmer, J. (2021). A self-adaptive particle-tracking method for minerals processing. Journal of Cleaner Production 279:123711.', doi: '10.1016/j.jclepro.2020.123711', url: 'https://doi.org/10.1016/j.jclepro.2020.123711' },
+  { id: 'tafirenyika2022', label: 'Tafirenyika et al. 2022', citation: 'Tafirenyika, T.P., O\'Connor, C.T. and Corin, K.C. (2022). Investigating the influence of the electrochemical environment on the flotation of bornite and chalcocite. Minerals 12(12):1527.', doi: '10.3390/min12121527', url: 'https://doi.org/10.3390/min12121527' },
+  { id: 'jiang2025', label: 'Jiang et al. 2025', citation: 'Jiang, H., Li, L., Xu, Y., Wang, Z., Huang, Y. and Wang, Y. (2025). The influence of sodium butyl xanthate and ammonium dibutyl dithiophosphate on the flotation behavior of chalcopyrite and bornite. Minerals 15(11):1148 (the abstract was read, not the full text).', doi: '10.3390/min15111148', url: 'https://doi.org/10.3390/min15111148' },
+  { id: 'whiten2007', label: 'Whiten 2007', citation: 'Whiten, B. (2007). Calculation of mineral composition from chemical assays. Mineral Processing and Extractive Metallurgy Review 29(2):83-97.', doi: '10.1080/08827500701257860', url: 'https://doi.org/10.1080/08827500701257860' },
+  { id: 'lund2013', label: 'Lund et al. 2013', citation: 'Lund, C., Lamberg, P. and Lindberg, T. (2013). Practical way to quantify minerals from chemical assays at Malmberget iron ore operations: an important tool for the geometallurgical program. Minerals Engineering 49:7-16.', doi: '10.1016/j.mineng.2013.04.005', url: 'https://doi.org/10.1016/j.mineng.2013.04.005' },
+  { id: 'nikolic2022', label: 'Nikolić et al. 2022', citation: 'Nikolić, V., Doll, A. and Trumić, M. (2022). A new methodology to obtain a corrected Bond ball mill work index valid with non-standard feed size. Minerals Engineering 188:107822 (read through a search summary; UNVERIFIED against the full text).', doi: '10.1016/j.mineng.2022.107822', url: 'https://doi.org/10.1016/j.mineng.2022.107822' },
+  { id: 'handbook-mineralogy', label: 'Handbook of Mineralogy', citation: 'Anthony, J.W., Bideaux, R.A., Bladh, K.W. and Nichols, M.C. (2001-2005). Handbook of Mineralogy. Mineral Data Publishing: the bornite and chalcocite sheets.', url: 'https://www.handbookofmineralogy.org/' },
+  { id: 'ramos2025', label: 'Ramos et al. 2025', citation: 'Ramos, K., Frade, A., Santos, I. and Pinto, T. (2025). Interpretable prediction of silica content in iron ore flotation using machine learning. IFAC-PapersOnLine 59(32):132-137 (its data source UNVERIFIED).', doi: '10.1016/j.ifacol.2025.12.409', url: 'https://doi.org/10.1016/j.ifacol.2025.12.409' },
   { id: 'kaggle6294', label: 'Kaggle 6294 v1', citation: 'Oliveira, E.M. Quality prediction in a mining process: one iron-ore flotation plant, March to September 2017 (CC0). Kaggle dataset 6294, version 1.', url: 'https://www.kaggle.com/datasets/edumagalhaes/quality-prediction-in-a-mining-process' },
   { id: 'kadlec2009', label: 'Kadlec et al. 2009', citation: 'Kadlec, P., Gabrys, B. and Strandt, S. (2009). Data-driven soft sensors in the process industry. Computers and Chemical Engineering 33(4):795-814.', doi: '10.1016/j.compchemeng.2008.12.012', url: 'https://doi.org/10.1016/j.compchemeng.2008.12.012' },
   { id: 'bergmeir2012', label: 'Bergmeir and Benítez 2012', citation: 'Bergmeir, C. and Benítez, J.M. (2012). On the use of cross-validation for time series predictor evaluation. Information Sciences 191:192-213.', doi: '10.1016/j.ins.2011.12.028', url: 'https://doi.org/10.1016/j.ins.2011.12.028' },
@@ -84,6 +91,7 @@ export const CONTENT_CITATIONS: Citation[] = [
 /** Spanish short labels where the English one is a description rather than a name. */
 const LABEL_ES: Record<string, string> = {
   'porphyry-practice': 'Práctica de flotación de pórfidos',
+  'handbook-mineralogy': 'Handbook of Mineralogy',
   collector2022: 'Revisión calcopirita/pirita 2022',
 };
 
