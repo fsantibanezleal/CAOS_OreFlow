@@ -368,6 +368,7 @@ input, select, textarea { font: inherit; }
 .of-note { margin: 0; font-size: 0.74rem; color: var(--color-warn); }
 .of-status-line { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--color-good); }
 .of-status-line.warn { color: var(--color-warn); }
+.of-status-line.neutral { color: var(--color-fg); }
 .of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-faint); }
 /* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
  * phone never scrolls sideways */

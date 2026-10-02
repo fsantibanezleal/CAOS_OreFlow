@@ -48,6 +48,10 @@ const TEXT = {
   atLeast: { en: 'at least', es: 'al menos' },
   atMost: { en: 'at most', es: 'como máximo' },
   optimal: { en: 'Optimum found', es: 'Óptimo encontrado' },
+  weightNote: {
+    en: 'With part of the weight on energy, the optimum gives up recovered metal for lower energy per tonne. The weight is a modelling choice, not a price, so this point is not advice.',
+    es: 'Con parte del peso en la energía, el óptimo cede metal recuperado a cambio de menos energía por tonelada. El peso es una elección de modelo, no un precio, así que este punto no es una recomendación.',
+  },
   noFeasible: { en: 'No start reached a state within every constraint; the least-violating end point is shown.', es: 'Ningún inicio alcanzó un estado dentro de todas las restricciones; se muestra el punto final de menor violación.' },
   gain: { en: 'of recovered metal', es: 'de metal recuperado' },
   evaluations: { en: 'engine evaluations', es: 'evaluaciones del motor' },
@@ -279,7 +283,9 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
               {(['starts', 'trace', 'path', 'screen'] as View[]).map(v => <option key={v} value={v}>{TEXT.views[v][lang]}</option>)}</select></label>
         </div>
         {view === 'screen' && !proposals.length && <p className="of-note">{record.screened ? TEXT.noProposals[lang] : TEXT.unscreened[lang]}</p>}
-        <p className={record.optimum ? 'of-status-line' : 'of-status-line warn'}>{status}</p>
+        {/* a gain is good news; a loss at a partial weight is a trade the weight asked for, shown neutral, never green */}
+        <p className={!record.optimum ? 'of-status-line warn' : (record.gain_tph ?? 0) < 0 ? 'of-status-line neutral' : 'of-status-line'}>{status}</p>
+        {record.optimum && record.weights.recovered_metal < 1 && <p className="of-note">{TEXT.weightNote[lang]}</p>}
         <table className="of-table">
           <thead><tr><th scope="col">{TEXT.quantity[lang]}</th><th scope="col">{TEXT.baseCol[lang]}</th>
             <th scope="col">{record.optimum ? TEXT.optimumCol[lang] : TEXT.leastCol[lang]}</th><th scope="col">{TEXT.bounds[lang]}</th></tr></thead>
