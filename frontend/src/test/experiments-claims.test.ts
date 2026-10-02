@@ -103,7 +103,9 @@ describe('the Experiments page says what the bake did', () => {
     const energy = changes('coarser_grind', 'specific_energy_total_kwh_t');
     expect(falls(energy)).toBe(12);
     expect(range(energy, 1)).toEqual([-3.4, -1.2]);
-    expect(falls(changes('coarser_grind', 'concentrate_grade'))).toBe(12);
+    // the rebuilt gravity circuit: in the gold case a coarser grind raises the grade by 0.07 points
+    expect(falls(changes('coarser_grind', 'concentrate_grade'))).toBe(11);
+    expect(ids(changes('coarser_grind', 'concentrate_grade'), 1)).toEqual(['gold_free_milling']);
     expect(ids(changes('coarser_grind', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     expect(falls(changes('coarser_grind', 'recovery_pct'))).toBe(11);
   });
@@ -142,7 +144,7 @@ describe('the Experiments page says what the bake did', () => {
       expect(rows, variant).toHaveLength(1);
       return rows[0];
     };
-    expect(Number(one('larger_bleed', 'recovery_pct').delta.toFixed(1))).toBe(0.7);
+    expect(Number(one('larger_bleed', 'recovery_pct').delta.toFixed(1))).toBe(0.1);
     expect(Number(one('finer_grind', 'concentrate_grade').delta.toFixed(1))).toBe(1.3);
     expect(Number(one('finer_grind', 'specific_energy_total_kwh_t').delta.toFixed(1))).toBe(2.3);
     expect(one('finer_grind', 'p80_um').limited).toBe(true);
