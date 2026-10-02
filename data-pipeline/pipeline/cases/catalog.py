@@ -30,10 +30,11 @@ SOURCES = {
 # Every plausibility range with its source (#58). A range is taken from its source, never widened past it; a bound
 # with no source is labelled authored.
 _PORPHYRY = {
-    "recovery_pct": ((90.0, 96.0), ("Above 90% for sulphide copper in porphyry practice (911metallurgist practice summary, secondary source); the 96% ceiling is authored.",
-                                     "Sobre 90% para cobre sulfurado en la práctica de pórfidos (resumen de práctica de 911metallurgist, fuente secundaria); el techo de 96% es de autor.")),
-    "concentrate_grade": ((25.0, 34.6), ("From 25% Cu, the porphyry practice floor (911metallurgist, secondary source), to 34.6% Cu, the stoichiometric limit of chalcopyrite.",
-                                          "Desde 25% Cu, el piso de la práctica en pórfidos (911metallurgist, fuente secundaria), hasta 34,6% Cu, el límite estequiométrico de la calcopirita.")),
+    "recovery_pct": ((90.0, 96.0), ("Over 90% of the sulphide copper can be recovered in normal porphyry practice (911metallurgist practice summary, secondary source); the 96% ceiling is authored.",
+                                     "En la práctica normal de pórfidos es posible recuperar más de 90% del cobre sulfurado (resumen de práctica de 911metallurgist, fuente secundaria); el techo de 96% es de autor.")),
+    # T-21: the practice page gives no grade floor; a copper-concentrate purchase schedule covers 25 to 35% Cu
+    "concentrate_grade": ((25.0, 34.6), ("From 25% Cu, the floor of the grades a copper-concentrate purchase schedule covers (Kroha and Wesis 1985: 25 to 35% Cu), to 34.6% Cu, the stoichiometric limit of chalcopyrite.",
+                                          "Desde 25% Cu, el piso de las leyes que cubre un programa de compra de concentrados de cobre (Kroha y Wesis 1985: 25 a 35% Cu), hasta 34,6% Cu, el límite estequiométrico de la calcopirita.")),
 }
 _AUTHORED = ("Authored: no published range was found for this case type.", "De autor: no se encontró un rango publicado para este tipo de caso.")
 

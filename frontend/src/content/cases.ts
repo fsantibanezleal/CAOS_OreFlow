@@ -64,11 +64,11 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     problem: [
       { en: 'Grinding finer keeps paying while chalcopyrite is still locked in composites, and stops paying below its liberation size, where every extra micron costs energy and the fines float more slowly and entrain more gangue.',
         es: 'Moler más fino rinde mientras la calcopirita sigue atrapada en mixtos y deja de rendir bajo su tamaño de liberación, donde cada micrón extra cuesta energía y los finos flotan más lento y arrastran más ganga.' },
-      { en: 'Porphyry plants clean a rougher concentrate to reach smelter grades of 25 to 50% Cu depending on the copper minerals (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content) and usually recover 80 to 90% of the copper, above 90% for sulphide copper. The case asks where on that trade the grind should sit.',
-        es: 'Las plantas de pórfido limpian un concentrado rougher hasta leyes de fundición de 25 a 50% Cu según los minerales de cobre (un concentrado de calcopirita como este no puede superar 34,6% Cu, su contenido estequiométrico) y suelen recuperar 80 a 90% del cobre, sobre 90% en cobre sulfurado. El caso pregunta dónde de ese compromiso conviene fijar la molienda.' },
+      { en: 'Porphyry plants clean a rougher concentrate to the grades copper concentrates are bought at, generally 25 to 35% Cu (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content), and in normal practice over 90% of the sulphide copper can be recovered. The case asks where on that trade the grind should sit.',
+        es: 'Las plantas de pórfido limpian un concentrado rougher hasta las leyes a las que se compran los concentrados de cobre, en general 25 a 35% Cu (un concentrado de calcopirita como este no puede superar 34,6% Cu, su contenido estequiométrico), y en la práctica normal es posible recuperar más de 90% del cobre sulfurado. El caso pregunta dónde de ese compromiso conviene fijar la molienda.' },
     ],
     scope: [
-      { en: 'An authored plant: every parameter is inside a range recorded in the research, none is a plant measurement or a calibration.', es: 'Una planta de autor: cada parámetro está dentro de un rango registrado en la investigación; ninguno es una medición de planta ni una calibración.' },
+      { en: 'An authored plant: its parameters come from cited ranges where the research found one and are labelled authored otherwise; none is a plant measurement or a calibration.', es: 'Una planta de autor: sus parámetros vienen de rangos citados donde la investigación encontró uno y se marcan de autor en los demás casos; ninguno es una medición de planta ni una calibración.' },
       { en: 'Liberation follows a characteristic liberation size (King 1979); composites float on their exposed chalcopyrite surface.', es: 'La liberación sigue un tamaño característico de liberación (King 1979); los mixtos flotan según su superficie expuesta de calcopirita.' },
       { en: 'Pyrite is depressed but not inert, and quartz reports by entrainment, so the concentrate grade is a result, not an input.', es: 'La pirita está deprimida pero no es inerte y el cuarzo reporta por arrastre, por lo que la ley del concentrado es un resultado, no una entrada.' },
     ],
@@ -77,7 +77,7 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
       { en: 'Response: sweep the grind target against recovery, then add collector as the second input to see the decision surface with the grade specification and installed power drawn.', es: 'Respuesta: barra el objetivo de molienda contra la recuperación y agregue el colector como segunda entrada para ver la superficie de decisión con la ley mínima y la potencia instalada dibujadas.' },
       { en: 'Methods, optimizer: where the six starts converge and which constraint binds at the optimum.', es: 'Métodos, optimizador: dónde convergen los seis inicios y qué restricción queda activa en el óptimo.' },
     ],
-    refs: ['king1979', 'trahar1981', 'porphyry-practice', 'herbst1980', 'gorain1997'],
+    refs: ['king1979', 'trahar1981', 'porphyry-practice', 'kroha1985', 'herbst1980', 'gorain1997'],
   },
   copper_porphyry_hard: {
     problem: [
