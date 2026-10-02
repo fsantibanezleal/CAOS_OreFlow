@@ -19,7 +19,8 @@ type Curves = {
 
 const STREAMS: Array<{ key: string; en: string; es: string; colour: Series['colour']; dash?: number[] }> = [
   { key: 'new_feed', en: 'Mill new feed', es: 'Alimentación fresca', colour: 'subtle' },
-  { key: 'mill_discharge', en: 'Mill discharge', es: 'Descarga del molino', colour: 'accent-2' },
+  // U-10: magenta, not accent-2: the teal sat 0.098 from the overflow's blue in OKLab (dark theme)
+  { key: 'mill_discharge', en: 'Mill discharge', es: 'Descarga del molino', colour: 'magenta' },
   { key: 'cyclone_underflow', en: 'Cyclone underflow', es: 'Descarga del ciclón', colour: 'warn' },
   { key: 'final_concentrate', en: 'Concentrate', es: 'Concentrado', colour: 'good' },
   { key: 'final_tail', en: 'Tail', es: 'Relave', colour: 'bad', dash: [5, 4] },

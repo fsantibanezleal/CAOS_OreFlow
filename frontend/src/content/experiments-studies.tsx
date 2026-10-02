@@ -98,7 +98,8 @@ function AblationStudy({ lang }: { lang: Lang }) {
         const switches = Object.keys(S.switches);
         const title = (id: string) => index.value!.cases.find(c => c.case_id === id)?.title[lang] ?? id;
         const delta = (rec: AblationRecord, key: string) => (rec.status === 'computed' ? rec.delta[key] : null);
-        const colours = ['accent', 'warn', 'bad', 'accent-2', 'good'] as const;
+        // U-10: magenta, not accent-2 beside accent (0.098 apart in OKLab in the dark theme)
+        const colours = ['accent', 'warn', 'bad', 'magenta', 'good'] as const;
         return (
           <div className="of-doc-panel">
             <div className="of-doc-chart">

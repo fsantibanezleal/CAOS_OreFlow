@@ -99,7 +99,7 @@ export interface ChartProps {
   format?: (value: number | null, axis: 'x' | 'y') => string;
 }
 
-const TOKEN: Record<Colour, string> = {
+export const TOKEN: Record<Colour, string> = {
   accent: '--color-accent', 'accent-2': '--color-accent-2', good: '--color-good', warn: '--color-warn',
   bad: '--color-bad', magenta: '--color-magenta', subtle: '--color-fg-subtle',
 };

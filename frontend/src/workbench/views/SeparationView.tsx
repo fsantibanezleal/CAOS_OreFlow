@@ -53,7 +53,8 @@ const ascending = (x: number[], ...ys: (number | null)[][]): uPlot.AlignedData =
   const order = x.map((_, i) => i).reverse();
   return [order.map(i => x[i]), ...ys.map(y => order.map(i => y[i]))] as uPlot.AlignedData;
 };
-const PALETTE: Series['colour'][] = ['accent', 'good', 'warn', 'magenta', 'accent-2', 'bad'];
+// U-10: no accent-2 beside accent (0.098 apart in OKLab, dark theme); every pair here is at least 0.12 apart in both themes
+const PALETTE: Series['colour'][] = ['accent', 'good', 'warn', 'magenta', 'bad', 'subtle'];
 
 /**
  * U-36: curves on a 0 to 1 axis that stay within 0.01 of one another everywhere (1% of the axis, under a line's
@@ -145,7 +146,7 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
     ...(models.length > 0 ? {
       kinetics: (
         <Chart key="kinetics" title={SEPARATION_CHARTS.kinetics[lang]} data={[dense, batchSeries, ...models.map(md => md.dense_pct)] as uPlot.AlignedData} xLabel={TEXT.time[lang]} yLabel={`${TEXT.recovery[lang]} (%)`}
-          series={[{ label: TEXT.batch[lang], colour: 'subtle', points: true }, ...models.map((md, i) => ({ label: MODEL_NAMES[md.id][lang === 'es' ? 1 : 0], colour: PALETTE[(i + 1) % PALETTE.length] }))]}
+          series={[{ label: TEXT.batch[lang], colour: 'subtle', points: true }, ...models.map((md, i) => ({ label: MODEL_NAMES[md.id][lang === 'es' ? 1 : 0], colour: PALETTE[i % PALETTE.length] }))]}
           summary={TEXT.kineticsSummary[lang]} format={(v, axis) => (axis === 'x' ? formatWithUnit(v, 'min', lang) : formatSignificant(v, lang, 3))}
           onCursor={report('min', [TEXT.batch[lang], ...models.map(md => MODEL_NAMES[md.id][lang === 'es' ? 1 : 0])])} />
       ),
