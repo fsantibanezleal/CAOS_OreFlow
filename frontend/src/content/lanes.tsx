@@ -7,7 +7,7 @@
 import { useRef, useState } from 'react';
 import type uPlot from 'uplot';
 import { Chart } from '../components/charts/Chart';
-import { loadGeometBenchmark, loadParticleBenchmark, type GeometRow, type ParticleThreshold } from '../lib/artifacts';
+import { loadGeometBenchmark, loadParticleBenchmark, loadRealSamples, type GeometRow, type ParticleThreshold, type SampleGap } from '../lib/artifacts';
 import { formatFixed, formatFraction, type Lang } from '../lib/format';
 import { APP_VERSION } from '../lib/version';
 import { Loaded, useArtifact } from './data';
@@ -84,6 +84,69 @@ const TEXT = {
   empty: { en: 'Set a particle and run the network: the four probabilities appear here.', es: 'Ajuste una partícula y ejecute la red: las cuatro probabilidades aparecen aquí.' },
   failed: { en: 'The network could not run', es: 'La red no pudo ejecutarse' },
 };
+
+const SAMPLE_TEXT = {
+  grind: { en: 'Assumed laboratory grind, P80 (µm)', es: 'Molienda de laboratorio supuesta, P80 (µm)' },
+  gap: { en: 'Engine minus measured (points)', es: 'Motor menos medido (puntos)' },
+  mean: { en: 'Mean gap', es: 'Diferencia media' },
+  rmse: { en: 'RMSE', es: 'RMSE' },
+  spread: { en: 'Engine spread over the samples', es: 'Dispersión del motor sobre las muestras' },
+  none: { en: 'no gap', es: 'sin diferencia' },
+  target: { en: 'case target', es: 'objetivo del caso' },
+  chartTitle: { en: 'The gap against the grind the tests were run at', es: 'La diferencia frente a la molienda con que se hicieron los ensayos' },
+  chartSummary: { en: 'With the mill sized for the grind, the mean and RMSE of the engine minus the locked-cycle test over the 52 samples, at each assumed laboratory P80, and the engine\'s own spread over the samples.', es: 'Con el molino dimensionado para la molienda, la media y el RMSE del motor menos el ensayo en ciclo cerrado sobre las 52 muestras, en cada P80 de laboratorio supuesto, y la propia dispersión del motor sobre las muestras.' },
+  run: { en: 'How the samples run', es: 'Cómo corren las muestras' },
+  r: { en: 'Pearson r', es: 'r de Pearson' },
+  sd: { en: 'Engine SD (points)', es: 'DE del motor (puntos)' },
+  tableCaption: { en: 'Each way of running the 52 samples, from the record: the mean and RMSE of engine minus measured, the correlation with the measured recovery, and the engine\'s spread; the tests\' own spread is {sd} points.', es: 'Cada forma de correr las 52 muestras, desde el registro: la media y el RMSE del motor menos lo medido, la correlación con la recuperación medida, y la dispersión del motor; la propia dispersión de los ensayos es {sd} puntos.' },
+  rows: {
+    soft_720_record: { en: 'Soft porphyry at 720 t/h (the record)', es: 'Pórfido blando a 720 t/h (el registro)' },
+    hard_nominal: { en: 'Hard porphyry\'s circuit at its nominal state', es: 'Circuito del pórfido duro en su estado nominal' },
+    soft_720_sized_150: { en: 'Mill sized for a 150 µm grind', es: 'Molino dimensionado para una molienda de 150 µm' },
+    target: { en: 'Each sample at its own target-grind throughput', es: 'Cada muestra en su propio tratamiento de molienda objetivo' },
+    alternative: { en: 'Alternative allocation, mill sized for 150 µm', es: 'Asignación alternativa, molino para 150 µm' },
+    noMagnetite: { en: 'No magnetite, mill sized for 150 µm', es: 'Sin magnetita, molino para 150 µm' },
+  },
+};
+
+function SamplesPanel({ lang }: { lang: Lang }) {
+  const samples = useArtifact(loadRealSamples);
+  return (
+    <Loaded lang={lang} errors={[samples.error]} ready={Boolean(samples.value)}>
+      {() => {
+        const se = samples.value!.sensitivity;
+        if (!se) return null;
+        const curve = se.gap_by_assumed_p80;
+        const rows: Array<[Bi, SampleGap]> = [
+          [SAMPLE_TEXT.rows.soft_720_record, se.hosts.soft_720_record], [SAMPLE_TEXT.rows.hard_nominal, se.hosts.hard_nominal],
+          [SAMPLE_TEXT.rows.soft_720_sized_150, se.hosts.soft_720_sized_150], [SAMPLE_TEXT.rows.target, se.target_grind_throughput],
+          [SAMPLE_TEXT.rows.alternative, se.allocation_alternative.sized_150], [SAMPLE_TEXT.rows.noMagnetite, se.no_magnetite.sized_150],
+        ];
+        return (
+          <div className="of-doc-panel">
+            <div className="of-doc-chart">
+              <Chart data={[curve.map(c => c.p80_um), curve.map(c => c.mean_gap_pp), curve.map(c => c.rmse_pp), curve.map(c => c.engine_sd_pp)] as uPlot.AlignedData}
+                xLabel={SAMPLE_TEXT.grind[lang]} yLabel={SAMPLE_TEXT.gap[lang]} title={SAMPLE_TEXT.chartTitle[lang]} summary={SAMPLE_TEXT.chartSummary[lang]}
+                series={[{ label: SAMPLE_TEXT.mean[lang], colour: 'accent', points: true }, { label: SAMPLE_TEXT.rmse[lang], colour: 'warn', dash: [5, 4] }, { label: SAMPLE_TEXT.spread[lang], colour: 'subtle', dash: [2, 3] }]}
+                levels={[{ y: 0, label: SAMPLE_TEXT.none[lang] }]} marks={[{ x: 150, label: `${SAMPLE_TEXT.target[lang]} 150 µm` }]}
+                format={(v, axis) => (v === null ? '-' : axis === 'x' ? formatFixed(v, lang, 0) : signed(v, lang, 1))} />
+            </div>
+            <div className="of-doc-scroll">
+              <table className="of-doc-table of-doc-table-data">
+                <caption>{fill(SAMPLE_TEXT.tableCaption[lang], { sd: formatFixed(se.measured_population_sd_pp, lang, 1) })}</caption>
+                <thead><tr>{[SAMPLE_TEXT.run, SAMPLE_TEXT.mean, SAMPLE_TEXT.rmse, SAMPLE_TEXT.r, SAMPLE_TEXT.sd].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
+                <tbody>{rows.map(([name, g]) => (
+                  <tr key={name.en}><th scope="row" className="of-doc-soft">{name[lang]}</th><td>{signed(g.mean_gap_pp, lang, 1)}</td><td>{formatFixed(g.rmse_pp, lang, 1)}</td>
+                    <td>{signed(g.pearson, lang, 2)}</td><td>{formatFixed(g.engine_sd_pp, lang, 1)}</td></tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+        );
+      }}
+    </Loaded>
+  );
+}
 
 const fill = (template: string, values: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? key);
 const signed = (value: number, lang: Lang, decimals: number) => `${value > 0 ? '+' : ''}${formatFixed(value, lang, decimals)}`;
@@ -433,4 +496,26 @@ const INFERENCE: Topic = {
   refs: ['hzdr', 'onnx-web', 'pytorch2019'],
 };
 
-export const MEASURED_LANES = { GEOMET, PARTICLES, INFERENCE };
+// T-10, S-15 (review of 2026-10-02): the one comparison of the engine with measured material, stated as what it is
+const SAMPLES: Topic = {
+  id: 'samples',
+  title: { en: 'The GeoMet samples in the engine', es: 'Las muestras GeoMet en el motor' },
+  paragraphs: [
+    { en: 'The 52 GeoMet samples also run through the engine as inputs, each on its own assays and work index in the soft porphyry\'s circuit, which was sized for 11 kWh/t ore at 720 t/h; nothing in the engine is fitted to them. The samples are 15 to 26 kWh/t, so every one runs the mill at installed power, the product is coarse, and the engine is 20.4 points below the locked-cycle tests on average (RMSE 22.2); in the hard porphyry\'s circuit it is 2.9 points below. The gap at 720 t/h is mostly the host circuit\'s size, not the model\'s error.',
+      es: 'Las 52 muestras GeoMet además pasan por el motor como entradas, cada una con sus propios ensayes e índice de trabajo en el circuito del pórfido blando, que se dimensionó para un mineral de 11 kWh/t a 720 t/h; nada del motor se ajusta a ellas. Las muestras son de 15 a 26 kWh/t, así que cada una opera el molino a potencia instalada, el producto sale grueso, y el motor queda 20,4 puntos bajo los ensayos en ciclo cerrado en promedio (RMSE 22,2); en el circuito del pórfido duro queda 2,9 puntos bajo. La diferencia a 720 t/h es sobre todo el tamaño del circuito anfitrión, no el error del modelo.' },
+    { en: 'With the mill sized for the grind, the engine\'s level depends on the grind assumed for the tests, which the open data do not give: from 10.4 points above at 75 µm to 18.5 below at 300 µm, crossing zero near 165 µm. At each sample\'s own target-grind throughput the gap is +5.2 points, of which 3.2 come from the longer flotation residence at the lower throughput rather than from the grind.',
+      es: 'Con el molino dimensionado para la molienda, el nivel del motor depende de la molienda supuesta para los ensayos, que los datos abiertos no dan: de 10,4 puntos sobre ellos con 75 µm a 18,5 bajo ellos con 300 µm, cruzando cero cerca de 165 µm. En el propio tratamiento de molienda objetivo de cada muestra la diferencia es +5,2 puntos, de los que 3,2 vienen de la residencia de flotación más larga con el tratamiento menor y no de la molienda.' },
+    { en: 'At every assumed grind the engine\'s recovery is uncorrelated with the measured one (Pearson r between -0.03 and 0.01), and it varies over the samples by 0.6 to 2.9 points against the tests\' 5.3: on these assays the engine does not tell the samples apart. The mineral allocation, the magnetite and the two flotation ratios are authored: with the mill sized for 150 µm, the alternative allocation moves the level by +2.0 points, dropping the magnetite by +2.8, and a grid of ratios (bornite at 0.62 or 0.80 of chalcopyrite, chalcocite at 0.67 to 2.5 times bornite) by -6.6 to +1.1; a uniform shift of every work index by 2.25 kWh/t moves the 720 t/h gap by +6.6 and -6.0 points. A comparison, not a calibration.',
+      es: 'Con cualquier molienda supuesta la recuperación del motor no se correlaciona con la medida (r de Pearson entre -0,03 y 0,01), y varía sobre las muestras de 0,6 a 2,9 puntos frente a 5,3 de los ensayos: con estos ensayes el motor no distingue las muestras. La asignación mineral, la magnetita y las dos razones de flotación son de autor: con el molino dimensionado para 150 µm, la asignación alternativa mueve el nivel en +2,0 puntos, quitar la magnetita en +2,8, y una grilla de razones (bornita a 0,62 o 0,80 de la calcopirita, calcosina a 0,67 a 2,5 veces la bornita) entre -6,6 y +1,1; un desplazamiento uniforme de cada índice de trabajo en 2,25 kWh/t mueve la diferencia a 720 t/h en +6,6 y -6,0 puntos. Una comparación, no una calibración.' },
+  ],
+  equations: [
+    { tex: r`\Delta = \frac{1}{52}\sum_{s} \left(R^{\mathrm{eng}}_s - R^{\mathrm{LCT}}_s\right),\qquad r = \operatorname{corr}\left(R^{\mathrm{eng}}, R^{\mathrm{LCT}}\right)`, caption: { en: 'The level of the comparison, the mean of engine minus measured, and whether the engine orders the samples, the correlation of the two recoveries.', es: 'El nivel de la comparación, la media del motor menos lo medido, y si el motor ordena las muestras, la correlación de ambas recuperaciones.' } },
+  ],
+  limits: [
+    { en: 'A locked-cycle test is a laboratory test at its own grind, reagents and time, not a plant; the circuit, the breakage, the liberation and the flotation are authored for another ore.', es: 'Un ensayo en ciclo cerrado es una prueba de laboratorio con su propia molienda, reactivos y tiempo, no una planta; el circuito, la fractura, la liberación y la flotación son de autor para otro mineral.' },
+  ],
+  data: lang => <SamplesPanel lang={lang} />,
+  refs: ['geomet', 'geomet-paper', 'tafirenyika2022', 'jiang2025'],
+};
+
+export const MEASURED_LANES = { GEOMET, SAMPLES, PARTICLES, INFERENCE };

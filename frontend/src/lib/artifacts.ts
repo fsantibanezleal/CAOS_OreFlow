@@ -119,11 +119,18 @@ export type RealSamples = {
   /** S-01 to S-09: what the comparison depends on (the assumed laboratory grind, the residence, the host, the authored choices). */
   sensitivity?: {
     measured_population_sd_pp: number;
-    gap_by_assumed_p80: Array<{ p80_um: number; mean_gap_pp: number; rmse_pp: number; pearson: number }>;
-    target_grind_throughput: { mean_gap_pp: number; residence_share_pp: number };
-    hosts: Record<string, { mean_gap_pp: number }>;
+    gap_by_assumed_p80: Array<SampleGap & { p80_um: number }>;
+    target_grind_throughput: SampleGap & { residence_share_pp: number; tph: { min: number; median: number; max: number } };
+    hosts: Record<'soft_720_record' | 'hard_nominal' | 'soft_720_sized_150', SampleGap>;
+    ratio_grid: Array<{ bornite: number; chalcocite_to_bornite: number; at_720: SampleGap; sized_150: SampleGap }>;
+    allocation_alternative: { at_720: SampleGap; sized_150: SampleGap };
+    no_magnetite: { at_720: SampleGap; sized_150: SampleGap };
+    work_index: { shift_kwh_t: number; deposit_median_for_all: { mean_gap_pp: number }; global_nearest: { mean_gap_pp: number };
+      all_minus_shift: { mean_gap_pp: number }; all_plus_shift: { mean_gap_pp: number } };
   };
 };
+/** One way of running the 52 samples through the engine: the mean and RMSE of engine minus measured, and whether it orders them. */
+export type SampleGap = { mean_gap_pp: number; rmse_pp: number; pearson: number; spearman: number; engine_sd_pp: number };
 export const loadRealSamples = () => get<RealSamples>('real_samples.json');
 
 export type AblationRecord = { status: 'not_applicable' } | {

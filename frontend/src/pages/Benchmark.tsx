@@ -23,7 +23,7 @@ const GROUPS = [
   { id: 'oracles', label: { en: 'Published examples', es: 'Ejemplos publicados' }, topics: [ENGINE_BENCHMARK.ORACLES] },
   { id: 'methods', label: { en: 'Method records', es: 'Registros de métodos' }, topics: [ENGINE_BENCHMARK.KINETICS, ENGINE_BENCHMARK.OPTIMIZATION, ENGINE_BENCHMARK.UNCERTAINTY] },
   { id: 'learned', label: { en: 'Learned lane', es: 'Vía aprendida' }, topics: [ENGINE_BENCHMARK.LEARNED] },
-  { id: 'measured', label: { en: 'Measured lanes', es: 'Vías medidas' }, topics: [MEASURED_LANES.GEOMET, MEASURED_LANES.PARTICLES, MEASURED_LANES.INFERENCE] },
+  { id: 'measured', label: { en: 'Measured lanes', es: 'Vías medidas' }, topics: [MEASURED_LANES.GEOMET, MEASURED_LANES.SAMPLES, MEASURED_LANES.PARTICLES, MEASURED_LANES.INFERENCE] },
   // IS-05: the iron plant's forecast, a lane of its own, apart from the copper circuit and the optimizer
   { id: 'industrial', label: { en: 'Industrial quality', es: 'Calidad industrial' }, topics: [INDUSTRIAL.IRON_PLANT] },
 ];
