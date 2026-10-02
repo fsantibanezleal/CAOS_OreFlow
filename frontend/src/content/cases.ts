@@ -124,6 +124,8 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     scope: [
       { en: 'There is no flotation: the rougher and cleaner drums capture by particle class, with ultrafine losses and gangue entrapment.', es: 'No hay flotación: los tambores rougher y de limpieza capturan por clase de partícula, con pérdidas de ultrafinos y atrapamiento de ganga.' },
       { en: 'The published grind-grade pairs are the oracle for the direction and size of the effect, not a calibration of this plant.', es: 'Los pares molienda-ley publicados son el oráculo para la dirección y el tamaño del efecto, no una calibración de esta planta.' },
+      { en: 'The head grade is the feed\'s total Fe assay. Magnetite carries 26.5 of its 29.7 points; the silicate gangue holds the rest at an authored 5% Fe, which no source gives. That iron is never magnetic, so the Fe recovery (total Fe) sits below the magnetite recovery and follows the head grade by dilution; the Methods view reports both.',
+        es: 'La ley de cabeza es el ensaye de Fe total de la alimentación. La magnetita lleva 26,5 de sus 29,7 puntos; la ganga silicatada lleva el resto con un 5% de Fe de autor, que ninguna fuente da. Ese hierro nunca es magnético, así que la recuperación de Fe (Fe total) queda bajo la recuperación de magnetita y sigue a la ley de cabeza por dilución; la vista de Métodos informa ambas.' },
     ],
     read: [
       { en: 'Separation: the LIMS capture curves by particle class show why composites lower the grade.', es: 'Separación: las curvas de captura LIMS por clase de partícula muestran por qué los mixtos bajan la ley.' },

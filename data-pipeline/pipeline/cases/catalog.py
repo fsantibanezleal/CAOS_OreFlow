@@ -276,14 +276,15 @@ def _cases() -> tuple[CaseDef, ...]:
         Ore(minerals=(MineralSpec(id="magnetite", grindability=0.9, liberation_size_um=130.0, liberation_slope=2.0, composite_content=0.5,
                                   host="silicate_fe", magnetic=True),
                       MineralSpec(id="silicate_fe", fraction=0.0)),
-            payables=(Payable("Fe", "%", (Carrier("magnetite", 1.0),), 26.5),),
+            # E-02: the head grade is the total Fe assay; magnetite carries 26.5 points of the 29.7 and the silicate the rest
+            payables=(Payable("Fe", "%", (Carrier("magnetite", 1.0),), 29.7),),
             work_index_kwh_t=13.5, crushing_work_index_kwh_t=15.0, quality_species=("SiO2",)),
         Plant(family="magnetic", crusher=_crusher(), mill=_mill(19700.0), cyclone=_cyclone(25.4),
               magnetic=MagneticPlant(max_capture=0.995, fine_scale_um=1.5, composite_threshold=0.1, entrapment_base=0.02,
                                      entrapment_fines=0.12, entrapment_scale_um=12.0, cleaner_factor=0.4, concentrate_solids=0.6),
               grade_spec=GradeSpec("Fe", 65.0), water_limit_m3_t=2.52),
         OperatingPoint(throughput_tph=920.0, target_p80_um=60.0, circulating_load=2.5, water_m3_t=2.4, crusher_css_mm=8.0,
-                       work_index_kwh_t=13.5, head_grade=26.5),
+                       work_index_kwh_t=13.5, head_grade=29.7),
         _magnetic_variants(), _kpi("iron_magnetite_fine"),
         ("breakage", "crusher", "cyclone", "magnetic", "water", "kpi"), kpi_sources=_kpi_sources("iron_magnetite_fine")))
     cases.append(CaseDef(
