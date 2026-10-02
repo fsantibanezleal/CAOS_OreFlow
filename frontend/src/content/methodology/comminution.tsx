@@ -132,7 +132,7 @@ export const COMMINUTION: Topic[] = [
         ['K1', '0.8 CSS', { en: 'inside the reported 0.5 to 0.95 CSS', es: 'dentro de 0,5 a 0,95 CSS reportado' }],
         ['K2', '2.3 CSS', { en: 'inside the reported 1.7 to 3.5 CSS', es: 'dentro de 1,7 a 3,5 CSS reportado' }],
         ['K3', '2.3', { en: 'commonly used value', es: 'valor de uso común' }],
-        ['β0, β1, β2', '0.4, 0.7, 3.5', { en: 'authored, Austin form', es: 'de autor, forma de Austin' }],
+        ['$\\beta_0$, $\\beta_1$, $\\beta_2$', '0.4, 0.7, 3.5', { en: 'authored, Austin form', es: 'de autor, forma de Austin' }],
         [{ en: 'crusher feed F80', es: 'F80 de alimentación' }, '60 mm', { en: 'authored secondary-crusher feed', es: 'alimentación de chancado secundario de autor' }],
       ],
     },
@@ -165,9 +165,9 @@ export const COMMINUTION: Topic[] = [
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
       rows: [
-        ['α0, α1, α2', '0.0091 t/kWh, 0.651, 2.5', { en: 'Moly-Cop defaults', es: 'valores por defecto de Moly-Cop' }],
-        ['d_crit', '6514 µm', { en: 'Moly-Cop default', es: 'valor por defecto de Moly-Cop' }],
-        ['β0, β1, β2', '0.4, 0.65, 4.02', { en: 'Moly-Cop documented alternative set', es: 'conjunto alternativo documentado de Moly-Cop' }],
+        ['$\\alpha_0$, $\\alpha_1$, $\\alpha_2$', '0.0091 t/kWh, 0.651, 2.5', { en: 'Moly-Cop defaults', es: 'valores por defecto de Moly-Cop' }],
+        ['$d_{crit}$', '6514 µm', { en: 'Moly-Cop default', es: 'valor por defecto de Moly-Cop' }],
+        ['$\\beta_0$, $\\beta_1$, $\\beta_2$', '0.4, 0.65, 4.02', { en: 'Moly-Cop documented alternative set', es: 'conjunto alternativo documentado de Moly-Cop' }],
         [{ en: 'mixer volume fractions', es: 'fracciones de volumen de los mezcladores' }, '0.70, 0.15, 0.15', { en: 'Austin structure; values declared', es: 'estructura de Austin; valores declarados' }],
         [{ en: 'mill discharge solids', es: 'sólidos en la descarga del molino' }, { en: '72% w/w', es: '72% p/p' }, { en: 'Moly-Cop base case', es: 'caso base de Moly-Cop' }],
       ],

@@ -67,7 +67,7 @@ const TEXT = {
     screen: { en: 'Surrogate against engine', es: 'Sustituto frente al motor' },
   } as Record<View, { en: string; es: string }>,
   objective: { en: 'Objective of the feasible incumbent (1 at the base when all weight is on metal)', es: 'Objetivo del incumbente factible (1 en la base con todo el peso en el metal)' },
-  barrier: { en: 'Barrier on the constraint violation, h_max', es: 'Barrera sobre la violación de restricciones, h_max' },
+  barrier: { en: 'Barrier: the largest constraint violation a trial point may carry', es: 'Barrera: la mayor violación de restricciones que puede tener un punto de prueba' },
   engineEvaluations: { en: 'Engine evaluations', es: 'Evaluaciones del motor' },
   incumbent: { en: 'Feasible incumbent', es: 'Incumbente factible' },
   infeasibleIncumbent: { en: 'Barrier', es: 'Barrera' },

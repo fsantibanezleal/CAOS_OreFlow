@@ -16,6 +16,7 @@ import type { Benchmark, CaseArtifact, CaseIndex } from '../../lib/artifacts.typ
 import { formatRange, formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
 import { flagShort, formulaText, metricLabel, mineralName, provenanceText } from '../../lib/i18n';
 import { CompareView } from './CompareView';
+import { withMath } from '../../lib/math';
 
 const TEXT = {
   label: { en: 'Case', es: 'Caso' },
@@ -221,7 +222,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
         </section>
         <section>
           <h3>{TEXT.formalization[lang]}</h3>
-          {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={localizeTex(f.tex, lang)} caption={f.caption[lang]} />)}
+          {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={localizeTex(f.tex, lang)} caption={withMath(f.caption[lang], lang)} />)}
         </section>
       </div>
     </div>

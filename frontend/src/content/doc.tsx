@@ -8,6 +8,7 @@
 import { Callout, Equation, Figure, Refs, SubTabs, Tabs } from '@fasl-work/caos-app-shell';
 import type { ReactNode } from 'react';
 import { localizeAuthored, localizeTex, type Lang } from '../lib/format';
+import { withMath } from '../lib/math';
 
 export type Bi = { en: string; es: string };
 export type Topic = {
@@ -36,14 +37,14 @@ const T = {
 
 const text = (value: string | Bi, lang: Lang) => (typeof value === 'string' ? value : value[lang]);
 // a plain table cell is an authored value in the English convention; a formula sets its decimals per language
-const cell = (value: string | Bi, lang: Lang) => (typeof value === 'string' ? localizeAuthored(value, lang) : value[lang]);
+const cell = (value: string | Bi, lang: Lang) => withMath(typeof value === 'string' ? localizeAuthored(value, lang) : value[lang], lang);
 const formula = (value: string | Bi, lang: Lang) => localizeTex(text(value, lang), lang);
 const tex = (value: string | Bi) => (typeof value === 'string' ? value : value.en);
 
 export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
   const limits = topic.limits && topic.limits.length > 0 && (
     <Callout variant="honest" title={T.limits[lang]}>
-      <ul>{topic.limits.map((l, i) => <li key={i}>{l[lang]}</li>)}</ul>
+      <ul>{topic.limits.map((l, i) => <li key={i}>{withMath(l[lang], lang)}</li>)}</ul>
     </Callout>
   );
   return (
@@ -53,24 +54,24 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
         <>
           {/* a flowsheet leads at full width; the prose then sits beside its equations */}
           <div className="of-topic-figure wide">
-            <Figure caption={topic.figure.caption[lang]}>{topic.figure.render(lang)}</Figure>
+            <Figure caption={withMath(topic.figure.caption[lang], lang)}>{topic.figure.render(lang)}</Figure>
           </div>
           <div className="of-topic-body with-figure">
-            <div className="of-topic-text">{topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}</div>
-            <div className="of-topic-equations">{topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={eq.caption[lang]} />)}</div>
+            <div className="of-topic-text">{topic.paragraphs.map((p, i) => <p key={i}>{withMath(p[lang], lang)}</p>)}</div>
+            <div className="of-topic-equations">{topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={withMath(eq.caption[lang], lang)} />)}</div>
           </div>
         </>
       ) : topic.figure ? (
         <div className="of-topic-body with-figure">
           <div className="of-topic-text">
-            {topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}
-            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={eq.caption[lang]} />)}
+            {topic.paragraphs.map((p, i) => <p key={i}>{withMath(p[lang], lang)}</p>)}
+            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={withMath(eq.caption[lang], lang)} />)}
           </div>
           {/* the figure leads the second column and the limits follow it: equations keep the wider column,
               and wrapping text fills the narrower one */}
           <div className="of-topic-side">
             <div className="of-topic-figure">
-              <Figure caption={topic.figure.caption[lang]}>{topic.figure.render(lang)}</Figure>
+              <Figure caption={withMath(topic.figure.caption[lang], lang)}>{topic.figure.render(lang)}</Figure>
             </div>
             {limits}
           </div>
@@ -78,8 +79,8 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
       ) : (
         <div className="of-topic-body">
           <div className="of-topic-text">
-            {topic.paragraphs.map((p, i) => <p key={i}>{p[lang]}</p>)}
-            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={eq.caption[lang]} />)}
+            {topic.paragraphs.map((p, i) => <p key={i}>{withMath(p[lang], lang)}</p>)}
+            {topic.equations?.map(eq => <Equation key={tex(eq.tex)} tex={formula(eq.tex, lang)} caption={withMath(eq.caption[lang], lang)} />)}
           </div>
         </div>
       )}

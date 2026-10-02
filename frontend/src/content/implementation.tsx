@@ -314,7 +314,7 @@ const SYSTEM: Topic = {
       es: 'La interfaz solo dibuja. Cada vista lee la traza o un registro horneado y formatea los números en el idioma de la interfaz; una verificación estática rechaza aritmética del motor en archivos de interfaz, y una prueba verifica que cada valor que dibuja un gráfico sea un número de la traza.' },
   ],
   equations: [
-    { tex: r`\mathcal{T} = E(c, u),\qquad u \in U_c`, caption: { en: 'One evaluation: the engine E maps a case c and an operating point u of its contract envelope U_c to a trace.', es: 'Una evaluación: el motor E lleva un caso c y un punto de operación u de su envolvente U_c a una traza.' } },
+    { tex: r`\mathcal{T} = E(c, u),\qquad u \in U_c`, caption: { en: 'One evaluation: the engine E maps a case c and an operating point u of its contract envelope $U_c$ to a trace.', es: 'Una evaluación: el motor E lleva un caso c y un punto de operación u de su envolvente $U_c$ a una traza.' } },
     { tex: r`\delta = H\left(C \setminus \delta\right)`, caption: { en: 'The contract digest: the SHA-256 hash H of the contract document C without its digest field; every artifact and every service response carries it.', es: 'La huella del contrato: el hash SHA-256 H del documento del contrato C sin su campo de huella; cada artefacto y cada respuesta del servicio la lleva.' } },
   ],
   limits: [
@@ -418,7 +418,7 @@ const LANES: Topic = {
       es: 'El servicio ejecuta el motor en Python tras el mismo contrato. Una simulación validada devuelve la traza con la huella del contrato; un estado rechazado devuelve cada error con su código y sus límites; una falla del motor en un estado aceptado se informa con el estado que la causó. El servicio además sirve el sitio compilado y los artefactos, y nunca entrena ni reescribe un artefacto.' },
   ],
   equations: [
-    { tex: r`N = n_x\,n_y`, caption: { en: 'A two-input sweep evaluates the engine on every cell of an n_x by n_y grid; one evaluation takes about 40 to 150 ms in the development machine\'s JavaScript runtime.', es: 'Un barrido de dos entradas evalúa el motor en cada celda de una grilla de n_x por n_y; una evaluación toma cerca de 40 a 150 ms en el entorno JavaScript de la máquina de desarrollo.' } },
+    { tex: r`N = n_x\,n_y`, caption: { en: 'A two-input sweep evaluates the engine on every cell of an $n_x$ by $n_y$ grid; one evaluation takes about 40 to 150 ms in the development machine\'s JavaScript runtime.', es: 'Un barrido de dos entradas evalúa el motor en cada celda de una grilla de $n_x$ por $n_y$; una evaluación toma cerca de 40 a 150 ms en el entorno JavaScript de la máquina de desarrollo.' } },
     { tex: r`\hat y = \sigma_y\, f_\theta\!\left(\frac{x - \mu_x}{\sigma_x}\right) + \mu_y`, caption: { en: 'The browser\'s surrogate: the exported network on features standardized with the bake\'s scalers.', es: 'El sustituto del navegador: la red exportada sobre variables estandarizadas con los escaladores del horneado.' } },
   ],
   limits: [

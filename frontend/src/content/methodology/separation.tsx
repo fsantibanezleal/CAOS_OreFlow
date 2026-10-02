@@ -4,6 +4,7 @@
  */
 import type { Lang } from '../../lib/format';
 import type { Topic } from '../doc';
+import { SvgSub } from '../../lib/math';
 
 const r = String.raw;
 
@@ -24,7 +25,7 @@ function PartitionFigure({ lang }: { lang: Lang }) {
       <line className="dg-axis" x1="50" y1="190" x2="390" y2="190" />
       <line className="dg-axis" x1="50" y1="190" x2="50" y2="20" />
       <line className="dg-asymptote" x1="50" y1="160" x2="390" y2="160" />
-      <text className="dg-marker-label" x="330" y="155">R_f</text>
+      <text className="dg-marker-label" x="330" y="155"><SvgSub base="R" sub="f" /></text>
       <path className="dg-curve" d="M 55 160 C 170 160, 220 150, 250 105 S 300 32, 385 30" />
       <path className="dg-curve-2" d="M 55 160 C 120 160, 160 150, 185 105 S 235 32, 385 30" />
       <line className="dg-marker" x1="250" y1="190" x2="250" y2="95" />
@@ -53,7 +54,7 @@ function FlotationFigure({ lang }: { lang: Lang }) {
           {k < 3 && <line className="dg-edge" x1="50" y1="20" x2="58" y2="20" markerEnd="url(#of-flot-arrow)" />}
         </g>
       ))}
-      <text className="dg-box-sub" x="210" y="144" textAnchor="middle">{es ? 'rougher: N celdas, k de S_b' : 'rougher: N cells, k from S_b'}</text>
+      <text className="dg-box-sub" x="210" y="144" textAnchor="middle">{es ? 'rougher: N celdas, k de ' : 'rougher: N cells, k from '}<SvgSub base="S" sub="b" /></text>
       <line className="dg-edge" x1="85" y1="56" x2="287" y2="56" />
       <line className="dg-edge" x1="284" y1="100" x2="330" y2="100" markerEnd="url(#of-flot-arrow)" />
       <text className="dg-edge-label" x="340" y="104">{es ? 'relave' : 'tail'}</text>
@@ -93,7 +94,7 @@ function GravityFigure({ lang }: { lang: Lang }) {
       <text className="dg-edge-label" x="235" y="132">b</text>
       <rect className="dg-box accent" x="172" y="142" width="110" height="40" rx="7" />
       <text className="dg-box-title" x="227" y="160" textAnchor="middle">{es ? 'gravimetría' : 'gravity unit'}</text>
-      <text className="dg-box-sub" x="227" y="174" textAnchor="middle">E_g(d)</text>
+      <text className="dg-box-sub" x="227" y="174" textAnchor="middle"><SvgSub base="E" sub="g" />(d)</text>
       <line className="dg-edge" x1="282" y1="162" x2="340" y2="162" markerEnd="url(#of-grav-arrow)" />
       <text className="dg-edge-label" x="344" y="166">{es ? 'concentrado' : 'concentrate'}</text>
       <path className="dg-curve-faint" d="M 172 162 L 60 162 L 60 74" markerEnd="url(#of-grav-arrow)" />
@@ -136,7 +137,7 @@ function DeslimeFigure({ lang }: { lang: Lang }) {
       <line className="dg-edge" x1="58" y1="70" x2="116" y2="70" markerEnd="url(#of-des-arrow)" />
       <rect className="dg-box accent" x="118" y="48" width="104" height="44" rx="7" />
       <text className="dg-box-title" x="170" y="68" textAnchor="middle">{es ? 'deslamado' : 'desliming'}</text>
-      <text className="dg-box-sub" x="170" y="83" textAnchor="middle">d_des</text>
+      <text className="dg-box-sub" x="170" y="83" textAnchor="middle"><SvgSub base="d" sub="des" /></text>
       <path className="dg-edge" d="M 170 48 L 170 20 L 300 20" markerEnd="url(#of-des-arrow)" />
       <text className="dg-edge-label" x="306" y="24">{es ? 'lamas a relave' : 'slimes to tail'}</text>
       <line className="dg-edge" x1="222" y1="70" x2="270" y2="70" markerEnd="url(#of-des-arrow)" />
@@ -162,9 +163,9 @@ export const SEPARATION: Topic[] = [
         es: 'El solucionador del circuito encuentra el corte que necesita el circuito; las ecuaciones de Plitt responden luego la pregunta de equipos con la alimentación resuelta: el caudal por ciclón que da ese corte, el número de ciclones, y la presión, la partición de volumen y la nitidez con ese número. Las ecuaciones no están calibradas, así que son una estimación: nunca avisan ni rechazan un estado.' },
     ],
     equations: [
-      { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_h - 1}{\rho_k - 1}} \end{gathered}`, caption: { en: 'Partition to underflow with water bypass R_f, and the cut of particle class k of density ρ_k, corrected from the host gangue density ρ_h.', es: 'Partición a la descarga con cortocircuito de agua R_f, y el corte de la clase k de densidad ρ_k, corregido desde la densidad de la ganga huésped ρ_h.' } },
-      { tex: r`d_{50c} = \frac{50.5\,D_c^{0.46} D_i^{0.6} D_o^{1.21} e^{0.063 C_v}}{D_u^{0.71} h^{0.38} Q^{0.45} (\rho_s - \rho_l)^{0.5}}\ \mu\mathrm{m}`, caption: { en: 'Plitt cut size (lengths in cm, Q in L/min per cyclone, C_v in percent solids by volume).', es: 'Tamaño de corte de Plitt (longitudes en cm, Q en L/min por ciclón, C_v en porcentaje de sólidos en volumen).' } },
-      { tex: r`\begin{gathered} \Delta P = \frac{1.88\,Q^{1.78} e^{0.0055 C_v}}{D_c^{0.37} D_i^{0.94} h^{0.28} (D_u^2 + D_o^2)^{0.87}}\ \mathrm{kPa} \\ m = 1.94\,e^{-1.58 R_v}\left(\frac{D_c^2 h}{Q}\right)^{0.15} \end{gathered}`, caption: { en: 'Plitt pressure drop and sharpness (R_v the volume split to underflow).', es: 'Caída de presión y nitidez de Plitt (R_v la partición de volumen a la descarga).' } },
+      { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_h - 1}{\rho_k - 1}} \end{gathered}`, caption: { en: 'Partition to underflow with water bypass $R_f$, and the cut of particle class k of density $\\rho_k$, corrected from the host gangue density $\\rho_h$.', es: 'Partición a la descarga con cortocircuito de agua $R_f$, y el corte de la clase k de densidad $\\rho_k$, corregido desde la densidad de la ganga huésped $\\rho_h$.' } },
+      { tex: r`d_{50c} = \frac{50.5\,D_c^{0.46} D_i^{0.6} D_o^{1.21} e^{0.063 C_v}}{D_u^{0.71} h^{0.38} Q^{0.45} (\rho_s - \rho_l)^{0.5}}\ \mu\mathrm{m}`, caption: { en: 'Plitt cut size (lengths in cm, Q in L/min per cyclone, $C_v$ in percent solids by volume).', es: 'Tamaño de corte de Plitt (longitudes en cm, Q en L/min por ciclón, $C_v$ en porcentaje de sólidos en volumen).' } },
+      { tex: r`\begin{gathered} \Delta P = \frac{1.88\,Q^{1.78} e^{0.0055 C_v}}{D_c^{0.37} D_i^{0.94} h^{0.28} (D_u^2 + D_o^2)^{0.87}}\ \mathrm{kPa} \\ m = 1.94\,e^{-1.58 R_v}\left(\frac{D_c^2 h}{Q}\right)^{0.15} \end{gathered}`, caption: { en: 'Plitt pressure drop and sharpness ($R_v$ the volume split to underflow).', es: 'Caída de presión y nitidez de Plitt ($R_v$ la partición de volumen a la descarga).' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
@@ -194,15 +195,15 @@ export const SEPARATION: Topic[] = [
         es: 'Los bancos de celdas mecánicas se comportan como mezcladores perfectos en serie. El circuito es un rougher, una remolienda opcional del concentrado rougher, una limpieza y una relimpieza opcional; el relave de limpieza vuelve a la alimentación rougher y el de relimpieza a la de limpieza. La residencia sale del volumen de celda, la retención de gas y el caudal de pulpa, por lo que más alimentación o más recirculación la acortan. El circuito se resuelve por iteración de punto fijo hasta que el mayor cambio absoluto baja de 1e-10 t/h y el mayor cambio de cualquier clase, relativo a su propio caudal, baja de 1e-12; el criterio relativo mantiene en balance el oro traza.' },
     ],
     equations: [
-      { tex: r`\begin{aligned} k_{s,i} &= 60\,P_s\,S_b\,f_d(d_i)\,f_D(D) \\ f_d(d) &= \exp\!\left(-\tfrac12\left[\ln(d/x_{opt})/w\right]^2\right) \\ f_D(D) &= u + (1-u)\frac{D}{D + K_s} \\ S_b &= \frac{6J_g}{D_{32}},\qquad P_{comp} = P_V\,c^{2/3} \end{aligned}`, caption: { en: 'Rate constant (1/min) of particle class s in size class i: the size factor f_d around x_opt and the dose factor f_D of collector D; the bubble surface area flux S_b, and the floatability P_comp of a composite of valuable content c.', es: 'Constante cinética (1/min) de la clase s en el tamaño i: el factor de tamaño f_d en torno a x_opt y el factor de dosis f_D de colector D; el flujo de área superficial de burbujas S_b, y la flotabilidad P_comp de un mixto de contenido valioso c.' } },
+      { tex: r`\begin{aligned} k_{s,i} &= 60\,P_s\,S_b\,f_d(d_i)\,f_D(D) \\ f_d(d) &= \exp\!\left(-\tfrac12\left[\ln(d/x_{opt})/w\right]^2\right) \\ f_D(D) &= u + (1-u)\frac{D}{D + K_s} \\ S_b &= \frac{6J_g}{D_{32}},\qquad P_{comp} = P_V\,c^{2/3} \end{aligned}`, caption: { en: 'Rate constant (1/min) of particle class s in size class i: the size factor $f_d$ around $x_{opt}$ and the dose factor $f_D$ of collector D; the bubble surface area flux $S_b$, and the floatability $P_{comp}$ of a composite of valuable content c.', es: 'Constante cinética (1/min) de la clase s en el tamaño i: el factor de tamaño $f_d$ en torno a $x_{opt}$ y el factor de dosis $f_D$ de colector D; el flujo de área superficial de burbujas $S_b$, y la flotabilidad $P_{comp}$ de un mixto de contenido valioso c.' } },
       { tex: r`\begin{aligned} ENT_i &= \frac{2}{e^{a_i} + e^{-a_i}},\qquad a_i = 2.292\,(d_i/\xi)^{adj} \\ adj &= 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)} \end{aligned}`, caption: { en: 'Degree of entrainment (Savassi et al.).', es: 'Grado de arrastre (Savassi y colaboradores).' } },
-      { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1 - r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`, caption: { en: 'Recovery per cell r and over a bank of N cells R_N; without entrainment the tanks-in-series result, and for water (k = 0, ENT = 1) the water recovery itself.', es: 'Recuperación por celda r y en un banco de N celdas R_N; sin arrastre el resultado de tanques en serie, y para el agua (k = 0, ENT = 1) la propia recuperación de agua.' } },
+      { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1 - r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`, caption: { en: 'Recovery per cell r and over a bank of N cells $R_N$; without entrainment the tanks-in-series result, and for water (k = 0, ENT = 1) the water recovery itself.', es: 'Recuperación por celda r y en un banco de N celdas $R_N$; sin arrastre el resultado de tanques en serie, y para el agua (k = 0, ENT = 1) la propia recuperación de agua.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Typical value', es: 'Valor típico' }, { en: 'Source', es: 'Fuente' }],
       rows: [
         ['J_g', '1.3 - 1.4 cm/s', { en: 'gas-dispersion literature range 0.5 to 2.5', es: 'rango de la literatura de dispersión de gas 0,5 a 2,5' }],
-        ['D32', '0.8 + 0.45 J_g mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
+        ['D32', '0.8 + 0.45 $J_g$ mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
         [{ en: 'P, liberated sulphide', es: 'P, sulfuro liberado' }, '1.8e-4 - 3.2e-4', { en: 'authored so nominal KPIs fall in literature ranges', es: 'de autor para que los KPI nominales caigan en rangos de la literatura' }],
         [{ en: 'K valuable, gangue', es: 'K valioso, ganga' }, '12 - 60, 40 - 1500 g/t', { en: 'authored; gangue saturates later', es: 'de autor; la ganga se satura después' }],
         ['ξ, δ', '30 - 60 µm, 1', { en: 'inside the Savassi and Hoang fits', es: 'dentro de los ajustes de Savassi y Hoang' }],
@@ -236,7 +237,7 @@ export const SEPARATION: Topic[] = [
         [{ en: 'GRG size distribution', es: 'distribución de tamaños del GRG' }, { en: 'Snip, 83.7% below 150 µm', es: 'Snip, 83,7% bajo 150 µm' }, { en: 'measured (Vincent 1997, Table 5.1)', es: 'medida (Vincent 1997, tabla 5.1)' }],
         [{ en: 'GRG density exponent n', es: 'exponente de densidad del GRG n' }, '1.0', { en: 'fitted to Laplante and Staunton Figure 9 (1.13 and 0.87)', es: 'ajustado a la figura 9 de Laplante y Staunton (1,13 y 0,87)' }],
         [{ en: 'GRG breakage slowdown', es: 'fractura más lenta del GRG' }, { en: '6 at 75 µm, 20 at 707 µm', es: '6 a 75 µm, 20 a 707 µm' }, { en: 'Banisi, cited by Vincent (1997)', es: 'Banisi, citado por Vincent (1997)' }],
-        ['R_max, x_g', '0.70, 20 µm', { en: 'authored: 70% at Camchib, a slight drop below 37 µm at Meston', es: 'de autor: 70% en Camchib, una leve caída bajo 37 µm en Meston' }],
+        ['$R_{max}$, $x_g$', '0.70, 20 µm', { en: 'authored: 70% at Camchib, a slight drop below 37 µm at Meston', es: 'de autor: 70% en Camchib, una leve caída bajo 37 µm en Meston' }],
         [{ en: 'bleed b', es: 'purga b' }, '0.10', { en: 'inside the 6 to 25% that practice treats', es: 'dentro del 6 a 25% que trata la práctica' }],
       ],
     },
@@ -262,9 +263,9 @@ export const SEPARATION: Topic[] = [
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
       rows: [
-        ['p_max, d_f', '0.995, 1.5 µm', { en: 'authored; rougher recovery above 98% reported', es: 'de autor; recuperación rougher sobre 98% reportada' }],
-        ['c_0', '0.1', { en: 'authored composite response', es: 'respuesta de mixtos de autor' }],
-        ['e_0, e_1, d_e', '0.02, 0.12, 12 µm', { en: 'authored entrapment', es: 'atrapamiento de autor' }],
+        ['$p_{max}$, $d_f$', '0.995, 1.5 µm', { en: 'authored; rougher recovery above 98% reported', es: 'de autor; recuperación rougher sobre 98% reportada' }],
+        ['$c_0$', '0.1', { en: 'authored composite response', es: 'respuesta de mixtos de autor' }],
+        ['$e_0$, $e_1$, $d_e$', '0.02, 0.12, 12 µm', { en: 'authored entrapment', es: 'atrapamiento de autor' }],
         [{ en: 'cleaner factor', es: 'factor de limpieza' }, '0.4', { en: 'authored', es: 'de autor' }],
       ],
     },
