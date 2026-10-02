@@ -38,7 +38,7 @@ const TEXT = {
   rmse: { en: 'Fit RMSE', es: 'RMSE del ajuste' },
   projection: { en: 'Bank', es: 'Banco' },
   lumping: { en: 'Lumping', es: 'Agregación' },
-  gap: { en: 'Beyond test', es: 'Tras la prueba' },
+  gap: { en: 'Ultimate gap', es: 'Brecha final' },
   points: { en: 'Errors in percentage points.', es: 'Errores en puntos porcentuales.' },
   exact: { en: 'Exact bank (all classes)', es: 'Banco exacto (todas las clases)' },
   engine: { en: 'Engine rougher (with entrainment)', es: 'Rougher del motor (con arrastre)' },

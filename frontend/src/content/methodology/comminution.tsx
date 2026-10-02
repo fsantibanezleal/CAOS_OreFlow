@@ -137,7 +137,7 @@ export const COMMINUTION: Topic[] = [
       ],
     },
     limits: [
-      { en: 'The K values do not respond to throughput, feed size or liner wear as plant regressions do, and crusher power is not modelled: the crusher sets the ball-mill feed and the crushing energy.', es: 'Los valores K no responden al tratamiento, al tamaño de alimentación ni al desgaste de corazas como en las regresiones de planta, y la potencia del chancador no se modela: el chancador fija la alimentación al molino y la energía de chancado.' },
+      { en: 'The K values do not respond to throughput, feed size or liner wear as plant regressions do, and crusher power is not modelled: the crusher sets the ball-mill feed and the crushing energy.', es: 'Los valores K no responden al tratamiento, al tamaño de alimentación ni al desgaste de revestimientos como en las regresiones de planta, y la potencia del chancador no se modela: el chancador fija la alimentación al molino y la energía de chancado.' },
     ],
     figure: { caption: { en: 'Particles that enter the breakage zone (C) break (B) and return to classification; those that escape form the product.', es: 'Las partículas que entran a la zona de fractura (C) se fracturan (B) y vuelven a clasificarse; las que escapan forman el producto.' }, render: lang => <CrusherFigure lang={lang} /> },
     refs: ['crusher2021', 'crusher2024', 'syscad-crusher'],
@@ -195,7 +195,7 @@ export const COMMINUTION: Topic[] = [
       { tex: r`E_R = K_R\left(\frac{1}{P} - \frac{1}{F}\right),\qquad E_K = K_K \ln\frac{F}{P}`, caption: { en: 'Rittinger and Kick, calibrated to Bond at the reference reduction.', es: 'Rittinger y Kick, calibradas a Bond en la reducción de referencia.' } },
     ],
     limits: [
-      { en: 'No motor or transmission losses, no media or liner energy, no model for autogenous or semi-autogenous circuits.', es: 'Sin pérdidas de motor ni transmisión, sin energía de medios ni corazas, sin modelo para circuitos autógenos o semiautógenos.' },
+      { en: 'No motor or transmission losses, no media or liner energy, no model for autogenous or semi-autogenous circuits.', es: 'Sin pérdidas de motor ni transmisión, sin energía de medios ni revestimientos, sin modelo para circuitos autógenos o semiautógenos.' },
       { en: 'Checked against the GMG worked example: 3150 kW at 450 t/h from 2500 to 212 µm gives 7.0 kWh/t and an operating work index of 14.4 kWh/t.', es: 'Contrastado con el ejemplo resuelto de GMG: 3150 kW a 450 t/h de 2500 a 212 µm dan 7,0 kWh/t y un índice operacional de 14,4 kWh/t.' },
     ],
     figure: { caption: { en: 'The three laws agree at the reference reduction and diverge away from it; only Bond is reported as the energy.', es: 'Las tres leyes coinciden en la reducción de referencia y divergen fuera de ella; solo Bond se informa como energía.' }, render: lang => <EnergyFigure lang={lang} /> },

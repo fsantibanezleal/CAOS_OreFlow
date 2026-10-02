@@ -45,9 +45,9 @@ export const FLOTATION: Formula[] = [
 ];
 
 export const GRAVITY: Formula[] = [
-  { tex: r`E_g(d) = E_{max}\left(1 - e^{-(d/x_g)^2}\right)`,
-    caption: { en: 'Gravity-unit recovery of free gold by size on the underflow bleed, with a small fixed recovery of composites and a small mass yield of gangue; the unit\'s tail returns to the mill.',
-      es: 'Recuperación gravimétrica de oro libre por tamaño en la purga del underflow, con una recuperación fija pequeña de mixtos y un rendimiento en masa pequeño de ganga; el relave de la unidad vuelve al molino.' } },
+  { tex: r`\begin{gathered} d_{50c}^{GRG} = d_{50c}^{host}\left(\frac{\rho_{host} - 1}{\rho_{Au} - 1}\right)^{n},\quad n = 1.0 \\ R(d) = R_{max}\left(1 - e^{-(d/x_g)^2}\right) \end{gathered}`,
+    caption: { en: 'The gravity-recoverable gold (GRG): its cyclone cut, with the density exponent fitted to measured GRG partitions (Stokes would give 0.5), and the gravity unit\'s per-pass recovery of GRG by size on its bleed of the underflow; the unit\'s tail returns to the mill, and GRG ground fine leaves by the overflow.',
+      es: 'El oro recuperable por gravedad (GRG): su corte en el ciclón, con el exponente de densidad ajustado a particiones de GRG medidas (Stokes daría 0,5), y la recuperación por pasada del GRG según tamaño en la unidad gravimétrica, sobre su purga de la descarga del ciclón; el relave de la unidad vuelve al molino, y el GRG molido fino sale por el rebose.' } },
 ];
 
 export const MAGNETIC: Formula[] = [

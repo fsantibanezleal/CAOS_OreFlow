@@ -774,7 +774,7 @@ if (REVIEW) {
   const rejected = await page.evaluate(() => ({
     rail: document.querySelector('.of-rail-rejected')?.textContent ?? null,
     panel: !!document.querySelector('.of-rejection[role=alert]'),
-    clean: /Within every engine check|Dentro de todas las verificaciones/.test(document.querySelector('.of-readout')?.textContent ?? ''),
+    clean: /No engine flags|Sin avisos del motor|Within every engine check/.test(document.querySelector('.of-readout')?.textContent ?? ''),
   }));
   await page.screenshot({ path: join(OUT, `review-U-03-${REVIEW}.png`) });
   record(`${tag} U-03 rejected state`, set1 && set2 && !!rejected.rail && rejected.panel && !rejected.clean, rejected);

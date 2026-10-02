@@ -37,7 +37,7 @@ export const SOURCE_TEXT = {
   fixes: { en: 'What the sample fixes', es: 'Lo que fija la muestra' },
   authors: { en: 'What the engine still authors', es: 'Lo que el motor sigue definiendo' },
   compare: { en: 'Recovery: engine, measurement and the GeoMet lane', es: 'Recuperación: motor, medición y la vía GeoMet' },
-  quantity: { en: 'Quantity', es: 'Cantidad' },
+  quantity: { en: 'Quantity', es: 'Magnitud' },
   value: { en: 'Value', es: 'Valor' },
   basis: { en: 'Basis', es: 'Base' },
   head: { en: 'Head assays (Cu, S, Fe)', es: 'Ensayes de cabeza (Cu, S, Fe)' },
