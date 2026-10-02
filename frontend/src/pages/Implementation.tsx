@@ -11,8 +11,8 @@ import type { Lang } from '../lib/format';
 const T = {
   title: { en: 'Implementation', es: 'Implementación' },
   lede: {
-    en: 'How OreFlow is built: one Python engine, an offline bake that writes versioned artifacts, a line-by-line TypeScript port that recomputes every state in the browser, and the contracts and gates that hold them together. The numbers on this page are read from the committed artifacts.',
-    es: 'Cómo está construido OreFlow: un motor en Python, un horneado fuera de línea que escribe artefactos versionados, una traducción línea a línea a TypeScript que recalcula cada estado en el navegador, y los contratos y controles que los mantienen unidos. Los números de esta página se leen desde los artefactos versionados.',
+    en: 'How OreFlow is built: one Python engine, an offline precompute that writes versioned artifacts, a line-by-line TypeScript port that recomputes every state in the browser, and the contracts and gates that hold them together. The numbers on this page are read from the committed artifacts.',
+    es: 'Cómo está construido OreFlow: un motor en Python, un precálculo fuera de línea que escribe artefactos versionados, una versión línea a línea en TypeScript que recalcula cada estado en el navegador, y los contratos y controles que los mantienen unidos. Los números de esta página se leen desde los artefactos versionados.',
   },
   sections: { en: 'Implementation sections', es: 'Secciones de la implementación' },
 };

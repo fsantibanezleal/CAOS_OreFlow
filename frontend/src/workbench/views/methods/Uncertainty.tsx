@@ -50,13 +50,13 @@ const TEXT = {
   flags: { en: 'Engine flags among the samples', es: 'Avisos del motor en las muestras' },
   none: { en: 'none', es: 'ninguno' },
   seed: { en: 'seed', es: 'semilla' },
-  baked: { en: 'Baked for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
+  baked: { en: 'Precomputed for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
   rerun: { en: 'Re-run the design', es: 'Volver a correr el diseño' },
   run: { en: 'Run', es: 'Correr' },
   cancel: { en: 'Cancel', es: 'Cancelar' },
   running: { en: 'Engine runs', es: 'Corridas del motor' },
   live: { en: 'Live record at the current state', es: 'Registro en vivo en el estado actual' },
-  showBaked: { en: 'Show the baked record', es: 'Mostrar el registro horneado' },
+  showBaked: { en: 'Show the precomputed record', es: 'Mostrar el registro precalculado' },
   failed: { en: 'The run failed', es: 'La corrida falló' },
 };
 /** Equal-width bins for the histogram over the sampled range. */

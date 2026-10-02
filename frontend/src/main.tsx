@@ -36,7 +36,7 @@ const config: ShellConfig = {
   fixedRoutes: ["/"],
   architecture: ARCHITECTURE,
   routes: [
-    { path: "/", en: "Workbench", es: "Laboratorio" },
+    { path: "/", en: "Workbench", es: "Simulador" },
     { path: "/introduction", en: "Introduction", es: "Introducción" },
     { path: "/methodology", en: "Methodology", es: "Metodología" },
     { path: "/implementation", en: "Implementation", es: "Implementación" },

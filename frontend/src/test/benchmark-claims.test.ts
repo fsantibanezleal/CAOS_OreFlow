@@ -230,7 +230,7 @@ describe('the Benchmark page says what the records hold', () => {
     // UQ-08: the page says which record the workbench re-runs live and which stays baked
     const limits = (ENGINE_BENCHMARK.UNCERTAINTY.limits ?? []).map(l => l.en).join(' ');
     expect(limits).toMatch(/re-runs the uncertainty record/);
-    expect(limits).toMatch(/Sobol indices are baked only/);
+    expect(limits).toMatch(/Sobol indices are precomputed only/);
   });
 
   it('learned lane: interpolation and transfer rank the models as quoted, and the guard behaves as described', () => {

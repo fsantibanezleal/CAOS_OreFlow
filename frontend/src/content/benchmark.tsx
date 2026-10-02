@@ -119,7 +119,7 @@ const TEXT = {
   worstLump: { en: 'Worst |lumping error| (points)', es: 'Peor error de agregación (puntos)' },
   converged: { en: 'Converged', es: 'Convergidos' },
   kineticsTitle: { en: 'Lumping error of each kinetic model', es: 'Error de agregación de cada modelo cinético' },
-  kineticsSummary: { en: 'Mean and worst absolute lumping error of the five lumped models over the 88 baked flotation variants.', es: 'Error de agregación absoluto medio y peor de los cinco modelos agrupados sobre las 88 variantes de flotación horneadas.' },
+  kineticsSummary: { en: 'Mean and worst absolute lumping error of the five lumped models over the 88 precomputed flotation variants.', es: 'Error de agregación absoluto medio y peor de los cinco modelos agrupados sobre las 88 variantes de flotación precalculadas.' },
   mean: { en: 'mean', es: 'medio' },
   worst: { en: 'worst', es: 'peor' },
   points: { en: 'points of recovery', es: 'puntos de recuperación' },
@@ -667,18 +667,18 @@ const KINETICS: Topic = {
   id: 'kinetics',
   title: { en: 'Kinetic lumping', es: 'Agregación cinética' },
   paragraphs: [
-    { en: 'The five lumped kinetic models were fitted to the engine\'s virtual batch test of the rougher feed on all 88 baked variants with flotation, and every fit converged. Their lumping errors say how much a lumped model loses when it predicts the plant bank from a batch curve of this kind.',
-      es: 'Los cinco modelos cinéticos agrupados se ajustaron a la prueba batch virtual de la alimentación rougher del motor en las 88 variantes horneadas con flotación, y cada ajuste convergió. Sus errores de agregación dicen cuánto pierde un modelo agrupado al predecir el banco de planta desde una curva batch de este tipo.' },
+    { en: 'The five lumped kinetic models were fitted to the engine\'s virtual batch test of the rougher feed on all 88 precomputed variants with flotation, and every fit converged. Their lumping errors say how much a lumped model loses when it predicts the plant bank from a batch curve of this kind.',
+      es: 'Los cinco modelos cinéticos agrupados se ajustaron a la prueba batch virtual de la alimentación rougher del motor en las 88 variantes precalculadas con flotación, y cada ajuste convergió. Sus errores de agregación dicen cuánto pierde un modelo agrupado al predecir el banco de planta desde una curva batch de este tipo.' },
     { en: 'The first-order model loses most: 4.9 points of recovery on average and 8.2 at worst, because it caps the bank at the plateau of the batch test while the bank\'s residence (about 20 to 30 minutes at the nominal states) reaches past the test\'s 16 minutes; it underestimates the bank at every nominal state. The gamma and Kelsall forms, which carry a distribution of rates, lose 0.73 and 0.79 points on average and 1.9 at worst; the Klimpel form loses 1.9 points on average and the stretched exponential 2.8.',
       es: 'El modelo de primer orden pierde más: 4,9 puntos de recuperación en promedio y 8,2 en el peor caso, porque limita el banco a la meseta de la prueba batch mientras la residencia del banco (unos 20 a 30 minutos en los estados nominales) llega más allá de los 16 minutos de la prueba; subestima el banco en cada estado nominal. Las formas gamma y de Kelsall, que llevan una distribución de tasas, pierden 0,73 y 0,79 puntos en promedio y 1,9 en el peor caso; la forma de Klimpel pierde 1,9 puntos en promedio y la exponencial estirada 2,8.' },
   ],
   equations: [
-    { tex: r`\bar\varepsilon = \frac{1}{n}\sum_{v} \left|\hat R_N^{(v)} - R_N^{(v)}\right|`, caption: { en: 'The mean absolute lumping error of a model over the n baked variants with flotation.', es: 'El error de agregación absoluto medio de un modelo sobre las n variantes horneadas con flotación.' } },
+    { tex: r`\bar\varepsilon = \frac{1}{n}\sum_{v} \left|\hat R_N^{(v)} - R_N^{(v)}\right|`, caption: { en: 'The mean absolute lumping error of a model over the n precomputed variants with flotation.', es: 'El error de agregación absoluto medio de un modelo sobre las n variantes precalculadas con flotación.' } },
   ],
   limits: [
     { en: 'The batch test is virtual, without the froth or entrainment effects a laboratory test includes; the errors describe this engine\'s rate distributions, not any particular ore.', es: 'La prueba batch es virtual, sin los efectos de espuma ni de arrastre que incluye una prueba de laboratorio; los errores describen las distribuciones de tasas de este motor, no un mineral particular.' },
   ],
-  figure: { caption: { en: 'Mean and worst absolute lumping error of each model over the 88 baked variants with flotation.', es: 'Error de agregación absoluto medio y peor de cada modelo sobre las 88 variantes horneadas con flotación.' }, render: lang => <KineticsChart lang={lang} /> },
+  figure: { caption: { en: 'Mean and worst absolute lumping error of each model over the 88 precomputed variants with flotation.', es: 'Error de agregación absoluto medio y peor de cada modelo sobre las 88 variantes precalculadas con flotación.' }, render: lang => <KineticsChart lang={lang} /> },
   data: lang => <KineticsTable lang={lang} />,
   refs: ['marquardt1963', 'polat2000', 'bu2017', 'vinnett2025'],
 };
@@ -725,7 +725,7 @@ const UNCERTAINTY: Topic = {
   ],
   limits: [
     { en: 'The spreads are authored and the inputs independent by construction; real ore properties co-vary, and the indices are only as meaningful as that assumption.', es: 'Los rangos son de autor y las entradas independientes por construcción; las propiedades reales del mineral covarían, y los índices valen lo que ese supuesto.' },
-    { en: 'The workbench re-runs the uncertainty record at another seed or sample count, in the browser, with the same generator as the bake; the Sobol indices are baked only, at the nominal states, and are not re-run live.', es: 'El laboratorio vuelve a correr el registro de incertidumbre con otra semilla o número de muestras, en el navegador, con el mismo generador del horneado; los índices de Sobol solo se hornean, en los estados nominales, y no se vuelven a correr en vivo.' },
+    { en: 'The workbench re-runs the uncertainty record at another seed or sample count, in the browser, with the same generator as the precompute; the Sobol indices are precomputed only, at the nominal states, and are not re-run live.', es: 'El simulador vuelve a correr el registro de incertidumbre con otra semilla o número de muestras, en el navegador, con el mismo generador del precálculo; los índices de Sobol solo se precalculan, en los estados nominales, y no se vuelven a correr en vivo.' },
   ],
   figure: { caption: { en: 'The recovery quantiles of every case under the ore\'s uncertainty, at its nominal operating point.', es: 'Los cuantiles de recuperación de cada caso bajo la incertidumbre del mineral, en su punto nominal de operación.' }, render: lang => <UncertaintyChart lang={lang} /> },
   data: lang => <UncertaintyTable lang={lang} />,

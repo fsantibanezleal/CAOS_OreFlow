@@ -241,7 +241,7 @@ export const UI = {
   modified: { en: 'Modified from the variant', es: 'Modificado respecto de la variante' },
   reset: { en: 'Reset to the variant', es: 'Volver a la variante' },
   openFocus: { en: 'Open the focus view', es: 'Abrir la vista de foco' },
-  exitFocus: { en: 'Back to the workbench', es: 'Volver al laboratorio' },
+  exitFocus: { en: 'Back to the workbench', es: 'Volver al simulador' },
   computing: { en: 'Computing', es: 'Calculando' },
   rejected: { en: 'Outside the operating envelope', es: 'Fuera de la envolvente de operación' },
   sampleBase: { en: 'Sample', es: 'Muestra' },

@@ -58,7 +58,7 @@ describe('the Methodology page says what the engine and the records hold', () =>
     const errors = screened.map(r => r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
     const optimizer = METHODS.find(t => t.id === 'optimization')!;
     const text = optimizer.paragraphs.map(p => p.en).join(' ');
-    expect(text).toMatch(new RegExp(`Over the bake's ${screened.length} screened variants it cost ${round(100 * (withScreen / without - 1), 1)}% more engine evaluations`));
+    expect(text).toMatch(new RegExp(`Over the precompute's ${screened.length} screened variants it cost ${round(100 * (withScreen / without - 1), 1)}% more engine evaluations`));
     expect(text).toMatch(new RegExp(`the surrogate's recovery was ${round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)} points from the engine's on average`));
     expect(text).toMatch(new RegExp(`the same optima in ${screened.filter(r => r.same_optimum_without_screen).length} of the ${screened.length} variants`));
   });
