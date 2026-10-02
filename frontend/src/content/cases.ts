@@ -154,12 +154,14 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     problem: [
       { en: 'Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.',
         es: 'Las lamas de arcilla consumen colector de ácidos grasos y se arrastran a la espuma, por eso las plantas deslaman; el fosfato de las clases finas se va con las lamas.' },
-      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
-        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso da una alimentación más limpia a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
+      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
+        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso envía menos arcilla a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
     ],
     scope: [
       { en: 'The desliming cyclone uses the Rosin-Rammler partition with a declared sharpness and water bypass; its cut is an operating control bounded by half the grind target.', es: 'El ciclón de deslamado usa la partición Rosin-Rammler con nitidez y cortocircuito de agua declarados; su corte es un control de operación acotado por la mitad del objetivo de molienda.' },
       { en: 'The phosphate practice figures come from a review summary (the full text was not reachable when the research was done).', es: 'Las cifras de práctica del fosfato vienen del resumen de una revisión (el texto completo no estaba disponible al hacer la investigación).' },
+      { en: 'Clay acts only through mass, size and entrainment. Slime coating and collector consumption by slimes, the reasons plants deslime, are not modelled, so the engine shows what the cut costs and not what it buys: a coarser cut lowers recovery and concentrate grade together, and only the flotation-stage recovery, a ratio, rises.',
+        es: 'La arcilla actúa solo por masa, tamaño y arrastre. El recubrimiento por lamas y el consumo de colector por las lamas, las razones por las que las plantas deslaman, no se modelan, así que el motor muestra lo que cuesta el corte y no lo que compra: un corte más grueso baja la recuperación y la ley del concentrado a la vez, y solo sube la recuperación de la etapa de flotación, que es una razón.' },
     ],
     read: [
       { en: 'Separation: the desliming partition by particle class shows what leaves with the slimes.', es: 'Separación: la partición del deslamado por clase de partícula muestra qué se va con las lamas.' },
@@ -228,7 +230,10 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     ],
     scope: [
       { en: 'Clay is soft, fine and barely floatable, so it reports almost entirely by entrainment with the recovered water.', es: 'La arcilla es blanda, fina y casi no flota, por lo que reporta casi por completo por arrastre con el agua recuperada.' },
-      { en: 'Rheology (the viscosity clay adds to the pulp) is outside the model.', es: 'La reología (la viscosidad que la arcilla agrega a la pulpa) queda fuera del modelo.' },
+      { en: 'The engine\'s answer is small: the three cleaning stages leave about 75 ppm of the flotation-feed clay in the final concentrate, the clay costs about 0.2 points of Cu grade, and froth washing and air move grade and recovery by the same amounts with or without it.',
+        es: 'La respuesta del motor es pequeña: las tres etapas de limpieza dejan unas 75 ppm de la arcilla de alimentación a flotación en el concentrado final, la arcilla cuesta unos 0,2 puntos de ley de Cu, y el lavado de espuma y el aire mueven la ley y la recuperación en lo mismo con o sin ella.' },
+      { en: 'Pulp rheology (the viscosity clay adds), slime coating, reagent consumption by fines and froth stability are outside the model, so the case shows the dilution by entrainment and nothing else clay does in a plant.',
+        es: 'La reología de la pulpa (la viscosidad que agrega la arcilla), el recubrimiento por lamas, el consumo de reactivos por los finos y la estabilidad de la espuma quedan fuera del modelo, así que el caso muestra la dilución por arrastre y nada más de lo que la arcilla hace en una planta.' },
     ],
     read: [
       { en: 'Separation: the entrained share of gangue by size and the rougher water recovery.', es: 'Separación: la fracción arrastrada de la ganga por tamaño y la recuperación de agua rougher.' },

@@ -307,8 +307,8 @@ def _cases() -> tuple[CaseDef, ...]:
         ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi"), kpi_sources=_kpi_sources("nickel_sulphide")))
     cases.append(CaseDef(
         "phosphate_clay", "classification", ("Phosphate with clay slimes", "Fosfato con lamas arcillosas"),
-        ("An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, so the desliming cut trades lost P₂O₅ against a cleaner flotation feed.",
-         "Un fosfato ígneo con arcilla: el rebose de molienda se deslama bajo unos 20 µm antes de flotar la apatita con ácidos grasos, por lo que el corte de deslamado cambia P₂O₅ perdido por una alimentación más limpia a flotación."),
+        ("An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, and the apatite in the slimes is lost; in this engine a coarser cut costs recovery and grade together.",
+         "Un fosfato ígneo con arcilla: el rebose de molienda se deslama bajo unos 20 µm antes de flotar la apatita con ácidos grasos, y la apatita de las lamas se pierde; en este motor un corte más grueso cuesta recuperación y ley a la vez."),
         ("What does the desliming cut cost in phosphate?", "¿Cuánto fosfato cuesta el corte de deslamado?"),
         Ore(minerals=(MineralSpec(id="fluorapatite", grindability=1.4, liberation_size_um=280.0, liberation_slope=1.8, composite_content=0.5,
                                   host="quartz", flotation=Flotability(floatability=1.8e-4, optimum_size_um=70.0, fine_width=1.3, coarse_width=0.7, half_dose_gpt=250.0, unresponsive_fraction=0.02)),
@@ -372,8 +372,8 @@ def _cases() -> tuple[CaseDef, ...]:
         ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi"), kpi_sources=_kpi_sources("zinc_sulfide")))
     cases.append(_copper(
         "mixed_ore_high_clay", "integration", ("Copper ore with clay", "Mineral de cobre con arcilla"),
-        ("A copper ore with a clay fraction that grinds to slimes; entrained clay dilutes the concentrate, so froth washing and air carry more weight than in a clean ore.",
-         "Un mineral de cobre con una fracción arcillosa que se muele a lamas; la arcilla arrastrada diluye el concentrado, por lo que el lavado de espuma y el aire pesan más que en un mineral limpio."),
+        ("A copper ore with a clay fraction that grinds to slimes and reaches the froth by entrainment; the three cleaning stages wash almost all of it out, so in this engine the clay costs about 0.2 points of concentrate grade.",
+         "Un mineral de cobre con una fracción arcillosa que se muele a lamas y llega a la espuma por arrastre; las tres etapas de limpieza lavan casi toda, así que en este motor la arcilla cuesta unos 0,2 puntos de ley del concentrado."),
         ("How much grade does clay entrainment take?", "¿Cuánta ley se lleva el arrastre de arcilla?"),
         grade=0.48, wi=13.0, tph=520.0, p80=150.0, power_kw=5840.0, rougher_m3=110.0, cleaner_m3=16.0, recleaner_m3=8.0,
         cyclone_cm=66.0, liberation_um=120.0, composite=0.42, floatability=2.4e-4, xi_um=60.0, water=2.8, water_limit=2.97,
