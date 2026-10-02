@@ -310,3 +310,111 @@ describe('the Benchmark page says what the records hold', () => {
     expect([round(c4.models.l1_logistic.rmse, 2), round(c4.models.published_reference.rmse, 3), round(c4.models.particle_mlp.rmse, 3)]).toEqual([0.19, 0.037, 0.023]);
   });
 });
+
+// The review of 2026-10-02 (dimension 2, M items; E-10): every statistic the rewritten paragraphs quote is recomputed
+// here from the records, so the next precompute cannot leave a number the record no longer holds
+describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () => {
+  const learning = read<any>('learning.json'), studies = read<any>('studies.json'), bench = read<any>('benchmark.json');
+  const en = (topic: { paragraphs: Array<{ en: string }> }) => topic.paragraphs.map(p => p.en).join(' ');
+  const folds: any[] = learning.leave_one_case_out;
+  const fold = (id: string) => folds.find(f => f.held_out === id);
+  const copper = ['copper_porphyry_soft', 'copper_porphyry_hard', 'copper_molybdenum', 'mixed_ore_high_clay', 'low_grade_copper'];
+  const median = (v: number[]) => { const s = [...v].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
+
+  it('M-06: the spreads and extremes over the seed study', () => {
+    const cases = Object.keys(studies.cases);
+    const widths = (c: string): number[] => studies.cases[c].seed_study.per_seed.map((p: any) => p.recovery_pct.p95 - p.recovery_pct.p05);
+    const joint = (c: string): number[] => studies.cases[c].seed_study.per_seed.map((p: any) => p.all_constraints);
+    const seeds = widths(cases[0]).length;
+    const extreme = (f: (c: string) => number[], pick: (a: number, b: number) => boolean) =>
+      Array.from({ length: seeds }, (_, i) => cases.reduce((a, b) => (pick(f(b)[i], f(a)[i]) ? b : a)));
+    expect(new Set(extreme(widths, (a, b) => a < b))).toEqual(new Set(['gold_free_milling']));
+    expect(new Set(extreme(widths, (a, b) => a > b))).toEqual(new Set(['zinc_sulfide']));
+    expect(extreme(joint, (a, b) => a < b).filter(c => c === 'iron_magnetite_fine')).toHaveLength(7);
+    const g = widths('gold_free_milling'), z = widths('zinc_sulfide'), m = joint('iron_magnetite_fine');
+    const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
+    expect([round(mean(g), 1), round(Math.min(...g), 1), round(Math.max(...g), 1), round(mean(z), 1), round(Math.min(...z), 1), round(Math.max(...z), 1)]).toEqual([2.0, 1.9, 2.1, 8.7, 8.3, 9.4]);
+    expect([Math.round(100 * mean(m)), Math.round(100 * Math.min(...m)), Math.round(100 * Math.max(...m))]).toEqual([52, 50, 56]);
+    const text = en(ENGINE_BENCHMARK.UNCERTAINTY);
+    expect(text).toMatch(/by about 2\.0 points in the free-milling gold \(1\.9 to 2\.1 over the eight seeds of the seed study\) and up to about 8\.7 points in the zinc case \(8\.3 to 9\.4\)/);
+    expect(text).toMatch(/about 52% \(50 to 56% over the seeds/);
+    expect(text).toMatch(/lowest in seven of the eight seeds/);
+  });
+
+  it('M-10, M-14: the proposals behind the surrogate error, and the gains from states that met every constraint', () => {
+    const recs = Object.entries(bench.optimization).flatMap(([id, vs]: [string, any]) => Object.entries(vs).map(([v, r]: [string, any]) => ({ id, v, r })));
+    const errs: number[] = [];
+    for (const x of recs.filter(x => x.r.screened)) {
+      const o = read<any>(`cases/${x.id}.json`).variants.find((v: any) => v.id === x.v).methods.optimization;
+      const c = o.proposal_columns as string[];
+      for (const s of o.starts) for (const row of s.screen?.proposals ?? []) if (row[c.indexOf('engine_recovery_pct')] !== null) errs.push(row[c.indexOf('surrogate_recovery_pct')] - row[c.indexOf('engine_recovery_pct')]);
+    }
+    const abs = errs.map(Math.abs);
+    expect([errs.length, round(abs.reduce((a, b) => a + b, 0) / abs.length, 2), round(median(abs), 2), round(Math.max(...abs), 1)]).toEqual([5142, 0.7, 0.6, 46.8]);
+    expect(Math.round(3 * errs.filter(e => e < 0).length / errs.length)).toBe(2);
+    const feasible = recs.filter(x => !x.v.startsWith('cut_') && x.r.base_feasible && x.r.gain_pct !== null).sort((a, b) => a.r.gain_pct - b.r.gain_pct);
+    expect([feasible.length, feasible[0].id, feasible[0].v, round(feasible[0].r.gain_pct, 1), feasible.at(-1)!.id, feasible.at(-1)!.v, round(feasible.at(-1)!.r.gain_pct, 1)])
+      .toEqual([44, 'iron_magnetite_fine', 'finer_crusher', 0.3, 'low_grade_copper', 'coarser_grind', 15.4]);
+    const text = en(ENGINE_BENCHMARK.OPTIMIZATION);
+    expect(text).toMatch(/over the 5,142 proposals the mean is 0\.70 points, the median 0\.60 and the largest 46\.8/);
+    expect(text).toMatch(/Over the 44 target-mode variants whose own state met every constraint the gains run from 0\.3% .* to 15\.4%/);
+  });
+
+  it('M-11, M-21, M-23: the seeds, the equal training rows and the forest against boosting', () => {
+    const ms = learning.mlp_seeds.summary.recovery_pct;
+    const range = (v: number[], d: number) => [round(Math.min(...v), d), round(Math.max(...v), d)];
+    expect(range(ms.interpolation_rmse, 1)).toEqual([2.7, 4.0]);
+    expect(range(copper.flatMap(c => ms.loco_rmse_by_case[c]), 1)).toEqual([1.6, 3.6]);
+    expect(range(ms.loco_rmse_by_case.iron_magnetite_fine, 0)).toEqual([179, 242]);
+    expect(range(ms.loco_rmse_by_case.phosphate_clay, 0)).toEqual([28, 500]);
+    expect(range(ms.loco_rmse_mean, 1)).toEqual([27.0, 65.4]);
+    const rfBetter = folds.filter(f => f.models.random_forest.recovery_pct.rmse < f.models.hist_gradient_boosting.recovery_pct.rmse).length;
+    expect(rfBetter).toBe(3);
+    const eq = learning.equal_rows;
+    expect([eq.random_forest.recovery_pct.rows, round(eq.random_forest.recovery_pct.r2, 3), round(eq.hist_gradient_boosting.recovery_pct.r2, 3),
+      round(learning.interpolation.models.gaussian_process.recovery_pct.r2, 3), learning.interpolation.models.gaussian_process.recovery_pct.training_rows, learning.interpolation.train_rows])
+      .toEqual([612, 0.706, 0.824, 0.814, 500, 2460]);
+    const text = en(ENGINE_BENCHMARK.LEARNED);
+    expect(text).toMatch(/its RMSE is 2\.7 to 4\.0 points over five training seeds/);
+    expect(text).toMatch(/\(1\.6 to 3\.6 points over the five seeds\)/);
+    expect(text).toMatch(/179 to 242 points on the magnetite plant and 28 to 500 on the phosphate plant/);
+    expect(text).toMatch(/27\.0 to 65\.4 points over the five seeds/);
+    expect(text).toMatch(/better in only 3 of the 12 folds/);
+    expect(text).toMatch(/a subsample of 500 of the 2,460 training states; on the same 500 states .* 0\.706 and 0\.824, against the Gaussian process's 0\.814/);
+  });
+
+  it('M-07, M-08, M-12: the upgrade among the copper plants, the coverage under both protocols, the energy failures', () => {
+    const med = (m: string) => round(median(copper.map(c => fold(c).models[m].log_upgrade.r2)), 2);
+    expect([med('gaussian_process'), med('mlp'), med('hist_gradient_boosting'), med('random_forest'), med('ridge')]).toEqual([0.92, 0.93, 0.92, 0.72, -0.4]);
+    const gp = learning.summary.gaussian_process, targets = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'];
+    expect(targets.map(t => round(100 * gp[t].loco_coverage_pooled, 1))).toEqual([75.8, 63.9, 94.2]);
+    expect(targets.map(t => round(100 * gp[t].loco_coverage_worst, 1))).toEqual([2.0, 0.4, 72.7]);
+    const phosphate = fold('phosphate_clay').models;
+    expect([round(phosphate.gaussian_process.specific_energy_total_kwh_t.r2, 1), Math.round(phosphate.mlp.specific_energy_total_kwh_t.r2)]).toEqual([-16.5, -1061]);
+    const text = en(ENGINE_BENCHMARK.LEARNED);
+    expect(text).toMatch(/median R² of 0\.92 to 0\.93 for the Gaussian process, the MLP and gradient boosting \(0\.72 for the random forest, -0\.40 for ridge\)/);
+    expect(text).toMatch(/and 75\.8, 63\.9 and 94\.2% under leave one case out \(2%, 0\.4% and 73% in the worst fold\)/);
+    expect(text).toMatch(/the Gaussian process \(R² -16\.5\) and the MLP \(R² -1,061 at the record's seed\) fail/);
+  });
+
+  it('M-16, M-17: the guard over its probe distances, and its flags against the errors', () => {
+    const by = learning.guard.acceptance_by_distance as Array<{ distance: number; upward: number; downward: number }>;
+    const at = (d: number) => by.find(x => x.distance === d)!;
+    expect([round(100 * at(0.5).upward, 1), round(100 * at(0.5).downward, 1), Math.round(100 * at(0.1).upward), Math.round(100 * at(0.1).downward), Math.round(100 * at(1.0).upward)]).toEqual([17.7, 20.4, 45, 60, 14]);
+    expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(round(100 * at(0.5).upward, 1));
+    const soft = fold('copper_porphyry_soft'), refractory = fold('refractory_gold');
+    expect([Math.round(100 * soft.held_out_flag_rate), round(soft.models.hist_gradient_boosting.log_upgrade.r2, 2), Math.round(100 * refractory.held_out_flag_rate), round(refractory.models.hist_gradient_boosting.recovery_pct.r2, 2)]).toEqual([4, -1.83, 100, 0.65]);
+    const text = en(ENGINE_BENCHMARK.LEARNED);
+    expect(text).toMatch(/it accepts 17\.7% of the probes \(20\.4% below the minimum\), at a tenth of the range 45% \(60% below\), and at the full range 14%/);
+    expect(text).toMatch(/the soft porphyry is flagged in 4% of its states while gradient boosting's upgrade R² there is -1\.83, and the refractory gold plant in every state while gradient boosting's recovery R² there is 0\.65/);
+  });
+
+  it('E-10: the Zandrivierspoort levels, silica and rougher beside the step', () => {
+    const z = bench.oracles.zandrivierspoort;
+    expect(z.engine.concentrate_silica_pct.map((v: number) => round(v, 1))).toEqual([10.9, 5.8]);
+    expect(z.gap_fe_pct_points.map((v: number) => round(-v, 1))).toEqual([1.1, 1.2]);
+    expect([round(z.engine.rougher_75.magnetite_recovery_pct, 1), round(z.engine.rougher_75.concentrate_fe_pct, 1), z.published.rougher_75.magnetite_recovery_pct, z.published.rougher_75.concentrate_fe_pct]).toEqual([97.3, 60.1, 98.1, 63.8]);
+    const text = en(ENGINE_BENCHMARK.ORACLES);
+    expect(text).toMatch(/at levels 1\.1 and 1\.2 points below the published ones\. Its silica is 10\.9 and 5\.8% against the published 7\.7 and 2\.25%, and its rougher drum at 75 µm recovers 97\.3% of the magnetite at 60\.1% Fe, against the published 98\.1% at 63\.8%/);
+  });
+});
