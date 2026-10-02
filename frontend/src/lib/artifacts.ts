@@ -87,6 +87,9 @@ export type IronPlant = {
     changing_lab_hours_excluded: number; changing_lab_rows_excluded: number; changing_lab_first_hour: string; gap_hours: number };
   protocol: { target: string; features: string[]; excluded_features: string[]; pair_rows: number; sampling: string; splits: string; interpretation: string; previous_lab_caveat: string };
   pooled_scores: Record<string, IronScores>;
+  /** M-04: paired MAE and RMSE differences (a minus b) with day-block bootstrap intervals. */
+  comparisons: Array<{ a: string; b: string; metric: 'mae' | 'rmse'; difference_pct_points: number; interval_95: [number, number] }>;
+  repeated_assay_share: number;
   folds: IronFold[];
 };
 export const loadIronPlant = () => get<IronPlant>('source/iron_plant_soft_sensor.json');

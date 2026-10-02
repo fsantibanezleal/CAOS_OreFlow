@@ -30,10 +30,14 @@ training window, as steps of the model.
 
 $$\hat y_{t+1} = f\left(\tilde x_t\right),\qquad \tilde x_t = \operatorname{median}_{s \in t}\ x_s,\qquad \mathrm{MAE} = \frac{1}{n}\sum_t \left|\hat y_{t+1} - y_{t+1}\right|$$
 
+The fitted last assay is $\hat y_{t+1} = a + b\,y_t$, with $a$ and $b$ fitted on each training window by least
+squares ($b$ = 0.695 to 0.705).
+
 | Model | Inputs |
 |---|---|
 | training mean | none |
 | previous laboratory assay (persistence) | the hour's own silica assay |
+| fitted last assay (AR(1)) | the hour's assay, regressed on the next one in each training window |
 | ridge, random forest, gradient boosting | the 21 sensor medians |
 | ridge and gradient boosting with the previous assay | the sensors and the hour's assay |
 
@@ -42,22 +46,28 @@ is made; the data do not establish the laboratory's reporting latency, and the r
 
 ## What the record shows
 
-Pooled over the three windows, in percentage points of silica (mean absolute error):
+Pooled over the three windows, in percentage points of silica:
 
-| Model | MAE |
-|---|---|
-| previous laboratory assay | 0.464 |
-| ridge with the previous assay | 0.501 |
-| gradient boosting with the previous assay | 0.523 |
-| ridge | 0.765 |
-| training mean | 0.766 |
-| random forest | 0.779 |
-| gradient boosting | 0.812 |
+| Model | MAE | RMSE |
+|---|---|---|
+| previous laboratory assay | 0.464 | 0.767 |
+| fitted last assay (AR(1)) | 0.486 | 0.707 |
+| ridge with the previous assay | 0.501 | 0.717 |
+
+Ridge alone, the training mean, the random forest and gradient boosting (with and without the assay) follow at 0.52
+to 0.81 points of MAE; the Benchmark's table lists every score by window.
 
 The sensor-only models do no better than the training mean: ridge is 0.001 points below it, and the random forest
-and gradient boosting are above it. No model beats persistence, and adding the sensors to the previous assay makes
-the forecast worse. Under this protocol the hourly sensor medians carry little information about the next hour's
-silica that the last assay does not already hold.
+and gradient boosting are above it. Which forecast wins depends on the metric (review of 2026-10-02, M-04):
+- By MAE the previous assay alone is best.
+- By RMSE the fitted last assay is best: shrinking the last assay toward the mean cuts the large misses.
+- Adding the sensors to the previous assay is worse than the fitted last assay under both metrics, by 0.015 points
+  of MAE and 0.010 of RMSE. The 95% intervals, from 4000 resamples of whole days, are 0.004 to 0.025 and 0.002 to
+  0.018.
+
+Under this protocol the hourly sensor medians carry little information about the next hour's silica that the last
+assay does not already hold. 14% of the test hours repeat the previous assay exactly, which persistence scores as no
+error. `tests/test_iron_plant.py::test_the_fitted_last_assay_is_the_comparator` holds these orderings.
 
 A published random forest on the same data reports R² 0.965 (Pural 2023, Physicochemical Problems of Mineral
 Processing 59(5):169823, doi:10.37190/ppmp/169823, from its abstract). Its split protocol and its treatment of the

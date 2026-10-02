@@ -77,7 +77,21 @@ def test_forward_windows_and_embargo():
     for model in lane.make_models().values():
         assert model.steps[0][0] == "impute"
     pooled = _artifact()["pooled_scores"]
-    assert all(np.isfinite(v["mae_pct_points"]) for v in pooled.values())
+    assert set(pooled) == set(lane.MODEL_NAMES) and all(np.isfinite(v["mae_pct_points"]) for v in pooled.values())
+
+
+def test_the_fitted_last_assay_is_the_comparator():
+    """M-04: no model beats raw persistence under MAE, ridge with the previous assay beats it under RMSE, and the
+    fitted last assay (AR(1)) beats ridge with the sensors and the assay under both: the RMSE gain over persistence is
+    the last assay shrunk toward the mean, which needs no sensor."""
+    diff = {(c["a"], c["b"], c["metric"]): c for c in _artifact()["comparisons"]}
+    assert diff[("ridge_with_previous_lab", "previous_lab", "mae")]["interval_95"][0] > 0.0
+    assert diff[("ridge_with_previous_lab", "previous_lab", "rmse")]["interval_95"][1] < 0.0
+    for metric in ("mae", "rmse"):
+        assert diff[("ridge_with_previous_lab", "ar1_previous_lab", metric)]["interval_95"][0] > 0.0, metric
+    for fold in _artifact()["folds"]:
+        assert 0.6 < fold["ar1"]["slope"] < 0.8
+    assert 0.1 < _artifact()["repeated_assay_share"] < 0.2
 
 
 def test_no_set_point_advice():

@@ -31,15 +31,25 @@ describe('the industrial-quality tab says what the soft-sensor artifact holds', 
     expect(Number((mae('train_mean') - mae('ridge')).toFixed(3))).toBe(0.001);
     expect(Number(mae('train_mean').toFixed(3))).toBe(0.766);
     expect(mae('random_forest') > mae('train_mean') && mae('hist_gradient_boosting') > mae('train_mean')).toBe(true);
-    // persistence is the best of all, and adding the sensors to it is worse
+    // M-04: persistence wins by MAE, the fitted last assay by RMSE, and the sensors added to the assay lose to the
+    // fitted last assay under both, with intervals that exclude zero
     const all = Object.keys(a.pooled_scores);
+    const rmse = (id: string) => a.pooled_scores[id].rmse_pct_points;
     expect(all.reduce((b, id) => (mae(id) < mae(b) ? id : b))).toBe('previous_lab');
-    expect(Number(mae('previous_lab').toFixed(3))).toBe(0.464);
-    expect(mae('ridge_with_previous_lab') > mae('previous_lab') && mae('boosting_with_previous_lab') > mae('previous_lab')).toBe(true);
+    expect(all.reduce((b, id) => (rmse(id) < rmse(b) ? id : b))).toBe('ar1_previous_lab');
+    expect([Number(mae('previous_lab').toFixed(3)), Number(rmse('ar1_previous_lab').toFixed(3)), Number(rmse('previous_lab').toFixed(3))]).toEqual([0.464, 0.707, 0.767]);
+    const diff = (x: string, y: string, metric: string) => a.comparisons.find(c => c.a === x && c.b === y && c.metric === metric)!;
+    const mm = diff('ridge_with_previous_lab', 'ar1_previous_lab', 'mae'), rr = diff('ridge_with_previous_lab', 'ar1_previous_lab', 'rmse');
+    expect([Number(mm.difference_pct_points.toFixed(3)), Number(rr.difference_pct_points.toFixed(3))]).toEqual([0.015, 0.010]);
+    expect([Number(mm.interval_95[0].toFixed(3)), Number(mm.interval_95[1].toFixed(3)), Number(rr.interval_95[0].toFixed(3)), Number(rr.interval_95[1].toFixed(3))]).toEqual([0.004, 0.025, 0.002, 0.018]);
+    expect(Math.round(100 * a.repeated_assay_share)).toBe(14);
     expect(text('en')).toMatch(/ridge is 0\.001 points below its mean absolute error of 0\.766, and the random forest and gradient boosting are above it/);
-    expect(text('en')).toMatch(/the previous assay alone has the lowest error, 0\.464 points, and adding the sensors to it makes the forecast worse/);
+    expect(text('en')).toMatch(/By mean absolute error the previous assay alone is best, 0\.464 points; by root-mean-square error the fitted last assay is best, 0\.707 points against persistence's 0\.767/);
+    expect(text('en')).toMatch(/by 0\.015 points of mean absolute error and 0\.010 of root-mean-square error \(95% intervals from resampling whole days, 0\.004 to 0\.025 and 0\.002 to 0\.018\)/);
+    expect(text('en')).toMatch(/14% of the test hours repeat the previous assay exactly/);
     expect(text('es')).toMatch(/0,001 puntos bajo su error absoluto medio de 0,766/);
-    expect(text('es')).toMatch(/el menor error, 0,464 puntos/);
+    expect(text('es')).toMatch(/el ensaye anterior solo es el mejor, 0,464 puntos/);
+    expect(text('es')).toMatch(/0,707 puntos frente a 0,767/);
   });
 
   it('no set-point advice, and the separation from the copper circuit (IS-06)', () => {
