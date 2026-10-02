@@ -70,7 +70,11 @@ export const SOURCE_TEXT = {
   silica: { en: 'silica', es: 'sílice' },
   iron: { en: 'iron', es: 'hierro' },
   next: { en: 'Silica measured the next hour', es: 'Sílice medida la hora siguiente' },
-  model: { en: 'Forecast of the next hour', es: 'Pronóstico de la hora siguiente' },
+  model: { en: 'Recorded forecast of the next hour', es: 'Pronóstico registrado de la hora siguiente' },
+  outOfFold: {
+    en: (id: number, embargo: number) => `The forecasts are recorded out of fold for window ${id}: each model was trained on the hours before the window, with at least ${embargo} hours of embargo, and none runs in the browser. Its inputs are 21 feed assays and sensors.`,
+    es: (id: number, embargo: number) => `Los pronósticos se registraron fuera de la partición de la ventana ${id}: cada modelo se entrenó con las horas anteriores a la ventana, con al menos ${embargo} horas de embargo, y ninguno corre en el navegador. Sus entradas son 21 ensayes de alimentación y sensores.`,
+  },
   error: { en: 'Error (points)', es: 'Error (puntos)' },
   traceTitle: { en: 'The window\'s next-hour silica, with this hour marked', es: 'La sílice de la hora siguiente en la ventana, con esta hora marcada' },
   traceSummary: { en: 'Measured next-hour silica across the window\'s sampled hours, with persistence, and the chosen hour marked.', es: 'Sílice medida de la hora siguiente en las horas muestreadas de la ventana, con la persistencia, y la hora elegida marcada.' },
@@ -78,7 +82,7 @@ export const SOURCE_TEXT = {
   observed: { en: 'Measured', es: 'Medida' },
   thisHour: { en: 'this hour', es: 'esta hora' },
   hourLabel: { en: 'Plant hour', es: 'Hora de planta' },
-  recorded: { en: 'A measured record, shown and not simulated', es: 'Un registro medido, que se muestra y no se simula' },
+  recorded: { en: 'Measured hours and recorded forecasts, shown and not simulated', es: 'Horas medidas y pronósticos registrados, que se muestran y no se simulan' },
   unitsNote: {
     en: 'Units as the dataset description gives them (Kaggle 6294, read through secondary copies): reagent flows in m³/h and air in Nm³/h. Its pulp density "1 to 3 kg/cm³" is shown in t/m³, which its values near 1.7 imply. The pulp-flow (t/h) and level (mm) units are UNVERIFIED.',
     es: 'Unidades según la descripción del conjunto (Kaggle 6294, leída en copias secundarias): flujos de reactivo en m³/h y aire en Nm³/h. Su densidad de pulpa "1 a 3 kg/cm³" se muestra en t/m³, lo que implican sus valores cercanos a 1,7. Las unidades de flujo de pulpa (t/h) y de nivel (mm) están SIN VERIFICAR.',
@@ -129,9 +133,12 @@ function gapFrame(record: RealSamples, lang: Lang): string {
   const [a, b, c] = [at(75), at(150), at(300)];
   if (!a || !b || !c) return head;
   const signed = (v: number) => `${v >= 0 ? '+' : ''}${formatFixed(v, lang, 1)}`;
+  // S-02: at every assumed grind the engine's recovery is uncorrelated with the measured one
+  const r = curve.map(x => x.pearson);
+  const [rLow, rHigh] = [formatFixed(Math.min(...r), lang, 2), formatFixed(Math.max(...r), lang, 2)];
   return lang === 'es'
-    ? `${head} El déficit es sobre todo el tamaño del circuito anfitrión: con un molino dimensionado para la molienda, la diferencia media es ${signed(a.mean_gap_pp)} puntos con un P80 de laboratorio supuesto de 75 µm, ${signed(b.mean_gap_pp)} con 150 µm y ${signed(c.mean_gap_pp)} con 300 µm; la molienda del laboratorio no está en los datos abiertos.`
-    : `${head} The deficit is mostly the host circuit's size: with a mill sized for the grind, the mean difference is ${signed(a.mean_gap_pp)} points at an assumed laboratory P80 of 75 µm, ${signed(b.mean_gap_pp)} at 150 µm and ${signed(c.mean_gap_pp)} at 300 µm; the laboratory grind is not in the open data.`;
+    ? `${head} El déficit es sobre todo el tamaño del circuito anfitrión: con un molino dimensionado para la molienda, la diferencia media es ${signed(a.mean_gap_pp)} puntos con un P80 de laboratorio supuesto de 75 µm, ${signed(b.mean_gap_pp)} con 150 µm y ${signed(c.mean_gap_pp)} con 300 µm; la molienda del laboratorio no está en los datos abiertos. Con cualquier molienda supuesta la recuperación del motor no sigue el orden de las muestras (r de Pearson entre ${rLow} y ${rHigh}).`
+    : `${head} The deficit is mostly the host circuit's size: with a mill sized for the grind, the mean difference is ${signed(a.mean_gap_pp)} points at an assumed laboratory P80 of 75 µm, ${signed(b.mean_gap_pp)} at 150 µm and ${signed(c.mean_gap_pp)} at 300 µm; the laboratory grind is not in the open data. At any assumed grind the engine's recovery does not follow the samples' order (Pearson r between ${rLow} and ${rHigh}).`;
 }
 
 export function SampleView({ record, sample, recovery, p80, powerLimited, lang }: {
@@ -222,7 +229,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
               ))}
             </tbody>
           </table>
-          <p className="of-footnote">{SOURCE_TEXT.laneNote[lang]}</p>
+          <p className="of-footnote">{`${SOURCE_TEXT.outOfFold[lang](window.id, Math.floor(window.embargo_hours_min))} ${SOURCE_TEXT.laneNote[lang]}`}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">

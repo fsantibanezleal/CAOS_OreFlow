@@ -79,6 +79,8 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
   // U-03: a state the contract rejects or the engine refuses has no current result; the last valid one is hidden
   const [rejected, setRejected] = useState(false);
   const pending = useRef<{ variant: string | null; set: Partial<Record<keyof OperatingPoint, number>> } | null>(null);
+  // S-12: the changed controls of a sample link, applied once the sample is the base
+  const sampleSet = useRef<Partial<Record<keyof OperatingPoint, number>> | null>(null);
   const opened = useRef(false);
 
   // the URL's state, once
@@ -93,6 +95,8 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     const wantedSource = params.get('source') as Source | null;
     if (wantedSource && SOURCES.includes(wantedSource) && wantedSource !== useWorkbench.getState().source) setSource(wantedSource);
     if (params.get('sample')) useWorkbench.setState({ sampleId: params.get('sample') });
+    // S-12: a sample link carries its changed controls, applied after the sample's own point
+    if (wantedSource === 'sample') sampleSet.current = parseSet(params.get('set'));
     if (params.get('hour')) setHour(params.get('hour') as string);
     // back from the focus route the store already holds this state; the URL only mirrors it
     const held = useWorkbench.getState();
@@ -135,8 +139,16 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     if (caseId !== SAMPLE_CASE) { setCase(SAMPLE_CASE); return; }
     if (!samples || !artifact || artifact.case_id !== SAMPLE_CASE) return;
     const wanted = samples.samples.find(s => s.id === sampleId) ?? samples.samples[0];
-    if (appliedSample.current !== wanted.id) { appliedSample.current = wanted.id; setSample(wanted.id, wanted.point); }
-  }, [source, caseId, samples, artifact, sampleId, setCase, setSample, setVariant]);
+    if (appliedSample.current !== wanted.id) {
+      appliedSample.current = wanted.id;
+      setSample(wanted.id, wanted.point);
+      // the sample's assays and work index stay its own; the link's other changes return
+      const set = sampleSet.current;
+      sampleSet.current = null;
+      const free = Object.fromEntries(Object.entries(set ?? {}).filter(([k]) => k !== 'head_grade' && k !== 'work_index_kwh_t'));
+      if (Object.keys(free).length) setPoint({ ...wanted.point, ...free } as OperatingPoint);
+    }
+  }, [source, caseId, samples, artifact, sampleId, setCase, setSample, setVariant, setPoint]);
 
   // validate, then evaluate in the worker; only the newest state's trace is kept
   useEffect(() => {

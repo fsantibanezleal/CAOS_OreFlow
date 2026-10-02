@@ -84,7 +84,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
                 <span>{spec.label[lang]}</span>
                 <output htmlFor={id}>{shown}</output>
               </label>
-              <input id={id} type="range" min={Math.min(bounds.min, value)} max={Math.max(bounds.max, value)} step={bounds.step} value={value} disabled aria-describedby={`${id}-fixed`} />
+              <input id={id} type="range" min={Math.min(bounds.min, value)} max={Math.max(bounds.max, value)} step="any" value={value} disabled aria-describedby={`${id}-fixed`} />
               <small id={`${id}-fixed`} className="of-knob-base">{fixedBy[lang]}</small>
             </div>
           );
