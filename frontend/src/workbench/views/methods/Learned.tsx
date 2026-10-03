@@ -188,7 +188,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
   }
 
   return (
-    <div className="of-split">
+    <div className="of-split of-split-beside">
       {body}
       <div className="of-aside">
         <div className="of-fields">

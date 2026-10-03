@@ -93,7 +93,9 @@ const TEXT = {
   noProposals: { en: 'The screen proposed no candidate: every one it saw was outside the guard or the interval bound.', es: 'El filtro no propuso candidatos: todos los que vio estaban fuera del guardia o de la cota del intervalo.' },
   unscreened: { en: 'This record ran without the screen.', es: 'Este registro corrió sin el filtro.' },
   screenCol: { en: 'Start', es: 'Inicio' },
-  withCol: { en: 'Evaluations', es: 'Evaluaciones' },
+  // the table's caption says they are evaluations; the column names wrap, which 'Evaluaciones' could not (0.08 gate)
+  withCol: { en: 'With the screen', es: 'Con el filtro' },
+  startsCaption: { en: 'Engine evaluations by start, and the proposals of the screen', es: 'Evaluaciones del motor por inicio, y las propuestas del filtro' },
   withoutCol: { en: 'Without the screen', es: 'Sin el filtro' },
   proposedCol: { en: 'Proposed', es: 'Propuestos' },
   improvedCol: { en: 'Improved', es: 'Mejoraron' },
@@ -356,6 +358,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
         </table>
         {record.screened && record.without_screen && (
           <table className="of-table of-table-data of-table-wraphead">
+            <caption>{TEXT.startsCaption[lang]}</caption>
             <thead><tr><th scope="col">{TEXT.screenCol[lang]}</th><th scope="col">{TEXT.withCol[lang]}</th><th scope="col">{TEXT.withoutCol[lang]}</th>
               <th scope="col">{TEXT.proposedCol[lang]}</th><th scope="col">{TEXT.improvedCol[lang]}</th></tr></thead>
             <tbody>

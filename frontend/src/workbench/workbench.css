@@ -209,14 +209,22 @@ input, select, textarea { font: inherit; }
 .of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
 /* The Methods records' side panel filled a fifth to a third of its column at 2560x1440 (the Sobol table the
  * least): on a large screen it becomes a strip under the chart, its parts side by side, as tall as its
- * content and never more than 42% of the screen (it scrolls inside beyond that). Not at 1920x1080: there the strip
- * left the learned lane's guard chart a 40 px plot whose axis title was cut (0.08 gate) */
+ * content and never more than 42% of the screen (it scrolls inside beyond that). Below 1300 px of height the learned
+ * lane keeps its panel beside the charts: as a strip it left the guard chart a 40 px plot whose axis title was cut at
+ * 1920x1080 (0.08 gate); its panel is full enough beside them */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .of-split:not(.of-split-beside) { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .of-split:not(.of-split-beside) > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
+  .of-split:not(.of-split-beside) > .of-aside > * { flex: 0 1 auto; min-width: 0; }
+  .of-split:not(.of-split-beside) > .of-aside > .of-table { width: auto; }
+  .of-split:not(.of-split-beside) > .of-aside > .of-status-line, .of-split:not(.of-split-beside) > .of-aside > .of-note { flex-basis: 100%; }
+}
 @media (min-width: 1800px) and (min-height: 1300px) {
-  .of-split { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .of-split > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
-  .of-split > .of-aside > * { flex: 0 1 auto; min-width: 0; }
-  .of-split > .of-aside > .of-table { width: auto; }
-  .of-split > .of-aside > .of-status-line, .of-split > .of-aside > .of-note { flex-basis: 100%; }
+  .of-split.of-split-beside { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .of-split.of-split-beside > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
+  .of-split.of-split-beside > .of-aside > * { flex: 0 1 auto; min-width: 0; }
+  .of-split.of-split-beside > .of-aside > .of-table { width: auto; }
+  .of-split.of-split-beside > .of-aside > .of-status-line, .of-split.of-split-beside > .of-aside > .of-note { flex-basis: 100%; }
 }
 .of-stack { display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; min-height: 0; }
 .of-stack.of-stack-2-1 { grid-template-rows: minmax(0, 2fr) minmax(0, 1fr); }
@@ -468,7 +476,7 @@ input, select, textarea { font: inherit; }
   /* the Response view's selects wrap two to a row: in one row with the button they were 46 px wide on a phone and cut
      their names (0.08 gate) */
   .of-response-controls { flex-wrap: wrap; overflow: visible; }
-  .of-response-controls .of-field { flex: 1 1 9rem; min-width: 0; }
+  .of-response-controls .of-field { flex: 1 1 12rem; min-width: 0; }
   .of-response-controls .of-field select { width: 100%; }
   .of-main { min-height: 78dvh; }
   .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
@@ -476,6 +484,8 @@ input, select, textarea { font: inherit; }
   /* the legend under the title, across the chart: beside it, six series took six lines and left the
      size-distribution plot about 50 px on a phone */
   .of-plot-head { flex-wrap: wrap; row-gap: 2px; }
+  /* a title longer than the phone wraps: a Benchmark title ran 23 px past the page in Spanish (0.08 gate) */
+  .of-plot-title { white-space: normal; flex: 1 1 100%; min-width: 0; }
 }
 
 /* U-03: a rejected state: the rail names it at the top, the view host replaces the stale views */
