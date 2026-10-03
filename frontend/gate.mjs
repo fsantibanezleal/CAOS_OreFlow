@@ -762,7 +762,9 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
           // a table's scroll box is for narrower screens: at the gated desktop sizes every table fits its page
           // (the uncertainty table once needed 135 px of sideways scroll at 1280 px in Spanish)
-          scrollTables: [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-doc-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
+          scrollTables: [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-doc-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length
+            // nor a figure: FigureScroll's sideways scroll is for a phone, and at the desktop sizes every figure fits
+            + [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-figure-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
           // the page taller than the viewport must scroll the document (shell known defect 1: under the
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;

@@ -42,6 +42,12 @@ the verified findings under #72) and the gravity rebuild. Every fix carries a te
 - Claims checked against their primary sources on 2026-10-03: the phosphate review gives neither a desliming size
   nor a 35% P2O5 target, so the case labels its 20 um cut authored; the collector and bank-model citations are
   narrowed to what their sources state.
+- The release gate's captures, read whole, found what no check measured, and each now has one: a GeoMet sample's
+  Case view quoted the synthetic case's recovery while the sample computed; the re-run controls kept the live run's
+  values over the baked record; the dark architecture modal's full-size toggle was unreadable (shell known defect
+  13); the real sources' Case views left blank bands on large screens; wide figures drew 4 px labels on a phone and
+  now scroll in their own row; a content tab row cut mid-word now fades its hidden end; raw symbols in captions and
+  tables are typeset; and table numbers keep their digits and their grouping.
 
 ### Added
 

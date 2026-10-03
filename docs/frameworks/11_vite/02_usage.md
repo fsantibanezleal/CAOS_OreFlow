@@ -84,7 +84,7 @@ first paint.
 | `case-claims.test.ts` | 10 | the case contexts' stated numbers against the artifacts |
 | `experiments-claims.test.ts` | 9 | the Experiments page's statements against the records |
 | `benchmark-claims.test.ts` | 13 | the Benchmark page's statements against the records |
-| `locale.test.ts` | 9 | PE-35: number formatting, the authored-value and TeX localization, chemical formulas with subscripts, the citations' Spanish labels with every record kept verbatim, and the provenance of every case record in Spanish |
+| `locale.test.ts` | 10 | PE-35: number formatting, the authored-value and TeX localization, chemical formulas with subscripts, the citations' Spanish labels with every record kept verbatim, and the provenance of every case record in Spanish |
 | `tex-language.test.ts` | 3 | every formula of the pages and the Case view: one written once carries no word, one written twice differs between the languages |
 | `worker-sweeps.test.ts` | 4 | PE-38: sweeps stream, cancel and supersede in the worker module |
 | `sweep.test.ts` | 2 | the sweep grid validates every state and never simulates a rejected one |
@@ -112,7 +112,7 @@ first paint.
 | `doc-figures.test.ts` | 19 | W-29: the figures in `docs/svg/` are the Methodology figures, every colour has a system fallback, and each page embeds its own |
 | `flag-names.test.ts` | 11 | U-06: every flag either engine raises has a sentence and a short name in both languages |
 | `flowsheet-labels.test.ts` | 12 | D-08, D-21: every stream of every variant carries its label at the desktop stages, and every outlet on a phone |
-| `inline-math.test.ts` | 4 | U-32: a symbol in prose is typeset, never raw, and every inline formula renders in both languages |
+| `inline-math.test.ts` | 6 | U-32: a symbol in prose is typeset, never raw, and every inline formula renders in both languages |
 | `introduction-claims.test.ts` | 3 | the Introduction's quoted plausibility ranges against the soft porphyry's record, in both languages |
 | `measured-topics.test.ts` | 2 | T-10, S-15, S-19: the Methodology's measured-data topics against the real-sample and iron-plant records |
 | `oracle-quotes.test.ts` | 2 | T-16, T-32: the Introduction's and the Methodology's Moly-Cop quotes against the oracle record |
@@ -124,6 +124,6 @@ first paint.
 
 They read the committed files directly (`node:fs` and JSON imports), so the suite needs no server and
 no browser. The whole run takes about three minutes on the idle development machine, most of it the parity suites
-(514 s for 0.08.000, beside another job that held every core);
+(257 s for the 0.08.000 release candidate, beside another job on the machine);
 `OF_PARITY=full` adds the optimizer over all 96 variants, about two hours in one process, or about forty minutes
 in six processes of two cases each (`-t "(case_a|case_b)/"`).
