@@ -42,13 +42,16 @@ export function formatTick(value: number, spacing: number, lang: Lang, log = fal
   return formatFixed(value, lang, decimals);
 }
 
-/** A number with `significant` significant digits, without trailing zeros. */
-export function formatSignificant(value: number | null | undefined, lang: Lang, significant = 3): string {
+/**
+ * A number with `significant` significant digits, without trailing zeros; a table column keeps them (`keepZeros`), so
+ * 0.390 sits under 0.541 as 0.390, not 0.39 (the learned lane's fold table, 0.08 gate captures).
+ */
+export function formatSignificant(value: number | null | undefined, lang: Lang, significant = 3, keepZeros = false): string {
   if (!usable(value)) return MISSING;
   if (value === 0) return formatter(lang, 0, 0).format(0);
   const magnitude = Math.floor(Math.log10(Math.abs(value)));
   const decimals = Math.max(0, Math.min(12, significant - 1 - magnitude));
-  const text = formatter(lang, 0, decimals).format(value);
+  const text = formatter(lang, keepZeros ? decimals : 0, decimals).format(value);
   return /^-[0.,]*$/.test(text) ? text.slice(1) : text;
 }
 

@@ -24,6 +24,12 @@ html, body, #root { height: auto; min-height: 100%; }
 .main-nav[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
 .main-nav[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 
+/* the same for a content page's tab row wider than the page (DocPage declares which end hides tabs): in Spanish at
+ * 1280 px the Implementation row was cut at "Controles y publicaci" with nothing to say a tab followed (0.08 gate) */
+.of-doc .tablist[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.of-doc .tablist[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.of-doc .tablist[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+
 /* Shell known defect 11 (U-37): on a phone the shell keeps the workbench footer on one line that scrolls with no scrollbar, so it was cut
  * after "v0.07.000 · D"; it wraps instead, two short lines under the instrument */
 @media (max-width: 860px) {
@@ -50,6 +56,13 @@ html, body, #root { height: auto; min-height: 100%; }
 /* a wide figure spans its row; a narrow one keeps the shell's figure measure (560 px), centred in its column */
 .of-topic-figure.wide .fig-svg { max-width: 100%; }
 @media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } }
+/* a figure keeps the width at which its smallest label reads (FigureScroll sets it) and scrolls sideways in its own row
+   on a narrower screen; the hidden end fades as the route links' do, so a cut label reads as more to scroll */
+.of-figure-scroll { overflow-x: auto; overflow-y: hidden; }
+.of-figure-scroll > .fig-svg { min-width: var(--of-fig-min, 0px); }
+.of-figure-scroll[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.of-figure-scroll[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.of-figure-scroll[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 
 .of-doc-table { width: 100%; max-width: 980px; margin: 1rem 0; border-collapse: collapse; font-size: 0.86rem; }
 .of-doc-table th, .of-doc-table td { padding: 6px 10px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: top; }
@@ -67,6 +80,10 @@ html, body, #root { height: auto; min-height: 100%; }
    surface), below WCAG AA for 11 px text; here they carry content (solve directions, legends, sample counts), so they
    take the subtle text colour (at least 5.7:1 on every page and surface, both themes) */
 .fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle); }
+/* Shell known defect 13 (CAOS_APP_SHELL #29, open in 0.6.11): the architecture modal's full-size toggle is a native
+   button with size styles only, so in the dark theme it keeps the browser's light face under the page's light text and
+   cannot be read (found again in the 0.08 captures). It takes the theme's tokens here; the gate measures its contrast. */
+[role=dialog] button[aria-controls$='-diagram'] { color: var(--color-fg); background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 6px; cursor: pointer; }
 
 /* artifact-bound tables and charts under a topic */
 .of-topic-data { margin: 1.2rem 0; min-width: 0; }

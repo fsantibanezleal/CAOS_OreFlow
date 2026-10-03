@@ -13,8 +13,9 @@ const walk = (dir: string): string[] => readdirSync(dir).flatMap(name => {
   const path = join(dir, name);
   return statSync(path).isDirectory() ? (name === 'test' ? [] : walk(path)) : /\.tsx?$/.test(name) ? [path] : [];
 });
-// a symbol with a subscript: one or two letters, or a Greek letter or its name, then an underscore
-const RAW = /(?<![\w$\\{])(?:[A-Za-z]{1,2}|tau|xi|delta|rho|sigma|alpha|beta|[ρπσαβτξδ])_(?:\{[^}]+\}|[A-Za-z0-9]{1,8})(?![\w(])/;
+// a symbol with a subscript: one or two letters, or a Greek letter or its name, then an underscore; a symbol applied
+// to an argument counts too (the ablation caption's raw "A_j(x)" passed while the pattern left out a following "(")
+const RAW = /(?<![\w$\\{])(?:[A-Za-z]{1,2}|tau|xi|delta|rho|sigma|alpha|beta|[ρπσαβτξδ])_(?:\{[^}]+\}|[A-Za-z0-9]{1,8})(?!\w)/;
 const LITERAL = /'((?:\\.|[^'\\\n])*)'/g;
 const PROSE_KEY = /\b(?:en|es|caption|label|title)\s*:\s*'((?:\\.|[^'\\\n])*)'/g;
 const TEMPLATE = /`(?:\\.|[^`\\])*`/gs;
@@ -51,9 +52,37 @@ describe('symbols in prose are typeset', () => {
     expect(raw).toEqual([]);
   });
 
+  it('no prose string carries a raw power', () => {
+    // the optimizer's mesh read "below 2^-10 of each range" in its prose and its caption (0.08 gate captures)
+    const POWER = /\w\^[-{(]?\w/;
+    const raw = prose.filter(h => POWER.test(outsideFormulas(h.text))).map(h => `${h.where}: ${outsideFormulas(h.text).match(POWER)![0]}`);
+    expect(raw).toEqual([]);
+  });
+
   it('no SVG label carries a raw symbol (they use SvgSub)', () => {
     const raw = svg.filter(h => RAW.test(h.text.replace(/SvgSub[^/]*\//g, ' '))).map(h => h.where);
     expect(raw).toEqual([]);
+  });
+
+  it('no prose flattens a symbol its own page subscripts', () => {
+    // the 0.08 captures read "Di, Do, Du, h" and "Dc" in Plitt's parameter table, "K1" beside an equation in K_1, and
+    // "(RKe)" under the R_{Ke} it names: a symbol an equation of the same file writes with a subscript is typeset in its
+    // prose too. P80, F80 and d50c are the trade's own notation and stay plain; the rest are Spanish words or chemistry
+    const PLAIN = new Set(['P80', 'F80', 'd50c', 'de', 'su', 'Si', 'c2', 'c3']);
+    const flattened: string[] = [];
+    for (const file of walk(src).filter(f => relative(src, f).replace(/\\/g, '/').startsWith('content/'))) {
+      const text = readFileSync(file, 'utf-8');
+      const symbols = new Set<string>();
+      for (const t of text.matchAll(/r`((?:\\.|[^`\\])*)`/g)) {
+        for (const m of t[1].matchAll(/(?<![\\A-Za-z])([A-Za-z])_\{?([A-Za-z0-9]{1,3})\}?/g)) if (!PLAIN.has(m[1] + m[2])) symbols.add(m[1] + m[2]);
+      }
+      const prose = text.replace(/r`(?:\\.|[^`\\])*`/g, ' ').split('\n').filter(l => !/<text\b|<tspan\b|label: '/.test(l)).join('\n');
+      for (const literal of prose.matchAll(/'((?:\\.|[^'\\\n])*)'/g)) {
+        const outside = outsideFormulas(literal[1]);
+        for (const s of symbols) if (new RegExp(`(?<![\\w-])${s}(?![\\w-])`).test(outside)) flattened.push(`${relative(src, file)}: ${s}`);
+      }
+    }
+    expect([...new Set(flattened)]).toEqual([]);
   });
 
   it('every inline formula renders in English and in Spanish', () => {

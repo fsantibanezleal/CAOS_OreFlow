@@ -82,14 +82,14 @@ function ModelRegistry({ lang }: { lang: Lang }) {
         };
         const rows = [
           [p('Surrogate', 'Sustituto'), 'process_surrogate.onnx', p(`${L.features.length} features to ${L.targets.length} targets; hidden ${hidden}, SiLU; ${mlp.parameters.toLocaleString(lang === 'es' ? 'es-CL' : 'en-US')} parameters`, `${L.features.length} variables a ${L.targets.length} objetivos; ocultas ${hidden}, SiLU; ${mlp.parameters.toLocaleString(lang === 'es' ? 'es-CL' : 'en-US')} parámetros`),
-            p(`${L.design.rows} engine states; best epoch ${mlp.best_epoch} of ${mlp.epochs_run} on ${mlp.device}`, `${L.design.rows} estados del motor; mejor época ${mlp.best_epoch} de ${mlp.epochs_run} en ${mlp.device}`),
+            p(`${formatFixed(L.design.rows, lang, 0)} engine states; best epoch ${formatFixed(mlp.best_epoch, lang, 0)} of ${formatFixed(mlp.epochs_run, lang, 0)} on ${mlp.device}`, `${formatFixed(L.design.rows, lang, 0)} estados del motor; mejor época ${formatFixed(mlp.best_epoch, lang, 0)} de ${formatFixed(mlp.epochs_run, lang, 0)} en ${mlp.device}`),
             p(`opset ${exp.surrogate.opset}; ${formatSignificant(exp.surrogate.max_abs_difference, lang, 2)} from PyTorch`, `opset ${exp.surrogate.opset}; ${formatSignificant(exp.surrogate.max_abs_difference, lang, 2)} de PyTorch`), fp('process_surrogate.onnx')],
           [p('Guard', 'Guardia'), 'process_guard.onnx', p(`autoencoder, hidden ${ae}, tanh; threshold ${formatFixed(L.final.guard_threshold, lang, 3)}`, `autoencoder, ocultas ${ae}, tanh; umbral ${formatFixed(L.final.guard_threshold, lang, 3)}`),
             p(`the same states; 99th percentile of validation error`, `los mismos estados; percentil 99 del error de validación`),
             p(`opset ${exp.guard.opset}; ${formatSignificant(exp.guard.max_abs_difference, lang, 2)} from PyTorch`, `opset ${exp.guard.opset}; ${formatSignificant(exp.guard.max_abs_difference, lang, 2)} de PyTorch`), fp('process_guard.onnx')],
           [p('Scalers and reference', 'Escaladores y referencia'), 'process_surrogate.json', p('feature, target and guard means and scales; reference answers at every nominal state', 'medias y escalas de variables, objetivos y guardia; respuestas de referencia en cada estado nominal'),
             p('the same fit', 'el mismo ajuste'), p('the browser test compares every nominal state', 'la prueba del navegador compara cada estado nominal'), fp('process_surrogate.json')],
-          [p('Optimizer screen', 'Filtro del optimizador'), 'process_screen.json', p(`a Gaussian process on recovery over ${exp.screen.gp_rows} engine states, with the two networks\' weights; run in float64 in the browser`, `un proceso gaussiano sobre la recuperación con ${exp.screen.gp_rows} estados del motor, con los pesos de las dos redes; corre en float64 en el navegador`),
+          [p('Optimizer screen', 'Filtro del optimizador'), 'process_screen.json', p(`a Gaussian process on recovery over ${formatFixed(exp.screen.gp_rows, lang, 0)} engine states, with the two networks\' weights; run in float64 in the browser`, `un proceso gaussiano sobre la recuperación con ${formatFixed(exp.screen.gp_rows, lang, 0)} estados del motor, con los pesos de las dos redes; corre en float64 en el navegador`),
             p('the learning stage\'s states', 'los estados de la etapa de aprendizaje'),
             p(`${formatSignificant(exp.screen.gp_max_abs_difference ?? Number.NaN, lang, 2)} from scikit-learn`, `${formatSignificant(exp.screen.gp_max_abs_difference ?? Number.NaN, lang, 2)} de scikit-learn`), fp('process_screen.json')],
           [p('Screen factor', 'Factor del filtro'), 'process_gp_cholesky.bin', p('the Cholesky factor of the screen\'s kernel matrix', 'el factor de Cholesky de la matriz de núcleo del filtro'),
@@ -171,10 +171,10 @@ function GpuTable({ lang }: { lang: Lang }) {
         const mlp = L.final.mlp_training as { device: string; epochs_run: number; best_epoch: number; best_validation_mse: number };
         const rows: Array<[string, string]> = [
           [p('Device of the surrogate\'s final fit', 'Dispositivo del ajuste final del sustituto'), mlp.device],
-          [p('Epochs run, best epoch (surrogate)', 'Épocas corridas, mejor época (sustituto)'), `${mlp.epochs_run}, ${mlp.best_epoch}`],
+          [p('Epochs run, best epoch (surrogate)', 'Épocas corridas, mejor época (sustituto)'), `${formatFixed(mlp.epochs_run, lang, 0)}, ${formatFixed(mlp.best_epoch, lang, 0)}`],
           [p('Best validation MSE (surrogate, standardized)', 'Mejor MSE de validación (sustituto, estandarizado)'), formatSignificant(mlp.best_validation_mse, lang, 3)],
           [p('Learning rate, weight decay (AdamW)', 'Tasa de aprendizaje, decaimiento de pesos (AdamW)'), `${formatSignificant(Number(L.settings.mlp_learning_rate), lang, 2)}, ${formatSignificant(Number(L.settings.mlp_weight_decay), lang, 2)}`],
-          [p('Epoch cap, early-stopping patience', 'Tope de épocas, paciencia de parada temprana'), `${String(L.settings.max_epochs)}, ${String(L.settings.patience)}`],
+          [p('Epoch cap, early-stopping patience', 'Tope de épocas, paciencia de parada temprana'), `${formatFixed(Number(L.settings.max_epochs), lang, 0)}, ${formatFixed(Number(L.settings.patience), lang, 0)}`],
           [p('Particle network: device, PyTorch', 'Red de partículas: dispositivo, PyTorch'), `${P.device}, ${P.torch_version}`],
           [p('Learning stage of the committed precompute', 'Etapa de aprendizaje del precálculo versionado'), `${formatFixed(V.seconds.learning ?? L.seconds, lang, 0)} s`],
         ];

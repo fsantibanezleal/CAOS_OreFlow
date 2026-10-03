@@ -281,7 +281,7 @@ function ArtifactTable({ lang }: { lang: Lang }) {
               ))}</tbody>
             </table>
             <table className="of-doc-table of-doc-table-data">
-              <caption>{fill(TEXT.networksCaption[lang], { rows: formatFixed(l.design.rows, lang, 0), device: training.device.toUpperCase(), best: String(training.best_epoch), epochs: String(training.epochs_run) })}</caption>
+              <caption>{fill(TEXT.networksCaption[lang], { rows: formatFixed(l.design.rows, lang, 0), device: training.device.toUpperCase(), best: formatFixed(training.best_epoch, lang, 0), epochs: formatFixed(training.epochs_run, lang, 0) })}</caption>
               <thead><tr>{[TEXT.network, TEXT.bytes, TEXT.opset, TEXT.diff].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
               <tbody>{(['surrogate', 'guard'] as const).map(key => (
                 <tr key={key}>

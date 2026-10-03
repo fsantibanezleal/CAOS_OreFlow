@@ -159,8 +159,8 @@ function IronPanel({ lang }: { lang: Lang }) {
                 <caption>{TEXT.windowsCaption[lang]}</caption>
                 <thead><tr>{[TEXT.window, TEXT.train, TEXT.trainLast, TEXT.embargo, TEXT.test, TEXT.testSpan].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}</tr></thead>
                 <tbody>{a.folds.map(f => (
-                  <tr key={f.id}><th scope="row">{f.id + 1}</th><td>{f.train_rows}</td><td>{f.train_last.slice(0, 16)}</td>
-                    <td>{formatFixed(f.embargo_hours_min, lang, 0)}</td><td>{f.test_rows}</td><td>{`${day(f.test_first)} - ${day(f.test_last)}`}</td></tr>
+                  <tr key={f.id}><th scope="row">{f.id + 1}</th><td>{formatFixed(f.train_rows, lang, 0)}</td><td>{f.train_last.slice(0, 16)}</td>
+                    <td>{formatFixed(f.embargo_hours_min, lang, 0)}</td><td>{formatFixed(f.test_rows, lang, 0)}</td><td>{`${day(f.test_first)} - ${day(f.test_last)}`}</td></tr>
                 ))}</tbody>
               </table>
             </div>

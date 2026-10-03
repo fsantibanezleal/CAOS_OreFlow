@@ -21,6 +21,13 @@ describe('locale formatting', () => {
     expect(formatSignificant(0, 'en')).toBe('0');
   });
 
+  it('keeps the trailing zeros of a table column when asked', () => {
+    // the learned lane's fold table read 0,39 under 0,541 and -45 beside -59,7 (0.08 gate captures)
+    expect(formatSignificant(0.39, 'es', 3, true)).toBe('0,390');
+    expect(formatSignificant(-45, 'es', 3, true)).toBe('-45,0');
+    expect(formatSignificant(-1094, 'es', 3, true)).toBe('-1.094');
+  });
+
   it('chooses precision by unit and typesets the units', () => {
     expect(formatValue(92.967, '%', 'en')).toBe('93.0');
     expect(formatValue(8.24, '%', 'es')).toBe('8,24');

@@ -363,6 +363,12 @@ const LOCALE_PROBE = () => {
     }
     if (out.length >= 6) break;
   }
+  // a count in a table cell goes through the formatter too: the iron plant's windows printed 1826 and 2939 training
+  // hours beside 3.701 pairs (0.08 gate captures); a whole cell of four or more bare digits escaped it
+  for (const cell of document.querySelectorAll('td')) {
+    const r = cell.getBoundingClientRect();
+    if (r.width > 0 && /^-?\d{4,}$/.test((cell.textContent || '').trim())) { out.push(`ungrouped count: ${cell.textContent.trim()}`); break; }
+  }
   return out;
 };
 
@@ -396,6 +402,17 @@ async function checkArchitecture(page, tag, lang) {
   const tabs = page.locator('[role=dialog] [role=tab]');
   const count = await tabs.count();
   record(`${tag} architecture tabs`, count >= 5, { count });
+  // shell known defect 13: the full-size toggle reads in both themes (WCAG 1.4.3, 4.5:1 for its 12 px text)
+  const toggle = await page.evaluate(() => {
+    const b = document.querySelector("[role=dialog] button[aria-controls$='-diagram']");
+    if (!b) return null;
+    const rgb = s => (s.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+    const lum = c => { const [r, g, bl] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * bl; };
+    const cs = getComputedStyle(b);
+    const [a, c] = [lum(rgb(cs.color)), lum(rgb(cs.backgroundColor))];
+    return { color: cs.color, background: cs.backgroundColor, ratio: Math.round(100 * (Math.max(a, c) + 0.05) / (Math.min(a, c) + 0.05)) / 100 };
+  });
+  record(`${tag} architecture full-size toggle`, !!toggle && toggle.ratio >= 4.5, toggle);
   for (let k = 0; k < count; k += 1) {
     // the tab's own diagram, not the previous one still in place: on a public host the next svg arrives
     // after the click, and a probe taken in between found none (tabs 2 to 5 against the VPS, 0.05.000)
@@ -550,9 +567,16 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
             await rerun.locator('select').selectOption('32');
             await rerun.locator('.of-run').click();
             live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 120000 }).then(() => true, () => false);
-            if (live) await rerun.locator('.of-revert').click();
+            if (live) {
+              await rerun.locator('.of-revert').click();
+              // back on the baked record, the fields name the seed and samples the shown record was drawn with
+              const seedNow = await rerun.locator('input[type=number]').inputValue();
+              const samplesNow = await rerun.locator('select').inputValue();
+              const text = await page.locator('.of-view-methods').textContent();
+              live = { seedNow, samplesNow, agrees: text.includes(seedNow) && new RegExp(`${samplesNow} (samples|muestras)`).test(text) };
+            }
           }
-          record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false, { ...controls, live });
+          record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false && live?.agrees !== false, { ...controls, live });
         }
         // OP-09: the optimizer carries its weight control and run button in every combination, and once per run of
         // the gate a live run at 50% completes, replaces the baked record and offers the four charts
@@ -581,9 +605,13 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
                   note: /not advice|no es una recomendaci/.test(document.querySelector('.of-view-methods .of-aside')?.textContent ?? '') };
               });
               await rerun.locator('.of-revert').click();
+              // back on the baked record, the selector names the weight the shown result answers to
+              const weightNow = await rerun.locator('select').inputValue();
+              const statement = await page.locator('.of-view-methods .of-aside > .of-status-line').last().textContent();
+              tone.selector = { weightNow, agrees: (statement ?? '').includes(`${weightNow}%`) };
             }
           }
-          const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note);
+          const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note && tone.selector?.agrees !== false);
           record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false && toneOk, { ...controls, live, tone });
         }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
@@ -627,14 +655,30 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.locator('.of-rail-sections button').first().click();
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
   await page.waitForSelector('.of-view-sample table', { timeout: 90000 });
+  await page.waitForFunction(() => !document.querySelector('.of-readout-busy'), null, { timeout: 90000 }).catch(() => undefined);
+  await page.waitForTimeout(250);
   const sampleCheck = await page.evaluate(() => ({
     fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
     tables: document.querySelectorAll('.of-view-sample table').length,
     url: location.search.includes('source=sample'),
+    // the Case view's engine recovery is the sample's own, the readout's: the 0.07/0.08 views showed the synthetic
+    // case's 94.2% as "Engine, this state" while the sample computed
+    engineAgrees: (() => {
+      const row = [...document.querySelectorAll('.of-view-sample tr')].find(r => /Engine, this state|Motor, este estado/.test(r.textContent ?? ''));
+      const cell = row?.lastElementChild?.textContent ?? '';
+      const head = document.querySelector('.of-readout .of-readout-item strong')?.textContent ?? '';
+      return cell.replace(/\s/g, '') !== '' && cell.replace(/\s/g, '') === head.replace(/\s/g, '');
+    })(),
+    // the comparison stays beside the sample's facts: as a strip it sat under a blank band (0.08 gate captures)
+    beside: (() => {
+      const main = document.querySelector('.of-view-sample .of-sample-main')?.getBoundingClientRect();
+      const aside = document.querySelector('.of-view-sample .of-split > .of-aside')?.getBoundingClientRect();
+      return !!main && !!aside && Math.abs(aside.top - main.top) < 4 && aside.left >= main.right - 1;
+    })(),
   }));
   const sampleView = await measure(page);
   await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
-  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.url && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
+  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
   await settleCharts(page, 1);
   const sampleGrinding = await measure(page);
@@ -650,9 +694,18 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     // U-15: only the Case view is open; U-14: every sensor row names its unit (pH has none), in the interface language
     disabled: document.querySelectorAll('.of-viewbar [role=tab]:disabled').length,
     unitless: [...document.querySelectorAll('.of-view-hour table.of-table th[scope=row]')].map(th => th.textContent.trim()).filter(s => /Flow|Level|Feed|Density|Flujo|Nivel|alimentación|Densidad/.test(s) && !/\(.+\)$/.test(s)),
-    english: document.documentElement.lang === 'es' ? [...document.querySelectorAll('.of-view-hour table.of-table th[scope=row]')].map(th => th.textContent.trim()).filter(s => /\b(Flow|Level|Feed|Column|Iron|Silica|Starch|Amina|Pulp)\b/.test(s)) : [] }));
+    english: document.documentElement.lang === 'es' ? [...document.querySelectorAll('.of-view-hour table.of-table th[scope=row]')].map(th => th.textContent.trim()).filter(s => /\b(Flow|Level|Feed|Column|Iron|Silica|Starch|Amina|Pulp)\b/.test(s)) : [],
+    // the assays stay beside the forecast, and the forecast table shows all its rows: as a strip at 1920x1080 the
+    // table showed four of nine rows over a narrow assay column (0.08 gate captures)
+    layout: (() => {
+      const main = document.querySelector('.of-view-hour .of-hour-main')?.getBoundingClientRect();
+      const aside = document.querySelector('.of-view-hour .of-split > .of-aside')?.getBoundingClientRect();
+      const table = document.querySelector('.of-view-hour .of-hour-main table')?.getBoundingClientRect();
+      return { beside: !!main && !!aside && Math.abs(aside.top - main.top) < 4 && aside.left >= main.right - 1, whole: !!main && !!table && table.bottom <= main.bottom + 1 };
+    })() }));
   await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`) });
-  record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && hourCheck.disabled === VIEWS.length - 1 && hourCheck.unitless.length === 0 && hourCheck.english.length === 0 && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
+  const hourLayoutOk = hourCheck.layout.whole && hourCheck.layout.beside;
+  record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && hourCheck.disabled === VIEWS.length - 1 && hourCheck.unitless.length === 0 && hourCheck.english.length === 0 && hourLayoutOk && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
   await sourceButton(0).click();
   await page.waitForFunction(() => !location.search.includes('source='), null, { timeout: 30000 }).catch(() => undefined);
   await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
@@ -713,9 +766,15 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           // the page taller than the viewport must scroll the document (shell known defect 1: under the
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
-            window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
+            window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })(),
+          // a tab row wider than the page shows that it scrolls: the end that hides tabs fades (0.08: the Spanish
+          // Implementation row was cut at "Controles y publicaci" at 1280 px with no sign that a tab followed)
+          tabRow: (() => { const row = document.querySelector('.page-body .tablist'); if (!row) return null;
+            const hides = row.scrollWidth > row.clientWidth + 1;
+            return { hides, fades: row.dataset.fadeEnd === '1' || row.dataset.fadeStart === '1' }; })() }));
         const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && canvasText.ok, { ...doc, outside, figures, decimals, canvasText });
+        const rowOk = !doc.tabRow || !doc.tabRow.hides || doc.tabRow.fades;
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && rowOk && canvasText.ok, { ...doc, outside, figures, decimals, canvasText });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
@@ -919,6 +978,8 @@ for (const tag of SMALL) {
     });
     const review = await page.evaluate(REVIEW_PROBE, false);
     record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && review.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText, review });
+    // the capture shows the view, not wherever the stacked page was left scrolled (0.08: some showed only the rail)
+    await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
     // U-18, U-33: every sub-tab of the Case and Methods views, not only the first: no block over another, every
     // chart's text declared clear, and the sub-tab row inside the screen (the fourth Methods tab was a sliver)
@@ -933,6 +994,7 @@ for (const tag of SMALL) {
         const subCanvas = await page.evaluate(CANVAS_TEXT_PROBE);
         const subReview = await page.evaluate(REVIEW_PROBE, false);
         record(`${tag} ${view}/${k + 1}`, !sub.overX && sub.offscreenTabs.length === 0 && overlaps.length === 0 && subCanvas.ok && subReview.ok, { ...sub, overlaps, canvasText: subCanvas, review: subReview });
+        await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
         await page.screenshot({ path: join(OUT, `${view}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
@@ -943,6 +1005,7 @@ for (const tag of SMALL) {
   await page.waitForTimeout(600);
   const hourOverlaps = await page.evaluate(SIBLING_PROBE);
   record(`${tag} source hour`, hourOverlaps.length === 0, { overlaps: hourOverlaps });
+  await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
   await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`), fullPage: true });
   await page.locator('.of-rail .of-segmented-3 button').nth(0).click();
   await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
@@ -963,6 +1026,7 @@ for (const tag of SMALL) {
     const topTabs = page.locator('.page-body .tablist [role=tab]');
     const groups = await topTabs.count();
     const over = [];
+    const small = [];
     let visited = 0;
     for (let g = 0; g < Math.max(1, groups); g += 1) {
       if (groups) await topTabs.nth(g).click();
@@ -975,12 +1039,23 @@ for (const tag of SMALL) {
         const state = await page.evaluate(() => ({
           overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
           tab: [...document.querySelectorAll('.page-body [role=tab][aria-selected=true]')].map(t => t.textContent.trim()).join(' / '),
+          // a figure's smallest label as drawn on this screen: shrunk to a phone the wide figures drew theirs at 4 to
+          // 5 px (0.08 gate captures); FigureScroll keeps them at 7.5 px and lets the figure scroll in its row
+          figures: [...document.querySelectorAll('.page-body svg.fig-svg')].filter(s => s.getBoundingClientRect().width > 0).map(s => {
+            const scale = s.getScreenCTM()?.a ?? 1;
+            const sizes = [...s.querySelectorAll('text')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale).filter(v => v > 0);
+            return { label: (s.getAttribute('aria-label') ?? '').slice(0, 40), smallest: sizes.length ? Math.min(...sizes) : null };
+          }),
+          tabRow: (() => { const row = document.querySelector('.page-body .tablist'); if (!row) return null;
+            return { hides: row.scrollWidth > row.clientWidth + 1, fades: row.dataset.fadeEnd === '1' || row.dataset.fadeStart === '1' }; })(),
         }));
         if (state.overX) over.push(state.tab);
+        if (state.tabRow && state.tabRow.hides && !state.tabRow.fades) over.push(`${state.tab}: tab row cut with no fade`);
+        for (const f of state.figures) if (f.smallest !== null && f.smallest < 7.4) small.push(`${state.tab}: ${f.label} (${f.smallest.toFixed(1)} px)`);
       }
     }
     await page.screenshot({ path: join(OUT, `${route}-${tag}.png`) });
-    record(`${tag} ${route} page`, over.length === 0, { visited, over });
+    record(`${tag} ${route} page`, over.length === 0 && small.length === 0, { visited, over, small });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();

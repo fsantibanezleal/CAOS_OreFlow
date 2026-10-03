@@ -180,8 +180,8 @@ export const SEPARATION: Topic[] = [
       rows: [
         [{ en: 'sharpness m', es: 'nitidez m' }, '2.0', { en: 'authored; Moly-Cop\'s two examples print 1.34 and 1.66', es: 'de autor; los dos ejemplos de Moly-Cop imprimen 1,34 y 1,66' }],
         [{ en: 'underflow solids', es: 'sólidos en la descarga' }, { en: '75% w/w', es: '75% p/p' }, { en: 'authored', es: 'de autor' }],
-        [{ en: 'geometry ratios Di, Do, Du, h', es: 'razones geométricas Di, Do, Du, h' }, '0.256, 0.335, 0.197, 2.95 Dc', { en: 'typical proportions', es: 'proporciones típicas' }],
-        ['Dc', '25 - 91 cm', { en: 'authored per case', es: 'de autor por caso' }],
+        [{ en: 'geometry ratios $D_i$, $D_o$, $D_u$, $h$', es: 'razones geométricas $D_i$, $D_o$, $D_u$, $h$' }, '0.256, 0.335, 0.197, 2.95 $D_c$', { en: 'typical proportions', es: 'proporciones típicas' }],
+        ['$D_c$', '25 - 91 cm', { en: 'authored per case', es: 'de autor por caso' }],
       ],
     },
     limits: [
@@ -211,7 +211,7 @@ export const SEPARATION: Topic[] = [
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Typical value', es: 'Valor típico' }, { en: 'Source', es: 'Fuente' }],
       rows: [
         ['$J_g$', '1.2 - 1.4 cm/s', { en: 'gas-dispersion literature range 0.5 to 2.5', es: 'rango de la literatura de dispersión de gas 0,5 a 2,5' }],
-        ['D32', '0.8 + 0.45 $J_g$ mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
+        ['$D_{32}$', '0.8 + 0.45 $J_g$ mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
         [{ en: 'P, liberated sulphide', es: 'P, sulfuro liberado' }, '1.8e-4 - 3.2e-4', { en: 'authored so nominal KPIs fall in their plausibility ranges (cited or authored)', es: 'de autor para que los KPI nominales caigan en sus rangos de plausibilidad (citados o de autor)' }],
         [{ en: 'K valuable, gangue', es: 'K valioso, ganga' }, '12 - 60, 40 - 1500 g/t', { en: 'authored; gangue saturates later', es: 'de autor; la ganga se satura después' }],
         ['ξ, δ', '30 - 60 µm, 1', { en: 'inside the Savassi and Hoang fits', es: 'dentro de los ajustes de Savassi y Hoang' }],

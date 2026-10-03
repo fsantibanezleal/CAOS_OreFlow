@@ -605,7 +605,7 @@ function LearnedTables({ lang }: { lang: Lang }) {
                     <th scope="row">{t(MODEL[m], lang)}</th>
                     {TARGETS.flatMap(id => {
                       const v = l.summary[m][id];
-                      return [<td key={`${id}-i`}>{formatFixed(v.interpolation_r2, lang, 3)}</td>, <td key={`${id}-l`} className={v.loco_r2_median < 0 ? 'of-down' : undefined}>{formatFixed(v.loco_r2_median, lang, 3)}</td>, <td key={`${id}-r`}>{formatSignificant(v.loco_rmse_mean, lang, 3)}</td>];
+                      return [<td key={`${id}-i`}>{formatFixed(v.interpolation_r2, lang, 3)}</td>, <td key={`${id}-l`} className={v.loco_r2_median < 0 ? 'of-down' : undefined}>{formatFixed(v.loco_r2_median, lang, 3)}</td>, <td key={`${id}-r`}>{formatSignificant(v.loco_rmse_mean, lang, 3, true)}</td>];
                     })}
                   </tr>
                 ))}</tbody>
@@ -621,7 +621,7 @@ function LearnedTables({ lang }: { lang: Lang }) {
                     <td>{formatFraction(f.held_out_flag_rate, lang, 0)}</td>
                     {LEARN_MODELS.map(m => {
                       const v = f.models[m].recovery_pct.r2;
-                      return <td key={m} className={v < 0 ? 'of-down' : undefined}>{formatSignificant(v, lang, 3)}</td>;
+                      return <td key={m} className={v < 0 ? 'of-down' : undefined}>{formatSignificant(v, lang, 3, true)}</td>;
                     })}
                   </tr>
                 ))}</tbody>
