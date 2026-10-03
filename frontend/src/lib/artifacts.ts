@@ -78,8 +78,11 @@ export type IronFold = {
   id: number; train_rows: number; test_rows: number; train_first: string; train_last: string; test_first: string; test_last: string;
   embargo_hours_min: number; scores: Record<string, IronScores>;
   trace: Array<{ sensor_hour: string; lab_hour: string; observed_pct: number; predictions_pct: Record<string, number>;
-    sensors: Record<string, number>; lab_pct: { silica: number; iron: number } }>;
+    sensors: Record<string, number>; lab_pct: { silica: number; iron: number };
+    /** S-16: the sensor hour or the laboratory hour sits in a run of repeated laboratory values. */
+    held: boolean }>;
 };
+export type IronComparison = { a: string; b: string; metric: 'mae' | 'rmse'; difference_pct_points: number; interval_95: [number, number] };
 export type IronPlant = {
   schema: string;
   source: { title: string; url: string; publisher: string; dataset_id: number; version: number; license: string; archive_sha256: string; csv_sha256: string; date_first: string; date_last: string };
@@ -88,8 +91,15 @@ export type IronPlant = {
   protocol: { target: string; features: string[]; excluded_features: string[]; pair_rows: number; sampling: string; splits: string; interpretation: string; previous_lab_caveat: string };
   pooled_scores: Record<string, IronScores>;
   /** M-04: paired MAE and RMSE differences (a minus b) with day-block bootstrap intervals. */
-  comparisons: Array<{ a: string; b: string; metric: 'mae' | 'rmse'; difference_pct_points: number; interval_95: [number, number] }>;
+  comparisons: IronComparison[];
   repeated_assay_share: number;
+  /** S-16: laboratory values carried over unchanged across consecutive hours, and the same scores without the pairs
+   * that touch such a run. */
+  held_labels: {
+    rule: string; run_hours_min: number; repeated_label_hours: number; repeated_both_assays_hours: number; held_runs: number; held_hours: number;
+    longest_run_hours: number; longest_run_first_hour: string; longest_run_silica_pct: number; pairs_touching: number; pairs_without: number;
+    pooled_scores_without: Record<string, IronScores>; comparisons_without: IronComparison[]; repeated_assay_share_without: number;
+  };
   folds: IronFold[];
 };
 export const loadIronPlant = () => get<IronPlant>('source/iron_plant_soft_sensor.json');

@@ -77,7 +77,7 @@ export const SOURCE_TEXT = {
   },
   error: { en: 'Error (points)', es: 'Error (puntos)' },
   traceTitle: { en: 'The window\'s next-hour silica, with this hour marked', es: 'La sílice de la hora siguiente en la ventana, con esta hora marcada' },
-  traceSummary: { en: 'Measured next-hour silica across the window\'s sampled hours, with persistence, and the chosen hour marked.', es: 'Sílice medida de la hora siguiente en las horas muestreadas de la ventana, con la persistencia, y la hora elegida marcada.' },
+  traceSummary: { en: 'Measured next-hour silica across the window\'s sampled hours, with persistence, the values the laboratory repeated, and the chosen hour marked.', es: 'Sílice medida de la hora siguiente en las horas muestreadas de la ventana, con la persistencia, los valores de laboratorio repetidos, y la hora elegida marcada.' },
   silicaAxis: { en: 'Silica in the concentrate (%)', es: 'Sílice en el concentrado (%)' },
   observed: { en: 'Measured', es: 'Medida' },
   thisHour: { en: 'this hour', es: 'esta hora' },
@@ -88,6 +88,13 @@ export const SOURCE_TEXT = {
     es: 'Unidades según la descripción del conjunto (Kaggle 6294, leída en copias secundarias): flujos de reactivo en m³/h y aire en Nm³/h. Su densidad de pulpa "1 a 3 kg/cm³" se muestra en t/m³, lo que implican sus valores cercanos a 1,7. Las unidades de flujo de pulpa (t/h) y de nivel (mm) están SIN VERIFICAR.',
   },
   hourTick: { en: 'Sensor hour (month-day hour)', es: 'Hora de sensores (mes-día hora)' },
+  // S-16: a laboratory value carried over unchanged across consecutive hours
+  held: { en: 'Repeated laboratory value', es: 'Valor de laboratorio repetido' },
+  heldTag: { en: 'repeated value', es: 'valor repetido' },
+  heldNote: {
+    en: (run: number, touching: string, pairs: string) => `The laboratory repeated one silica value over ${run} or more consecutive hours at ${touching} of the lane's ${pairs} pairs. Such a value is carried over, not measured that hour, and the last assay scores it as no error. The Benchmark gives the lane's scores with and without those pairs.`,
+    es: (run: number, touching: string, pairs: string) => `El laboratorio repitió un mismo valor de sílice durante ${run} o más horas consecutivas en ${touching} de los ${pairs} pares de la vía. Ese valor es arrastrado, no medido en esa hora, y el último ensaye lo cuenta como error cero. El Benchmark da los puntajes de la vía con y sin esos pares.`,
+  },
   laneNote: {
     en: 'An observational forecast from one plant: it says how well the next hour is predicted here, not what a change of any sensor would do.',
     es: 'Un pronóstico observacional de una planta: dice qué tan bien se predice aquí la hora siguiente, no qué haría un cambio de algún sensor.',
@@ -196,8 +203,11 @@ export function HourReadout({ lane, hourKey, lang, cursor }: { lane: IronPlant; 
   return (
     <div className="of-readout" role="status" aria-live="polite">
       <span className="of-readout-item"><span className="of-readout-label">{SOURCE_TEXT.hourLabel[lang]}</span><strong>{hour.sensor_hour.slice(0, 16)}</strong></span>
-      {items.map(([label, v]) => (
-        <span key={label} className="of-readout-item"><span className="of-readout-label">{label}</span><strong>{`${formatFixed(v, lang, 2)}%`}</strong></span>
+      {items.map(([label, v], k) => (
+        // S-16: the next hour's value in the warning colour when the laboratory repeated it
+        <span key={label} className={k === 0 && hour.held ? 'of-readout-item warn' : 'of-readout-item'} title={k === 0 && hour.held ? SOURCE_TEXT.held[lang] : undefined}>
+          <span className="of-readout-label">{label}</span><strong>{`${formatFixed(v, lang, 2)}%`}</strong>
+        </span>
       ))}
       <span className="of-readout-flags" title={SOURCE_TEXT.recorded[lang]}>{SOURCE_TEXT.recorded[lang]}</span>
       {cursor && <span className="of-readout-cursor" title={cursor}>{cursor}</span>}
@@ -212,9 +222,10 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
     <div className="of-view of-view-hour">
       <div className="of-split">
         <div className="of-hour-main">
-          <Chart data={[xs, window.trace.map(t => t.observed_pct), window.trace.map(t => t.predictions_pct.previous_lab)] as uPlot.AlignedData}
+          <Chart data={[xs, window.trace.map(t => t.observed_pct), window.trace.map(t => t.predictions_pct.previous_lab), window.trace.map(t => (t.held ? t.observed_pct : null))] as uPlot.AlignedData}
             xLabel={SOURCE_TEXT.hourTick[lang]} yLabel={SOURCE_TEXT.silicaAxis[lang]} title={SOURCE_TEXT.traceTitle[lang]} summary={SOURCE_TEXT.traceSummary[lang]}
-            series={[{ label: SOURCE_TEXT.observed[lang], colour: 'accent', points: true }, { label: IRON_NAME.previous_lab[lang], colour: 'warn', dash: [4, 4] }]}
+            series={[{ label: SOURCE_TEXT.observed[lang], colour: 'accent', points: true }, { label: IRON_NAME.previous_lab[lang], colour: 'warn', dash: [4, 4] },
+              { label: SOURCE_TEXT.held[lang], colour: 'magenta', points: true, width: 3 }]}
             marks={[{ x: index, label: SOURCE_TEXT.thisHour[lang] }]}
             format={(v, axis) => (v === null ? '-' : axis === 'x' ? (Number.isInteger(v) && window.trace[v] ? window.trace[v].sensor_hour.slice(5, 13).replace('T', ' ') : '') : `${formatFixed(v, lang, 2)}%`)}
             onCursor={c => onCursor(c ? `${window.trace[c.index].sensor_hour.slice(0, 16)}: ${SOURCE_TEXT.observed[lang]} ${formatFixed(window.trace[c.index].observed_pct, lang, 2)}%` : null)} />
@@ -222,7 +233,8 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
             <caption>{`${SOURCE_TEXT.hourTitle[lang]}: ${hour.sensor_hour.slice(0, 16)}`}</caption>
             <thead><tr><th scope="col">{SOURCE_TEXT.model[lang]}</th><th scope="col">%</th><th scope="col">{SOURCE_TEXT.error[lang]}</th></tr></thead>
             <tbody>
-              <tr className="of-table-group"><th scope="row">{SOURCE_TEXT.next[lang]}</th><td>{formatFixed(hour.observed_pct, lang, 2)}</td><td /></tr>
+              <tr className="of-table-group"><th scope="row">{SOURCE_TEXT.next[lang]}</th><td>{formatFixed(hour.observed_pct, lang, 2)}</td>
+                <td className={hour.held ? 'of-cell-warn' : undefined}>{hour.held ? SOURCE_TEXT.heldTag[lang] : ''}</td></tr>
               {IRON_MODELS.map(m => (
                 <tr key={m}><th scope="row">{IRON_NAME[m][lang]}</th><td>{formatFixed(hour.predictions_pct[m], lang, 2)}</td>
                   <td>{formatFixed(hour.predictions_pct[m] - hour.observed_pct, lang, 2)}</td></tr>
@@ -230,6 +242,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
             </tbody>
           </table>
           <p className="of-footnote">{`${SOURCE_TEXT.outOfFold[lang](window.id, Math.floor(window.embargo_hours_min))} ${SOURCE_TEXT.laneNote[lang]}`}</p>
+          <p className="of-footnote">{SOURCE_TEXT.heldNote[lang](lane.held_labels.run_hours_min, formatFixed(lane.held_labels.pairs_touching, lang, 0), formatFixed(lane.protocol.pair_rows, lang, 0))}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">

@@ -16,6 +16,12 @@ silica, are laboratory results.
 - **Interpolated labels (IS-02).** In 310 nominal hours the silica label changes on almost every 20-second row: it
   was interpolated, not measured. Those hours are excluded whole (55,800 rows), and the 20-second rows are never
   treated as independent laboratory observations.
+- **Repeated labels (review of 2026-10-02, S-16).** The rule above removes a label that changes inside an hour. It
+  does not remove a label repeated unchanged over consecutive hours, which reads as a measurement of each of those
+  hours and is one value carried over. A run of three or more consecutive valid hours with one silica label is a
+  held run: 46 runs, 421 hours, the longest 73 hours from 2017-07-31 20:00 at 2.08%. In all, 446 valid hours repeat
+  the previous hour's silica, and 409 of them repeat both assays. These hours are kept, every traced hour says
+  whether it touches a held run, and the scores are reported with and without the pairs that touch one.
 - **Hours and pairs (IS-03).** The remaining hours become the median of each sensor. Only exact consecutive hours
   with a measured label form a pair: hour $t$'s 21 feed, reagent, pulp and column sensors predict the silica
   measured at $t + 1$. That gives 3,701 pairs. Both concentrate assays, the future target and the date are kept out
@@ -57,6 +63,17 @@ Pooled over the three windows, in percentage points of silica:
 Ridge alone, the training mean, the random forest and gradient boosting (with and without the assay) follow at 0.52
 to 0.81 points of MAE; the Benchmark's table lists every score by window.
 
+461 of the 3,701 pairs touch a held run (their sensor hour or their laboratory hour sits in one). The same protocol
+on the other 3,240 pairs, refitted:
+
+| Model | MAE, every pair | MAE, without | RMSE, every pair | RMSE, without |
+|---|---|---|---|---|
+| previous laboratory assay | 0.464 | 0.510 | 0.767 | 0.787 |
+| fitted last assay (AR(1)) | 0.486 | 0.518 | 0.707 | 0.721 |
+| ridge with the previous assay | 0.501 | 0.534 | 0.717 | 0.735 |
+| training mean | 0.766 | 0.769 | 0.968 | 0.964 |
+| ridge, sensors | 0.765 | 0.783 | 0.996 | 0.999 |
+
 The sensor-only models do no better than the training mean: ridge is 0.001 points below it, and the random forest
 and gradient boosting are above it. Which forecast wins depends on the metric (review of 2026-10-02, M-04):
 - By MAE the previous assay alone is best.
@@ -67,7 +84,15 @@ and gradient boosting are above it. Which forecast wins depends on the metric (r
 
 Under this protocol the hourly sensor medians carry little information about the next hour's silica that the last
 assay does not already hold. 14% of the test hours repeat the previous assay exactly, which persistence scores as no
-error. `tests/test_iron_plant.py::test_the_fitted_last_assay_is_the_comparator` holds these orderings.
+error; without the pairs that touch a held run it is 3%. `tests/test_iron_plant.py::test_the_fitted_last_assay_is_the_comparator`
+holds these orderings.
+
+Without those pairs every error that uses the laboratory rises, ridge moves from 0.001 points below the training mean
+to 0.014 above it, and each metric keeps its winner. One conclusion changes: with every pair the previous assay is
+better than the fitted last assay under MAE beyond the interval (0.023 points, 0.004 to 0.043); without the held
+pairs it is not (0.008 points, -0.009 to 0.025). That advantage was the repeated values, which the previous assay
+scores as no error. `tests/test_iron_plant.py::test_held_labels_are_named_and_scored_apart` holds the rule and the
+counts.
 
 A published random forest on the same data reports R² 0.965 (Pural 2023, Physicochemical Problems of Mineral
 Processing 59(5):169823, doi:10.37190/ppmp/169823, from its abstract). Its split protocol and its treatment of the
@@ -79,20 +104,24 @@ hourly label on both sides of it, so the two are cited and not compared. Ramos e
 
 The Benchmark's Industrial quality tab shows the traces, the error by window and model, and the windows (IS-05).
 The workbench's iron-plant source shows one traced hour: its 21 sensors, its two assays, and every model's forecast
-of the next hour beside the measured one. The engine views say that the plant's reverse cationic circuit is not an
+of the next hour beside the measured one; a next-hour value that touches a held run is marked as a repeated value,
+in the chart and beside the number. The engine views say that the plant's reverse cationic circuit is not an
 engine family, and nothing is simulated (RS-07).
 
 ## Verification
 
-- `tests/test_iron_plant.py` (IS-01 to IS-04, IS-06): the pin refuses a changed archive; the interpolated-hour rule
-  and the next-hour pairs on synthetic frames; the windows' order and embargo, and the preprocessing inside each
-  model; the absence of set-point advice. The tests never refit the lane or read the 184 MB CSV.
-- `scripts/check_artifacts.py`: the pin, the population, the exclusions, the features, the windows and the model
-  matrix.
+- `tests/test_iron_plant.py` (IS-01 to IS-04, IS-06): the pin refuses a changed archive; the interpolated-hour rule,
+  the held-run rule and the next-hour pairs on synthetic frames; the windows' order and embargo, and the
+  preprocessing inside each model; the absence of set-point advice. The tests never refit the lane or read the 184 MB
+  CSV.
+- `scripts/check_artifacts.py`: the pin, the population, the exclusions, the features, the windows, the model
+  matrix, the held-label block and the mark on every traced hour.
+- `tests/test_docs_claims.py` holds every number of this page to the record.
 - `frontend/src/test/iron-plant-claims.test.ts` (IS-05, IS-06): every number of the tab against the artifact.
 - The artifact regenerates from the pinned archive with `data-pipeline/run_iron_plant.py`. The 0.07 run
   reproduced every value of the branch's first artifact, and added the two lab-conditioned models and each traced
-  hour's sensors.
+  hour's sensors. The 0.08 run reproduced every value of the 0.07 record's scores, comparisons and traces, and
+  added the held-label block and the mark on each traced hour.
 
 ## What it is not
 

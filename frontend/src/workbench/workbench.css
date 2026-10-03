@@ -490,7 +490,7 @@ input, select, textarea { font: inherit; }
   .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }
 }
 /* U-11: a value an engine flag speaks about (power-limited P80 and power, a load outside its window) */
-.of-facts > .of-fact-warn dt, .of-facts > .of-fact-warn dd, .of-readout-item.warn strong { color: var(--color-warn); }
+.of-facts > .of-fact-warn dt, .of-facts > .of-fact-warn dd, .of-readout-item.warn strong, .of-table td.of-cell-warn { color: var(--color-warn); }
 /* U-15: a view the source has nothing for */
 .of-bench .tablist.of-viewbar .tab:disabled { opacity: 0.4; cursor: not-allowed; }
 /* U-33: the key of a category axis whose names did not fit (the Sobol factors on a phone) */

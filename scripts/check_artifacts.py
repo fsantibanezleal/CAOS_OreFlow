@@ -518,6 +518,21 @@ def check_iron_plant(derived: Path) -> list[str]:
     share = a.get("repeated_assay_share")
     if not isinstance(share, (int, float)) or not 0.0 <= share <= 1.0:
         errors.append("iron plant repeated-assay share")
+    # S-16: the held laboratory labels, the pairs that touch them, the same matrix without those pairs, and the mark
+    # on every traced hour
+    held = a.get("held_labels", {})
+    pairs = protocol.get("pair_rows")
+    if (not isinstance(held.get("run_hours_min"), int) or held.get("run_hours_min", 0) < 2
+            or not 0 <= held.get("held_hours", -1) <= q.get("constant_lab_hours", 0)
+            or held.get("repeated_both_assays_hours", 0) > held.get("repeated_label_hours", -1)
+            or held.get("longest_run_hours", 0) < held.get("run_hours_min", 0)
+            or held.get("pairs_touching", -1) + held.get("pairs_without", -1) != pairs
+            or set(held.get("pooled_scores_without", {})) != models
+            or len(held.get("comparisons_without", [])) != len(comparisons)):
+        errors.append("iron plant held-label block")
+    traced = [row for f in folds for row in f.get("trace", [])]
+    if not traced or any(not isinstance(row.get("held"), bool) for row in traced):
+        errors.append("iron plant traced hours carry no held mark")
     return errors
 
 

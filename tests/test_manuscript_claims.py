@@ -246,6 +246,8 @@ def test_the_engine_on_the_samples_and_the_plant_hours_quote_their_records():
     sensors = ("ridge", "random_forest", "hist_gradient_boosting")
     best = min(sensors, key=mae.get)
     assert best == "ridge" and min(mae, key=mae.get) == "previous_lab"
+    held = iron["held_labels"]
+    clean = {m: v["mae_pct_points"] for m, v in held["pooled_scores_without"].items()}
     missing = _missing([
         f"in the hole ({s['work_index_assignment']['nearest_in_hole']} samples) or the deposit median ({s['work_index_assignment']['deposit_median']})",
         f"spans {s['work_index_kwh_t']['min']:.1f} to {s['work_index_kwh_t']['max']:.1f} kWh/t against the case's {case['variants'][0]['point']['work_index_kwh_t']:.1f}",
@@ -259,5 +261,9 @@ def test_the_engine_on_the_samples_and_the_plant_hours_quote_their_records():
         f"Dropping the {iron['quality']['changing_lab_hours_excluded']} hours whose silica label was interpolated leaves {iron['protocol']['pair_rows']:,} pairs",
         f"with a mean absolute error of {mae['previous_lab']:.3f} points",
         f"ridge, is {mae['train_mean'] - mae['ridge']:.3f} points below the training mean's {mae['train_mean']:.3f}",
+        # S-16: the laboratory values carried over, and the scores without the pairs that touch them
+        f"In {held['pairs_touching']} of those pairs the laboratory value is one carried over unchanged for three or more consecutive hours",
+        f"without them the previous assay's error is {clean['previous_lab']:.3f} points, still the lowest, and ridge is {clean['ridge'] - clean['train_mean']:.3f} points above the training mean",
     ])
     assert not missing, missing
+    assert held["run_hours_min"] == 3 and min(clean, key=clean.get) == "previous_lab"

@@ -336,7 +336,9 @@ authored for another ore, and a locked-cycle test is not a plant.
 hourly laboratory silica beside 21 feed, reagent, pulp and column sensors. Dropping the 310 hours whose silica
 label was interpolated leaves 3,701 pairs of consecutive hours. Scored on three future windows after at least 24
 hours of embargo, the previous assay alone forecasts the next hour's silica with a mean absolute error of 0.464
-points, and the best sensor-only model, ridge, is 0.001 points below the training mean's 0.766. The engine has no
+points, and the best sensor-only model, ridge, is 0.001 points below the training mean's 0.766. In 461 of those
+pairs the laboratory value is one carried over unchanged for three or more consecutive hours; without them the
+previous assay's error is 0.510 points, still the lowest, and ridge is 0.014 points above the training mean. The engine has no
 reverse cationic flotation family, so these hours are shown and never simulated.
 
 ## 8. Discussion and limitations
