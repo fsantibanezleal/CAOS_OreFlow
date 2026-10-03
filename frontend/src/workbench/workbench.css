@@ -68,7 +68,7 @@ input, select, textarea { font: inherit; }
 .of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
-.of-knob-base { font-size: 0.68rem; color: var(--color-fg-faint); }
+.of-knob-base { font-size: 0.68rem; color: var(--color-fg-subtle); }
 /* CM-07: the classifier cut is a mode switch; the inputs it replaces stay visible, disabled, as results */
 .of-knob-title { font-size: 0.8rem; color: var(--color-fg); }
 .of-segmented { display: flex; gap: 4px; }
@@ -180,7 +180,7 @@ input, select, textarea { font: inherit; }
   font-size: 0.8rem;
 }
 .of-side h3 { margin: 0; font-size: 0.95rem; }
-.of-stage-hint { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: 0.74rem; color: var(--color-fg-faint); pointer-events: none; }
+.of-stage-hint { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: 0.74rem; color: var(--color-fg-subtle); pointer-events: none; }
 .of-unit-card {
   position: absolute;
   top: 10px;
@@ -332,7 +332,7 @@ input, select, textarea { font: inherit; }
 .of-table-scroll { flex: 0 1 auto; min-height: 0; overflow: auto; border: 1px solid var(--color-border); border-radius: 6px; }
 .of-table-scroll thead th { position: sticky; top: 0; background: var(--color-bg); }
 .of-compare-charts { min-height: 220px; }
-.of-muted { color: var(--color-fg-faint); font-weight: 400; font-size: 0.72rem; }
+.of-muted { color: var(--color-fg-subtle); font-weight: 400; font-size: 0.72rem; }
 .of-tag.ok { background: color-mix(in oklab, var(--color-good) 18%, transparent); color: var(--color-good); }
 
 /* the Case view's context: text on the left, components and equations on the right; the panel is the one scroller */
@@ -382,7 +382,7 @@ input, select, textarea { font: inherit; }
 .of-status-line { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--color-good); }
 .of-status-line.warn { color: var(--color-warn); }
 .of-status-line.neutral { color: var(--color-fg); }
-.of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-faint); }
+.of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-subtle); }
 /* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
  * phone never scrolls sideways */
 .of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
@@ -463,7 +463,7 @@ input, select, textarea { font: inherit; }
 .of-rejection { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 1.2rem; border: 1px solid var(--color-warn); border-radius: 8px; max-width: 46rem; }
 .of-rejection p { margin: 0; }
 .of-rejection-title { font-weight: 700; color: var(--color-warn); }
-.of-rejection-note { font-size: 0.8rem; color: var(--color-fg-faint); }
+.of-rejection-note { font-size: 0.8rem; color: var(--color-fg-subtle); }
 /* U-07: a power-limited sample state is named in the warning colour beside its recovery */
 .of-table tr.of-row-warn th, .of-table tr.of-row-warn td { color: var(--color-warn); }
 

@@ -63,11 +63,15 @@ html, body, #root { height: auto; min-height: 100%; }
 .dg-box.of-dg-optional { stroke-dasharray: 5 3; }
 .of-dg-optional-edge { stroke: var(--color-fg-faint); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
 .of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
+/* D-29: the shell draws figure notes and ticks in --color-fg-faint (4.27:1 on the light page, 3.80:1 on the dark
+   surface), below WCAG AA for 11 px text; here they carry content (solve directions, legends, sample counts), so they
+   take the subtle text colour (at least 5.7:1 on every page and surface, both themes) */
+.fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle); }
 
 /* artifact-bound tables and charts under a topic */
 .of-topic-data { margin: 1.2rem 0; min-width: 0; }
 .of-doc-table-data { max-width: none; font-variant-numeric: tabular-nums; }
-.of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-faint); font-style: italic; }
+.of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-subtle); font-style: italic; }
 .of-doc-table td { white-space: nowrap; }
 .of-doc-table td.of-doc-wrap { white-space: normal; min-width: 14rem; }
 /* a name that may break over two lines where the table is short of width (the case catalog) */
