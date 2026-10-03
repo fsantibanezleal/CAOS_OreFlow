@@ -306,6 +306,11 @@ input, select, textarea { font: inherit; }
 .of-flow-unit text { fill: var(--color-fg); font: 600 11px var(--font-sans); pointer-events: none; }
 .of-flow-unit:hover rect, .of-flow-unit:focus-visible rect { stroke: var(--color-accent); }
 .of-flow-unit.selected rect { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
+/* D-20: a junction (streams join, or water is added) is a small node with its name in small type, not a unit box */
+.of-flow-junction circle { fill: var(--color-surface-2); stroke: var(--color-fg-subtle); stroke-width: 1.4; }
+.of-flow-junction:hover circle, .of-flow-junction:focus-visible circle { stroke: var(--color-accent); }
+.of-flow-junction.selected circle { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
+.of-flow-unit text.of-flow-junction-name { fill: var(--color-fg-subtle); font: 9.5px var(--font-sans); }
 
 /* ---- tables, facts and text ---- */
 .of-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; font-variant-numeric: tabular-nums; }

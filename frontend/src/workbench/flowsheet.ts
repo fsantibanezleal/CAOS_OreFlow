@@ -6,13 +6,17 @@
  * become edges from the unit that produces them to the unit that consumes them: the feed enters from
  * the left, every product leaves as a terminal (to the right of its unit, or downward when the right is
  * taken by a unit or by the unit's concentrate), the cyclone overflow runs down to the second band, and
- * an edge that runs back against the flow is routed along its own row when no unit is in the way and
- * otherwise in a lane of its own below the band, so two recycles never share a line. The circulating
+ * an edge that runs back against the flow is routed along its own row when no unit is in the way, above
+ * its row when it returns along the second band's lower row and the strip above is free (the recleaner tail,
+ * D-09: below the band it crossed the cleaner tail's lane in every recleaner case), and otherwise in a lane
+ * of its own below the band, so two recycles never share or cross a line. The circulating
  * streams (cyclone underflow and its return, cleaner and recleaner tails) are drawn as recycles
  * wherever they run.
  */
 import type { Inset } from '../components/charts/inset';
 import type { TopologyUnit } from '../engine/circuit';
+import { formatWithUnit, type Lang } from '../lib/format';
+import { streamName } from '../lib/i18n';
 
 export type Node = { unit: string; col: number; row: number };
 export type Edge = {
@@ -117,6 +121,11 @@ export function layout(topology: TopologyUnit[], concentrates: string[], tails: 
       } else if (t.row < f.row && !occupied(f.row, t.col - 1, f.col)) {
         // back and up with a free row: left along the source's row, then up into the target
         points = [[f.col - HALF, f.row], [t.col, f.row], [t.col, t.row + HALF]];
+      } else if (t.row === f.row && f.row > BAND && !nodes.some(n => n.row === f.row - 1 && n.col >= t.col && n.col <= f.col)) {
+        // back along the second band's lower row: above the row, between it and the band's first row
+        // it rises from the left of the unit's top, so the space above the unit stays free for its product's label
+        const above = f.row - 0.5;
+        points = [[f.col - 0.2, f.row - HALF], [f.col - 0.2, above], [t.col, above], [t.col, t.row - HALF]];
       } else {
         // a lane of its own below the band, deeper for each further recycle of that band
         const b = band(f.row);
@@ -127,6 +136,18 @@ export function layout(topology: TopologyUnit[], concentrates: string[], tails: 
       }
       edges.push({ stream, from, to, recycle, points });
     }
+  }
+  // D-21: a product that leaves to the right stops short of a vertical line one cell on (the cyclone overflow's
+  // carriage return), so its arrowhead never reads as joining that line
+  for (const e of edges) {
+    if (e.to !== null || e.points.length !== 2 || e.points[0][1] !== e.points[1][1]) continue;
+    const [[x0, y], [x1]] = e.points;
+    if (x1 <= x0) continue;
+    const blocked = edges.some(o => o !== e && o.points.slice(1).some((b, i) => {
+      const a = o.points[i];
+      return a[0] === b[0] && Math.abs(a[0] - Math.ceil(x1)) < 1e-9 && Math.min(a[1], b[1]) <= y && Math.max(a[1], b[1]) >= y;
+    }));
+    if (blocked) e.points[1] = [x0 + 0.35, y];
   }
   return { nodes, edges, cols: maxCol + 1, rows: maxRow + 1 };
 }
@@ -181,4 +202,176 @@ export function fit(e: Extent, stage: { width: number; height: number }, inset: 
     height: stage.height / zoom,
     frame: { x0: left / zoom, y0: top / zoom, x1: width - right / zoom, y1: (stage.height - bottom) / zoom },
   };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// The drawing in px and its labels: pure functions of the layout, the fit and the trace's stream records, so the
+// placement is tested over every case and stage (flowsheet.test.ts) and the component only renders the result.
+
+export const BOX_H = 34;
+export const NODE_R = 6;            // a junction's radius
+export const NAME_CHAR = 6.2;       // px per character of an 11 px unit name
+const CAPTION_CHAR = 5.4;           // px per character of a 9.5 px junction name
+const LABEL_CHAR = 6.1;             // px per character of a 10 px monospaced edge label
+export const LINE = 11;             // px between the lines of a two-line label
+/** px by which another stream must be nearer a label than its own before the label is refused (D-21). */
+const NEARER = 8;
+/** D-20: the points where streams join or water is added, drawn as small nodes, not as equipment. */
+export const JUNCTIONS = new Set(['mill_feed_junction', 'underflow_return', 'lims_link', 'flotation_link', 'rougher_junction', 'cleaner_junction', 'recleaner_dilution']);
+
+export type Box = { x0: number; y0: number; x1: number; y1: number };
+export type Label = { x: number; y: number; anchor: 'middle' | 'start' | 'end'; lines: string[] };
+export type Caption = { unit: string; box: Box; y: number };
+export type Drawing = { boxW: number; paths: Array<Array<[number, number]>>; units: Box[]; segments: Box[]; centres: Record<string, [number, number]> };
+type StreamRecord = { solids_tph: number; grades: Record<string, number> };
+
+const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+function toSegment([x, y]: [number, number], [ax, ay]: [number, number], [bx, by]: [number, number]): number {
+  const dx = bx - ax, dy = by - ay;
+  const s = dx || dy ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / (dx * dx + dy * dy))) : 0;
+  return Math.hypot(x - (ax + s * dx), y - (ay + s * dy));
+}
+const toPath = (q: [number, number], path: Array<[number, number]>) => Math.min(...path.slice(1).map((b, i) => toSegment(q, path[i], b)));
+/** The distance from a label's box to a path: from the nearest of its corners, edge midpoints and centre. */
+function toBox(b: Box, path: Array<[number, number]>): number {
+  const xs = [b.x0, (b.x0 + b.x1) / 2, b.x1], ys = [b.y0, (b.y0 + b.y1) / 2, b.y1];
+  return Math.min(...xs.flatMap(x => ys.map(y => toPath([x, y], path))));
+}
+
+/** Every unit box and edge polyline in the drawing's px. */
+export function drawing(plan: Layout, f: Fit): Drawing {
+  const px = (col: number) => f.ox + col * f.cellW;
+  const py = (row: number) => f.oy + row * f.cellH;
+  const boxW = Math.max(64, Math.min(132, f.cellW * 0.66));
+  const at = Object.fromEntries(plan.nodes.map(n => [n.unit, n]));
+  const halfW = (unit: string) => (JUNCTIONS.has(unit) ? NODE_R : boxW / 2);
+  const halfH = (unit: string) => (JUNCTIONS.has(unit) ? NODE_R : BOX_H / 2);
+  // edge ends that sit HALF a cell from a unit's centre are moved onto that unit's border
+  const paths = plan.edges.map(edge => edge.points.map(([c, r], k): [number, number] => {
+    const end = k === 0 ? edge.from : k === edge.points.length - 1 ? edge.to : null;
+    const node = end ? at[end] : undefined;
+    let x = px(c);
+    let y = py(r);
+    if (node) {
+      if (Math.abs(Math.abs(c - node.col) - HALF) < 1e-9 && r === node.row) x = px(node.col) + Math.sign(c - node.col) * halfW(node.unit);
+      if (Math.abs(Math.abs(r - node.row) - HALF) < 1e-9 && Math.abs(c - node.col) < 0.5) y = py(node.row) + Math.sign(r - node.row) * halfH(node.unit);
+    }
+    return [x, y];
+  }));
+  // U-26: every edge segment (and its arrowhead) is an obstacle for every label, so no label sits on a line
+  const segments: Box[] = paths.flatMap(path => path.slice(1).map(([x1, y1], i) => {
+    const [x0, y0] = path[i];
+    return { x0: Math.min(x0, x1) - 3, y0: Math.min(y0, y1) - 3, x1: Math.max(x0, x1) + 3, y1: Math.max(y0, y1) + 3 };
+  }));
+  const units = plan.nodes.map(n => ({ x0: px(n.col) - halfW(n.unit), y0: py(n.row) - halfH(n.unit), x1: px(n.col) + halfW(n.unit), y1: py(n.row) + halfH(n.unit) }));
+  const centres = Object.fromEntries(plan.nodes.map(n => [n.unit, [px(n.col), py(n.row)] as [number, number]]));
+  return { boxW, paths, units, segments, centres };
+}
+
+/** Each junction's name, above its node or below it, where neither a unit, a line nor a stream label is; a name
+ * that finds no room is left out (the node keeps it as its accessible name, and the unit panel shows it). */
+export function placeCaptions(plan: Layout, d: Drawing, frame: Fit['frame'], labelBoxes: Box[], nameOf: (unit: string) => string): Caption[] {
+  const taken: Box[] = [...d.units, ...d.segments, ...labelBoxes];
+  const out: Caption[] = [];
+  for (const n of plan.nodes.filter(m => JUNCTIONS.has(m.unit))) {
+    const w = nameOf(n.unit).length * CAPTION_CHAR;
+    const [cx, cy] = d.centres[n.unit];
+    for (const box of [{ x0: cx - w / 2, y0: cy - NODE_R - 13, x1: cx + w / 2, y1: cy - NODE_R - 2 }, { x0: cx - w / 2, y0: cy + NODE_R + 2, x1: cx + w / 2, y1: cy + NODE_R + 13 }]) {
+      if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || taken.some(b => overlaps(b, box))) continue;
+      taken.push(box);
+      out.push({ unit: n.unit, box, y: box.y1 - 2 });
+      break;
+    }
+  }
+  return out;
+}
+
+/** Each edge's hover text and its label options: one line, or two (the name over the values) where one line
+ * finds no room (D-08); the underflow into the gravity unit also says the bleed it treats (D-04). */
+export function labelTexts(plan: Layout, streams: Record<string, StreamRecord>, primary: { species: string; unit: string }, point: Record<string, number>, lang: Lang) {
+  const partsOf = (stream: string) => {
+    const s = streams[stream];
+    return s ? [formatWithUnit(s.solids_tph, 't/h', lang), formatWithUnit(s.grades[primary.species], primary.unit, lang)] : [];
+  };
+  const bleedShare = Number.isFinite(point.gravity_bleed) ? formatWithUnit(100 * point.gravity_bleed, '%', lang) : '';
+  const bleedLine = streams.gravity_feed && bleedShare ? `b = ${bleedShare}: ${formatWithUnit(streams.gravity_feed.solids_tph, 't/h', lang)} ${lang === 'es' ? 'a la unidad' : 'to the unit'}` : '';
+  const edges = plan.edges.map(edge => {
+    const name = streamName(edge.stream, lang);
+    const parts = partsOf(edge.stream);
+    const value = parts.join(' · ');
+    const outlet = edge.to === null || edge.from === null;
+    // U-09: an outlet or the feed says which stream it is; an inner edge keeps its rate and grade only
+    const text = outlet ? `${name}: ${value}` : value;
+    const bleed = edge.stream === 'cyclone_underflow' && edge.to === 'gravity_split' && bleedLine !== '';
+    // D-08: one line first; where it finds no room, the name over the values, then the rate over the grade (the
+    // bleed's line gives way last: the gravity box names its share and the title says it all)
+    const options: string[][] = !value ? []
+      : bleed ? [[value, bleedLine], [value], parts]
+        : outlet ? [[text], [`${name}:`, value], [`${name}:`, ...parts]] : [[text], parts];
+    return { title: `${name}: ${bleed ? `${value}; ${bleedLine}` : text}`, options };
+  });
+  return { edges, bleedShare };
+}
+
+/** A label for each edge, or null where none of its options finds room, and the boxes the labels take. */
+export function placeLabels(plan: Layout, d: Drawing, frame: Fit['frame'], options: string[][][]): { labels: Array<Label | null>; boxes: Box[] } {
+  const placed: Box[] = [];
+  const obstacles = [...d.units, ...d.segments];
+  // the outlets and the feed claim their room first: they name their streams (U-09), and the final concentrate's
+  // label is the one a reader looks for (D-08)
+  const order = plan.edges.map((_, k) => k).sort((a, b) => Number(plan.edges[b].to === null || plan.edges[b].from === null) - Number(plan.edges[a].to === null || plan.edges[a].from === null));
+  const labels: Array<Label | null> = plan.edges.map(() => null);
+  for (const k of order) labels[k] = place(k);
+  return { labels, boxes: placed };
+
+  function place(k: number): Label | null {
+    const edge = plan.edges[k];
+    const path = d.paths[k];
+    // the label goes by the longest segment: above a horizontal one, beside a vertical one
+    let best = 0;
+    let bestLength = -1;
+    for (let i = 0; i + 1 < path.length; i += 1) {
+      const length = Math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1]);
+      if (length > bestLength) { bestLength = length; best = i; }
+    }
+    const [[ax, ay], [bx, by]] = [path[best], path[best + 1]];
+    const horizontal = Math.abs(by - ay) < 1e-6;
+    const mx = (ax + bx) / 2;
+    const my = (ay + by) / 2;
+    // the first candidate, over every form, that fits and that no other stream is clearly nearer (D-21: a label
+    // reads as the stream nearest to it), else the first that fits
+    let fallback: { label: Label; box: Box } | null = null;
+    for (const lines of options[k]) {
+      const w = Math.max(...lines.map(l => l.length)) * LABEL_CHAR;
+      const up = LINE * (lines.length - 1);
+      // above the row of units first (a short edge between two units has no room of its own), then just
+      // above or below the line; a product's label may also end at its arrow and a feed's start at its
+      // tail, on the line or above the row
+      const candidates: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = horizontal
+        ? [
+          ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my - 6 - up, anchor: 'end' as const }, { x: Math.max(ax, bx), y: my - BOX_H / 2 - 5 - up, anchor: 'end' as const }] : []),
+          ...(edge.from === null ? [{ x: Math.min(ax, bx), y: my - 6 - up, anchor: 'start' as const }, { x: Math.min(ax, bx), y: my - BOX_H / 2 - 5 - up, anchor: 'start' as const }] : []),
+          { x: mx, y: my - BOX_H / 2 - 5 - up, anchor: 'middle' },
+          { x: mx, y: my - 6 - up, anchor: 'middle' },
+          { x: mx, y: my + BOX_H / 2 + 13, anchor: 'middle' },
+          ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my + 14, anchor: 'end' as const }, { x: Math.max(ax, bx), y: my + BOX_H / 2 + 13, anchor: 'end' as const }] : []),
+        ]
+        : [{ x: mx + 6, y: my + 3 - up / 2, anchor: 'start' }, { x: mx - 6, y: my + 3 - up / 2, anchor: 'end' }];
+      for (const c of candidates) {
+        const bx0 = c.anchor === 'middle' ? c.x - w / 2 : c.anchor === 'start' ? c.x : c.x - w;
+        const box = { x0: bx0 - 2, y0: c.y - 10, x1: bx0 + w + 2, y1: c.y + 3 + up };
+        // inside the frame, so no label sits under an overlay (the focus route's readouts)
+        if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...obstacles, ...placed].some(b => overlaps(b, box))) continue;
+        const own = toBox(box, path);
+        if (d.paths.some((other, j) => j !== k && plan.edges[j].stream !== edge.stream && toBox(box, other) + NEARER < own)) {
+          fallback ??= { label: { ...c, lines }, box };
+          continue;
+        }
+        placed.push(box);
+        return { ...c, lines };
+      }
+    }
+    if (fallback) placed.push(fallback.box);
+    return fallback?.label ?? null;
+  }
 }

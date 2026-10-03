@@ -4,24 +4,25 @@
  * The diagram measures its own box and lays the grid out in pixels up to a readable cell, so text keeps
  * its size on a small stage; a stage larger than that cell on both axes is filled by scaling the whole
  * drawing by one factor (flowsheet.ts, fit), so the circuit spans the stage at any viewport and its text
- * grows with it. An edge label that would overlap a unit or another label
- * is left out; every edge still carries its values as a hover title, and the unit panel lists them.
- * Selecting a unit reports it upward; the diagram computes nothing.
+ * grows with it. The geometry and the label placement are flowsheet.ts's (drawing, labelTexts,
+ * placeLabels): a label that would overlap a unit or another label, or sit clearly nearer another stream
+ * than its own, is left out; every edge still carries its values as a hover title, and the unit panel
+ * lists them. Selecting a unit reports it upward; the diagram computes nothing.
  */
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { OverlayInset } from '../components/charts/inset';
 import type { TopologyUnit } from '../engine/circuit';
 import type { Trace } from '../engine/trace';
-import { formatWithUnit, type Lang } from '../lib/format';
-import { streamName } from '../lib/i18n';
-import { extent, fit, layout, type Edge } from './flowsheet';
+import type { Lang } from '../lib/format';
+import { BOX_H, drawing, extent, fit, JUNCTIONS, labelTexts, layout, LINE, NAME_CHAR, NODE_R, placeCaptions, placeLabels } from './flowsheet';
 
 const UNIT_NAMES: Record<string, [string, string]> = {
   crusher: ['Crusher', 'Chancador'], mill_feed_junction: ['Mill feed', 'Alimentación molino'], mill: ['Ball mill', 'Molino de bolas'],
   sump: ['Sump', 'Cajón'], cyclone: ['Cyclones', 'Ciclones'], underflow_return: ['Underflow return', 'Retorno de descarga'],
-  gravity_split: ['Gravity unit', 'Concentrador gravimétrico'], lims_link: ['LIMS feed', 'Alimentación LIMS'],
+  gravity_split: ['Gravity bleed', 'Purga gravimétrica'], lims_link: ['LIMS feed', 'Alimentación LIMS'],
   lims_rougher: ['LIMS rougher', 'LIMS rougher'], lims_cleaner: ['LIMS cleaner', 'LIMS limpieza'], deslime: ['Desliming', 'Deslamado'],
-  flotation_link: ['Conditioning', 'Acondicionamiento'], rougher_junction: ['Rougher feed', 'Alimentación rougher'], rougher: ['Rougher', 'Rougher'],
+  // D-20: the unit only adds dilution water to the rougher feed; the collector acts through the rate constants
+  flotation_link: ['Dilution', 'Dilución'], rougher_junction: ['Rougher feed', 'Alimentación rougher'], rougher: ['Rougher', 'Rougher'],
   regrind: ['Regrind', 'Remolienda'], cleaner_junction: ['Cleaner feed', 'Alimentación limpieza'], cleaner: ['Cleaner', 'Limpieza'],
   recleaner_dilution: ['Recleaner feed', 'Alimentación relimpieza'], recleaner: ['Recleaner', 'Relimpieza'],
 };
@@ -29,13 +30,6 @@ const UNIT_NAMES: Record<string, [string, string]> = {
 export const unitName = (unit: string, lang: Lang) => (UNIT_NAMES[unit] ? UNIT_NAMES[unit][lang === 'es' ? 1 : 0] : unit);
 
 type StreamRecord = { solids_tph: number; water_tph: number; grades: Record<string, number> };
-type Box = { x0: number; y0: number; x1: number; y1: number };
-
-const BOX_H = 34;
-const NAME_CHAR = 6.2;      // px per character of an 11 px unit name
-const LABEL_CHAR = 6.1;     // px per character of a 10 px monospaced edge label
-const HALF = 0.35;          // edge end offset from a unit's centre, in cells (flowsheet.ts)
-const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 
 /** A unit name in one line, or two when it does not fit the box. */
 function nameLines(name: string, width: number): string[] {
@@ -71,89 +65,25 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const streams = trace.streams as unknown as Record<string, StreamRecord>;
   const concentrates = trace.concentrates as unknown as string[];
   const tails = trace.tails as unknown as string[];
+  const point = (trace.point ?? {}) as Record<string, number>;
   const plan = useMemo(() => layout(topology, concentrates, tails), [topology, concentrates, tails]);
 
   // the grid on the stage (flowsheet.ts): everything below is in the drawing's own px, which the viewBox
   // scales to the stage when the stage is larger than the readable cell on both axes
-  const { zoom, cellW, cellH, ox, oy, width, height, frame } = fit(extent(plan), size, [top, right, bottom, left]);
+  const f = fit(extent(plan), size, [top, right, bottom, left]);
+  const { zoom, ox, oy, cellW, cellH, width, height } = f;
   // the stage's width, or the readable width on a stage narrower than that (the host then scrolls sideways)
   const svgWidth = width * zoom > size.width + 0.5 ? width * zoom : size.width;
-  const px = (col: number) => ox + col * cellW;
-  const py = (row: number) => oy + row * cellH;
-  const boxW = Math.max(64, Math.min(132, cellW * 0.66));
-  const at = Object.fromEntries(plan.nodes.map(n => [n.unit, n]));
-
-  // edge ends that sit HALF a cell from a unit's centre are moved onto that unit's border
-  const pathOf = (edge: Edge): Array<[number, number]> => edge.points.map(([c, r], k) => {
-    const end = k === 0 ? edge.from : k === edge.points.length - 1 ? edge.to : null;
-    const node = end ? at[end] : undefined;
-    let x = px(c);
-    let y = py(r);
-    if (node) {
-      if (Math.abs(Math.abs(c - node.col) - HALF) < 1e-9 && r === node.row) x = px(node.col) + Math.sign(c - node.col) * boxW / 2;
-      if (Math.abs(Math.abs(r - node.row) - HALF) < 1e-9 && c === node.col) y = py(node.row) + Math.sign(r - node.row) * BOX_H / 2;
-    }
-    return [x, y];
-  });
-
-  const unitBoxes: Box[] = plan.nodes.map(n => ({ x0: px(n.col) - boxW / 2, y0: py(n.row) - BOX_H / 2, x1: px(n.col) + boxW / 2, y1: py(n.row) + BOX_H / 2 }));
-  const placed: Box[] = [];
-  const valueOf = (stream: string) => {
-    const s = streams[stream];
-    return s ? `${formatWithUnit(s.solids_tph, 't/h', lang)} · ${formatWithUnit(s.grades[primary.species], primary.unit, lang)}` : '';
-  };
-  // U-26: every edge segment (and its arrowhead) is an obstacle for every label, so no label sits on a line
-  const paths = plan.edges.map(pathOf);
-  const segmentBoxes: Box[] = paths.flatMap(path => path.slice(1).map(([x1, y1], i) => {
-    const [x0, y0] = path[i];
-    return { x0: Math.min(x0, x1) - 3, y0: Math.min(y0, y1) - 3, x1: Math.max(x0, x1) + 3, y1: Math.max(y0, y1) + 3 };
-  }));
-  const edges = plan.edges.map((edge, k) => {
-    const path = paths[k];
-    // U-09: an outlet or the feed says which stream it is; an inner edge keeps its rate and grade only
-    const text = edge.to === null || edge.from === null ? `${streamName(edge.stream, lang)}: ${valueOf(edge.stream)}` : valueOf(edge.stream);
-    // the label goes by the longest segment: above a horizontal one, beside a vertical one
-    let best = 0;
-    let bestLength = -1;
-    for (let i = 0; i + 1 < path.length; i += 1) {
-      const length = Math.hypot(path[i + 1][0] - path[i][0], path[i + 1][1] - path[i][1]);
-      if (length > bestLength) { bestLength = length; best = i; }
-    }
-    const [[ax, ay], [bx, by]] = [path[best], path[best + 1]];
-    const w = text.length * LABEL_CHAR;
-    const horizontal = Math.abs(by - ay) < 1e-6;
-    const mx = (ax + bx) / 2;
-    const my = (ay + by) / 2;
-    // above the row of units first (a short edge between two units has no room of its own), then just
-    // above or below the line; a product's label may also end at its arrow and a feed's start at its
-    // tail, on the line or above the row
-    const candidates: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = horizontal
-      ? [
-        ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my - 6, anchor: 'end' as const }, { x: Math.max(ax, bx), y: my - BOX_H / 2 - 5, anchor: 'end' as const }] : []),
-        ...(edge.from === null ? [{ x: Math.min(ax, bx), y: my - 6, anchor: 'start' as const }, { x: Math.min(ax, bx), y: my - BOX_H / 2 - 5, anchor: 'start' as const }] : []),
-        { x: mx, y: my - BOX_H / 2 - 5, anchor: 'middle' },
-        { x: mx, y: my - 6, anchor: 'middle' },
-        { x: mx, y: my + BOX_H / 2 + 13, anchor: 'middle' },
-        ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my + 14, anchor: 'end' as const }] : []),
-      ]
-      : [{ x: mx + 6, y: my + 3, anchor: 'start' }, { x: mx - 6, y: my + 3, anchor: 'end' }];
-    let label: { x: number; y: number; anchor: 'middle' | 'start' | 'end' } | null = null;
-    for (const c of candidates) {
-      const bx0 = c.anchor === 'middle' ? c.x - w / 2 : c.anchor === 'start' ? c.x : c.x - w;
-      const box = { x0: bx0 - 2, y0: c.y - 10, x1: bx0 + w + 2, y1: c.y + 3 };
-      // inside the frame, so no label sits under an overlay (the focus route's readouts)
-      if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...unitBoxes, ...segmentBoxes, ...placed].some(b => overlaps(b, box))) continue;
-      placed.push(box);
-      label = c;
-      break;
-    }
-    return { edge, key: `${edge.stream}-${k}`, path, text, label };
-  });
+  const d = drawing(plan, f);
+  const texts = labelTexts(plan, streams, primary, point, lang);
+  const { labels, boxes } = placeLabels(plan, d, f.frame, texts.edges.map(e => e.options));
+  const captions = placeCaptions(plan, d, f.frame, boxes, unit => unitName(unit, lang));
+  const missing = labels.filter((l, k) => !l && texts.edges[k].options.length).length;
 
   return (
     <div className="of-flowmap-host" ref={hostRef}>
       <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
-        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={edges.filter(e => !e.label && e.text).length}>
+        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing}>
         <defs>
           {(['plain', 'recycle', 'product', 'tail'] as const).map(kind => (
             <marker key={kind} id={`of-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -161,31 +91,49 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
             </marker>
           ))}
         </defs>
-        {edges.map(({ edge, key, path, text, label }) => {
+        {plan.edges.map((edge, k) => {
           // U-09: a concentrate leaves green; a tail leaves in the plain colour, never as a product
           const kind = edge.recycle ? 'recycle' : edge.to === null ? (concentrates.includes(edge.stream) ? 'product' : 'tail') : 'plain';
+          const label = labels[k];
           return (
-            <g key={key} className={`of-flow-edge ${kind}`}>
-              <title>{`${streamName(edge.stream, lang)}: ${text}`}</title>
-              <polyline points={path.map(([x, y]) => `${x},${y}`).join(' ')} fill="none" markerEnd={`url(#of-arrow-${kind})`} />
-              {label && <text x={label.x} y={label.y} textAnchor={label.anchor} className="of-flow-label">{text}</text>}
+            <g key={`${edge.stream}-${k}`} className={`of-flow-edge ${kind}`}>
+              <title>{texts.edges[k].title}</title>
+              <polyline points={d.paths[k].map(([x, y]) => `${x},${y}`).join(' ')} fill="none" markerEnd={`url(#of-arrow-${kind})`} />
+              {label && (
+                <text x={label.x} y={label.y} textAnchor={label.anchor} className="of-flow-label">
+                  {label.lines.map((line, i) => <tspan key={i} x={label.x} dy={i === 0 ? 0 : LINE}>{line}</tspan>)}
+                </text>
+              )}
             </g>
           );
         })}
         {plan.nodes.map(node => {
-          const lines = nameLines(unitName(node.unit, lang), boxW);
-          const cx = px(node.col);
-          const cy = py(node.row);
+          const cx = ox + node.col * cellW;
+          const cy = oy + node.row * cellH;
+          const select = () => onSelect(selected === node.unit ? null : node.unit);
+          const onKeyDown = (event: KeyboardEvent) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); select(); } };
+          const name = unitName(node.unit, lang);
+          const cls = `of-flow-unit${JUNCTIONS.has(node.unit) ? ' of-flow-junction' : ''}${selected === node.unit ? ' selected' : ''}`;
+          if (JUNCTIONS.has(node.unit)) {
+            const caption = captions.find(c => c.unit === node.unit);
+            return (
+              <g key={node.unit} className={cls} role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} onClick={select} onKeyDown={onKeyDown}>
+                <title>{name}</title>
+                <circle cx={cx} cy={cy} r={NODE_R} />
+                {caption && <text x={cx} y={caption.y} textAnchor="middle" className="of-flow-junction-name">{name}</text>}
+              </g>
+            );
+          }
+          // D-04: the gravity bleed names its share of the underflow on a second line
+          const lines = node.unit === 'gravity_split' && texts.bleedShare ? [name, `b = ${texts.bleedShare}`] : nameLines(name, d.boxW);
           return (
-            <g key={node.unit} className={`of-flow-unit${selected === node.unit ? ' selected' : ''}`} transform={`translate(${cx - boxW / 2},${cy - BOX_H / 2})`}
-              role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={unitName(node.unit, lang)}
-              onClick={() => onSelect(selected === node.unit ? null : node.unit)}
-              onKeyDown={event => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); onSelect(selected === node.unit ? null : node.unit); } }}>
-              <rect width={boxW} height={BOX_H} rx={7} />
+            <g key={node.unit} className={cls} transform={`translate(${cx - d.boxW / 2},${cy - BOX_H / 2})`}
+              role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} onClick={select} onKeyDown={onKeyDown}>
+              <rect width={d.boxW} height={BOX_H} rx={7} />
               {lines.map((line, i) => {
-                // a single word longer than the box (Acondicionamiento) is condensed to fit, never clipped
-                const fit = line.length * NAME_CHAR > boxW - 8 ? { textLength: boxW - 8, lengthAdjust: 'spacingAndGlyphs' as const } : {};
-                return <text key={i} x={boxW / 2} y={BOX_H / 2 + 4 + (i - (lines.length - 1) / 2) * 12} textAnchor="middle" {...fit}>{line}</text>;
+                // a single word longer than the box is condensed to fit, never clipped
+                const fitted = line.length * NAME_CHAR > d.boxW - 8 ? { textLength: d.boxW - 8, lengthAdjust: 'spacingAndGlyphs' as const } : {};
+                return <text key={i} x={d.boxW / 2} y={BOX_H / 2 + 4 + (i - (lines.length - 1) / 2) * 12} textAnchor="middle" {...fitted}>{line}</text>;
               })}
             </g>
           );

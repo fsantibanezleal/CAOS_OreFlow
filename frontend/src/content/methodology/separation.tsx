@@ -150,7 +150,7 @@ function DeslimeFigure({ lang }: { lang: Lang }) {
       <text className="dg-edge-label" x="306" y="24">{es ? 'lamas a relave' : 'slimes to tail'}</text>
       <line className="dg-edge" x1="222" y1="70" x2="270" y2="70" markerEnd="url(#of-des-arrow)" />
       <rect className="dg-box" x="272" y="50" width="70" height="40" rx="7" />
-      <text className="dg-box-title" x="307" y="74" textAnchor="middle">{es ? 'repulpeo' : 'repulp'}</text>
+      <text className="dg-box-title" x="307" y="74" textAnchor="middle">{es ? 'dilución' : 'dilution'}</text>
       <line className="dg-edge" x1="342" y1="70" x2="392" y2="70" markerEnd="url(#of-des-arrow)" />
       <text className="dg-edge-label" x="352" y="62">rougher</text>
       <text className="dg-note" x="210" y="130" textAnchor="middle">{es ? 'un corte más grueso limpia la alimentación y pierde más fosfato fino' : 'a coarser cut cleans the feed and loses more fine phosphate'}</text>
@@ -302,7 +302,7 @@ export const SEPARATION: Topic[] = [
       rows: [
         [{ en: 'desliming cut', es: 'corte de deslamado' }, '20 µm', { en: 'practice below about 20 µm', es: 'práctica bajo unos 20 µm' }],
         [{ en: 'sharpness, water bypass', es: 'nitidez, cortocircuito de agua' }, '2.5, 0.12', { en: 'authored', es: 'de autor' }],
-        [{ en: 'rougher feed solids after repulping', es: 'sólidos de alimentación rougher tras repulpeo' }, { en: '33% w/w', es: '33% p/p' }, { en: 'authored', es: 'de autor' }],
+        [{ en: 'rougher feed solids after dilution', es: 'sólidos de alimentación rougher tras la dilución' }, { en: '33% w/w', es: '33% p/p' }, { en: 'authored', es: 'de autor' }],
       ],
     },
     limits: [
