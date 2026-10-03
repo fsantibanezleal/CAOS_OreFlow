@@ -28,9 +28,12 @@ The allocation is therefore sulphur-limited, in moles (c Cu, s S):
 | `0.5c <= s < 0.8c` | bornite `(2s - c)/3`, chalcocite `(4c - 5s)/3` |
 | `s < 0.5c` | excluded, with the reason in the ledger |
 
-All 53 samples fall in the first three rows. In the median one, bornite carries 55% of the copper and chalcocite 38%.
+All 53 samples fall in the first three rows. In the median one of the 52 that run (the one without a measured recovery
+is excluded), bornite carries 56% of the copper and chalcocite 38%.
 - The remaining iron is not identified by the assays. It goes to magnetite, as an assumption shown with the result.
-- The rest of the mass is the case's gangue, in its authored proportions.
+- Quartz closes the mass. The case's own 2.5% pyrite is not kept: pyrite enters only when the allocation gives it
+  (the one sample in the chalcopyrite-and-pyrite band), so the sample's sulphur is held by its copper minerals and
+  that pyrite alone (`pipeline/cases/real_samples.py`, `sample_ore`; review of 2026-10-02, S-21).
 - The atomic weights are the engine's (`chemistry`). The allocation is sequential; Whiten (2007) and Lund et al.
   (2013) describe the least-squares generalization.
 - The allocation is labelled an assumption on every surface that shows it.
@@ -64,5 +67,7 @@ record keeps:
 - Each view either reacts to the source or states why it does not apply:
   - for an iron-plant hour, Grinding, Separation and Circuit say that the reverse cationic circuit is not an
     engine family;
-  - the Methods view shows the soft-sensor record.
+  - every view but Case says so; the Case view shows the hour, its sensors, its two assays and the soft sensor's
+    recorded forecasts, and the workbench opens on it (`Workbench.tsx`; review of 2026-10-02, S-21). The soft
+    sensor's whole record is on the Benchmark's Industrial quality tab.
 - The URL carries the source, so a sample is a link.
