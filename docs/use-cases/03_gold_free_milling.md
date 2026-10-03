@@ -4,7 +4,7 @@
 
 > How much gold does a gravity bleed capture from the circulating load?
 
-Free gold liberated in the grinding circuit is dense and malleable, so cyclones return it to the mill; a gravity unit on an underflow bleed recovers it before flotation takes the gold held in pyrite.
+Gravity-recoverable gold is dense and malleable, so cyclones return it to the mill and it builds up in the circulating load; a gravity unit on a bleed of the cyclone underflow recovers it before flotation takes the gold held in pyrite.
 
 | Case id | Category | Circuit family | Provenance |
 |---|---|---|---|
@@ -14,15 +14,15 @@ Open it in the workbench: [https://oreflow.ml.fasl-work.com/?case=gold_free_mill
 
 ## The problem
 
-Cyclones send free gold to the underflow at sizes far finer than the gangue, so it circulates in the grinding loop at many times the ore circulating load, and flotation then takes the gold carried by pyrite.
+Cyclones send gravity-recoverable gold (GRG) to the underflow at sizes several times finer than the gangue, so it circulates in the grinding loop at many times the ore circulating load, and flotation then takes the gold carried by pyrite.
 
-Plant audits measured about 90% of the underflow gold as gravity recoverable, and a published simulator example shows gold recovery rising with the share of underflow treated while the gold circulating load falls. The case asks how much a bleed is worth.
+Plant audits measure about 90% of the underflow gold as gravity recoverable, and plants recover about a third to two thirds of their GRG by gravity. The case asks how much a bleed is worth.
 
 ## The ore
 
 | Mineral | Role | Mass fraction | Liberation size | Composite content | Host | Separation response |
 |---|---|---|---|---|---|---|
-| Native gold (electrum) | Au carrier (stoichiometric) | from the head grade | 400 µm | 0.10 | Quartz and silicate gangue | flotation, gravity |
+| Native gold (electrum) | Au carrier (stoichiometric) | from the head grade | - | - | - | flotation, gravity |
 | Pyrite | Au carrier (trace) | 0.030 | 150 µm | 0.50 | Quartz and silicate gangue | flotation |
 | Quartz and silicate gangue | gangue | the balance | - | - | - | flotation |
 
@@ -41,7 +41,7 @@ Bond ball-mill work index 15.5 kWh/t; crushing work index 17.0 kWh/t.
 | Cyclones | 25.4 cm diameter, sharpness 2.0; 16 required at the nominal state |
 | Rougher bank | 7 cells of 45 m³ (cells and gas velocity from the operating point) |
 | Cleaner bank | 6 cells of 6 m³ at 1.0 cm/s |
-| Gravity unit | on a bleed of the cyclone underflow; up to 80% of liberated gold per pass |
+| Gravity unit | on a bleed of the cyclone underflow; up to 70% of liberated gold per pass |
 | Grade specification | Au at least 40.0 g/t |
 | Process water | at most 2.21 m³ per tonne |
 
@@ -61,7 +61,7 @@ The nominal state and the bounds Contract 1 allows for this case; the workbench 
 | Collector dose | 40.0 g/t | 0.0 g/t to 120.0 g/t |
 | Gas velocity (rougher) | 1.40 cm/s | 0.50 cm/s to 2.50 cm/s |
 | Rougher cells | 7 | 3 to 12 |
-| Gravity bleed | 0.30 | 0.10 to 0.60 |
+| Gravity bleed | 0.10 | 0.10 to 0.60 |
 | Classifier cut (d50c) | off (target mode) | 103 µm to 206 µm, or off |
 
 ## The variants
@@ -70,51 +70,51 @@ Each variant changes exactly one input of the nominal state; the last two run th
 
 | Variant | Change | Recovery of the primary payable | Concentrate grade | Specific energy, total | Product P80 | Mill power | Flags |
 |---|---|---|---|---|---|---|---|
-| Nominal design | - | 96.2% | 89.6 g/t | 16.77 kWh/t | 106 µm | 4,059 kW | - |
-| Harder ore (+25% work index) | Bond work index: 15.5 kWh/t to 19.4 kWh/t (x1.25) | 94.4% | 88.6 g/t | 19.03 kWh/t | 125 µm | 4,570 kW | `power_limited` |
-| Coarser grind target (+35% P80) | Grind target (P80): 106 µm to 143 µm (x1.35) | 92.4% | 88.0 g/t | 14.06 kWh/t | 143 µm | 3,354 kW | - |
-| Higher throughput (+25%) | Ore throughput: 260 t/h to 325 t/h (x1.25) | 93.1% | 90.0 g/t | 15.22 kWh/t | 125 µm | 4,570 kW | `power_limited` |
-| Larger gravity bleed (x2) | Gravity bleed: 0.30 to 0.60 (x2.00) | 96.9% | 88.5 g/t | 16.76 kWh/t | 106 µm | 4,057 kW | - |
-| More collector (+60%) | Collector dose: 40.0 g/t to 64.0 g/t (x1.60) | 96.7% | 88.8 g/t | 16.77 kWh/t | 106 µm | 4,059 kW | - |
-| Classifier cut held at the nominal cut | Classifier cut (d50c): off to 129 µm (x1.00 the nominal state's solved cut) | 96.4% | 90.9 g/t | 18.74 kWh/t | 96 µm | 4,570 kW | - |
-| Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 103 µm (x0.80 the nominal state's solved cut) | 97.6% | 90.9 g/t | 18.74 kWh/t | 87 µm | 4,570 kW | `cyclone_pressure` |
+| Nominal design | - | 97.7% | 92.2 g/t | 16.78 kWh/t | 106 µm | 4,060 kW | - |
+| Harder ore (+25% work index) | Bond work index: 15.5 kWh/t to 19.4 kWh/t (x1.25) | 96.7% | 92.0 g/t | 19.03 kWh/t | 125 µm | 4,570 kW | `power_limited` |
+| Coarser grind target (+35% P80) | Grind target (P80): 106 µm to 143 µm (x1.35) | 95.5% | 92.2 g/t | 14.06 kWh/t | 143 µm | 3,355 kW | - |
+| Higher throughput (+25%) | Ore throughput: 260 t/h to 325 t/h (x1.25) | 95.6% | 93.8 g/t | 15.22 kWh/t | 125 µm | 4,570 kW | `power_limited` |
+| Larger gravity bleed (x2) | Gravity bleed: 0.10 to 0.20 (x2.00) | 97.8% | 91.7 g/t | 16.77 kWh/t | 106 µm | 4,059 kW | - |
+| More collector (+60%) | Collector dose: 40.0 g/t to 64.0 g/t (x1.60) | 98.1% | 91.3 g/t | 16.78 kWh/t | 106 µm | 4,060 kW | - |
+| Classifier cut held at the nominal cut | Classifier cut (d50c): off to 129 µm (x1.00 the nominal state's solved cut) | 97.9% | 93.1 g/t | 18.74 kWh/t | 96 µm | 4,570 kW | - |
+| Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 103 µm (x0.80 the nominal state's solved cut) | 98.4% | 93.0 g/t | 18.74 kWh/t | 87 µm | 4,570 kW | - |
 
 - **Harder ore (+25% work index).** Bond work index 25% higher. The circuit needs more energy per tonne for the same grind; where the installed power runs out the mill runs at its limit and the product coarsens, which then costs liberation.
 - **Coarser grind target (+35% P80).** Grind target 35% coarser. Less energy per tonne and fewer liberated grains, so the concentrate grade falls; a flotation circuit pays for the energy saved in recovery as well, while magnetic drums keep capturing the coarser composites and recover a little more iron at the lower grade.
 - **Higher throughput (+25%).** Throughput 25% higher. Once the mill reaches its installed power the grind coarsens, and in a flotation circuit the residence in every bank falls in proportion as well; the metal recovered per hour can still rise, because the extra tonnes outweigh the recovery lost.
 - **Larger gravity bleed (x2).** Twice the underflow sent to the gravity unit. More free gold is taken out of the grinding loop before it overgrinds or reaches flotation, and less gold circulates.
 - **More collector (+60%).** More collector. The valuable mineral's response saturates at a lower dose than the gangue's and the composites', so extra reagent adds recovery with diminishing returns and floats more of what dilutes the concentrate.
-- **Classifier cut held at the nominal cut.** The plant's direction: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
-- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.
+- **Classifier cut held at the nominal cut.** The plant's way round: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
+- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product becomes finer, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and the cyclone count and pressure such a cut would take are only an uncalibrated estimate.
 
 ## At the nominal state
 
 | Check | Value | Plausible range | Within | Source of the range |
 |---|---|---|---|---|
-| Recovery of the primary payable | 96.2% | 85.0% to 97.0% | yes | Authored: no published range was found for this case type. |
-| Gravity recovery | 25.1% | 25.0% to 70.0% | yes | Inside the gravity-recoverable gold content of 25 to 92% measured on 13 ores (Laplante and Staunton, AMIRA P420B), since a plant recovers only part of it; the 70% ceiling is authored. |
+| Recovery of the primary payable | 97.7% | 85.0% to 98.0% | yes | Authored. Until 0.08.000 the ceiling was 97%; the rebuilt gravity model recovers coarse gold that flotation partly missed, and the nominal state moved to about 97.7%. Secondary reports of gravity plus flotation tests give 93.6 to 95.6% (unverified), so this case is on the optimistic side. |
+| Gravity recovery | 27.0% | 15.0% to 30.0% | yes | A plant recovers about a third to two thirds of its gravity-recoverable gold: Vincent (1997) measured 20 to 40% of the gold recovered by gravity at four plants whose ores or Knelson feeds held 57 to 73% GRG, and Laplante (a standardized GRG test) puts two thirds of the GRG as a ceiling never observed in plants. For this case's 45% GRG that is 15 to 30% of the gold. |
 
-Every unit and the circuit close within 2.9e-14 relative (the requirement is 1e-9). Water: 2.10 m³/t.
+Every unit and the circuit close within 3.2e-14 relative (the requirement is 1e-9). Water: 2.10 m³/t.
 
 ## Method records at the nominal state
 
-- **Optimizer:** optimal at Grind target (P80) 88 µm, Collector dose 119.9 g/t, Gas velocity (rougher) 2.50 cm/s; active constraint: power; recovered metal +2.62% against the nominal state (267 engine runs from 6 starts, screened by the learned lane; 266 without the screen).
-- **Weight path:** with 25% of the weight on recovered metal and the rest on energy, the optimum moves the energy per tonne by -40.1% and the recovered metal by -12.6%.
-- **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 94.3%, P50 96.0%, P95 97.2%; probability of meeting every constraint 82%.
-- **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.81); concentrate grade: head grade (total index 0.96); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 0.99).
-- **Kinetic fits:** of the five lumped models fitted to the virtual batch test, the Kelsall model projects the rougher bank closest to the exact bank recovery by true flotation (95.2%), 0.44 points below it.
+- **Optimizer:** optimal at Grind target (P80) 88 µm, Collector dose 120.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraint: power; recovered metal +1.66% against the nominal state (270 engine runs from 6 starts, screened by the learned lane; 266 without the screen).
+- **Weight path:** with 25% of the weight on recovered metal and the rest on energy, the optimum moves the energy per tonne by -40.0% and the recovered metal by -7.1%.
+- **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 96.5%, P50 97.6%, P95 98.4%; probability of meeting every constraint 81%.
+- **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.92); concentrate grade: head grade (total index 0.97); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 1.00).
+- **Kinetic fits:** of the five lumped models fitted to the virtual batch test, the Kelsall model projects the rougher bank closest to the exact bank recovery by true flotation (96.9%), 0.27 points below it.
 
 ## Scope and assumptions
 
-Gold is a species with its own density, slow breakage and a size window for gravity capture; composites and gangue report to the gravity concentrate at small fixed yields.
+45% of the gold is GRG with Snip's measured sizes (Vincent 1997), an extremely fine vector; it breaks at Banisi's slower rate and classifies with the density exponent fitted to measured GRG partitions. The other 55% is carried in pyrite.
 
-The gravity model is checked against the direction of the Laplante simulator example, not calibrated to a plant.
+The unit treats 10% of the underflow and recovers up to 70% per pass, slightly less below 37 µm; these are authored, anchored to Camchib and Meston. At the nominal state it recovers 60% of the GRG, 27% of all the gold. The model is checked against the published simulator example on the Benchmark, not calibrated to a plant.
 
 ## Reading it in the workbench
 
 Circuit: the gravity unit sits on the underflow return; its concentrate is a product and its tail returns to the mill.
 
-Separation: the gravity and flotation recoveries are reported separately, with the gold circulating load.
+Separation: the gravity and flotation recoveries are reported separately, with the GRG recovery and the GRG circulating load.
 
 Response: sweep the gravity bleed to see recovery saturate.
 
@@ -129,4 +129,6 @@ Response: sweep the gravity bleed to see recovery saturate.
 - **kpi:** Each nominal KPI range carries its own source in kpi_sources: a published value or range where one was found, labelled authored where none was; they are plausibility gates, not predictions.
 - Laplante, A.R. and Staunton, W.P. Gravity recovery of gold, an overview of recent developments (AMIRA P420B). [https://training.gekkos.com/wp-content/uploads/2020/08/TechnicalPaper024GravityRecoveryOfGoldAnOverviewOfRecentDevelopments.pdf](https://training.gekkos.com/wp-content/uploads/2020/08/TechnicalPaper024GravityRecoveryOfGoldAnOverviewOfRecentDevelopments.pdf)
 - Laplante, A.R. and Gray, S. (2005). Advances in gravity gold technology. Developments in Mineral Processing 15:280-307. [https://doi.org/10.1016/S0167-4528(05)15013-3](https://doi.org/10.1016/S0167-4528(05)15013-3)
+- Vincent, F. (1997). A comparison of Knelson Concentrator and jig performance for gold recovery. M.Eng. thesis, McGill University (chapter 5 states the GRG model of Laplante, Woodcock and Noaparast 1995; Table 5.1 gives Snip's GRG by size). [https://www.nlc-bnc.ca/obj/s4/f2/dsk1/tape8/PQDD_0032/MQ50673.pdf](https://www.nlc-bnc.ca/obj/s4/f2/dsk1/tape8/PQDD_0032/MQ50673.pdf)
+- Laplante, A.R. A standardized test to determine gravity recoverable gold. McGill University (38 samples, 25 to 94% GRG; the two-thirds plant ceiling). [https://www.911metallurgist.com/wp-content/uploads/2015/10/Test-Determine-How-Much-Gravity-Recoverable-Gold.pdf](https://www.911metallurgist.com/wp-content/uploads/2015/10/Test-Determine-How-Much-Gravity-Recoverable-Gold.pdf)
 - Plitt, L.R. (1976). A mathematical model of the hydrocyclone classifier. CIM Bulletin 69(776):114-123; equations as documented verbatim by SysCAD. [https://help.syscad.net/index.php/Hydrocyclone](https://help.syscad.net/index.php/Hydrocyclone)

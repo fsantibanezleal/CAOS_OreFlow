@@ -77,15 +77,15 @@ Each variant changes exactly one input of the nominal state; the last two run th
 | More collector (+60%) | Collector dose: 45.0 g/t to 72.0 g/t (x1.60) | 80.0% | 18.79% | 15.31 kWh/t | 106 µm | 5,821 kW | - |
 | More air (+40% gas velocity) | Gas velocity (rougher): 1.30 cm/s to 1.82 cm/s (x1.40) | 80.0% | 19.80% | 15.39 kWh/t | 106 µm | 5,821 kW | - |
 | Classifier cut held at the nominal cut | Classifier cut (d50c): off to 128 µm (x1.00 the nominal state's solved cut) | 78.5% | 19.91% | 16.92 kWh/t | 96 µm | 6,520 kW | - |
-| Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 103 µm (x0.80 the nominal state's solved cut) | 79.1% | 19.93% | 16.93 kWh/t | 87 µm | 6,520 kW | `cyclone_pressure` |
+| Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 103 µm (x0.80 the nominal state's solved cut) | 79.1% | 19.93% | 16.93 kWh/t | 87 µm | 6,520 kW | - |
 
 - **Harder ore (+25% work index).** Bond work index 25% higher. The circuit needs more energy per tonne for the same grind; where the installed power runs out the mill runs at its limit and the product coarsens, which then costs liberation.
 - **Coarser grind target (+35% P80).** Grind target 35% coarser. Less energy per tonne and fewer liberated grains, so the concentrate grade falls; a flotation circuit pays for the energy saved in recovery as well, while magnetic drums keep capturing the coarser composites and recover a little more iron at the lower grade.
 - **Higher throughput (+25%).** Throughput 25% higher. Once the mill reaches its installed power the grind coarsens, and in a flotation circuit the residence in every bank falls in proportion as well; the metal recovered per hour can still rise, because the extra tonnes outweigh the recovery lost.
 - **More collector (+60%).** More collector. The valuable mineral's response saturates at a lower dose than the gangue's and the composites', so extra reagent adds recovery with diminishing returns and floats more of what dilutes the concentrate.
 - **More air (+40% gas velocity).** Gas velocity 40% higher. A larger bubble surface area flux raises every rate constant; the froth also recovers more water, which carries more entrained gangue, but the faster flotation of the valuable mineral usually weighs more, so recovery rises and the grade holds or rises slightly.
-- **Classifier cut held at the nominal cut.** The plant's direction: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
-- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.
+- **Classifier cut held at the nominal cut.** The plant's way round: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
+- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product becomes finer, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and the cyclone count and pressure such a cut would take are only an uncalibrated estimate.
 
 ## At the nominal state
 
@@ -99,7 +99,7 @@ Every unit and the circuit close within 5.1e-13 relative (the requirement is 1e-
 
 ## Method records at the nominal state
 
-- **Optimizer:** optimal at Grind target (P80) 109 µm, Collector dose 135.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraints: none; recovered metal +3.68% against the nominal state (326 engine runs from 6 starts, screened by the learned lane; 316 without the screen).
+- **Optimizer:** optimal at Grind target (P80) 109 µm, Collector dose 135.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraints: none; recovered metal +3.68% against the nominal state (323 engine runs from 6 starts, screened by the learned lane; 316 without the screen).
 - **Weight path:** with 25% of the weight on recovered metal and the rest on energy, the optimum moves the energy per tonne by -31.7% and the recovered metal by -10.2%.
 - **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 74.5%, P50 78.7%, P95 81.9%; probability of meeting every constraint 79%.
 - **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.91); concentrate grade: head grade (total index 0.67); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 0.92).

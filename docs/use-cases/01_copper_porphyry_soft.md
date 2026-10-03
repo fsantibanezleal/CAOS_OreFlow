@@ -16,7 +16,7 @@ Open it in the workbench: [https://oreflow.ml.fasl-work.com/?case=copper_porphyr
 
 Grinding finer keeps paying while chalcopyrite is still locked in composites, and stops paying below its liberation size, where every extra micron costs energy and the fines float more slowly and entrain more gangue.
 
-Porphyry plants clean a rougher concentrate to reach smelter grades of 25 to 50% Cu depending on the copper minerals (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content) and usually recover 80 to 90% of the copper, above 90% for sulphide copper. The case asks where on that trade the grind should sit.
+Porphyry plants clean a rougher concentrate to the grades copper concentrates are bought at, generally 25 to 35% Cu (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content), and in normal practice over 90% of the sulphide copper can be recovered. The case asks where on that trade the grind should sit.
 
 ## The ore
 
@@ -72,20 +72,20 @@ Each variant changes exactly one input of the nominal state; the last two run th
 |---|---|---|---|---|---|---|---|
 | Nominal design | - | 93.0% | 26.20% | 10.36 kWh/t | 150 µm | 6,456 kW | - |
 | Harder ore (+25% work index) | Bond work index: 11.0 kWh/t to 13.8 kWh/t (x1.25) | 89.3% | 25.46% | 11.66 kWh/t | 177 µm | 7,270 kW | `power_limited` |
-| Coarser grind target (+35% P80) | Grind target (P80): 150 µm to 203 µm (x1.35) | 86.2% | 25.66% | 8.75 kWh/t | 203 µm | 5,343 kW | `cyclone_pressure` |
+| Coarser grind target (+35% P80) | Grind target (P80): 150 µm to 203 µm (x1.35) | 86.2% | 25.66% | 8.75 kWh/t | 203 µm | 5,343 kW | - |
 | Higher throughput (+25%) | Ore throughput: 720 t/h to 900 t/h (x1.25) | 87.5% | 26.25% | 9.37 kWh/t | 177 µm | 7,270 kW | `power_limited` |
 | More collector (+60%) | Collector dose: 25.0 g/t to 40.0 g/t (x1.60) | 93.9% | 25.58% | 10.39 kWh/t | 150 µm | 6,456 kW | - |
 | More air (+40% gas velocity) | Gas velocity (rougher): 1.40 cm/s to 1.96 cm/s (x1.40) | 94.0% | 26.28% | 10.43 kWh/t | 150 µm | 6,456 kW | - |
 | Classifier cut held at the nominal cut | Classifier cut (d50c): off to 184 µm (x1.00 the nominal state's solved cut) | 94.2% | 26.56% | 11.52 kWh/t | 136 µm | 7,270 kW | - |
-| Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 147 µm (x0.80 the nominal state's solved cut) | 96.0% | 26.66% | 11.52 kWh/t | 122 µm | 7,270 kW | `cyclone_pressure` |
+| Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 147 µm (x0.80 the nominal state's solved cut) | 96.0% | 26.66% | 11.52 kWh/t | 122 µm | 7,270 kW | - |
 
 - **Harder ore (+25% work index).** Bond work index 25% higher. The circuit needs more energy per tonne for the same grind; where the installed power runs out the mill runs at its limit and the product coarsens, which then costs liberation.
 - **Coarser grind target (+35% P80).** Grind target 35% coarser. Less energy per tonne and fewer liberated grains, so the concentrate grade falls; a flotation circuit pays for the energy saved in recovery as well, while magnetic drums keep capturing the coarser composites and recover a little more iron at the lower grade.
 - **Higher throughput (+25%).** Throughput 25% higher. Once the mill reaches its installed power the grind coarsens, and in a flotation circuit the residence in every bank falls in proportion as well; the metal recovered per hour can still rise, because the extra tonnes outweigh the recovery lost.
 - **More collector (+60%).** More collector. The valuable mineral's response saturates at a lower dose than the gangue's and the composites', so extra reagent adds recovery with diminishing returns and floats more of what dilutes the concentrate.
 - **More air (+40% gas velocity).** Gas velocity 40% higher. A larger bubble surface area flux raises every rate constant; the froth also recovers more water, which carries more entrained gangue, but the faster flotation of the valuable mineral usually weighs more, so recovery rises and the grade holds or rises slightly.
-- **Classifier cut held at the nominal cut.** The plant's direction: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
-- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.
+- **Classifier cut held at the nominal cut.** The plant's way round: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
+- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product becomes finer, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and the cyclone count and pressure such a cut would take are only an uncalibrated estimate.
 
 ## At the nominal state
 
@@ -98,7 +98,7 @@ Every unit and the circuit close within 1.0e-13 relative (the requirement is 1e-
 
 ## Method records at the nominal state
 
-- **Optimizer:** optimal at Grind target (P80) 124 µm, Collector dose 75.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraint: power; recovered metal +5.25% against the nominal state (289 engine runs from 6 starts, screened by the learned lane; 266 without the screen).
+- **Optimizer:** optimal at Grind target (P80) 124 µm, Collector dose 75.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraint: power; recovered metal +5.25% against the nominal state (337 engine runs from 6 starts, screened by the learned lane; 266 without the screen).
 - **Weight path:** with 25% of the weight on recovered metal and the rest on energy, the optimum moves the energy per tonne by -39.7% and the recovered metal by -21.9%.
 - **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 90.2%, P50 92.7%, P95 94.5%; probability of meeting every constraint 82%.
 - **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.79); concentrate grade: liberation size (total index 0.83); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 0.98).
@@ -106,7 +106,7 @@ Every unit and the circuit close within 1.0e-13 relative (the requirement is 1e-
 
 ## Scope and assumptions
 
-An authored plant: every parameter is inside a range recorded in the research, none is a plant measurement or a calibration.
+An authored plant: its parameters come from cited ranges where the research found one and are labelled authored otherwise; none is a plant measurement or a calibration.
 
 Liberation follows a characteristic liberation size (King 1979); composites float on their exposed chalcopyrite surface.
 
@@ -131,6 +131,7 @@ Methods, optimizer: where the six starts converge and which constraint binds at 
 - **kpi:** Each nominal KPI range carries its own source in kpi_sources: a published value or range where one was found, labelled authored where none was; they are plausibility gates, not predictions.
 - King, R.P. (1979). A model for the quantitative estimation of mineral liberation by grinding. International Journal of Mineral Processing 6:207-220. [https://doi.org/10.1016/0301-7516(79)90037-1](https://doi.org/10.1016/0301-7516(79)90037-1)
 - Trahar, W.J. (1981). A rational interpretation of the role of particle size in flotation. International Journal of Mineral Processing 8(4):289-327. [https://doi.org/10.1016/0301-7516(81)90019-3](https://doi.org/10.1016/0301-7516(81)90019-3)
-- Porphyry copper flotation practice summary (secondary source): cleaning to 25-50% Cu, recoveries usually 80-90%. [https://www.911metallurgist.com/blog/porphyry-copper-flotation/](https://www.911metallurgist.com/blog/porphyry-copper-flotation/)
+- Porphyry copper flotation practice summary (secondary source): the concentrate usually carries over 20% Cu, and in normal practice over 90% of the copper present as sulphide can be recovered. [https://www.911metallurgist.com/blog/porphyry-copper-flotation/](https://www.911metallurgist.com/blog/porphyry-copper-flotation/)
+- Kroha, A.J. and Wesis, N. (1985). Purchase of copper concentrates and cement copper. Society for Mining, Metallurgy & Exploration (its open schedule covers concentrates that generally run between 25 and 35% copper; the abstract was read, not the full text). [https://onemine.org/documents/purchase-of-copper-concentrates-and-cement-copper](https://onemine.org/documents/purchase-of-copper-concentrates-and-cement-copper)
 - Herbst, J.A. and Fuerstenau, D.W. (1980). Scale-up procedure for continuous grinding mill design using population balance models. International Journal of Mineral Processing 7(1):1-31. [https://doi.org/10.1016/0301-7516(80)90034-4](https://doi.org/10.1016/0301-7516(80)90034-4)
 - Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1997). Studies on impeller type, impeller speed and air flow rate in an industrial scale flotation cell. Part 4: Effect of bubble surface area flux on flotation performance. Minerals Engineering 10(4):367-379. [https://doi.org/10.1016/S0892-6875(97)00014-9](https://doi.org/10.1016/S0892-6875(97)00014-9)

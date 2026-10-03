@@ -4,7 +4,7 @@
 
 > How much grade does clay entrainment take?
 
-A copper ore with a clay fraction that grinds to slimes; entrained clay dilutes the concentrate, so froth washing and air carry more weight than in a clean ore.
+A copper ore with a clay fraction that grinds to slimes and reaches the froth by entrainment; the three cleaning stages wash almost all of it out, so in this engine the clay costs about 0.2 points of concentrate grade.
 
 | Case id | Category | Circuit family | Provenance |
 |---|---|---|---|
@@ -72,12 +72,12 @@ Each variant changes exactly one input of the nominal state; the last two run th
 | Variant | Change | Recovery of the primary payable | Concentrate grade | Specific energy, total | Product P80 | Mill power | Flags |
 |---|---|---|---|---|---|---|---|
 | Nominal design | - | 91.8% | 26.69% | 11.63 kWh/t | 150 µm | 5,233 kW | - |
-| Harder ore (+25% work index) | Bond work index: 13.0 kWh/t to 16.3 kWh/t (x1.25) | 87.5% | 26.13% | 13.00 kWh/t | 180 µm | 5,840 kW | `power_limited`, `cyclone_pressure` |
-| Coarser grind target (+35% P80) | Grind target (P80): 150 µm to 203 µm (x1.35) | 84.5% | 26.27% | 9.82 kWh/t | 202 µm | 4,330 kW | `cyclone_pressure` |
-| Higher throughput (+25%) | Ore throughput: 520 t/h to 650 t/h (x1.25) | 85.4% | 26.95% | 10.42 kWh/t | 180 µm | 5,840 kW | `power_limited`, `cyclone_pressure` |
+| Harder ore (+25% work index) | Bond work index: 13.0 kWh/t to 16.3 kWh/t (x1.25) | 87.5% | 26.13% | 13.00 kWh/t | 180 µm | 5,840 kW | `power_limited` |
+| Coarser grind target (+35% P80) | Grind target (P80): 150 µm to 203 µm (x1.35) | 84.5% | 26.27% | 9.82 kWh/t | 202 µm | 4,330 kW | - |
+| Higher throughput (+25%) | Ore throughput: 520 t/h to 650 t/h (x1.25) | 85.4% | 26.95% | 10.42 kWh/t | 180 µm | 5,840 kW | `power_limited` |
 | More collector (+60%) | Collector dose: 25.0 g/t to 40.0 g/t (x1.60) | 92.9% | 25.60% | 11.66 kWh/t | 150 µm | 5,233 kW | - |
 | More air (+40% gas velocity) | Gas velocity (rougher): 1.40 cm/s to 1.96 cm/s (x1.40) | 93.0% | 26.74% | 11.72 kWh/t | 150 µm | 5,233 kW | - |
-| Classifier cut held at the nominal cut | Classifier cut (d50c): off to 179 µm (x1.00 the nominal state's solved cut) | 93.1% | 26.93% | 12.84 kWh/t | 136 µm | 5,840 kW | `cyclone_pressure` |
+| Classifier cut held at the nominal cut | Classifier cut (d50c): off to 179 µm (x1.00 the nominal state's solved cut) | 93.1% | 26.93% | 12.84 kWh/t | 136 µm | 5,840 kW | - |
 | Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 143 µm (x0.80 the nominal state's solved cut) | 95.1% | 27.00% | 12.85 kWh/t | 123 µm | 5,840 kW | - |
 
 - **Harder ore (+25% work index).** Bond work index 25% higher. The circuit needs more energy per tonne for the same grind; where the installed power runs out the mill runs at its limit and the product coarsens, which then costs liberation.
@@ -85,8 +85,8 @@ Each variant changes exactly one input of the nominal state; the last two run th
 - **Higher throughput (+25%).** Throughput 25% higher. Once the mill reaches its installed power the grind coarsens, and in a flotation circuit the residence in every bank falls in proportion as well; the metal recovered per hour can still rise, because the extra tonnes outweigh the recovery lost.
 - **More collector (+60%).** More collector. The valuable mineral's response saturates at a lower dose than the gangue's and the composites', so extra reagent adds recovery with diminishing returns and floats more of what dilutes the concentrate.
 - **More air (+40% gas velocity).** Gas velocity 40% higher. A larger bubble surface area flux raises every rate constant; the froth also recovers more water, which carries more entrained gangue, but the faster flotation of the valuable mineral usually weighs more, so recovery rises and the grade holds or rises slightly.
-- **Classifier cut held at the nominal cut.** The plant's direction: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
-- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.
+- **Classifier cut held at the nominal cut.** The plant's way round: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
+- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product becomes finer, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and the cyclone count and pressure such a cut would take are only an uncalibrated estimate.
 
 ## At the nominal state
 
@@ -99,7 +99,7 @@ Every unit and the circuit close within 1.3e-13 relative (the requirement is 1e-
 
 ## Method records at the nominal state
 
-- **Optimizer:** optimal at Grind target (P80) 126 µm, Collector dose 75.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraint: power; recovered metal +5.99% against the nominal state (359 engine runs from 6 starts, screened by the learned lane; 334 without the screen).
+- **Optimizer:** optimal at Grind target (P80) 126 µm, Collector dose 75.0 g/t, Gas velocity (rougher) 2.50 cm/s; active constraint: power; recovered metal +5.99% against the nominal state (368 engine runs from 6 starts, screened by the learned lane; 334 without the screen).
 - **Weight path:** with 25% of the weight on recovered metal and the rest on energy, the optimum moves the energy per tonne by -39.2% and the recovered metal by -23.1%.
 - **Uncertainty** (128 Latin-hypercube samples of the ore): recovery P05 88.4%, P50 91.5%, P95 93.6%; probability of meeting every constraint 79%.
 - **Sobol indices** (1536 engine runs), the input with the largest total index: recovery of the primary payable: floatability (total index 0.80); concentrate grade: liberation size (total index 0.75); specific energy, grinding: work index (total index 1.00); recovered primary payable: head grade (total index 0.97).
@@ -109,7 +109,9 @@ Every unit and the circuit close within 1.3e-13 relative (the requirement is 1e-
 
 Clay is soft, fine and barely floatable, so it reports almost entirely by entrainment with the recovered water.
 
-Rheology (the viscosity clay adds to the pulp) is outside the model.
+The engine's answer is small: the three cleaning stages leave about 75 ppm of the flotation-feed clay in the final concentrate, the clay costs about 0.2 points of Cu grade, and froth washing and air move grade and recovery by the same amounts with or without it.
+
+Pulp rheology (the viscosity clay adds), slime coating, reagent consumption by fines and froth stability are outside the model, so the case shows the dilution by entrainment and nothing else clay does in a plant.
 
 ## Reading it in the workbench
 

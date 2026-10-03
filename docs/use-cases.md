@@ -3,15 +3,15 @@
 # Use cases
 
 Twelve authored ore and plant scenarios, three for each of four process questions: liberation, classification, flotation and integration.
-Each is an ore, a plant and an operating point inside published ranges, not a calibrated plant, and each comes with eight variants: the nominal state, five that change one input at a time, and two that run the grinding circuit in the cut mode.
+Each is an ore, a plant and an operating point, each parameter and plausibility range cited or labelled authored, not a calibrated plant, and each comes with eight variants: the nominal state, five that change one input at a time, and two that run the grinding circuit in the cut mode.
 The pages below are rendered from the committed case artifacts, so every number on them is the bake's; the prose is the same context the workbench's Case view shows.
 
 | Case | Question | Family | Recovery | Grade | Energy |
 |---|---|---|---|---|---|
 | [01 Soft copper porphyry](use-cases/01_copper_porphyry_soft.md) | How far is it worth grinding when energy is cheap per micron? | rougher | 93.0% | 26.20% | 10.36 kWh/t |
 | [02 Hard copper porphyry](use-cases/02_copper_porphyry_hard.md) | What happens to recovery when the mill runs out of power? | rougher | 93.8% | 26.22% | 16.09 kWh/t |
-| [03 Free-milling gold with gravity](use-cases/03_gold_free_milling.md) | How much gold does a gravity bleed capture from the circulating load? | gravity_rougher | 96.2% | 89.6 g/t | 16.77 kWh/t |
-| [04 Fine magnetite concentration](use-cases/04_iron_magnetite_fine.md) | How fine must magnetite be ground to reach a pellet-feed grade? | magnetic | 84.9% | 65.72% | 20.17 kWh/t |
+| [03 Free-milling gold with gravity](use-cases/03_gold_free_milling.md) | How much gold does a gravity bleed capture from the circulating load? | gravity_rougher | 97.7% | 92.2 g/t | 16.78 kWh/t |
+| [04 Fine magnetite concentration](use-cases/04_iron_magnetite_fine.md) | How fine must magnetite be ground to reach a pellet-feed grade? | magnetic | 85.0% | 65.72% | 20.17 kWh/t |
 | [05 Nickel sulphide with serpentine slimes](use-cases/05_nickel_sulphide.md) | How do slimes set the grade-recovery compromise? | rougher | 79.0% | 19.83% | 15.28 kWh/t |
 | [06 Phosphate with clay slimes](use-cases/06_phosphate_clay.md) | What does the desliming cut cost in phosphate? | deslime_rougher | 72.8% | 35.29% | 7.54 kWh/t |
 | [07 Copper-molybdenum bulk flotation](use-cases/07_copper_molybdenum.md) | Why does molybdenite trail copper in the same froth? | rougher | 94.0% | 26.51% | 14.95 kWh/t |

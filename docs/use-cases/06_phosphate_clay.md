@@ -4,7 +4,7 @@
 
 > What does the desliming cut cost in phosphate?
 
-An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, so the desliming cut trades lost P₂O₅ against a cleaner flotation feed.
+An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, and the apatite in the slimes is lost; in this engine a coarser cut costs recovery and grade together.
 
 | Case id | Category | Circuit family | Provenance |
 |---|---|---|---|
@@ -16,7 +16,7 @@ Open it in the workbench: [https://oreflow.ml.fasl-work.com/?case=phosphate_clay
 
 Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.
 
-Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut makes a cleaner flotation feed and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.
+Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.
 
 ## The ore
 
@@ -73,12 +73,12 @@ Each variant changes exactly one input of the nominal state; the last two run th
 | Variant | Change | Recovery of the primary payable | Concentrate grade | Specific energy, total | Product P80 | Mill power | Flags |
 |---|---|---|---|---|---|---|---|
 | Nominal design | - | 72.8% | 35.29% | 7.54 kWh/t | 150 µm | 3,238 kW | - |
-| Harder ore (+25% work index) | Bond work index: 8.50 kWh/t to 10.63 kWh/t (x1.25) | 71.5% | 35.19% | 8.60 kWh/t | 176 µm | 3,660 kW | `power_limited`, `cyclone_pressure` |
-| Coarser grind target (+35% P80) | Grind target (P80): 150 µm to 203 µm (x1.35) | 69.4% | 35.10% | 6.37 kWh/t | 203 µm | 2,688 kW | `cyclone_pressure` |
-| Higher throughput (+25%) | Ore throughput: 470 t/h to 588 t/h (x1.25) | 69.1% | 36.09% | 6.88 kWh/t | 176 µm | 3,660 kW | `power_limited`, `cyclone_pressure` |
+| Harder ore (+25% work index) | Bond work index: 8.50 kWh/t to 10.63 kWh/t (x1.25) | 71.5% | 35.19% | 8.60 kWh/t | 176 µm | 3,660 kW | `power_limited` |
+| Coarser grind target (+35% P80) | Grind target (P80): 150 µm to 203 µm (x1.35) | 69.4% | 35.10% | 6.37 kWh/t | 203 µm | 2,688 kW | - |
+| Higher throughput (+25%) | Ore throughput: 470 t/h to 588 t/h (x1.25) | 69.1% | 36.09% | 6.88 kWh/t | 176 µm | 3,660 kW | `power_limited` |
 | Coarser desliming cut (+50%) | Desliming cut: 20.0 µm to 30.0 µm (x1.50) | 67.5% | 34.78% | 7.54 kWh/t | 150 µm | 3,238 kW | - |
 | More collector (+40%) | Collector dose: 500 g/t to 700 g/t (x1.40) | 73.5% | 34.57% | 7.54 kWh/t | 150 µm | 3,238 kW | - |
-| Classifier cut held at the nominal cut | Classifier cut (d50c): off to 188 µm (x1.00 the nominal state's solved cut) | 71.4% | 35.37% | 8.44 kWh/t | 135 µm | 3,660 kW | `cyclone_pressure` |
+| Classifier cut held at the nominal cut | Classifier cut (d50c): off to 188 µm (x1.00 the nominal state's solved cut) | 71.4% | 35.37% | 8.44 kWh/t | 135 µm | 3,660 kW | - |
 | Finer classifier cut (-20% d50c) | Classifier cut (d50c): off to 151 µm (x0.80 the nominal state's solved cut) | 72.7% | 35.42% | 8.44 kWh/t | 122 µm | 3,660 kW | - |
 
 - **Harder ore (+25% work index).** Bond work index 25% higher. The circuit needs more energy per tonne for the same grind; where the installed power runs out the mill runs at its limit and the product coarsens, which then costs liberation.
@@ -86,8 +86,8 @@ Each variant changes exactly one input of the nominal state; the last two run th
 - **Higher throughput (+25%).** Throughput 25% higher. Once the mill reaches its installed power the grind coarsens, and in a flotation circuit the residence in every bank falls in proportion as well; the metal recovered per hour can still rise, because the extra tonnes outweigh the recovery lost.
 - **Coarser desliming cut (+50%).** Desliming cut 50% coarser. The flotation feed carries fewer slimes, and more of the phosphate in the fine classes leaves with them.
 - **More collector (+40%).** More collector. The valuable mineral's response saturates at a lower dose than the gangue's and the composites', so extra reagent adds recovery with diminishing returns and floats more of what dilutes the concentrate.
-- **Classifier cut held at the nominal cut.** The plant's direction: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
-- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.
+- **Classifier cut held at the nominal cut.** The plant's way round: the classifier's cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.
+- **Finer classifier cut (-20% d50c).** Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product becomes finer, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and the cyclone count and pressure such a cut would take are only an uncalibrated estimate.
 
 ## At the nominal state
 
@@ -113,6 +113,8 @@ Every unit and the circuit close within 2.2e-13 relative (the requirement is 1e-
 The desliming cyclone uses the Rosin-Rammler partition with a declared sharpness and water bypass; its cut is an operating control bounded by half the grind target.
 
 The phosphate practice figures come from a review summary (the full text was not reachable when the research was done).
+
+Clay acts only through mass, size and entrainment. Slime coating and collector consumption by slimes, the reasons plants deslime, are not modelled, so the engine shows what the cut costs and not what it buys: a coarser cut lowers recovery and concentrate grade together, and only the flotation-stage recovery, a ratio, rises.
 
 ## Reading it in the workbench
 
