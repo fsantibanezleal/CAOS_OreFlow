@@ -222,6 +222,14 @@ def test_page_18_and_contract_05_quote_the_geomet_record():
         f"leaving one hole out it is {pair(loho['rmse_differences']['train_mean-ridge'])}",
     ])
     assert not missing, missing
+    # guide 03 quotes the same comparison to a reader bringing their own assays
+    missing = _missing_doc("guides/03_use-on-other-data.md", [
+        f"ridge beats the training mean by {published['mean_pp']:.2f} points of RMSE (95% interval {published['interval_95_pp'][0]:.2f} to "
+        f"{published['interval_95_pp'][1]:.2f}), but that partition sits at the {gain['published_percentile']}th percentile of "
+        f"{parts['partitions']} random hole partitions; averaged over them the gain is {pair(parts['rmse_differences']['train_mean-ridge'], ' points')} "
+        f"and under leave one hole out {pair(loho['rmse_differences']['train_mean-ridge'])}",
+    ])
+    assert not missing, missing
     real = _read(DERIVED / "real_samples.json")["summary"]
     missing = _missing_doc("data-contract/05_geomet-lane.md", [
         f"`flotation.csv` ({s['raw_rows']} rows)", f"`comminution.csv` ({real['comminution_samples']} rows)",
