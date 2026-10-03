@@ -219,6 +219,14 @@ input, select, textarea { font: inherit; }
   .of-split:not(.of-split-beside) > .of-aside > .of-table { width: auto; }
   .of-split:not(.of-split-beside) > .of-aside > .of-status-line, .of-split:not(.of-split-beside) > .of-aside > .of-note { flex-basis: 100%; }
 }
+/* The real sources' Case views keep their two columns at every size: their side panels are long tables, and as a strip
+ * a GeoMet sample left a blank band between its two tables, and an hour of the iron plant cut its forecast table to
+ * four of nine rows over a 21-row assay column with a blank band beside it, at 1920x1080 and 2560x1440 (0.08 gate) */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .of-view-sample > .of-split, .of-view-hour > .of-split { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .of-view-sample > .of-split > .of-aside, .of-view-hour > .of-split > .of-aside { flex-direction: column; flex-wrap: nowrap; max-height: none; }
+  .of-view-sample > .of-split > .of-aside > .of-table, .of-view-hour > .of-split > .of-aside > .of-table { width: 100%; }
+}
 @media (min-width: 1800px) and (min-height: 1300px) {
   .of-split.of-split-beside { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   .of-split.of-split-beside > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }

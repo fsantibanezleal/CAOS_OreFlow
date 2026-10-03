@@ -73,6 +73,10 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
   const sample = source === 'sample' ? samples?.samples.find(s => s.id === sampleId) ?? null : null;
   const [artifact, setArtifact] = useState<CaseArtifact | null>(null);
   const [trace, setTrace] = useState<Trace | null>(null);
+  // the case and sample a trace answers: while another subject computes, the last one's numbers are not its own
+  // (the 0.08 gate caught a GeoMet sample's Case view reading the synthetic case's 94.2% as "Engine, this state")
+  const [traceSubject, setTraceSubject] = useState<string | null>(null);
+  const subject = `${caseId}|${source === 'sample' ? sample?.id ?? '?' : ''}`;
   const [accepted, setAccepted] = useState<OperatingPoint | null>(null);
   const [errors, setErrors] = useState<ContractError[]>([]);
   const [computing, setComputing] = useState(false);
@@ -164,8 +168,9 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     const valid = (sample ? { ...verdict.point, head_grade: sample.point.head_grade, work_index_kwh_t: sample.point.work_index_kwh_t }
       : verdict.point) as unknown as OperatingPoint;
     setComputing(true);
+    const asked = `${caseId}|${sample?.id ?? ''}`;
     evaluateInWorker(sample ? sample.ore : artifact.definition.ore, artifact.definition.plant, valid).then(
-      next => { setTrace(next); setAccepted(valid); setComputing(false); },
+      next => { setTrace(next); setTraceSubject(asked); setAccepted(valid); setComputing(false); },
       error => {
         // a state the engine refuses (E-01) is a rejection like the contract's: its error shows, no result is current
         if (error instanceof RefusedState) { setErrors([error.error]); setRejected(true); setComputing(false); return; }
@@ -175,7 +180,7 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
   }, [loaded, artifact, point, caseId, source, sample]);
 
   const variant = artifact?.variants.find(v => v.id === variantId) ?? null;
-  return { artifact, variant, trace: source === 'hour' ? null : trace, accepted, errors, computing, samples, lane, sample,
+  return { artifact, variant, trace: source === 'hour' || traceSubject !== subject ? null : trace, accepted, errors, computing, samples, lane, sample,
     rejected: source !== 'hour' && rejected };
 }
 

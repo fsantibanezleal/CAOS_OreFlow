@@ -296,7 +296,9 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
             {failure && <p className="of-note">{`${TEXT.failed[lang]}: ${failure}`}</p>}
             {live && <div className="of-actions">
               <p className="of-status-line neutral">{`${TEXT.live[lang]}: ${Math.round(100 * live.weights.recovered_metal)}% ${TEXT.weight[lang]}`}</p>
-              <button type="button" className="of-revert" onClick={() => setLive(null)}>{TEXT.showBaked[lang]}</button></div>}
+              {/* back on the baked record the selector shows the weight that record answers to: it kept the live run's
+                  50% under a result reading 100% (0.08 gate captures) */}
+              <button type="button" className="of-revert" onClick={() => { setLive(null); setWeightPct(Math.round(100 * baked.weights.recovered_metal)); }}>{TEXT.showBaked[lang]}</button></div>}
           </div>
         )}
         {modified && !live && <p className="of-note">{TEXT.baked[lang]}</p>}
@@ -363,17 +365,17 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
               <th scope="col">{TEXT.proposedCol[lang]}</th><th scope="col">{TEXT.improvedCol[lang]}</th></tr></thead>
             <tbody>
               {starts.map((s, i) => (
-                <tr key={i}><th scope="row">{i + 1}</th><td>{s.evaluations}</td><td>{record.without_screen!.starts[i]}</td>
-                  <td>{s.screen?.proposed ?? 0}</td><td>{s.screen?.improved ?? 0}</td></tr>
+                <tr key={i}><th scope="row">{i + 1}</th><td>{formatFixed(s.evaluations, lang, 0)}</td><td>{formatFixed(record.without_screen!.starts[i], lang, 0)}</td>
+                  <td>{formatFixed(s.screen?.proposed ?? 0, lang, 0)}</td><td>{formatFixed(s.screen?.improved ?? 0, lang, 0)}</td></tr>
               ))}
-              <tr className="of-table-group"><th scope="row">{TEXT.total[lang]}</th><td>{record.evaluations}</td><td>{record.without_screen.evaluations}</td>
-                <td>{screenTotals!.proposed}</td><td>{screenTotals!.improved}</td></tr>
+              <tr className="of-table-group"><th scope="row">{TEXT.total[lang]}</th><td>{formatFixed(record.evaluations, lang, 0)}</td><td>{formatFixed(record.without_screen.evaluations, lang, 0)}</td>
+                <td>{formatFixed(screenTotals!.proposed, lang, 0)}</td><td>{formatFixed(screenTotals!.improved, lang, 0)}</td></tr>
             </tbody>
           </table>
         )}
         <p className="of-footnote">
-          {`${starts.length} ${TEXT.starts[lang]}, ${record.evaluations} ${TEXT.evaluations[lang]} (${TEXT.method[lang]}), ${Math.round(100 * w)}% ${TEXT.weight[lang]}`}
-          {screenTotals && `; ${screenTotals.screened} ${TEXT.screened[lang]}, ${screenTotals.guard} ${TEXT.rejected[lang]} ${lang === 'es' ? 'y' : 'and'} ${screenTotals.interval} ${TEXT.interval[lang]} (${formatSignificant(record.screen_bound_pct ?? 0, lang, 2)} ${lang === 'es' ? 'puntos' : 'points'})`}
+          {`${starts.length} ${TEXT.starts[lang]}, ${formatFixed(record.evaluations, lang, 0)} ${TEXT.evaluations[lang]} (${TEXT.method[lang]}), ${Math.round(100 * w)}% ${TEXT.weight[lang]}`}
+          {screenTotals && `; ${formatFixed(screenTotals.screened, lang, 0)} ${TEXT.screened[lang]}, ${formatFixed(screenTotals.guard, lang, 0)} ${TEXT.rejected[lang]} ${lang === 'es' ? 'y' : 'and'} ${formatFixed(screenTotals.interval, lang, 0)} ${TEXT.interval[lang]} (${formatSignificant(record.screen_bound_pct ?? 0, lang, 2)} ${lang === 'es' ? 'puntos' : 'points'})`}
           {meanError !== null && `; ${TEXT.disagreement[lang]}: ${formatSignificant(meanError, lang, 3)} ${lang === 'es' ? 'puntos' : 'points'}`}
           {'.'}
         </p>

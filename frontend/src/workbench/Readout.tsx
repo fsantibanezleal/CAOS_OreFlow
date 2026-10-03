@@ -18,7 +18,7 @@ export function Readout({ trace, lang, computing, cursor, rejected }: {
     // the messages themselves are in the rail and the view host; the row names the state
     return <div className="of-readout" role="status" aria-live="polite"><span className="of-readout-flags warn" title={rejected.join(' ')}>{t(UI.rejected, lang)}</span></div>;
   }
-  if (!trace) return <div className="of-readout" role="status">{t(UI.loading, lang)}</div>;
+  if (!trace) return <div className="of-readout" role="status">{t(computing ? UI.computing : UI.loading, lang)}</div>;
   const flags = trace.flags;
   // U-23: the row never wraps, so it names the flags short; FlagsLine gives the full sentences under the tabs
   const status = flags.length ? flags.map(f => flagShort(f.code, lang)).join(' · ') : t(UI.noFlags, lang);

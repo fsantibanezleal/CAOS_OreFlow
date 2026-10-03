@@ -148,7 +148,9 @@ export function Uncertainty({ record: baked, contract, ore, plant, point, gradeU
             {failure && <p className="of-note">{`${TEXT.failed[lang]}: ${failure}`}</p>}
             {live && <div className="of-actions">
               <p className="of-status-line">{`${TEXT.live[lang]}: ${TEXT.seed[lang]} ${live.seed}, ${live.samples} ${lang === 'es' ? 'muestras' : 'samples'}`}</p>
-              <button type="button" className="of-revert" onClick={() => setLive(null)}>{TEXT.showBaked[lang]}</button></div>}
+              {/* back on the baked record the fields show the seed and samples it was drawn with: they kept the live
+                  run's seed 7 and 32 samples over a 128-sample record (0.08 gate captures) */}
+              <button type="button" className="of-revert" onClick={() => { setLive(null); setSeedText(String(baked.seed)); setSamples(baked.samples); }}>{TEXT.showBaked[lang]}</button></div>}
           </div>
         )}
         {modified && !live && <p className="of-note">{TEXT.baked[lang]}</p>}

@@ -43,7 +43,7 @@ const TEXT = {
   targetMet: { en: 'P80 at target', es: 'P80 en el objetivo' },
   cut: { en: 'cut', es: 'corte' },
   host: { en: 'Host gangue', es: 'Ganga huésped' },
-  xl: { en: 'liberation size', es: 'tamaño de liberación' },
+  xl: { en: 'liberation size', es: 'tamaño de liberación de' },
   psdSummary: { en: 'Cumulative size distributions of the grinding circuit streams, with the target and achieved P80.', es: 'Distribuciones granulométricas acumuladas de las corrientes de molienda, con el P80 objetivo y logrado.' },
   partSummary: { en: 'Cyclone partition to underflow by size for the host gangue and each valuable mineral, with the host cut.', es: 'Partición del ciclón a la descarga por tamaño para la ganga huésped y cada mineral valioso, con el corte de la ganga.' },
   libSummary: { en: 'Liberated fraction of each valuable mineral by size, with its liberation size and the target P80.', es: 'Fracción liberada de cada mineral valioso por tamaño, con su tamaño de liberación y el P80 objetivo.' },
