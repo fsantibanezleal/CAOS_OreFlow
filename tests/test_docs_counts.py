@@ -99,6 +99,40 @@ def test_the_unit_and_kinetic_pages_quote_the_records():
     assert "moves the net energy from 7.12 to 7.45 kWh/t" in page and "7.12 to 7.45 kWh/t" in molycop["parameters"]["note"]
 
 
+RETIRED = {
+    r"\btwo measured(?:-data)? lanes\b": "three measured lanes since 0.07.000",
+    r"\bboth measured lanes\b": "three measured lanes since 0.07.000",
+    r"\bsix stages\b": "the bake runs eight stages since 0.07.000",
+    r"\bindependent (?:browser|second) implementation\b": "the port is a line-by-line translation (W-26)",
+    r"\btwelve contract inputs\b": "thirteen inputs since 0.07.000",
+    r"\b12 x 6\b|\btwelve by six\b": "eight variants per case since 0.07.000",
+    r"\bcyclone_pressure\b(?! flag)": "the flag retired in 0.08.000",
+    r"\bPMC9572913\b": "cite Castellon et al. 2022 (W-44)",
+}
+
+
+def test_current_docs_carry_no_retired_phrase():
+    """W-11, W-13, W-16, W-26: phrases the product outgrew, swept from the documents that describe the current
+    release. The design records, the CHANGELOG, the release verification and the rendered use cases describe their
+    own releases and are left alone."""
+    current = [ROOT / "README.md", ROOT / "STRUCTURE.md", ROOT / "CONTRIBUTING.md", *(ROOT / "docs").glob("*.md")]
+    for folder in ("architecture", "guides", "methodologies", "data-contract", "frameworks"):
+        current += sorted((ROOT / "docs" / folder).rglob("*.md"))
+    current.append(ROOT / "manuscript" / "oreflow-digital-twin.md")
+    hits = []
+    for path in current:
+        if path.name in ("release-verification.md",):
+            continue
+        text = " ".join(path.read_text(encoding="utf-8").split())
+        for pattern, why in RETIRED.items():
+            for m in re.finditer(pattern, text, re.I):
+                context = text[max(0, m.start() - 60):m.end() + 60]
+                if re.search(r"\b(?:until|before|retired|was|were|in 0\.0[1-7])\b", context, re.I):
+                    continue  # a sentence about the past names the retired thing on purpose
+                hits.append(f"{path.relative_to(ROOT)}: {m.group(0)!r} ({why})")
+    assert not hits, hits
+
+
 def test_the_changelog_has_one_entry_per_release_in_one_format():
     """W-28, W-50: three tagged releases had no entry, and the entries before 0.05.000 used another heading format.
     The tags are read where the checkout has them (a shallow CI clone has none, and then the format alone is held)."""
