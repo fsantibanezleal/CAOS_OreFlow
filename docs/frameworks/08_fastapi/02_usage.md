@@ -15,7 +15,7 @@ def create_app() -> FastAPI:
     app.mount("/", SpaStaticFiles(directory=dist, html=True), name="oreflow-spa")
 ```
 
-- **Compression** matters here: a case artifact is about 400 KB of JSON, and GZip shrinks every
+- **Compression** matters here: a case artifact is 400 to 700 KB of JSON, and GZip shrinks every
   response over 1 KB.
 - **CORS** allows the dev server's origins in development and the public host in production.
 - **The site is mounted last**, so every API route and `/health`, `/healthz`, `/docs` match first.

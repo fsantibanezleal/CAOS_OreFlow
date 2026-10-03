@@ -18,8 +18,8 @@ const benchmark = JSON.parse(readFileSync(fileURLToPath(new URL('../../../data/d
 describe('the Benchmark page', () => {
   it('states how many variants the optimizer solved', () => {
     const records = Object.values(benchmark.optimization).flatMap(variants => Object.values(variants));
-    expect(records).toHaveLength(72);
-    expect(records.filter(r => r.status === 'optimal')).toHaveLength(70);     // the page says 70 of the 72
+    expect(records).toHaveLength(96);
+    expect(records.filter(r => r.status === 'optimal')).toHaveLength(94);     // the page says 94 of the 96
   });
 });
 ```

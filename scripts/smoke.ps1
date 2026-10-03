@@ -1,5 +1,6 @@
 # The local release gate. CI runs only the cheap checks (ADR-0074), so the suites run here before a pull
-# request: every guard CI runs, ruff, the Python suite, and the frontend typecheck, tests and build.
+# request: every guard CI runs, ruff, the Python suite, every framework example (docs/frameworks/*/example.py,
+# which fit models and so stay out of CI), and the frontend typecheck, tests and build.
 # -Bake adds a sandbox bake into build/smoke, validated by the bake's own last stage; the committed
 # data/derived and models/ are never written. It takes as long as a real bake (about forty minutes).
 param([switch]$Bake)
@@ -22,6 +23,15 @@ foreach ($guard in @("check_template_residue", "check_content_standards", "check
 Step "use-case pages" "node" @("--experimental-strip-types", "scripts/render_use_cases.mjs", "--check")
 Step "ruff" $vp @("-m", "ruff", "check", "data-pipeline", "tests")
 Step "pytest" $vp @("-m", "pytest", "-q")
+# W-02 (review of 2026-10-02): the examples say they check what they print, and one had asserted 72 variants for a
+# release after the catalog grew to 96; the PyTorch and ONNX examples need the accelerator environment
+$gpu = Test-Path (Join-Path ".venv-gpu" "Scripts\python.exe")
+foreach ($example in Get-ChildItem "docs/frameworks/*/example.py" | Sort-Object FullName) {
+  $node = $example.Directory.Name
+  if ($node -eq "09_pytest") { Step "example $node" $vp @("-m", "pytest", "-q", "-p", "no:cacheprovider", $example.FullName); continue }
+  if (-not $gpu -and $node -in @("05_pytorch", "06_onnx")) { Write-Host "[smoke] example $node skipped: no .venv-gpu"; continue }
+  Step "example $node" $vp @($example.FullName)
+}
 Push-Location frontend
 try {
   Step "typecheck" "npm" @("run", "typecheck")

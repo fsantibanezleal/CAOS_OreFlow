@@ -24,7 +24,7 @@ target, mill power, bank volumes, cyclone diameter, liberation size, composite c
 KPI ranges and water capacity). Other circuits are written as a `CaseDef(...)` in `_cases()`, as the
 existing gold, magnetite, nickel and phosphate cases are. Each family has its variant set:
 `_flotation_variants`, `_gravity_variants`, `_magnetic_variants` or `_deslime_variants`, each the nominal
-plus five single-factor changes.
+plus five single-factor changes; the catalog then appends the two cut-mode variants, eight in all.
 
 Two values are derived, not chosen:
 
@@ -48,9 +48,17 @@ The catalog's size is stated in checks and prose, so a thirteenth case fails the
 | `scripts/check_artifacts.py` | `N_CASES, N_VARIANTS = 12, 96` |
 | `tests/test_cases.py::test_catalog_shape` | twelve cases, twelve ids |
 | `frontend/src/test/*-claims.test.ts` | the counts and the per-case findings the pages state |
-| the content pages, the architecture modal (`content/architecture.ts`, `public/svg/tech/`) and `docs/` | "twelve", "12", "72" in the prose and the diagrams |
+| `tests/test_learning_findings.py::test_fold_table_quotes_the_record` | the twelve rows of the learned lane's held-out-case table on methodology page 14 |
+| `tests/test_manuscript_claims.py::test_table_2_quotes_every_held_out_case` | the manuscript's Table 2, one row per held-out case |
+| `tests/test_docs_counts.py` | the SDD's coverage matrix, one row per case |
+| the content pages, the architecture modal (`content/architecture.ts`, `public/svg/tech/`) and `docs/` | "twelve", "12", "96" in the prose and the diagrams |
 
 `grep -rn "twelve\|96 variants\|12 cases" frontend/src docs` finds the prose.
+
+What the tests hold a new case to, beyond the counts: `tests/test_cases.py` (one factor per variant, units and
+sources on every parameter, the nominal KPIs inside their ranges, the water capacity) and `tests/test_case_rules.py`
+(every plausibility range names its source in both languages, and the nominal state meets its own grade
+specification).
 
 ## 5. Bake, render, check
 

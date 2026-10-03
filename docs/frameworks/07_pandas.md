@@ -1,7 +1,8 @@
 # 07 pandas and openpyxl
 
-pandas reads OreFlow's two external sources, the HZDR particle workbook (an Excel file, read through
-openpyxl) and the GeoMet locked-cycle table (a CSV), and validates them before any model sees a row.
+pandas reads OreFlow's three external sources, the HZDR particle workbook (an Excel file, read through
+openpyxl), the GeoMet locked-cycle table (a CSV) and the iron-plant archive (a zipped CSV of 20-second rows, which
+it collapses to hourly medians), and validates them before any model sees a row.
 It is also the convenient way to read OreFlow's own JSON records as tables for your own analysis. The
 engine never uses it: the process lanes work on NumPy arrays and plain JSON.
 
@@ -13,8 +14,8 @@ engine never uses it: the process lanes work on NumPy arrays and plain JSON.
 | Versions | 2.2.3, 3.1.5 |
 | Licences | BSD-3-Clause, MIT |
 | Declared in | `requirements-precompute.txt` |
-| Lane | Offline: the two measured lanes and the local GeoMet prediction script |
-| Used by | `data-pipeline/pipeline/stages/particle_experiment.py`, `stages/preprocess.py` (`read_excel`, `ExcelFile`), `data-pipeline/run_geomet.py` (`read_csv`, `to_numeric`, the assay validation) |
+| Lane | Offline: the three measured lanes and the local GeoMet prediction script |
+| Used by | `data-pipeline/pipeline/stages/particle_experiment.py`, `stages/preprocess.py` (`read_excel`, `ExcelFile`), `data-pipeline/run_geomet.py` (`read_csv`, `to_numeric`, the assay validation), `data-pipeline/run_iron_plant.py` (`read_csv`, `groupby`, the hourly medians and the held labels) |
 | Raw data | never committed: `scripts/fetch-data` downloads it into `data/raw/` and verifies its hashes |
 
 ## Read in order

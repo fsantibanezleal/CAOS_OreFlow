@@ -60,3 +60,24 @@ def test_the_sdd_coverage_matrix_is_the_records():
         limited = {v["id"] for v in artifact["variants"] if v["trace"]["metrics"]["power_limited"]}
         assert {"harder_ore", "higher_throughput"} <= limited, artifact["case_id"]
     assert re.search(r"every harder-ore and higher-throughput\s+variant is power-limited", text)
+
+
+def test_the_guide_snippets_print_what_their_comments_say(monkeypatch, capsys):
+    """W-41: guide 03's two Python snippets run as written from the repository root, and their output agrees with the
+    numbers their comments state (one had drifted by 0.01 and named a flag the engine had retired)."""
+    text = (ROOT / "docs" / "guides" / "03_use-on-other-data.md").read_text(encoding="utf-8")
+    blocks = re.findall(r"```python\n(.*?)```", text, re.S)
+    assert len(blocks) == 2
+    first = re.search(r"# ([\d.]+) \[([^\]]*)\]", blocks[0])
+    second = re.search(r"# ([\d.]+)% recovery", blocks[1])
+    assert first and second
+    monkeypatch.chdir(ROOT)
+    namespace: dict = {}
+    exec(compile(blocks[0], "guide03-block1", "exec"), namespace)  # noqa: S102 - the guide's own code
+    printed = capsys.readouterr().out.strip()
+    value, flags = printed.split(" ", 1)
+    assert round(float(value), 2) == float(first.group(1))
+    assert flags == f"[{first.group(2)}]"
+    exec(compile(blocks[1], "guide03-block2", "exec"), namespace)  # noqa: S102
+    assert round(namespace["result"].metrics["recovery_pct"], 2) == float(second.group(1))
+    assert namespace["result"].metrics["balance_max_relative_error"] <= 1e-9

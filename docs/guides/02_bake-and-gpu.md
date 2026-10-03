@@ -18,13 +18,14 @@ the change.
 
 ```powershell
 ./scripts/fetch-data.ps1          # once: the HZDR workbook and the GeoMet tables (the measured lanes need them)
-./scripts/precompute.ps1          # the process bake, then the particle lane, then the GeoMet lane
+./scripts/precompute.ps1          # the particle, GeoMet and iron-plant lanes, then the process bake
 ```
 
 `precompute.ps1` uses `.venv-gpu` when it exists and `.venv` otherwise, and passes its arguments to
 `data-pipeline/run.py`: `--workers N` sets the number of case processes (default half the logical cores,
-at most twelve); `--output` and `--models` redirect the output (see the sandbox below). The process bake
-runs six stages and stops with an error if the last one, the artifact checks, finds anything:
+at most twelve); `--output` and `--models` redirect the output (see the sandbox below). The measured lanes run
+first, so the bake reads the fresh GeoMet record and its validation checks all three. The process bake runs eight
+stages and stops with an error if the last one, the artifact checks, finds anything:
 
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
@@ -39,7 +40,7 @@ runs six stages and stops with an error if the last one, the artifact checks, fi
 
 The times are those recorded in the committed `validation.json` (development machine: 32 logical cores,
 RTX 4070 Laptop GPU). Each stage and each finished case prints a timestamped line; a bake still running
-after 45 minutes prints every thread's stack once, so a stall shows where it is.
+after four hours, well past a normal run, prints every thread's stack once, so a stall shows where it is.
 
 ## The GPU lane
 

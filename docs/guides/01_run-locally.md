@@ -24,15 +24,22 @@ cd CAOS_OreFlow
 cd frontend; npm ci; cd ..
 ```
 
-`setup.ps1` ends with a CUDA probe; `./scripts/gpu_probe.ps1` repeats it at any time.
+`setup.ps1` ends with a CUDA probe; `./scripts/gpu_probe.ps1` repeats it at any time. `.venv-gpu` installs the
+CUDA 12.6 build of PyTorch, a large download published for Windows and Linux only; `./scripts/setup.ps1 -NoGpu`
+(`setup.sh --no-gpu`) skips it, and `setup.sh` skips it on macOS. Only the learned lane's training needs it.
+
+The workbench alone needs only Node: `cd frontend; npm ci; npm run dev` serves it with the committed records.
 
 The committed artifacts in `data/derived/` and `models/` are everything the site and the service need, so
 there is no bake to run before opening the workbench. The raw measured data is only needed to rebuild the
-two measured lanes:
+three measured lanes:
 
 ```powershell
 ./scripts/fetch-data.ps1            # HZDR workbook and the GeoMet tables into data/raw/, hashes verified
 ```
+
+The iron-plant lane downloads its archive itself on its first run (`data-pipeline/run_iron_plant.py`, Kaggle
+dataset 6294, SHA-256 verified).
 
 ## Open the workbench
 
@@ -61,13 +68,14 @@ The local release gate runs everything CI runs and the suites CI leaves to the w
 ./scripts/smoke.ps1
 ```
 
-It runs the eight guards, the use-case page check, ruff, the Python suite (341 tests; 76 s on the
-development machine) and the frontend typecheck, tests (150) and build, and stops at the first failure.
+It runs the eight guards, the use-case page check, ruff, the Python suite, every framework example and the
+frontend typecheck, tests and build, and stops at the first failure. The release record
+(`docs/release-verification.md`) gives each release's counts and times.
 
 ## The browser gate
 
 ```powershell
-$env:PLAYWRIGHT_BROWSERS_PATH = 'E:\_Temp\ms-playwright'   # wherever your browser cache belongs
+$env:PLAYWRIGHT_BROWSERS_PATH = '<a folder with room>'    # optional: wherever your browser cache belongs
 cd frontend
 npx playwright install chromium                            # once per Playwright version
 npm run build

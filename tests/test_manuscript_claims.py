@@ -132,7 +132,7 @@ def test_the_learning_prose_quotes_the_record():
         f"({learning['interpolation']['train_rows']} training, {learning['interpolation']['test_rows']} test rows)",
         f"on {guard['probe_rows']:,} probes".replace(",", " "),
         f"interpolation RMSE runs from {min(seeds['recovery_pct']['interpolation_rmse']):.2f} to {max(seeds['recovery_pct']['interpolation_rmse']):.2f} points",
-        f"(13.75 and 13.53 points)" if (round(rec['hist_gradient_boosting']['loco_rmse_mean'], 2), round(rec['random_forest']['loco_rmse_mean'], 2)) == (13.75, 13.53) else "MISMATCH",
+        f"({rec['hist_gradient_boosting']['loco_rmse_mean']:.2f} and {rec['random_forest']['loco_rmse_mean']:.2f} points)",
         f"interpolate recovery with an R² of {equal['random_forest']['recovery_pct']['r2']:.3f} and {equal['hist_gradient_boosting']['recovery_pct']['r2']:.3f} against the Gaussian process's {gp['recovery_pct']['r2']:.3f}",
         f"({magnetite['random_forest']['recovery_pct']['rmse']:.0f} and {magnetite['hist_gradient_boosting']['recovery_pct']['rmse']:.0f} points),"
         f" where ridge fails least ({magnetite['ridge']['recovery_pct']['rmse']:.0f})",

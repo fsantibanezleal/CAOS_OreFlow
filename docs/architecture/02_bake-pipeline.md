@@ -36,7 +36,8 @@ order in which cases finish, and the artifacts are assembled in catalog order.
 ## What cannot ship
 
 The index and the benchmark are built from the records of the same run, never by listing files on
-disk, and every artifact carries the engine version and the contract digest. A bake that stops
+disk, and every engine record carries the engine version and the contract digest (the exported networks are bound
+to the learning record by their byte counts, and the measured lanes' records carry their own schemas). A bake that stops
 halfway leaves an index that does not match, and the artifact checks reject a learning record, a
 benchmark or a case from another version or contract. The last stage recomputes every unit balance
 from the stored streams, so an artifact whose balance does not close cannot be committed as valid,
@@ -45,8 +46,8 @@ those folders whole, so a case left over from an older catalog would otherwise s
 
 ## Observability
 
-Each stage and each finished case prints a timestamped line, and a bake still running after 45
-minutes prints the stack of every thread once, so a stall shows where it is. On the development
+Each stage and each finished case prints a timestamped line, and a bake still running after four
+hours, well past a normal run, prints the stack of every thread once, so a stall shows where it is. On the development
 machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about twenty minutes on twelve
 workers since 0.07.000, when every target-mode optimizer began to run twice (with and without the screen) and
 along the weight path, and the learning stage half an hour to over an hour, depending on what else the machine

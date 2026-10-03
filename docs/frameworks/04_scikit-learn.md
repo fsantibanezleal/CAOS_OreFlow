@@ -1,9 +1,11 @@
 # 04 scikit-learn
 
 scikit-learn supplies every classical learner in OreFlow and the protocols around them. It is used in
-three places that never mix: the learned lane, which scores surrogates of the process engine; the
-particle lane, which fits a sparse logistic model to the HZDR particles; and the GeoMet lane, which
-predicts measured locked-cycle recovery from assays. joblib, which scikit-learn uses to persist models,
+four places that never mix: the learned lane, which scores surrogates of the process engine; the
+particle lane, which fits a sparse logistic model to the HZDR particles; the GeoMet lane, which
+predicts measured locked-cycle recovery from assays; and the iron-plant lane (`run_iron_plant.py`), which forecasts
+the next hour's silica with ridge, a random forest and gradient boosting in pipelines of imputation and scaling,
+and fits the AR(1) comparator with a linear regression. joblib, which scikit-learn uses to persist models,
 stores the GeoMet checkpoint that `scripts/predict-geomet` scores new assays with.
 
 ## At a glance

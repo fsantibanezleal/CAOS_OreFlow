@@ -45,8 +45,9 @@ training stack, runs a bake, training or benchmark entry point, or runs the Pyth
 ## GitHub Pages
 
 `.github/workflows/deploy-pages.yml` runs on a push to `main` and on a manual dispatch. It builds the
-site with `VITE_BASE_PATH=/CAOS_OreFlow/`, checks that `404.html` and the per-route copies of
-`index.html` exist (Pages answers a deep link with the app only where a file exists), and publishes
+site with `VITE_BASE_PATH=/CAOS_OreFlow/`, checks that `404.html` and two of the per-route copies of
+`index.html` (`methodology/` and `experiments/`) exist (Pages answers a deep link with the app only where a file
+exists; the build writes one per route and per case's focus route), and publishes
 `frontend/dist` with the Pages actions. The router takes the `/CAOS_OreFlow` base on this host only.
 
 ## The VPS service
@@ -96,9 +97,11 @@ validator).
 - checks `/healthz` and `/api/cases` on the local port, retrying while the restarted port refuses
   connections.
 
-Its rerun path was checked against the ML host on 2026-09-26: no package was missing, the certificate
-was present, and the installed unit and virtual host were identical to the repository's. It has not yet
-been run as an update. The releases so far took only the steps an update needs:
+Since 0.06.000 every release has updated the host by running the release's copy of `setup-vps.sh` from outside
+the checkout (#61), so its own `git pull` never rewrites the running script. Its rerun path had been checked
+against the ML host on 2026-09-26: no package was missing, the certificate was present, and the installed unit and
+virtual host were identical to the repository's. The releases 0.04.000 to 0.05.001 took only the steps an update
+needs, by hand:
 1. fast-forward `main`;
 2. install the runtime requirements;
 3. build the site;
@@ -106,7 +109,6 @@ been run as an update. The releases so far took only the steps an update needs:
 5. restart `oreflow.service`;
 6. check `/healthz` and `/api/cases` on the local port.
 
-The releases from 0.04.000 to 0.05.001 were deployed this way.
 
 ## Verifying a release from outside
 

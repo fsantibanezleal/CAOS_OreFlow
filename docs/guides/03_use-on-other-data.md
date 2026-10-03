@@ -74,7 +74,7 @@ one deposit:
 
 ```powershell
 ./scripts/fetch-data.ps1                                        # once: the pinned source table
-./scripts/predict-geomet.ps1 -InputCsv data/examples/geomet-assays.csv -OutputCsv E:\_Temp\geomet-predictions.csv
+./scripts/predict-geomet.ps1 -InputCsv data/examples/geomet-assays.csv -OutputCsv predictions.csv
 ```
 
 `data/examples/geomet-assays.csv` is a committed, illustrative one-row input; replace it with yours. The CSV

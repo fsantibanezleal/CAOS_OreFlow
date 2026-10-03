@@ -53,6 +53,9 @@ port has to reproduce it.
   files import only the engine's interface, and sweeps start only from an explicit request.
 - `frontend/src/test/surrogate.test.ts` (PE-39): the browser's learned lane against the bake's
   reference, below.
+- `frontend/src/test/refusal.test.ts` (CM-09, 0.08.000): the port refuses, with the same code, the cut-mode states
+  with no steady state that the bake and the service refuse.
+- The method lanes of 0.07.000 each have their own parity gate, below.
 
 ## Sweeps in a worker
 
@@ -61,6 +64,23 @@ two-input grid, validating each state and recording rejected ones with their cod
 it in a Web Worker, streams each cell back as it finishes, yields between cells so a newer request can
 cancel an older one, and is only ever started by an explicit request, never by a slider event
 (PE-38).
+
+## The methods in the browser (0.07.000)
+
+The optimizer and the uncertainty record re-run in the browser on request, and the real samples and the ablations
+run there too. Each is a port of its Python module, taking the same steps in the same order, so it reproduces the
+bake's record and can then run where the bake did not.
+
+| Lane | Code | What it does | Gate |
+|---|---|---|---|
+| Optimizer | `engine/optimize.ts`, `engine/pattern_search.ts`, `engine/optimizer-worker.ts` | the pattern search with a progressive barrier from six starts, screened, at four weights along the weight path; its own worker runs it at any weight on request, and a newer run or a cancel terminates the worker | `optimizer-parity.test.ts` (OP-08: every variant's starts, stops, evaluations, screen verdicts, proposals and optimum within 1e-6; `OF_PARITY=full` for all 96, three nominal cases otherwise), `pattern-search.test.ts` (the method's path, by digest), `worker-optimize.test.ts` (OP-09) |
+| Screen | `learning/screen.ts` | the exported surrogate and guard from their weights in float64, and the Gaussian process on recovery from its training rows and Cholesky factor, in the bake's order of operations | `screen.test.ts` (OP-05: every nominal state's predictions, guard error and half-width within 1e-9) |
+| Uncertainty | `engine/uncertainty.ts`, `engine/sampling.ts` | the SplitMix64 Latin hypercube, bit for bit the bake's; any seed and sample count in the sweep worker | `uncertainty-parity.test.ts` (UQ-05: the baked design bit for bit, every quantile within 1e-6), `splitmix64.test.ts`, `lhs.test.ts` (UQ-01 to UQ-03, by digest), `worker-uncertainty.test.ts` (UQ-06) |
+| Real samples | the engine on the sample's ore and point | each GeoMet sample through the soft porphyry's circuit | `real-samples-parity.test.ts` (RS-06: every sample's metrics within 1e-6, its flags exactly) |
+| Ablations | `engine/ablations.ts` | the five counterfactual transformations at each nominal state | `ablation-parity.test.ts` (AB-04) |
+
+The learned lane's view keeps onnxruntime-web in float32; the screen does not, because a float32 difference between
+runtimes can reorder two candidates on a fine mesh.
 
 ## The learned lane in the browser
 
