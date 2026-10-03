@@ -43,33 +43,41 @@ function PartitionFigure({ lang }: { lang: Lang }) {
 function FlotationFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
   return (
-    <svg className="fig-svg wide" viewBox="0 0 560 230" role="img" aria-label={es ? 'Banco rougher, remolienda y limpieza con recirculación' : 'Rougher bank, regrind and cleaner with recycle'}>
+    <svg className="fig-svg wide" viewBox="0 0 640 252" role="img" aria-label={es ? 'Banco rougher, remolienda opcional, limpieza y relimpieza opcional con sus recirculaciones' : 'Rougher bank, optional regrind, cleaner and optional recleaner with their recycles'}>
       <Arrowhead id="of-flot-arrow" />
-      <text className="dg-edge-label" x="6" y="104">{es ? 'alim.' : 'feed'}</text>
-      <line className="dg-edge" x1="36" y1="100" x2="58" y2="100" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="2" y="114">{es ? 'alim.' : 'feed'}</text>
+      <line className="dg-edge" x1="34" y1="110" x2="58" y2="110" markerEnd="url(#of-flot-arrow)" />
       {[0, 1, 2, 3].map(k => (
-        <g key={k} transform={`translate(${60 + k * 58} 80)`}>
+        <g key={k} transform={`translate(${60 + k * 58} 90)`}>
           <rect className="dg-box" x="0" y="0" width="50" height="40" rx="5" />
           <line className="dg-edge" x1="25" y1="0" x2="25" y2="-22" markerEnd="url(#of-flot-arrow)" />
           {k < 3 && <line className="dg-edge" x1="50" y1="20" x2="58" y2="20" markerEnd="url(#of-flot-arrow)" />}
         </g>
       ))}
-      <text className="dg-box-sub" x="210" y="144" textAnchor="middle">{es ? 'rougher: N celdas, k de ' : 'rougher: N cells, k from '}<SvgSub base="S" sub="b" /></text>
-      <line className="dg-edge" x1="85" y1="56" x2="287" y2="56" />
-      <line className="dg-edge" x1="284" y1="100" x2="330" y2="100" markerEnd="url(#of-flot-arrow)" />
-      <text className="dg-edge-label" x="340" y="104">{es ? 'relave' : 'tail'}</text>
-      <path className="dg-edge" d="M 287 56 L 300 56 L 300 30 L 360 30" markerEnd="url(#of-flot-arrow)" />
-      <rect className="dg-box" x="362" y="12" width="70" height="36" rx="6" />
-      <text className="dg-box-title" x="397" y="34" textAnchor="middle">{es ? 'remolienda' : 'regrind'}</text>
-      <line className="dg-edge" x1="432" y1="30" x2="458" y2="30" markerEnd="url(#of-flot-arrow)" />
-      <rect className="dg-box accent" x="460" y="12" width="80" height="36" rx="6" />
-      <text className="dg-box-title" x="500" y="34" textAnchor="middle">{es ? 'limpieza' : 'cleaner'}</text>
-      {/* the tail leaves the cleaner left of the concentrate label, so the dashed line never crosses it */}
-      <path className="dg-curve-faint" d="M 468 48 L 468 178 L 110 178 L 110 122" markerEnd="url(#of-flot-arrow)" />
-      <text className="dg-edge-label" x="300" y="194" textAnchor="middle">{es ? 'relave de limpieza de vuelta al rougher' : 'cleaner tail back to the rougher'}</text>
-      <path className="dg-edge" d="M 540 30 L 552 30 L 552 6" markerEnd="url(#of-flot-arrow)" />
-      <text className="dg-edge-label" x="548" y="64" textAnchor="end">{es ? 'concentrado' : 'concentrate'}</text>
-      <text className="dg-note" x="280" y="220" textAnchor="middle">{es ? 'recuperación por flotación verdadera y por arrastre con el agua (ENT)' : 'recovery by true flotation and by entrainment with the water (ENT)'}</text>
+      <text className="dg-box-sub" x="170" y="154" textAnchor="middle">{es ? 'rougher: N celdas, k de ' : 'rougher: N cells, k from '}<SvgSub base="S" sub="b" /></text>
+      <line className="dg-edge" x1="85" y1="66" x2="287" y2="66" />
+      <line className="dg-edge" x1="284" y1="110" x2="326" y2="110" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="332" y="114">{es ? 'relave' : 'tail'}</text>
+      <path className="dg-edge" d="M 287 66 L 300 66 L 300 40 L 330 40" markerEnd="url(#of-flot-arrow)" />
+      <rect className="dg-box of-dg-optional" x="332" y="22" width="78" height="36" rx="6" />
+      <text className="dg-box-title" x="371" y="44" textAnchor="middle">{es ? 'remolienda' : 'regrind'}</text>
+      <line className="dg-edge" x1="410" y1="40" x2="428" y2="40" markerEnd="url(#of-flot-arrow)" />
+      <rect className="dg-box accent" x="430" y="22" width="72" height="36" rx="6" />
+      <text className="dg-box-title" x="466" y="44" textAnchor="middle">{es ? 'limpieza' : 'cleaner'}</text>
+      <line className="dg-edge" x1="502" y1="40" x2="520" y2="40" markerEnd="url(#of-flot-arrow)" />
+      <rect className="dg-box of-dg-optional" x="522" y="22" width="80" height="36" rx="6" />
+      <text className="dg-box-title" x="562" y="44" textAnchor="middle">{es ? 'relimpieza' : 'recleaner'}</text>
+      <path className="dg-edge" d="M 602 40 L 618 40 L 618 14" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="610" y="12" textAnchor="end">{es ? 'concentrado' : 'concentrate'}</text>
+      {/* the cleaner tail joins the rougher feed before the first cell, the recleaner tail the cleaner feed; the two
+          loops leave on either side of the cleaner, so they never cross */}
+      <path className="dg-curve-faint" d="M 450 58 L 450 186 L 46 186 L 46 114" markerEnd="url(#of-flot-arrow)" />
+      <circle className="dg-fill-accent" cx="46" cy="110" r="3" />
+      <text className="dg-edge-label" x="248" y="202" textAnchor="middle">{es ? 'relave de limpieza a la alimentación rougher' : 'cleaner tail to the rougher feed'}</text>
+      <path className="dg-curve-faint" d="M 562 58 L 562 76 L 482 76 L 482 60" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="474" y="92">{es ? 'relave de relimpieza' : 'recleaner tail'}</text>
+      <text className="dg-note" x="320" y="226" textAnchor="middle">{es ? 'cajas punteadas: solo en algunos casos' : 'dashed boxes: in some cases only'}</text>
+      <text className="dg-note" x="320" y="242" textAnchor="middle">{es ? 'recuperación por flotación verdadera y por arrastre con el agua (ENT)' : 'recovery by true flotation and by entrainment with the water (ENT)'}</text>
     </svg>
   );
 }
@@ -214,7 +222,7 @@ export const SEPARATION: Topic[] = [
       // E-13: the head-grade direction and its cause
       { en: 'The cleaner and recleaner volumes are fixed, so a richer feed, which sends more mass to them, shortens their residence: between each case\'s head-grade bounds recovery falls in nine cases (by up to 6.3 points in the zinc case), stays flat in the two gold cases and rises in the magnetite case, where the silicate\'s iron is a smaller share of a richer head. A nearly constant tail, which would make recovery rise with the head, is reported for sulphide copper plants by a secondary source only, so it is stated here and not tested.', es: 'Los volúmenes de limpieza y relimpieza son fijos, así que una alimentación más rica, que les envía más masa, acorta su residencia: entre los límites de ley de cabeza de cada caso la recuperación baja en nueve casos (hasta 6,3 puntos en el caso de zinc), no cambia en los dos casos de oro y sube en el caso de magnetita, donde el hierro del silicato es una fracción menor de una cabeza más rica. Un relave casi constante, que haría subir la recuperación con la cabeza, lo informa para plantas de cobre sulfurado solo una fuente secundaria, así que aquí se declara y no se prueba.' },
     ],
-    figure: { caption: { en: 'The rougher bank, the regrind and the cleaner, with the cleaner tail returning to the rougher.', es: 'El banco rougher, la remolienda y la limpieza, con el relave de limpieza volviendo al rougher.' }, render: lang => <FlotationFigure lang={lang} />, wide: true },
+    figure: { caption: { en: 'The rougher bank, the optional regrind, the cleaner and the optional recleaner; the cleaner tail returns to the rougher feed and the recleaner tail to the cleaner feed.', es: 'El banco rougher, la remolienda opcional, la limpieza y la relimpieza opcional; el relave de limpieza vuelve a la alimentación rougher y el de relimpieza a la de limpieza.' }, render: lang => <FlotationFigure lang={lang} />, wide: true },
     refs: ['gorain1997', 'gorain1999', 'trahar1981', 'savassi1998', 'hoang2019', 'banks2012', 'collector2022'],
   },
   {

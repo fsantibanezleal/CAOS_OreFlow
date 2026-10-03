@@ -43,7 +43,7 @@ function OverviewFigure({ lang }: { lang: Lang }) {
       <text className="dg-edge-label" x="596" y="96">{p('underflow', 'descarga')}</text>
       {/* overflow to separation */}
       <path className="dg-edge" d="M 654 129 L 668 129 L 668 196 L 274 196 L 274 224" markerEnd={arrow} />
-      <text className="dg-edge-label" x="660" y="190" textAnchor="end">{p('overflow at the target P80', 'rebose al P80 objetivo')}</text>
+      <text className="dg-edge-label" x="660" y="190" textAnchor="end">{p('overflow at the achieved P80', 'rebose al P80 logrado')}</text>
       {([
         [208, p('Deslime', 'Deslamado'), p('phosphate', 'fosfato'), true],
         [302, p('Rougher', 'Rougher'), p('N cells', 'N celdas'), false],

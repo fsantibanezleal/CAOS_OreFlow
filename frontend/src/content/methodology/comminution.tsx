@@ -36,11 +36,11 @@ function CrusherFigure({ lang }: { lang: Lang }) {
       <text className="dg-edge-label" x="206" y="110" textAnchor="middle">{es ? 'vuelve a clasificarse' : 'returns to classification'}</text>
       <path className="dg-edge" d="M 100 70 L 100 128 L 360 128" markerEnd="url(#of-crusher-arrow)" />
       <text className="dg-edge-label" x="366" y="132">p</text>
-      <text className="dg-edge-label" x="230" y="122" textAnchor="middle">{'(I - C)'}</text>
+      <text className="dg-edge-label" x="330" y="122" textAnchor="middle">{'(I - C)'}</text>
       <g transform="translate(60 150)">
         <line className="dg-axis" x1="0" y1="80" x2="300" y2="80" />
         <line className="dg-axis" x1="0" y1="80" x2="0" y2="0" />
-        <path className="dg-curve" d="M 0 80 L 80 80 C 130 80, 170 30, 220 2 L 300 2" />
+        <path className="dg-curve" d="M 0 80 L 80.0 80.0 L 90.0 67.8 L 100.0 56.7 L 110.0 46.8 L 120.0 38.0 L 130.0 30.2 L 140.0 23.5 L 150.0 17.8 L 160.0 13.1 L 170.0 9.3 L 180.0 6.4 L 190.0 4.3 L 200.0 2.9 L 210.0 2.2 L 220.0 2.0 L 300 2" />
         <line className="dg-marker" x1="80" y1="80" x2="80" y2="0" />
         <line className="dg-marker" x1="220" y1="80" x2="220" y2="0" />
         <text className="dg-marker-label" x="84" y="14">K1</text>
@@ -54,7 +54,7 @@ function CrusherFigure({ lang }: { lang: Lang }) {
 function CircuitFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
   return (
-    <svg className="fig-svg wide" viewBox="0 0 560 220" role="img" aria-label={es ? 'Circuito cerrado de molino de bolas y ciclones' : 'Closed ball-mill and cyclone circuit'}>
+    <svg className="fig-svg wide" viewBox="0 0 560 252" role="img" aria-label={es ? 'Circuito cerrado de molino de bolas y ciclones' : 'Closed ball-mill and cyclone circuit'}>
       <Arrowhead id="of-circuit-arrow" />
       <text className="dg-edge-label" x="8" y="74">f</text>
       <line className="dg-edge" x1="18" y1="70" x2="54" y2="70" markerEnd="url(#of-circuit-arrow)" />
@@ -76,8 +76,10 @@ function CircuitFigure({ lang }: { lang: Lang }) {
       <text className="dg-edge-label" x="476" y="66">{es ? 'rebose' : 'overflow'}</text>
       <text className="dg-edge-label" x="476" y="80">P80</text>
       <path className="dg-curve-faint" d="M 357 92 L 357 160 L 110 160 L 110 112" markerEnd="url(#of-circuit-arrow)" />
-      <text className="dg-edge-label" x="234" y="178" textAnchor="middle">{es ? 'descarga C p (carga circulante)' : 'underflow C p (circulating load)'}</text>
-      <text className="dg-note" x="280" y="206" textAnchor="middle">{es ? 'tres mezcladores perfectos (0,70 · 0,15 · 0,15 del volumen); e se ajusta al P80, el corte a la carga circulante' : 'three perfect mixers (0.70 · 0.15 · 0.15 of the volume); e is set by the P80, the cut by the circulating load'}</text>
+      <text className="dg-edge-label" x="234" y="178" textAnchor="middle">{es ? 'descarga diag(y) p; carga circulante C' : 'underflow diag(y) p; circulating load C'}</text>
+      <text className="dg-note" x="280" y="204" textAnchor="middle">{es ? 'tres mezcladores perfectos (0,70 · 0,15 · 0,15 del volumen)' : 'three perfect mixers (0.70 · 0.15 · 0.15 of the volume)'}</text>
+      <text className="dg-note" x="280" y="222" textAnchor="middle">{es ? 'modo objetivo: e desde el P80, el corte desde la carga' : 'target mode: e from the P80, the cut from the load'}</text>
+      <text className="dg-note" x="280" y="240" textAnchor="middle">{es ? 'modo de corte: el corte dado, e desde la potencia instalada; P80 y carga resultan' : 'cut mode: the cut given, e from the installed power; P80 and load follow'}</text>
     </svg>
   );
 }

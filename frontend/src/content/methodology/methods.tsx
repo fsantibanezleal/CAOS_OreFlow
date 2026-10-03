@@ -47,9 +47,12 @@ function OptimizerFigure({ lang }: { lang: Lang }) {
   const d = 30;
   const [fx, fy] = [190, 125];
   const poll: Array<[number, number]> = [[fx + d, fy], [fx - d, fy], [fx, fy - d], [fx, fy + d]];
-  const screen: Array<[number, number]> = [[fx + 2 * d, fy], [fx - 2 * d, fy], [fx, fy - 2 * d], [fx, fy + 2 * d]];
+  const [ix, iy] = [300, 60];
+  const inside = ([x, y]: [number, number]) => x > 50 && x < 390 && y > 20 && y < 200;
+  const screen: Array<[number, number]> = [[fx + 2 * d, fy], [fx - 2 * d, fy], [fx, fy - 2 * d], [fx, fy + 2 * d],
+    [ix + 2 * d, iy], [ix - 2 * d, iy], [ix, iy + 2 * d], [ix, iy - 2 * d]].filter(p => inside(p as [number, number])) as Array<[number, number]>;
   return (
-    <svg className="fig-svg" viewBox="0 0 420 274" role="img" aria-label={es ? 'Una iteración de la búsqueda por patrones: sondeo, candidatos del filtro e incumbentes' : 'One pattern-search iteration: the poll, the screen\'s candidates and the incumbents'}>
+    <svg className="fig-svg" viewBox="0 0 420 316" role="img" aria-label={es ? 'Una iteración de la búsqueda por patrones: sondeo, candidatos del filtro e incumbentes' : 'One pattern-search iteration: the poll, the screen\'s candidates and the incumbents'}>
       <Arrowhead id="of-opt-arrow" />
       {Array.from({ length: 12 }, (_, i) => <line key={`v${i}`} className="dg-grid" x1={70 + d * i} y1="20" x2={70 + d * i} y2="200" />)}
       {Array.from({ length: 7 }, (_, i) => <line key={`h${i}`} className="dg-grid" x1="50" y1={5 + d * i} x2="390" y2={5 + d * i} />)}
@@ -62,21 +65,22 @@ function OptimizerFigure({ lang }: { lang: Lang }) {
       {poll.map(([x, y]) => <circle key={`p${x}-${y}`} className="dg-node" cx={x} cy={y} r="4.5" />)}
       <circle className="dg-marker" cx={fx + 2 * d} cy={fy} r="9" fill="none" />
       <line className="dg-edge" x1={fx + 6} y1={fy - 6} x2={fx + 2 * d - 9} y2={fy - 4} markerEnd="url(#of-opt-arrow)" />
-      <text className="dg-edge-label" x={fx + 2 * d + 12} y={fy - 10}>{es ? 'propuesto al motor' : 'proposed to the engine'}</text>
       <circle className="dg-fill-warn" cx={fx} cy={fy} r="5.5" />
       <text className="dg-node-label" x={fx - 12} y={fy + 18} textAnchor="end"><SvgSub base="x" sub="F" /></text>
-      <circle className="dg-fill-warn" cx="300" cy="60" r="5.5" opacity="0.6" />
-      <text className="dg-node-label" x="310" y="52"><SvgSub base="x" sub="I" />{', h ≤ '}<SvgSub base="h" sub="max" /></text>
+      <circle className="dg-fill-warn" cx={ix} cy={iy} r="5.5" opacity="0.6" />
+      <text className="dg-node-label" x={ix + 10} y={iy - 8}><SvgSub base="x" sub="I" />{', h ≤ '}<SvgSub base="h" sub="max" /></text>
       <text className="dg-note" x={fx - d - 6} y={fy - d - 8} textAnchor="end">{'Δ'}</text>
       <line className="dg-tick" x1={fx - d} y1={fy - d - 4} x2={fx} y2={fy - d - 4} />
       <text className="dg-axis-label" x="220" y="218" textAnchor="middle">{es ? 'objetivo de molienda (cubo unitario)' : 'grind target (unit cube)'}</text>
       <text className="dg-axis-label" x="18" y="110" textAnchor="middle" transform="rotate(-90 18 110)">{es ? 'dosis de colector' : 'collector dose'}</text>
       <circle className="dg-node" cx="62" cy="238" r="4.5" />
-      <text className="dg-note" x="72" y="242">{es ? 'sondeo ±Δ, evaluado por el motor' : 'poll ±Δ, evaluated by the engine'}</text>
-      <rect className="dg-bar-2" x="228.5" y="234.5" width="7" height="7" />
-      <text className="dg-note" x="242" y="242">{es ? 'candidatos ±Δ y ±2Δ del filtro' : 'screen candidates ±Δ and ±2Δ'}</text>
-      <text className="dg-note" x="62" y="258">{es ? 'la región sombreada cumple la ley;' : 'the shaded region meets the grade;'}</text>
-      <text className="dg-note" x="62" y="270">{es ? 'la barrera ' : 'the barrier '}<SvgSub base="h" sub="max" />{es ? ' descarta lo que viola más' : ' discards what violates more'}</text>
+      <text className="dg-note" x="76" y="242">{es ? 'sondeo ±Δ, evaluado por el motor' : 'poll ±Δ, evaluated by the engine'}</text>
+      <rect className="dg-bar-2" x="58.5" y="250.5" width="7" height="7" />
+      <text className="dg-note" x="76" y="258">{es ? 'filtro: ±Δ (el sondeo) y ±2Δ desde cada incumbente' : 'screen: ±Δ (the poll) and ±2Δ from each incumbent'}</text>
+      <circle className="dg-marker" cx="62" cy="270" r="6" fill="none" />
+      <text className="dg-note" x="76" y="274">{es ? 'el candidato que el filtro propone al motor' : 'the candidate the screen proposes to the engine'}</text>
+      <text className="dg-note" x="62" y="292">{es ? 'la región sombreada cumple la ley;' : 'the shaded region meets the grade;'}</text>
+      <text className="dg-note" x="62" y="308">{es ? 'la barrera ' : 'the barrier '}<SvgSub base="h" sub="max" />{es ? ' descarta lo que viola más' : ' discards what violates more'}</text>
     </svg>
   );
 }
@@ -96,20 +100,23 @@ function UncertaintyFigure({ lang }: { lang: Lang }) {
       </g>
       <g transform="translate(160 20)">
         {bars.map((h, i) => <rect key={i} className="dg-bar" x={i * 12} y={120 - 3.4 * h} width="10" height={3.4 * h} />)}
-        <line className="dg-marker" x1="28" y1="0" x2="28" y2="122" />
-        <line className="dg-marker" x1="80" y1="0" x2="80" y2="122" />
-        <text className="dg-marker-label" x="2" y="10">P05</text>
-        <text className="dg-marker-label" x="84" y="10">P95</text>
+        {/* the drawn bars hold 142 counts: the 5% point (7.1) falls in the second bar, the 95% point (134.9) in the eighth */}
+        <line className="dg-marker" x1="15.4" y1="0" x2="15.4" y2="122" />
+        <line className="dg-marker" x1="91.9" y1="0" x2="91.9" y2="122" />
+        <text className="dg-marker-label" x="19" y="10">P05</text>
+        <text className="dg-marker-label" x="95" y="10">P95</text>
         <text className="dg-box-sub" x="54" y="138" textAnchor="middle">{es ? 'distribución de la salida' : 'output distribution'}</text>
       </g>
       <g transform="translate(290 20)">
-        {[[0.12, 0.13], [0.01, 0.01], [0.06, 0.06], [0.8, 0.79]].map(([s1, st], i) => (
+        {/* a total index is never below its first-order index */}
+        {([[0.12, 0.13, 'W', 'i'], [0.01, 0.01, 'f', ''], [0.06, 0.07, 'x', 'L'], [0.76, 0.79, 'P', '']] as Array<[number, number, string, string]>).map(([s1, st, base, subscript], i) => (
           <g key={i}>
             <rect className="dg-bar" x={i * 28} y={120 - 140 * s1} width="11" height={140 * s1} />
             <rect className="dg-bar-2" x={i * 28 + 12} y={120 - 140 * st} width="11" height={140 * st} />
+            <text className="dg-box-sub" x={i * 28 + 11.5} y="134" textAnchor="middle">{subscript ? <SvgSub base={base} sub={subscript} /> : base}</text>
           </g>
         ))}
-        <text className="dg-box-sub" x="50" y="138" textAnchor="middle">S1 · ST</text>
+        <text className="dg-box-sub" x="50" y="152" textAnchor="middle">{es ? 'S1 · ST por entrada' : 'S1 · ST per input'}</text>
       </g>
       <text className="dg-note" x="210" y="196" textAnchor="middle">{es ? '128 muestras para los cuantiles; N = 256 en el diseño de Saltelli para los índices' : '128 samples for the quantiles; N = 256 in the Saltelli design for the indices'}</text>
     </svg>
