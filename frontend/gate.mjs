@@ -232,7 +232,10 @@ const REVIEW_PROBE = desktop => {
   // and runs no edge through a label
   for (const flow of document.querySelectorAll('svg.of-flowmap')) {
     if (!vis(flow)) continue;
-    if ((flow.dataset.labelsMissing ?? '0') !== '0') out.flow.push(`labels missing ${flow.dataset.labelsMissing}`);
+    // every stream at a desktop stage; below it, where the drawing scrolls, the outlets and the feed (D-21), as the
+    // unit test holds them (0.08: the tablet and phone passes counted the inner streams too)
+    const key = innerWidth >= 1100 ? 'labelsMissing' : 'outletsMissing';
+    if ((flow.dataset[key] ?? '0') !== '0') out.flow.push(`${key === 'labelsMissing' ? 'labels' : 'outlet labels'} missing ${flow.dataset[key]}`);
     if (!flow.querySelector('.of-flow-edge.tail')) out.flow.push('no outlet drawn as a tail');
     const samples = [];
     for (const line of flow.querySelectorAll('.of-flow-edge polyline')) {
@@ -841,6 +844,8 @@ if (REVIEW) {
     await open('case=copper_porphyry_soft', view);
     await page.locator('.of-focus-open').click();
     await page.waitForSelector('.of-focus-rail select', { timeout: 60000 });
+    // the stage select holds no value until the trace's charts exist; on a loaded machine it was read before (0.08)
+    await page.waitForFunction(() => !!document.querySelector('.of-focus-rail select')?.value, null, { timeout: 30000 }).catch(() => undefined);
     stages[view] = { expected: stage, shown: await page.locator('.of-focus-rail select').first().inputValue() };
   }
   record(`${tag} U-25 focus stage from the view`, Object.values(stages).every(s => s.expected === s.shown), stages);

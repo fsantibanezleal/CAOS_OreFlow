@@ -209,8 +209,9 @@ input, select, textarea { font: inherit; }
 .of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
 /* The Methods records' side panel filled a fifth to a third of its column at 2560x1440 (the Sobol table the
  * least): on a large screen it becomes a strip under the chart, its parts side by side, as tall as its
- * content and never more than 42% of the screen (it scrolls inside beyond that) */
-@media (min-width: 1800px) and (min-height: 1000px) {
+ * content and never more than 42% of the screen (it scrolls inside beyond that). Not at 1920x1080: there the strip
+ * left the learned lane's guard chart a 40 px plot whose axis title was cut (0.08 gate) */
+@media (min-width: 1800px) and (min-height: 1300px) {
   .of-split { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
   .of-split > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
   .of-split > .of-aside > * { flex: 0 1 auto; min-width: 0; }
@@ -327,6 +328,8 @@ input, select, textarea { font: inherit; }
 .of-table tbody th { font-weight: 500; color: var(--color-fg); white-space: normal; }
 /* a search range may break after its dash, so the optimizer's table fits the aside in Spanish (0.08 gate: 7 px over) */
 .of-table td.of-range { white-space: normal; min-width: 4.5rem; }
+/* the start-by-start screen table's Spanish headers took it 7 px past the aside at 1280 px (0.08 gate) */
+.of-table.of-table-wraphead thead th { white-space: normal; vertical-align: bottom; }
 .of-table tr.of-table-group > * { border-top: 1px solid var(--color-fg-faint); }
 .of-table tr.is-selected > * { background: var(--color-accent-soft); }
 .of-table.of-table-wide { flex: none; }
@@ -458,8 +461,15 @@ input, select, textarea { font: inherit; }
   /* the rail's row takes its content: with min-height 0 the stacked row shrank to 61 px and the controls
      spilled over the readout and the tab row; the page body scrolls instead */
   .of-rail { overflow: visible; min-height: auto; }
-  /* the readout stays one row and scrolls sideways rather than cutting its last readings */
-  .of-readout { overflow-x: auto; scrollbar-width: none; }
+  /* the readout wraps: scrolling sideways hid its status at the end of the row, which a reader never saw (0.08 gate,
+     768 px); the stacked page has the height for a second line */
+  .of-readout { flex-wrap: wrap; row-gap: 2px; }
+  .of-readout-flags { flex: 1 0 auto; min-width: auto; }
+  /* the Response view's selects wrap two to a row: in one row with the button they were 46 px wide on a phone and cut
+     their names (0.08 gate) */
+  .of-response-controls { flex-wrap: wrap; overflow: visible; }
+  .of-response-controls .of-field { flex: 1 1 9rem; min-width: 0; }
+  .of-response-controls .of-field select { width: 100%; }
   .of-main { min-height: 78dvh; }
   .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }

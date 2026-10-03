@@ -260,10 +260,11 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
   const sign = (v: number) => (v >= 0 ? '+' : '');
   const energyChange = record.optimum ? record.optimum.values.energy_kwh_t - record.base.values.energy_kwh_t : 0;
   const energyPct = record.optimum && record.base.values.energy_kwh_t ? 100 * (energyChange / record.base.values.energy_kwh_t) : null;
+  // a value and its unit on a narrow no-break space, so the line never breaks between them (0.08 gate, 768 px)
   const status = record.optimum
-    ? `${TEXT.optimal[lang](Math.round(100 * record.weights.recovered_metal))}: ${TEXT.metalChangeLine[lang]} ${sign(record.gain_tph ?? 0)}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)}`
+    ? `${TEXT.optimal[lang](Math.round(100 * record.weights.recovered_metal))}: ${TEXT.metalChangeLine[lang]} ${sign(record.gain_tph ?? 0)}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)}`
       + `${record.gain_pct != null ? ` (${sign(record.gain_pct)}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
-      + `, ${TEXT.energyChangeLine[lang]} ${sign(energyChange)}${formatFixed(energyChange, lang, 2)} kWh/t${energyPct !== null ? ` (${sign(energyPct)}${formatSignificant(energyPct, lang, 3)}%)` : ''}`
+      + `, ${TEXT.energyChangeLine[lang]} ${sign(energyChange)}${formatFixed(energyChange, lang, 2)} kWh/t${energyPct !== null ? ` (${sign(energyPct)}${formatSignificant(energyPct, lang, 3)}%)` : ''}`
     : TEXT.noFeasible[lang];
   const screenTotals = record.screened ? {
     screened: starts.reduce((s, r) => s + (r.screen?.screened ?? 0), 0), guard: starts.reduce((s, r) => s + (r.screen?.rejected.guard ?? 0), 0),
@@ -354,7 +355,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
           </tbody>
         </table>
         {record.screened && record.without_screen && (
-          <table className="of-table of-table-data">
+          <table className="of-table of-table-data of-table-wraphead">
             <thead><tr><th scope="col">{TEXT.screenCol[lang]}</th><th scope="col">{TEXT.withCol[lang]}</th><th scope="col">{TEXT.withoutCol[lang]}</th>
               <th scope="col">{TEXT.proposedCol[lang]}</th><th scope="col">{TEXT.improvedCol[lang]}</th></tr></thead>
             <tbody>

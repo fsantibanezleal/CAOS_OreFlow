@@ -79,11 +79,13 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const { labels, boxes } = placeLabels(plan, d, f.frame, texts.edges.map(e => e.options));
   const captions = placeCaptions(plan, d, f.frame, boxes, unit => unitName(unit, lang));
   const missing = labels.filter((l, k) => !l && texts.edges[k].options.length).length;
+  // below the desktop stages only the outlets and the feed are promised a label (D-21, flowsheet-labels.test.ts)
+  const outletsMissing = labels.filter((l, k) => !l && texts.edges[k].options.length && (plan.edges[k].to === null || plan.edges[k].from === null)).length;
 
   return (
     <div className="of-flowmap-host" ref={hostRef}>
       <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
-        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing}>
+        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing} data-outlets-missing={outletsMissing}>
         <defs>
           {(['plain', 'recycle', 'product', 'tail'] as const).map(kind => (
             <marker key={kind} id={`of-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

@@ -179,7 +179,7 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang }
               <tr><th scope="row">{SOURCE_TEXT.magnetite[lang]}</th>
                 <td>{`${formatFixed(100 * sample.allocation.fractions.magnetite, lang, 1)}%`}</td><td>{SOURCE_TEXT.assumption[lang]}</td></tr>
               <tr><th scope="row">{SOURCE_TEXT.wi[lang]}</th><td>{formatWithUnit(sample.work_index.value, 'kWh/t', lang)}</td>
-                <td>{sample.work_index.how === 'nearest_in_hole' ? `${SOURCE_TEXT.nearest[lang]} (${formatFixed(sample.work_index.distance_m ?? 0, lang, 0)} m)` : SOURCE_TEXT.median[lang]}</td></tr>
+                <td>{sample.work_index.how === 'nearest_in_hole' ? `${SOURCE_TEXT.nearest[lang]} (${formatFixed(sample.work_index.distance_m ?? 0, lang, 0)} m)` : SOURCE_TEXT.median[lang]}</td></tr>
             </tbody>
           </table>
           <p className="of-facts-title">{SOURCE_TEXT.authors[lang]}</p>
