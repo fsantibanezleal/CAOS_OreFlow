@@ -17,7 +17,7 @@ copy:
 
 | Target | Source |
 |---|---|
-| `data/` | `data/derived/` whole: the contract and its probes, the twelve case artifacts, the manifests and the index, the learning record, the benchmark, the validation record and the two measured lanes |
+| `data/` | `data/derived/` whole: the contract and its probes, the twelve case artifacts, the manifests and the index, the learning record, the benchmark, the studies, the real samples, the validation record and the three measured lanes' records |
 | `models/` | every `.onnx` network in `models/` with its scaler document |
 | `ort/` | the onnxruntime-web WebAssembly runtime, served once instead of a second hashed copy in the bundle |
 

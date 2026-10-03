@@ -34,8 +34,8 @@ far a learned surrogate of a process can be trusted when the ore changes.
 - **A learned lane**: ridge, random forest, gradient boosting, a Gaussian process and a PyTorch MLP trained
   on 3072 engine states, scored inside the cases and on held-out cases, with an autoencoder guard; the MLP
   and the guard run in the browser as ONNX.
-- **Two measured lanes**, kept apart from the engine: the HZDR particle dataset (RODARE 336, CC BY 4.0) and
-  52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0).
+- **Three measured lanes**, none of which calibrates the engine: the HZDR particle dataset (RODARE 336,
+  CC BY 4.0), 52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0) and the iron-plant hours below.
 - **Real sources in the workbench**: the 52 GeoMet samples run on their own assays, a sulphur-limited normative
   mineralogy (bornite and chalcocite) and their Bond work index in the soft porphyry's circuit, beside the measured
   recovery; and hours of one iron-ore plant (Kaggle 6294, CC0) with a leakage-safe next-hour silica soft sensor.

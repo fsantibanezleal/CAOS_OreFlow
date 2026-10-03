@@ -1,12 +1,15 @@
 # OreFlow data
 
 `data/raw/` is ignored and holds downloaded source files for local preprocessing only: the HZDR
-RODARE particle workbook (DOI 10.14278/rodare.336, CC BY 4.0) and the GeoMet v4 CSVs (Zenodo record
-7051975, CC BY 4.0). `scripts/fetch-data.ps1` (or `.sh`) downloads them and checks their hashes.
+RODARE particle workbook (DOI 10.14278/rodare.336, CC BY 4.0), the GeoMet v4 CSVs (Zenodo record
+7051975, CC BY 4.0) and the iron-plant archive (Kaggle dataset 6294, CC0), which
+`data-pipeline/run_iron_plant.py` downloads itself and checks against its pinned SHA-256.
+`scripts/fetch-data.ps1` (or `.sh`) downloads the first two and checks their hashes.
 
 `data/derived/` holds the compact, reviewable JSON artifacts the public app and the API serve. They
-are rebuilt by the bake (`data-pipeline/run.py`) and by the two measured lanes
-(`data-pipeline/run_particles.py`, `data-pipeline/run_geomet.py`); see `data/derived/README.md`.
+are rebuilt by the bake (`data-pipeline/run.py`) and by the three measured lanes
+(`data-pipeline/run_particles.py`, `run_geomet.py`, `run_iron_plant.py`), which `scripts/precompute`
+runs first; see `data/derived/README.md`.
 
 The contracts are documented in `docs/data-contract/`:
 

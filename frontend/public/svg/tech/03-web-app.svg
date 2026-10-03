@@ -31,9 +31,9 @@
     </marker>
   </defs>
   <text class="h1 l-en" x="20" y="28">The web app: what the build copies, the routes, the workbench loop and the content pages</text>
-  <text class="h1 l-es" x="20" y="28">La aplicación web: lo que copia la compilación, las rutas, el ciclo del laboratorio y las páginas</text>
+  <text class="h1 l-es" x="20" y="28">La aplicación web: lo que copia la compilación, las rutas, el ciclo del simulador y las páginas</text>
   <text class="sub l-en" x="20" y="46">React and Vite on the shared CAOS shell; the workbench recomputes a state live, the pages read the committed records</text>
-  <text class="sub l-es" x="20" y="46">React y Vite sobre el shell compartido de CAOS; el laboratorio recalcula un estado en vivo, las páginas leen los registros versionados</text>
+  <text class="sub l-es" x="20" y="46">React y Vite sobre el shell compartido de CAOS; el simulador recalcula un estado en vivo, las páginas leen los registros versionados</text>
   <rect class="bx bx-hi" x="20" y="62" width="240" height="90" rx="8"/>
   <text class="ttl l-en" x="32" y="81">Build overlay</text>
   <text class="ttl l-es" x="32" y="81">Capa de compilación</text>
@@ -48,7 +48,7 @@
   <text class="ttl l-en" x="332" y="81">Routes</text>
   <text class="ttl l-es" x="332" y="81">Rutas</text>
   <text class="it l-en" x="332" y="97">/ the workbench</text>
-  <text class="it l-es" x="332" y="97">/ el laboratorio</text>
+  <text class="it l-es" x="332" y="97">/ el simulador</text>
   <text class="it l-en" x="332" y="111">/focus/:case one instrument</text>
   <text class="it l-es" x="332" y="111">/focus/:case un instrumento</text>
   <text class="it l-en" x="332" y="125">five content pages, lazy</text>
@@ -60,7 +60,7 @@
   <text class="it l-en" x="632" y="97">a route file for every page</text>
   <text class="it l-es" x="632" y="97">un archivo por cada ruta</text>
   <text class="it l-en" x="632" y="111">404 fallback for deep links</text>
-  <text class="it l-es" x="632" y="111">respaldo 404 para enlaces</text>
+  <text class="it l-es" x="632" y="111">respaldo 404 para enlaces profundos</text>
   <text class="it l-en" x="632" y="125">Pages path or the VPS root</text>
   <text class="it l-es" x="632" y="125">ruta de Pages o raíz del VPS</text>
   <text class="cd mono l-neutral" x="632" y="139">vite.config.ts · 404.html</text>
@@ -71,7 +71,7 @@
   <text class="lbl l-neutral" x="589" y="98" text-anchor="middle">dist/</text>
   <rect class="band" x="12" y="168" width="856" height="218" rx="10"/>
   <text class="bt l-en" x="24" y="185">THE WORKBENCH LOOP</text>
-  <text class="bt l-es" x="24" y="185">EL CICLO DEL LABORATORIO</text>
+  <text class="bt l-es" x="24" y="185">EL CICLO DEL SIMULADOR</text>
   <rect class="bx" x="28" y="196" width="176" height="76" rx="8"/>
   <text class="ttl l-en" x="40" y="215">Rail and controls</text>
   <text class="ttl l-es" x="40" y="215">Riel y controles</text>

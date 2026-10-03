@@ -35,6 +35,15 @@ describe('the interface names the precompute, the simulator and the port in plai
     expect(hits).toEqual([]);
   });
 
+  // the architecture modal's diagrams are read too (review of 0.07.000, D items): their text nodes, both languages
+  it('the modal diagrams use the same words', () => {
+    const tech = fileURLToPath(new URL('../../public/svg/tech/', import.meta.url));
+    const nodes = readdirSync(tech).filter(f => f.endsWith('.svg')).flatMap(f =>
+      [...readFileSync(join(tech, f), 'utf-8').matchAll(/<text[^>]*>([^<]+)<\/text>/g)].map(m => `${f}: ${m[1]}`));
+    expect(nodes.length).toBeGreaterThan(400);
+    expect(nodes.filter(n => /\b(bake[sd]?|baking)\b|hornea|traducci[oó]n|traducid[oa]|laboratorio/i.test(n))).toEqual([]);
+  });
+
   it('the Spanish workbench is the "simulador", and the port a "versión"', () => {
     const lab = strings.filter(s => /\b(el|del|al)\s+laboratorio\b(?!\s+(de|del)\b)/i.test(s.text) && !/latencia|informe del laboratorio/.test(s.text)).map(s => `${s.where}: ${s.text.slice(0, 60)}`);
     expect(lab).toEqual([]);

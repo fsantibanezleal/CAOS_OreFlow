@@ -1,6 +1,7 @@
 # 02 The bake
 
-`data-pipeline/run.py` (or `scripts/precompute.ps1`, which also refreshes the two measured lanes)
+`data-pipeline/run.py` (or `scripts/precompute.ps1`, which first refreshes the three measured lanes, so the bake reads
+the fresh GeoMet record and its validation stage checks all three)
 turns the engine, the case catalog and the methods into the committed artifacts of
 `data/derived/` and `models/`. It never runs in CI (ADR-0074): the bake trains the learned lane, so
 it is a local job, and CI only re-validates what it produced.
