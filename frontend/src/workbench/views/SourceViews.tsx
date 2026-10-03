@@ -26,6 +26,11 @@ export const SOURCE_TEXT = {
     en: 'This hour comes from an iron-ore plant whose reverse cationic flotation is not an engine family, so nothing of it is simulated here. Its sensors, its assays and the soft sensor\'s forecast are in the Case view.',
     es: 'Esta hora viene de una planta de mineral de hierro cuya flotación catiónica inversa no es una familia del motor, así que nada de ella se simula aquí. Sus sensores, sus ensayes y el pronóstico del sensor virtual están en la vista Caso.',
   },
+  // RS-07 since U-15: an hour opens only its Case view, so that view says why the engine's views are closed
+  caseNotEngine: {
+    en: 'This hour comes from an iron-ore plant whose reverse cationic flotation is not an engine family, so nothing of it is simulated and the views of the engine are closed for it.',
+    es: 'Esta hora viene de una planta de mineral de hierro cuya flotación catiónica inversa no es una familia del motor, así que nada de ella se simula y las vistas del motor quedan cerradas para ella.',
+  },
   sampleNoMethods: {
     en: 'The method records (the optimizer, the uncertainty and sensitivity records, the learned lane) belong to the synthetic variants. A sample fixes the ore\'s head grade and work index outside the synthetic envelope they were computed over, so they are not shown for it.',
     es: 'Los registros de métodos (el optimizador, los registros de incertidumbre y sensibilidad, la vía aprendida) pertenecen a las variantes sintéticas. Una muestra fija la ley de cabeza y el índice de trabajo del mineral fuera de la envolvente sintética sobre la que se calcularon, así que no se muestran para ella.',
@@ -76,13 +81,19 @@ export const SOURCE_TEXT = {
     es: (id: number, embargo: number) => `Los pronósticos se registraron fuera de la partición de la ventana ${id}: cada modelo se entrenó con las horas anteriores a la ventana, con al menos ${embargo} horas de embargo, y ninguno corre en el navegador. Sus entradas son 21 ensayes de alimentación y sensores.`,
   },
   error: { en: 'Error (points)', es: 'Error (puntos)' },
-  traceTitle: { en: 'The window\'s next-hour silica, with this hour marked', es: 'La sílice de la hora siguiente en la ventana, con esta hora marcada' },
+  // short: a title that wrapped to three lines left the Spanish plot too low for its axis title (0.08 gate)
+  traceTitle: { en: 'Next-hour concentrate silica in the window', es: 'Sílice del concentrado, hora siguiente' },
   traceSummary: { en: 'Measured next-hour silica across the window\'s sampled hours, with persistence, the values the laboratory repeated, and the chosen hour marked.', es: 'Sílice medida de la hora siguiente en las horas muestreadas de la ventana, con la persistencia, los valores de laboratorio repetidos, y la hora elegida marcada.' },
-  silicaAxis: { en: 'Silica in the concentrate (%)', es: 'Sílice en el concentrado (%)' },
+  // the chart under the hour is short; the title names the concentrate (0.08 gate: the longer title was cut)
+  silicaAxis: { en: 'Silica (%)', es: 'Sílice (%)' },
   observed: { en: 'Measured', es: 'Medida' },
   thisHour: { en: 'this hour', es: 'esta hora' },
   hourLabel: { en: 'Plant hour', es: 'Hora de planta' },
   recorded: { en: 'Measured hours and recorded forecasts, shown and not simulated', es: 'Horas medidas y pronósticos registrados, que se muestran y no se simulan' },
+  // the readout's tag: the full sentence ran past the readout at 1280 px (0.08 gate); the title keeps it
+  recordedTag: { en: 'Recorded, not simulated', es: 'Registrado, no simulado' },
+  nextShort: { en: 'Next-hour silica', es: 'Sílice, hora siguiente' },
+  persistenceShort: { en: 'Persistence', es: 'Persistencia' },
   unitsNote: {
     en: 'Units as the dataset description gives them (Kaggle 6294, read through secondary copies): reagent flows in m³/h and air in Nm³/h. Its pulp density "1 to 3 kg/cm³" is shown in t/m³, which its values near 1.7 imply. The pulp-flow (t/h) and level (mm) units are UNVERIFIED.',
     es: 'Unidades según la descripción del conjunto (Kaggle 6294, leída en copias secundarias): flujos de reactivo en m³/h y aire en Nm³/h. Su densidad de pulpa "1 a 3 kg/cm³" se muestra en t/m³, lo que implican sus valores cercanos a 1,7. Las unidades de flujo de pulpa (t/h) y de nivel (mm) están SIN VERIFICAR.',
@@ -198,7 +209,8 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang }
 /** The readout row of an hour: the next hour's measured silica and the two baselines, in the readout's place. */
 export function HourReadout({ lane, hourKey, lang, cursor }: { lane: IronPlant; hourKey: string | null; lang: Lang; cursor: string | null }) {
   const { hour } = hourOf(lane, hourKey);
-  const items: Array<[string, number]> = [[SOURCE_TEXT.next[lang], hour.observed_pct], [IRON_NAME.previous_lab[lang], hour.predictions_pct.previous_lab],
+  // short names: the Case view's table carries the full ones, and the long ones cut the row's status in Spanish (0.08 gate)
+  const items: Array<[string, number]> = [[SOURCE_TEXT.nextShort[lang], hour.observed_pct], [SOURCE_TEXT.persistenceShort[lang], hour.predictions_pct.previous_lab],
     [IRON_NAME.ridge[lang], hour.predictions_pct.ridge]];
   return (
     <div className="of-readout" role="status" aria-live="polite">
@@ -209,7 +221,7 @@ export function HourReadout({ lane, hourKey, lang, cursor }: { lane: IronPlant; 
           <span className="of-readout-label">{label}</span><strong>{`${formatFixed(v, lang, 2)}%`}</strong>
         </span>
       ))}
-      <span className="of-readout-flags" title={SOURCE_TEXT.recorded[lang]}>{SOURCE_TEXT.recorded[lang]}</span>
+      <span className="of-readout-flags" title={SOURCE_TEXT.recorded[lang]}>{SOURCE_TEXT.recordedTag[lang]}</span>
       {cursor && <span className="of-readout-cursor" title={cursor}>{cursor}</span>}
     </div>
   );
@@ -243,6 +255,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
           </table>
           <p className="of-footnote">{`${SOURCE_TEXT.outOfFold[lang](window.id, Math.floor(window.embargo_hours_min))} ${SOURCE_TEXT.laneNote[lang]}`}</p>
           <p className="of-footnote">{SOURCE_TEXT.heldNote[lang](lane.held_labels.run_hours_min, formatFixed(lane.held_labels.pairs_touching, lang, 0), formatFixed(lane.protocol.pair_rows, lang, 0))}</p>
+          <p className="of-footnote of-hour-statement" role="note">{SOURCE_TEXT.caseNotEngine[lang]}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">

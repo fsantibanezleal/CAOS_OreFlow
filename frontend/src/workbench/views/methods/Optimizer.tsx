@@ -322,8 +322,8 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
               return (
               <tr key={n}><th scope="row">{`${declared[n].label[lang]} (${unitLabel(unitOf(n)) || '-'})`}</th>
                 <td>{formatFixed(record.base.decisions[n], lang, rd)}</td>
-                <td>{formatFixed(d, lang, rd)}{atBound ? <span className="of-tag">{TEXT.atBound[lang]}</span> : null}</td>
-                <td>{formatRange(low, high, unitOf(n), lang, false)}</td></tr>
+                <td>{formatFixed(d, lang, rd)}{atBound ? <span className="of-tag of-tag-below">{TEXT.atBound[lang]}</span> : null}</td>
+                <td className="of-range">{formatRange(low, high, unitOf(n), lang, false)}</td></tr>
               );
             })}
             {RESULTS.map(row => {

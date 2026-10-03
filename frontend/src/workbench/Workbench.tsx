@@ -245,9 +245,13 @@ export default function Workbench() {
       <section className="of-main" aria-label={artifact.title[lang]}>
         {source === 'hour' && lane ? <HourReadout lane={lane} hourKey={hourKey} lang={lang} cursor={cursor} />
           : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} rejected={rejection} />}
-        <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names}
-          disabled={source === 'hour' ? VIEWS.filter(v => v !== 'case') : []} />
-        {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
+        {/* the flags' sentences share the tabs' row where it has room: on their own line they took the instrument under
+            half the screen in a flagged state at 1280 x 800 (0.08 gate, a GeoMet sample at installed power) */}
+        <div className="of-viewrow">
+          <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names}
+            disabled={source === 'hour' ? VIEWS.filter(v => v !== 'case') : []} />
+          {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
+        </div>
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>
       </section>
     </div>

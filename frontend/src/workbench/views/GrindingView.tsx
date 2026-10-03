@@ -40,6 +40,7 @@ const TEXT = {
   modeCut: { en: 'Set: the classifier cut and the installed power; the P80 and the circulating load follow', es: 'Fijados: el corte del clasificador y la potencia instalada; el P80 y la carga circulante resultan' },
   mode: { en: 'Grind control', es: 'Control de la molienda' },
   achieved: { en: 'P80', es: 'P80' },
+  targetMet: { en: 'P80 at target', es: 'P80 en el objetivo' },
   cut: { en: 'cut', es: 'corte' },
   host: { en: 'Host gangue', es: 'Ganga huésped' },
   xl: { en: 'liberation size', es: 'tamaño de liberación' },
@@ -79,8 +80,18 @@ export function grindingCharts(trace: Trace, ore: Ore, lang: Lang, onCursor: (te
   const scaled = curves.composite_scale.some(v => v < 0.999999);
   // CM-07: in the cut mode nothing targets the P80, so only the achieved one is marked, and the cut is the set value
   const cutMode = m.cut_mode === 1;
+  // one mark where the achieved P80 meets the target: two at one place drew their labels over each other (0.08 gate)
+  const met = Math.abs(m.p80_um / m.target_p80_um - 1) < 0.005;
   const p80Marks = cutMode ? [{ x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }]
+    : met ? [{ x: m.target_p80_um, label: `${TEXT.targetMet[lang]} ${formatWithUnit(m.target_p80_um, 'um', lang)}` }]
     : [{ x: m.target_p80_um, label: `${TEXT.target[lang]} ${formatWithUnit(m.target_p80_um, 'um', lang)}` }, { x: m.p80_um, label: `${TEXT.achieved[lang]} ${formatWithUnit(m.p80_um, 'um', lang)}` }];
+  // minerals that share a liberation size share one mark: bornite takes chalcopyrite's in a GeoMet sample, and two
+  // marks at one place named the same line twice
+  const bySize = new Map<number, string[]>();
+  for (const v of valuable.filter(v => liberationSize(v) > 0)) bySize.set(liberationSize(v), [...(bySize.get(liberationSize(v)) ?? []), v]);
+  const liberationMarks = [...bySize.entries()].map(([x, minerals]) => ({ x, label: `${lang === 'es'
+    ? `${TEXT.xl.es} ${minerals.map(v => mineralName(v, lang).toLowerCase()).join(' y ')}`
+    : `${minerals.map(v => mineralName(v, lang)).join(' and ')} ${TEXT.xl.en}`} ${formatWithUnit(x, 'um', lang)}` }));
   return {
     psd: (
       <Chart key="psd" title={GRINDING_CHARTS.psd[lang]} data={ascending(size, ...present.map(s => curves.psd[s.key]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.passing[lang]}
@@ -99,7 +110,7 @@ export function grindingCharts(trace: Trace, ore: Ore, lang: Lang, onCursor: (te
       <Chart key="liberation" title={GRINDING_CHARTS.liberation[lang]} data={ascending(size, ...valuable.map(v => curves.liberation[v]))} logX xLabel={TEXT.size[lang]} yLabel={TEXT.liberated[lang]}
         series={valuable.map((v, i) => ({ label: mineralName(v, lang), colour: (['good', 'accent', 'magenta', 'warn'] as const)[i % 4] }))}
         summary={TEXT.libSummary[lang]} format={fmt} yRange={[0, 1]}
-        marks={[...valuable.filter(v => liberationSize(v) > 0).map(v => ({ x: liberationSize(v), label: `${lang === 'es' ? `${TEXT.xl.es} ${mineralName(v, lang).toLowerCase()}` : `${mineralName(v, lang)} ${TEXT.xl.en}`} ${formatWithUnit(liberationSize(v), 'um', lang)}` })),
+        marks={[...liberationMarks,
           { x: cutMode ? m.p80_um : m.target_p80_um, label: `${cutMode ? TEXT.achieved[lang] : TEXT.target[lang]} ${formatWithUnit(cutMode ? m.p80_um : m.target_p80_um, 'um', lang)}` }]}
         onCursor={report(valuable.map(v => mineralName(v, lang)))} />
     ),

@@ -82,7 +82,6 @@
   <path class="flow" d="M 150 330 L 150 342" marker-end="url(#of-arch-2)"/>
   <path class="flow" d="M 150 406 L 150 418" marker-end="url(#of-arch-2)"/>
   <path class="flow" d="M 150 482 L 150 494" marker-end="url(#of-arch-2)"/>
-  <text class="lbl l-neutral" x="156" y="159">source/*.json</text>
   <rect class="band" x="302" y="60" width="276" height="506" rx="10"/>
   <text class="bt l-en" x="314" y="77">COMMITTED ARTIFACTS</text>
   <text class="bt l-es" x="314" y="77">ARTEFACTOS VERSIONADOS</text>

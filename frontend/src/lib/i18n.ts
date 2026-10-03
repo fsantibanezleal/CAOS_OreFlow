@@ -111,7 +111,7 @@ export const provenanceText = (value: string, lang: Lang): string => PROVENANCE[
 
 /** A flag's short name, for tables and the HUD where the full sentence does not fit. */
 const FLAG_SHORT: Record<string, T> = {
-  power_limited: { en: 'Power-limited', es: 'Limitado por potencia' },
+  power_limited: { en: 'Power-limited', es: 'Tope de potencia' },
   target_unreachable: { en: 'Target unreachable', es: 'Objetivo inalcanzable' },
   circulating_load_unreachable: { en: 'Load unreachable', es: 'Carga inalcanzable' },
   mill_water_negative: { en: 'No mill water', es: 'Sin agua en el molino' },
@@ -251,7 +251,7 @@ export const UI = {
   cancel: { en: 'Cancel', es: 'Cancelar' },
   resetZoom: { en: 'Reset zoom', es: 'Restablecer zoom' },
   legend: { en: 'Series: click to hide or show', es: 'Series: clic para ocultar o mostrar' },
-  noFlags: { en: 'No engine flags', es: 'Sin avisos del motor' },
+  noFlags: { en: 'No engine flags', es: 'Sin avisos' },
   loading: { en: 'Loading', es: 'Cargando' },
   basic: { en: 'Basic', es: 'Básico' },
   advanced: { en: 'Advanced', es: 'Avanzado' },

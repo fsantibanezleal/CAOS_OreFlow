@@ -111,13 +111,19 @@ input, select, textarea { font: inherit; }
   white-space: nowrap;
   overflow: hidden;
   font-size: 0.8rem;
+  /* the row never wraps: at 1280 px the Spanish labels left the status 60 px and it was cut (0.08 gate), so the
+     items sit closer and the status is short */
+  gap: 12px;
 }
 .of-readout-item { display: inline-flex; align-items: baseline; gap: 6px; flex: none; }
-.of-readout-label { color: var(--color-fg-subtle); font-size: 0.72rem; }
-.of-readout-item strong { font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-fg); }
+.of-readout-label { color: var(--color-fg-subtle); font-size: 0.7rem; }
+.of-readout-item strong { font-family: var(--font-mono); font-size: 0.86rem; color: var(--color-fg); }
 .of-readout-flags { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--color-good); font-size: 0.74rem; }
 .of-readout-flags.warn { color: var(--color-warn); }
 .of-flags-line { flex: none; margin: 0; padding: 0 2px; font-size: 0.74rem; line-height: 1.35; color: var(--color-warn); }
+.of-bench .of-viewrow { flex: none; display: flex; flex-wrap: wrap; align-items: center; column-gap: 14px; border-bottom: 1px solid var(--color-border); }
+.of-bench .of-viewrow > .tablist.of-viewbar { width: auto; flex: 0 1 auto; border-bottom: 0; }
+.of-bench .of-viewrow > .of-flags-line { flex: 1 1 18rem; min-width: 0; padding-bottom: 0.35rem; }
 .of-readout-busy { flex: none; color: var(--color-accent); font-size: 0.72rem; }
 .of-readout-cursor { flex: 0 1 auto; max-width: 48%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg); }
 
@@ -319,6 +325,8 @@ input, select, textarea { font: inherit; }
 .of-table th:first-child, .of-table td:first-child { text-align: left; }
 .of-table thead th { color: var(--color-fg-subtle); font-weight: 600; }
 .of-table tbody th { font-weight: 500; color: var(--color-fg); white-space: normal; }
+/* a search range may break after its dash, so the optimizer's table fits the aside in Spanish (0.08 gate: 7 px over) */
+.of-table td.of-range { white-space: normal; min-width: 4.5rem; }
 .of-table tr.of-table-group > * { border-top: 1px solid var(--color-fg-faint); }
 .of-table tr.is-selected > * { background: var(--color-accent-soft); }
 .of-table.of-table-wide { flex: none; }
@@ -367,6 +375,8 @@ input, select, textarea { font: inherit; }
 .of-context-side .katex-display { overflow-x: auto; overflow-y: hidden; }
 @media (max-width: 1100px) { .of-context { grid-template-columns: minmax(0, 1fr); } }
 .of-tag { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: color-mix(in oklab, var(--color-warn) 18%, transparent); color: var(--color-warn); font-size: 0.66rem; font-weight: 600; }
+/* under its value, so the optimizer's table fits the aside in Spanish ('en su cota' beside 75,0 took it 7 px past) */
+.of-tag.of-tag-below { display: block; width: max-content; margin: 2px 0 0 auto; }
 
 .of-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 14px; margin: 0; font-size: 0.78rem; }
 .of-facts > div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--color-border); }

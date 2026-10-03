@@ -352,6 +352,9 @@ const LOCALE_PROBE = () => {
       if (!math && /^[1-9]\d{0,2}(?:\.\d{3})+$/.test(m[0])) continue;
       // a decimal has one point: two or more that are not grouping make a version (0.05.000)
       if (!math && m[0].split('.').length > 2) continue;
+      // a section, equation, table or figure number keeps its point in Spanish ("sección 2.3", "ec. 5.1"): it numbers,
+      // it is not a decimal (0.08: three such references were read as decimals)
+      if (!math && /(?:secci[oó]n|secciones|apartado|cap[ií]tulo|ec\.|ecuaci[oó]n|tabla|figura|fig\.)\s*$/i.test(text.slice(0, m.index))) continue;
       out.push(`${math ? 'equation' : el.closest('svg') ? 'figure' : el.tagName.toLowerCase()}: ${m[0]} in ${text.trim().slice(0, 50)}`);
       break;
     }
@@ -634,10 +637,10 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   const sampleGrinding = await measure(page);
   record(`${tag} source sample grinding`, viewOk(sampleGrinding, lang), sampleGrinding);
   await sourceButton(2).click();
-  await page.waitForSelector('.of-view-statement .of-note', { timeout: 60000 });
-  const statement = await page.evaluate(() => /reverse cationic|catiónica inversa/.test(document.querySelector('.of-view-statement')?.textContent ?? ''));
-  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  // U-15: the source opens the Case view and closes the engine views, so the hour's view says why (RS-07); until 0.08
+  // this step waited for a statement on an engine view the source no longer opens
   await page.waitForSelector('.of-view-hour table', { timeout: 90000 });
+  const statement = await page.evaluate(() => /reverse cationic|catiónica inversa/.test(document.querySelector('.of-view-hour .of-hour-statement')?.textContent ?? ''));
   await settleCharts(page, 1);
   const hourView = await measure(page);
   const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table.of-table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour'),
@@ -774,7 +777,7 @@ if (REVIEW) {
   const rejected = await page.evaluate(() => ({
     rail: document.querySelector('.of-rail-rejected')?.textContent ?? null,
     panel: !!document.querySelector('.of-rejection[role=alert]'),
-    clean: /No engine flags|Sin avisos del motor|Within every engine check/.test(document.querySelector('.of-readout')?.textContent ?? ''),
+    clean: /No engine flags|Sin avisos|Within every engine check/.test(document.querySelector('.of-readout')?.textContent ?? ''),
   }));
   await page.screenshot({ path: join(OUT, `review-U-03-${REVIEW}.png`) });
   record(`${tag} U-03 rejected state`, set1 && set2 && !!rejected.rail && rejected.panel && !rejected.clean, rejected);

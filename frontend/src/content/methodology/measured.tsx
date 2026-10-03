@@ -60,7 +60,8 @@ function WindowsFigure({ lang }: { lang: Lang }) {
       <line className="dg-axis" x1={x(0)} y1={160} x2={x(1)} y2={160} />
       <text className="dg-axis-label" x={x(0.5)} y={178} textAnchor="middle">{es ? 'pares horarios en orden temporal, marzo a septiembre de 2017' : 'hourly pairs in time order, March to September 2017'}</text>
       <text className="dg-note" x={x(0)} y={152}>{es ? 'entrenamiento' : 'training'}</text>
-      <text className="dg-note" x={x(0.62)} y={152}>{es ? 'embargo de 24 h o más, luego prueba' : 'embargo of 24 h or more, then test'}</text>
+      {/* right-aligned to the axis end: the Spanish note ran 18 px past the figure from a left anchor (0.08 gate) */}
+      <text className="dg-note" x={x(1)} y={152} textAnchor="end">{es ? 'embargo de 24 h o más, luego prueba' : 'embargo of 24 h or more, then test'}</text>
     </svg>
   );
 }
@@ -113,7 +114,7 @@ const SOFT_SENSOR: Topic = {
       es: 'Se evalúan tres ventanas futuras en orden temporal (Bergmeir y Benítez 2012): cada una se entrena con una historia creciente, deja al menos 24 horas de embargo y prueba en el 15, 15 y 20% siguiente de los pares, con la imputación por mediana y el escalado ajustados dentro de cada ventana de entrenamiento. Sumadas las ventanas, el ensaye anterior solo pronostica la hora siguiente con un error absoluto medio de 0,464 puntos, y el último ensaye ajustado, el ensaye anterior regresado sobre el siguiente en cada ventana de entrenamiento, tiene el menor RMSE (0,707): cuál pronóstico gana depende de la métrica. Agregar los sensores al ensaye anterior empeora frente al último ensaye ajustado en ambas métricas, y los modelos solo con sensores no mejoran a la media de entrenamiento. 14% de las horas de prueba repiten exactamente el ensaye anterior, lo que la persistencia cuenta como error nulo.' },
   ],
   equations: [
-    { tex: { en: r`\hat y_{t+1} = f\left(\tilde x_t\right),\qquad \tilde x_t = \operatorname{median}_{s \in t}\ x_s,\qquad \mathrm{MAE} = \frac{1}{n}\sum_t \left|\hat y_{t+1} - y_{t+1}\right|`, es: r`\hat y_{t+1} = f\left(\tilde x_t\right),\qquad \tilde x_t = \operatorname{mediana}_{s \in t}\ x_s,\qquad \mathrm{MAE} = \frac{1}{n}\sum_t \left|\hat y_{t+1} - y_{t+1}\right|` }, caption: { en: 'The forecast of the next hour\'s silica from the hour\'s channel medians, and its mean absolute error.', es: 'El pronóstico de la sílice de la hora siguiente desde las medianas horarias de los canales, y su error absoluto medio.' } },
+    { tex: { en: r`\begin{gathered} \hat y_{t+1} = f\left(\tilde x_t\right) \ \tilde x_t = \operatorname{median}_{s \in t}\ x_s \ \mathrm{MAE} = \frac{1}{n}\sum_t \left|\hat y_{t+1} - y_{t+1}\right| \end{gathered}`, es: r`\begin{gathered} \hat y_{t+1} = f\left(\tilde x_t\right) \ \tilde x_t = \operatorname{mediana}_{s \in t}\ x_s \ \mathrm{MAE} = \frac{1}{n}\sum_t \left|\hat y_{t+1} - y_{t+1}\right| \end{gathered}` }, caption: { en: 'The forecast of the next hour\'s silica from the hour\'s channel medians, and its mean absolute error.', es: 'El pronóstico de la sílice de la hora siguiente desde las medianas horarias de los canales, y su error absoluto medio.' } },
     { tex: r`\hat y_{t+1} = a + b\,y_t`, caption: { en: 'The fitted last assay: $a$ and $b$ fitted on each training window by least squares.', es: 'El último ensaye ajustado: $a$ y $b$ ajustados por mínimos cuadrados en cada ventana de entrenamiento.' } },
   ],
   table: {

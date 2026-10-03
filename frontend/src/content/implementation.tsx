@@ -72,13 +72,14 @@ function ParityFigure({ lang }: { lang: Lang }) {
     <svg className="fig-svg" viewBox="0 0 440 250" role="img" aria-label={p('Both engines re-simulate every precomputed variant and every number is compared', 'Ambos motores vuelven a simular cada variante precalculada y se compara cada número')}>
       <Arrow id="of-impl-arrow-2" />
       <Box x={8} y={96} w={128} h={58} title={p('case artifact', 'artefacto de caso')} lines={[p('definition', 'definición'), p('and point', 'y punto')]} />
-      <Box x={170} y={30} w={128} h={50} title={p('Python engine', 'motor en Python')} kind="accent" lines={[p('the precomputed trace', 'la traza precalculada')]} />
-      <Box x={170} y={170} w={128} h={50} title={p('TypeScript port', 'versión en TypeScript')} kind="good" lines={[p('the port trace', 'la traza en TypeScript')]} />
+      <Box x={160} y={30} w={146} h={50} title={p('Python engine', 'motor en Python')} kind="accent" lines={[p('precomputed trace', 'traza precalculada')]} />
+      <Box x={160} y={170} w={146} h={50} title={p('TypeScript port', 'versión en TypeScript')} kind="good" lines={[p('recomputed trace', 'traza recalculada')]} />
       <Box x={326} y={96} w={106} h={58} title={p('compare', 'comparar')} lines={[p('1e-6 relative', '1e-6 relativo'), p('every number', 'cada número')]} />
-      <path className="dg-edge" d="M 136 116 L 152 116 L 152 55 L 168 55" markerEnd={arrow} />
-      <path className="dg-edge" d="M 136 134 L 152 134 L 152 195 L 168 195" markerEnd={arrow} />
-      <path className="dg-edge" d="M 298 55 L 312 55 L 312 116 L 324 116" markerEnd={arrow} />
-      <path className="dg-edge" d="M 298 195 L 312 195 L 312 134 L 324 134" markerEnd={arrow} />
+      {/* the engine boxes are 146 px: the Spanish 'versión en TypeScript' ran past 128 (0.08 gate) */}
+      <path className="dg-edge" d="M 136 116 L 147 116 L 147 55 L 158 55" markerEnd={arrow} />
+      <path className="dg-edge" d="M 136 134 L 147 134 L 147 195 L 158 195" markerEnd={arrow} />
+      <path className="dg-edge" d="M 306 55 L 315 55 L 315 116 L 324 116" markerEnd={arrow} />
+      <path className="dg-edge" d="M 306 195 L 315 195 L 315 134 L 324 134" markerEnd={arrow} />
       <text className="dg-note" x="220" y="244" textAnchor="middle">{p('96 variants: every metric, stream, curve and kinetic record', '96 variantes: cada métrica, corriente, curva y registro cinético')}</text>
     </svg>
   );

@@ -56,18 +56,19 @@ function AuditFigure({ lang }: { lang: Lang }) {
       <rect x="18" y="18" width="384" height="150" rx="10" fill="none" className="dg-marker" />
       <text className="dg-marker-label" x="26" y="34">{es ? 'circuito: alimentación = productos' : 'circuit: feed = products'}</text>
       {[0, 1, 2].map(k => (
-        <g key={k} transform={`translate(${60 + k * 120} 70)`}>
-          <rect className={k === 1 ? 'dg-box accent' : 'dg-box'} x="0" y="0" width="84" height="46" rx="7" />
-          <text className="dg-box-title" x="42" y="21" textAnchor="middle">{es ? `unidad ${k + 1}` : `unit ${k + 1}`}</text>
-          <text className="dg-box-sub" x="42" y="36" textAnchor="middle">{es ? 'Σ entra = Σ sale' : 'Σ in = Σ out'}</text>
+        // 100 px boxes: the Spanish balance line ran past 84 (0.08 gate)
+        <g key={k} transform={`translate(${48 + k * 120} 70)`}>
+          <rect className={k === 1 ? 'dg-box accent' : 'dg-box'} x="0" y="0" width="100" height="46" rx="7" />
+          <text className="dg-box-title" x="50" y="21" textAnchor="middle">{es ? `unidad ${k + 1}` : `unit ${k + 1}`}</text>
+          <text className="dg-box-sub" x="50" y="36" textAnchor="middle">{es ? 'Σ entra = Σ sale' : 'Σ in = Σ out'}</text>
         </g>
       ))}
-      <line className="dg-edge" x1="30" y1="93" x2="58" y2="93" markerEnd="url(#of-doc-arrow)" />
-      <line className="dg-edge" x1="144" y1="93" x2="178" y2="93" markerEnd="url(#of-doc-arrow)" />
-      <line className="dg-edge" x1="264" y1="93" x2="298" y2="93" markerEnd="url(#of-doc-arrow)" />
-      <line className="dg-edge" x1="384" y1="93" x2="398" y2="93" markerEnd="url(#of-doc-arrow)" />
-      <path className="dg-edge" d="M 342 116 L 342 142 L 222 142 L 222 118" markerEnd="url(#of-doc-arrow)" />
-      <text className="dg-edge-label" x="282" y="156" textAnchor="middle">{es ? 'recirculación' : 'recycle'}</text>
+      <line className="dg-edge" x1="24" y1="93" x2="46" y2="93" markerEnd="url(#of-doc-arrow)" />
+      <line className="dg-edge" x1="148" y1="93" x2="166" y2="93" markerEnd="url(#of-doc-arrow)" />
+      <line className="dg-edge" x1="268" y1="93" x2="286" y2="93" markerEnd="url(#of-doc-arrow)" />
+      <line className="dg-edge" x1="388" y1="93" x2="400" y2="93" markerEnd="url(#of-doc-arrow)" />
+      <path className="dg-edge" d="M 338 116 L 338 142 L 218 142 L 218 118" markerEnd="url(#of-doc-arrow)" />
+      <text className="dg-edge-label" x="278" y="156" textAnchor="middle">{es ? 'recirculación' : 'recycle'}</text>
       <text className="dg-note" x="210" y="196" textAnchor="middle">{es ? 'por mineral, por elemento u óxido, y agua; error relativo máximo reportado' : 'per mineral, per element or oxide, and water; largest relative error reported'}</text>
     </svg>
   );

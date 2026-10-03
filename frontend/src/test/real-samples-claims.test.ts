@@ -31,6 +31,9 @@ describe('the real-source views say what the records and the engine hold', () =>
   it('an iron-plant hour is shown, never simulated (RS-07)', () => {
     expect(SOURCE_TEXT.notEngine.en).toMatch(/reverse cationic flotation is not an engine family/);
     expect(SOURCE_TEXT.notEngine.es).toMatch(/flotación catiónica inversa no es una familia del motor/);
+    // since U-15 the hour opens only its Case view, which carries the statement itself
+    expect(SOURCE_TEXT.caseNotEngine.en).toMatch(/reverse cationic flotation is not an engine family/);
+    expect(SOURCE_TEXT.caseNotEngine.es).toMatch(/flotación catiónica inversa no es una familia del motor/);
     const lane = JSON.parse(readFileSync(join(derived, 'source', 'iron_plant_soft_sensor.json'), 'utf-8')) as { folds: Array<{ trace: Array<{ sensors: Record<string, number>; lab_pct: Record<string, number> }> }> };
     for (const fold of lane.folds) for (const hour of fold.trace) {
       expect(Object.keys(hour.sensors)).toHaveLength(21);
