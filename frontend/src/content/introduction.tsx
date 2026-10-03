@@ -44,34 +44,45 @@ function OverviewFigure({ lang }: { lang: Lang }) {
       {/* overflow to separation */}
       <path className="dg-edge" d="M 654 129 L 668 129 L 668 196 L 274 196 L 274 224" markerEnd={arrow} />
       <text className="dg-edge-label" x="660" y="190" textAnchor="end">{p('overflow at the target P80', 'rebose al P80 objetivo')}</text>
-      <Box x={210} y={226} w={128} h={50} title={p('Desliming', 'Deslamado')} kind="optional" lines={[p('phosphate only', 'solo fosfato')]} />
-      <Box x={368} y={226} w={128} h={50} title={p('Rougher bank', 'Banco rougher')} lines={[p('N cells in series', 'N celdas en serie')]} />
-      <Box x={526} y={226} w={128} h={50} title={p('Cleaner bank', 'Banco de limpieza')} lines={[p('k from Sb; entrainment', 'k desde Sb; arrastre')]} />
-      <line className="dg-edge" x1="338" y1="251" x2="366" y2="251" markerEnd={arrow} />
-      <line className="dg-edge" x1="496" y1="251" x2="524" y2="251" markerEnd={arrow} />
-      <path className="dg-edge" d="M 560 276 L 560 292 L 470 292 L 470 278" markerEnd={arrow} />
-      <text className="dg-edge-label" x="515" y="306" textAnchor="middle">{p('cleaner tails', 'colas de limpieza')}</text>
-      <path className="dg-edge" d="M 400 276 L 400 318 L 702 318" markerEnd={arrow} />
+      {([
+        [208, p('Deslime', 'Deslamado'), p('phosphate', 'fosfato'), true],
+        [302, p('Rougher', 'Rougher'), p('N cells', 'N celdas'), false],
+        [396, p('Regrind', 'Remolienda'), p('optional', 'opcional'), true],
+        [490, p('Cleaner', 'Limpieza'), p('k from Sb', 'k desde Sb'), false],
+        [584, p('Recleaner', 'Relimpieza'), p('optional', 'opcional'), true],
+      ] as Array<[number, string, string, boolean]>).map(([x, title, sub, optional], k) => (
+        <g key={title}>
+          <rect className={optional ? 'dg-box of-dg-optional' : 'dg-box'} x={x} y="226" width="80" height="50" rx="7" />
+          <text className="dg-box-title" x={x + 40} y="246" textAnchor="middle">{title}</text>
+          <text className="dg-box-sub" x={x + 40} y="263" textAnchor="middle">{sub}</text>
+          {k < 4 && <line className="dg-edge" x1={x + 80} y1="251" x2={x + 92} y2="251" markerEnd={arrow} />}
+        </g>
+      ))}
+      <path className="dg-edge" d="M 530 276 L 530 292 L 362 292 L 362 278" markerEnd={arrow} />
+      <text className="dg-edge-label" x="446" y="306" textAnchor="middle">{p('cleaner tails', 'colas de limpieza')}</text>
+      <path className="dg-edge" d="M 624 226 L 624 212 L 530 212 L 530 224" markerEnd={arrow} />
+      <text className="dg-edge-label" x="577" y="208" textAnchor="middle">{p('recleaner tails', 'colas de relimpieza')}</text>
+      <path className="dg-edge" d="M 322 276 L 322 318 L 702 318" markerEnd={arrow} />
       <text className="dg-edge-label" x="580" y="312">{p('rougher tails', 'colas rougher')}</text>
-      <text className="dg-note" x="210" y="336">{p('magnetite: LIMS drums replace flotation', 'magnetita: tambores LIMS en lugar de flotación')}</text>
-      <line className="dg-edge" x1="654" y1="251" x2="702" y2="251" markerEnd={arrow} />
+      <text className="dg-note" x="210" y="336">{p('dashed: in some cases only; magnetite: LIMS drums replace flotation', 'punteado: solo en algunos casos; magnetita: tambores LIMS en lugar de flotación')}</text>
+      <line className="dg-edge" x1="664" y1="251" x2="702" y2="251" markerEnd={arrow} />
 
       {/* products and what every state reports */}
       <line className="dg-edge" x1="680" y1="96" x2="702" y2="96" markerEnd={arrow} />
       <Box x={704} y={30} w={184} h={136} title={p('Every state reports', 'Cada estado informa')} kind="good"
         lines={[p('recovery and grade', 'recuperación y ley'), p('specific energy', 'energía específica'), p('mill power and P80', 'potencia y P80'), p('water per tonne', 'agua por tonelada'), p('unit balances', 'balances por unidad'), p('engine flags', 'avisos del motor')]} />
-      <Box x={704} y={222} w={184} h={58} title={p('Concentrate', 'Concentrado')} lines={[p('grade, recovery', 'ley, recuperación'), p('mass pull', 'rendimiento en maco')]} />
+      <Box x={704} y={222} w={184} h={58} title={p('Concentrate', 'Concentrado')} lines={[p('grade, recovery', 'ley, recuperación'), p('mass pull', 'rendimiento en masa')]} />
       <Box x={704} y={296} w={184} h={44} title={p('Tails', 'Relaves')} lines={[p('grade, losses', 'ley, pérdidas')]} />
 
       {/* the method records */}
       <line className="dg-edge" x1="438" y1="344" x2="438" y2="368" markerEnd={arrow} />
-      <text className="dg-edge-label" x="446" y="361">{p('precomputed for every variant', 'precalculados para cada variante')}</text>
+      <text className="dg-edge-label" x="446" y="361">{p('precomputed', 'precalculados')}</text>
       <rect className="of-dg-frame" x="12" y="370" width="876" height="96" rx="10" />
       <text className="dg-box-title accent" x="26" y="390">{p('Method records, each re-running the same engine', 'Registros de métodos, cada uno sobre el mismo motor')}</text>
-      <Box x={24} y={400} w={204} h={58} title={p('Kinetic fits', 'Ajustes cinéticos')} lines={[p('5 lumped models', '5 modelos agrupados'), p('vs the exact bank', 'frente al banco exacto')]} />
-      <Box x={240} y={400} w={204} h={58} title={p('Optimization', 'Optimización')} lines={[p('pattern search, 6 starts', 'búsqueda por patrones, 6 inicios'), p('grade, power, water', 'ley, potencia, agua')]} />
-      <Box x={456} y={400} w={204} h={58} title={p('Uncertainty', 'Incertidumbre')} lines={[p('128 Latin-hypercube runs', '128 corridas hipercubo latino'), p('Sobol indices, N = 256', 'índices de Sobol, N = 256')]} />
-      <Box x={672} y={400} w={204} h={58} title={p('Learned surrogate', 'Sustituto aprendido')} lines={[p('5 models and a guard', '5 modelos y un guardia'), p('ONNX, run in the browser', 'ONNX, en el navegador')]} />
+      <Box x={24} y={400} w={204} h={58} title={p('Kinetic fits', 'Ajustes cinéticos')} lines={[p('every flotation variant', 'cada variante con flotación'), p('5 lumped models', '5 modelos agrupados')]} />
+      <Box x={240} y={400} w={204} h={58} title={p('Optimization', 'Optimización')} lines={[p('every variant', 'cada variante'), p('pattern search, 6 starts', 'búsqueda por patrones, 6 inicios')]} />
+      <Box x={456} y={400} w={204} h={58} title={p('Uncertainty', 'Incertidumbre')} lines={[p('128 runs, every variant', '128 corridas, cada variante'), p('Sobol: the nominal only', 'Sobol: solo el nominal')]} />
+      <Box x={672} y={400} w={204} h={58} title={p('Learned surrogate', 'Sustituto aprendido')} lines={[p('trained once, 3072 states', 'entrenado una vez, 3072 estados'), p('5 models, guard, screen', '5 modelos, guardia, filtro')]} />
     </svg>
   );
 }
@@ -85,7 +96,7 @@ function StreamFigure({ lang }: { lang: Lang }) {
         <rect key={`${row}-${col}`} x={x + col * 18} y={y + row * 14} width="17" height="13"
           className={shade[(row * 4 + col) % shade.length] ? 'dg-fill-accent' : 'dg-box'} />
       )))}
-      <rect x={x + 80} y={y} width="12" height="97" className="dg-fill-warn" />
+      <rect x={x + 80} y={y} width="13" height="13" className="dg-fill-warn" />
     </g>
   );
   return (
@@ -94,7 +105,7 @@ function StreamFigure({ lang }: { lang: Lang }) {
       <text className="dg-box-title" x="20" y="26">{p('Stream', 'Corriente')}</text>
       {matrix(20, 40, [1, 0, 0, 1, 0, 1])}
       <text className="dg-tick" x="20" y="152">{p('minerals', 'minerales')}</text>
-      <text className="dg-tick" x="100" y="152">{p('water', 'agua')}</text>
+      <text className="dg-tick" x="20" y="184">{p('water: one number per stream', 'agua: un número por corriente')}</text>
       <text className="dg-tick" x="20" y="168">{p('rows: 63 size classes', 'filas: 63 clases')}</text>
       <line className="dg-edge" x1="118" y1="88" x2="160" y2="88" markerEnd={arrow} />
       <rect className="dg-box accent" x="160" y="62" width="120" height="54" rx="7" />
@@ -124,7 +135,7 @@ function VariantFigure({ lang }: { lang: Lang }) {
     [p('more air', 'más aire'), p('Jg × 1.4', 'Jg × 1,4')],
   ];
   return (
-    <svg className="fig-svg" viewBox="0 0 440 336" role="img" aria-label={p('Every variant changes one input of the nominal state by a declared factor', 'Cada variante cambia una entrada del estado nominal por un factor declarado')}>
+    <svg className="fig-svg" viewBox="0 0 440 384" role="img" aria-label={p('Every variant changes one input of the nominal state by a declared factor; two run the circuit in the cut mode', 'Cada variante cambia una entrada del estado nominal por un factor declarado; dos corren el circuito en el modo de corte')}>
       {spokes.map(([name, factor], k) => {
         const a = -Math.PI / 2 + (2 * Math.PI * k) / spokes.length;
         const x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
@@ -148,6 +159,9 @@ function VariantFigure({ lang }: { lang: Lang }) {
       <text className="dg-box-sub" x="32" y="284">{p('gold: bleed × 2 instead of more air', 'oro: purga × 2 en lugar de más aire')}</text>
       <text className="dg-box-sub" x="32" y="300">{p('magnetite: P80 × 0.75, CSS × 0.8 (no flotation)', 'magnetita: P80 × 0,75, CSS × 0,8 (sin flotación)')}</text>
       <text className="dg-box-sub" x="32" y="316">{p('phosphate: cut × 1.5 instead of air; collector × 1.4', 'fosfato: corte × 1,5 en lugar de aire; colector × 1,4')}</text>
+      <rect className="of-dg-frame" x="20" y="334" width="400" height="42" rx="8" />
+      <text className="dg-box-title" x="32" y="352">{p('Cut mode, every case', 'Modo de corte, cada caso')}</text>
+      <text className="dg-box-sub" x="32" y="368">{p('the nominal cut held; then d50c × 0.8', 'el corte nominal fijo; luego d50c × 0,8')}</text>
     </svg>
   );
 }
@@ -157,7 +171,7 @@ function EvidenceFigure({ lang }: { lang: Lang }) {
   const tiers: Array<{ title: string; lines: string[]; kind?: 'accent' | 'good' | 'optional' }> = [
     { title: p('Engine on authored cases', 'Motor sobre casos de autor'), kind: 'accent', lines: [p('directions, trade-offs, balances', 'direcciones, compromisos, balances'), p('12 cases, 96 variants', '12 casos, 96 variantes')] },
     { title: p('Published examples (oracles)', 'Ejemplos publicados (oráculos)'), lines: [p('Moly-Cop, GMG, Laplante,', 'Moly-Cop, GMG, Laplante,'), p('Zandrivierspoort magnetite', 'magnetita de Zandrivierspoort')] },
-    { title: p('Measured lanes, no calibration', 'Vías medidas, sin calibración'), kind: 'good', lines: [p('HZDR particles, GeoMet tests,', 'partículas HZDR, ensayos GeoMet,'), p('iron-plant hours', 'horas de la planta de hierro')] },
+    { title: p('Measured lanes, no calibration', 'Vías medidas, sin calibración'), kind: 'good', lines: [p('HZDR particles, GeoMet, iron plant', 'partículas HZDR, GeoMet, planta de hierro'), p('GeoMet also run through the engine', 'GeoMet también pasa por el motor')] },
     { title: p('Not available: a plant campaign', 'No disponible: una campaña de planta'), kind: 'optional', lines: [p('states joined to measured metallurgy', 'estados vinculados a metalurgia medida'), p('under an open license', 'con licencia abierta')] },
   ];
   return (
@@ -180,7 +194,7 @@ function WorkbenchFigure({ lang }: { lang: Lang }) {
   return (
     <svg className="fig-svg" viewBox="0 0 500 270" role="img" aria-label={p('The workbench: the rail, the readout row, the view tabs and the instrument', 'El simulador: el riel, la fila de lectura, las pestañas de vistas y el instrumento')}>
       <rect className="of-dg-frame" x="10" y="10" width="480" height="250" rx="10" />
-      <Box x={20} y={20} w={120} h={230} title={p('Rail', 'Riel')} lines={[p('case, variant', 'caso, variante'), p('question', 'pregunta'), ...(lang === 'es' ? ['alimentación', 'molienda'] : ['feed and grind']), p('classification', 'clasificación'), p('separation', 'separación'), p('reset, focus', 'volver, foco')]} />
+      <Box x={20} y={20} w={120} h={230} title={p('Rail', 'Riel')} lines={[p('source', 'fuente'), p('case, variant', 'caso, variante'), p('question', 'pregunta'), ...(lang === 'es' ? ['alimentación', 'molienda'] : ['feed and grind']), p('classification', 'clasificación'), p('separation', 'separación'), p('reset, focus', 'volver, foco')]} />
       <rect className="dg-box accent" x="150" y="20" width="340" height="28" rx="6" />
       <text className="of-dg-small" x="320" y="38" textAnchor="middle">{p('recovery · grade · energy · P80 · power · flags', 'recuperación · ley · energía · P80 · potencia · avisos')}</text>
       {tabs.map((tab, k) => (
@@ -190,9 +204,10 @@ function WorkbenchFigure({ lang }: { lang: Lang }) {
         </g>
       ))}
       <rect className="dg-box" x="150" y="86" width="340" height="164" rx="6" />
-      <path className="dg-curve" d="M 170 220 C 240 216, 280 160, 330 140 S 430 110, 474 108" />
-      <line className="dg-marker" x1="360" y1="96" x2="360" y2="232" />
-      <text className="dg-marker-label" x="366" y="110">cursor</text>
+      {[[168, 120], [248, 120], [328, 120], [328, 180], [408, 180]].map(([x, y], k) => <rect key={k} className="dg-box" x={x} y={y} width="56" height="30" rx="4" />)}
+      <path className="dg-edge" d="M 224 135 L 246 135 M 304 135 L 326 135 M 356 150 L 356 178 M 384 195 L 406 195" />
+      <path className="dg-edge" d="M 356 120 L 356 106 L 276 106 L 276 118" />
+      <text className="dg-tick" x="436" y="226" textAnchor="middle">{p('products', 'productos')}</text>
       <text className="dg-note" x="320" y="244" textAnchor="middle">{p('the instrument: at least half the screen', 'el instrumento: al menos media pantalla')}</text>
     </svg>
   );
@@ -329,7 +344,7 @@ const CASES: Topic = {
   equations: [
     { tex: r`x^{(v)}_j = f_v\,x^{(0)}_j,\qquad x^{(v)}_l = x^{(0)}_l\ \ (l \ne j)`, caption: { en: 'A variant v multiplies one input j of the nominal point by its declared factor and keeps every other input.', es: 'Una variante v multiplica una entrada j del punto nominal por su factor declarado y conserva todas las demás.' } },
   ],
-  figure: { caption: { en: 'The five variants around each nominal state, each changing one input by a declared factor; three families replace variants with levers of their own.', es: 'Las cinco variantes alrededor de cada estado nominal, cada una cambiando una entrada por un factor declarado; tres familias reemplazan variantes con palancas propias.' }, render: lang => <VariantFigure lang={lang} /> },
+  figure: { caption: { en: 'The five one-input variants around each nominal state, each changing one input by a declared factor; three families replace variants with levers of their own; every case also runs the two cut-mode variants, eight in all.', es: 'Las cinco variantes de una entrada alrededor de cada estado nominal, cada una cambiando una entrada por un factor declarado; tres familias reemplazan variantes con palancas propias; cada caso corre además las dos variantes del modo de corte, ocho en total.' }, render: lang => <VariantFigure lang={lang} /> },
   data: lang => <CaseCatalog lang={lang} />,
   refs: ['porphyry-practice', 'kroha1985', 'zanin2009', 'nickel2024', 'oxide2022', 'phosphate2019', 'muthaphuli2014', 'laplante-staunton'],
 };

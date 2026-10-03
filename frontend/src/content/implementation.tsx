@@ -45,7 +45,7 @@ function ArchitectureFigure({ lang }: { lang: Lang }) {
         { y: 170, h: 58, title: p('Learning and models', 'Aprendizaje y modelos'), lines: [p('surrogate and guard ONNX', 'ONNX de sustituto y guardia'), p('screen: float64 weights, GP', 'filtro: pesos float64, GP')] },
         { y: 238, h: 58, title: p('Benchmark, studies,', 'Benchmark, estudios,'), lines: [p('real samples, validation', 'muestras reales, validación'), p('oracles, checks, timings', 'oráculos, controles, tiempos')] },
         { y: 306, h: 44, title: p('Manifests and index', 'Manifiestos e índice'), lines: [p('bytes, SHA-256, digest', 'bytes, SHA-256, huella')] },
-        { y: 360, h: 58, title: p('Measured lanes (source)', 'Vías medidas (source)'), kind: 'optional', lines: [p('HZDR, GeoMet, iron plant:', 'HZDR, GeoMet, planta de hierro:'), p('run_*.py, before the bake', 'run_*.py, antes del precálculo')] },
+        { y: 360, h: 58, title: p('Measured lanes (source)', 'Vías medidas (source)'), kind: 'optional', lines: [p('HZDR, GeoMet, iron plant:', 'HZDR, GeoMet, planta de hierro:'), p('run_*.py, before the precompute', 'run_*.py, antes del precálculo')] },
       ])}
       {column(638, p('Browser (the site)', 'Navegador (el sitio)'), [
         { y: 48, h: 44, title: p('Contract validator', 'Validador del contrato'), lines: [p('same codes as the service', 'mismos códigos del servicio')] },

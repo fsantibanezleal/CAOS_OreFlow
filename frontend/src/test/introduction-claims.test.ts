@@ -37,4 +37,18 @@ describe('the Introduction says what the case records hold', () => {
     expect(all('es')).toMatch(/Tres vías usan datos medidos, y ninguna calibra el motor/);
     expect(all('en')).toMatch(/pass through the engine as inputs/);
   });
+
+  // D-07, D-13, D-18, D-19 (review of 0.07.000): the figures draw what the engine runs
+  it('the figures draw the regrind, the recleaner, the cut-mode variants, the source switch and water as one number', () => {
+    const source = readFileSync(fileURLToPath(new URL('../content/introduction.tsx', import.meta.url)), 'utf-8');
+    const figure = (name: string, next: string) => source.slice(source.indexOf(`function ${name}`), source.indexOf(`function ${next}`));
+    const overview = figure('OverviewFigure', 'StreamFigure');
+    for (const unit of ['Regrind', 'Recleaner', 'recleaner tails']) expect(overview).toContain(unit);
+    expect(overview).not.toMatch(/precomputed for every variant/);
+    expect(overview).toMatch(/Sobol: the nominal only/);
+    expect(figure('VariantFigure', 'EvidenceFigure')).toMatch(/Cut mode, every case/);
+    expect(figure('WorkbenchFigure', 'CaseCatalog')).toMatch(/p\('source', 'fuente'\)/);
+    expect(figure('StreamFigure', 'VariantFigure')).toMatch(/water: one number per stream/);
+    expect(source).not.toMatch(/rendimiento en maco/);
+  });
 });
