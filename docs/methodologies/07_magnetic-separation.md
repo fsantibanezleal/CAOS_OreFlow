@@ -1,5 +1,9 @@
 # 07 Magnetic separation
 
+![Rougher and cleaner drums; each captures by particle class.](../svg/07-magnetic.svg)
+
+*Rougher and cleaner drums; each captures by particle class.*
+
 ## Theory
 
 Low-intensity magnetic separators (LIMS, 800 to 2000 G drums) recover magnetite almost completely,

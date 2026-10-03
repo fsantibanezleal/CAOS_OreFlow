@@ -1,5 +1,9 @@
 # 10 Conservation audit
 
+![Each unit is balanced on its own streams, and the circuit as a whole from feed to products.](../svg/10-audit.svg)
+
+*Each unit is balanced on its own streams, and the circuit as a whole from feed to products.*
+
 A balance that is computed as `R + (1 - R)` closes by construction and proves nothing; the 0.04.000
 engine reported exactly that as "100% metal-balance closure". The rebuilt engine audits conservation
 from the named streams alone.

@@ -1,5 +1,9 @@
 # 08 Desliming
 
+![The desliming cyclone sends the slimes to tailings and the deslimed underflow, repulped, to the rougher.](../svg/08-desliming.svg)
+
+*The desliming cyclone sends the slimes to tailings and the deslimed underflow, repulped, to the rougher.*
+
 ## Theory
 
 Phosphate flowsheets deslime ahead of flotation to discard the clay minerals and remove the detrimental effect of

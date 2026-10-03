@@ -1,5 +1,7 @@
 # Methodologies
 
+![The science: from the size grid to the method records](../frontend/public/svg/tech/04-the-science.svg)
+
 OreFlow's engine is a steady-state flowsheet simulator. Every stream is a mass flow in t/h by
 particle size class and by mineral, plus water, and every unit model below is written against that
 representation. The Python engine in `data-pipeline/pipeline/engine/` is canonical; requirement

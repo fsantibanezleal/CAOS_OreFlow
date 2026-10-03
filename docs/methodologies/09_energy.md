@@ -1,5 +1,9 @@
 # 09 Energy
 
+![The three laws agree at the reference reduction and diverge away from it; only Bond is reported as the energy.](../svg/09-energy.svg)
+
+*The three laws agree at the reference reduction and diverge away from it; only Bond is reported as the energy.*
+
 ## Theory
 
 **Bond.** The specific energy to reduce ore from F80 to P80 (um) is

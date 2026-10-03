@@ -1,5 +1,9 @@
 # 13 Uncertainty and sensitivity
 
+![A Latin hypercube fills every input's range evenly; the output distribution gives the quantiles, the Sobol indices say which input drives it.](../svg/13-uncertainty.svg)
+
+*A Latin hypercube fills every input's range evenly; the output distribution gives the quantiles, the Sobol indices say which input drives it.*
+
 A single steady state hides how much the answer depends on ore properties nobody knows exactly.
 OreFlow carries two records per operating point: how widely the results spread when the ore varies
 (uncertainty), and which ore property drives that spread (sensitivity).

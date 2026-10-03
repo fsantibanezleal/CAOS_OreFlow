@@ -1,5 +1,9 @@
 # 16 The iron-plant soft sensor
 
+![Three forward windows in time order, each trained on the expanding history before it and tested after at least 24 hours of embargo.](../svg/16-soft-sensor.svg)
+
+*Three forward windows in time order, each trained on the expanding history before it and tested after at least 24 hours of embargo.*
+
 A soft sensor predicts a quantity the plant measures rarely, here the laboratory silica of the flotation
 concentrate, from the quantities it measures continuously (Kadlec, Gabrys and Strandt 2009, Computers and Chemical
 Engineering 33(4):795-814, doi:10.1016/j.compchemeng.2008.12.012). This lane forecasts one iron-ore plant's

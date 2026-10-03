@@ -1,5 +1,9 @@
 # 03 Grinding circuit
 
+![The mill as three mixers in closed circuit with the cyclones; the underflow returns to the mill.](../svg/03-grinding.svg)
+
+*The mill as three mixers in closed circuit with the cyclones; the underflow returns to the mill.*
+
 ## Theory
 
 **Population balance.** For size class $i$ with mass $M_i$, batch grinding follows

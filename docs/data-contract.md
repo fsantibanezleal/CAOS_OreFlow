@@ -1,5 +1,7 @@
 # Data contract
 
+![The data contracts: the operating contract, the trace and the artifacts](../frontend/public/svg/tech/05-data-contracts.svg)
+
 OreFlow has two process boundaries, the records the bake writes from them, and three measured-data lanes. Every
 page states the expected fields and units, what is rejected, what is flagged, and how missing or out-of-range data
 is handled.

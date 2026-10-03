@@ -1,5 +1,9 @@
 # 15 Real ore samples in the engine
 
+![The normative mineralogy's bands by the molar sulphur to copper ratio, with the locked-cycle samples in each.](../svg/15-real-samples.svg)
+
+*The normative mineralogy's bands by the molar sulphur to copper ratio, with the locked-cycle samples in each.*
+
 The synthetic cases are authored plants and ores. The real-sample source runs measured ore samples through one of
 those plants: the GeoMet samples, on their own assays and work index, in the soft porphyry's circuit
 (RS-01 to RS-06; `docs/design/features/real-samples/`).

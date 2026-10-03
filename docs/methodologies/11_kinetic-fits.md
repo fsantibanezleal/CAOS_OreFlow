@@ -1,5 +1,9 @@
 # 11 Kinetic fits and bank projection
 
+![The first-order fit caps at the test plateau; two-rate and gamma fits follow the curve and project closer to the exact bank.](../svg/11-kinetics.svg)
+
+*The first-order fit caps at the test plateau; two-rate and gamma fits follow the curve and project closer to the exact bank.*
+
 A laboratory batch flotation test gives one recovery-time curve; a plant rougher is a bank of
 continuously fed cells. Lumped kinetic models connect the two: fit a few parameters to the batch
 curve, then predict the bank. OreFlow uses its own engine as the laboratory, so it can measure how

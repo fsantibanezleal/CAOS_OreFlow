@@ -1,5 +1,9 @@
 # 05 Flotation
 
+![The rougher bank, the optional regrind, the cleaner and the optional recleaner; the cleaner tail returns to the rougher feed and the recleaner tail to the cleaner feed.](../svg/05-flotation.svg)
+
+*The rougher bank, the optional regrind, the cleaner and the optional recleaner; the cleaner tail returns to the rougher feed and the recleaner tail to the cleaner feed.*
+
 ## Theory
 
 **Rate from bubble surface area flux.** Gorain, Franzidis and Manlapig showed in industrial cells

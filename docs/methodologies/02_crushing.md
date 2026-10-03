@@ -1,5 +1,9 @@
 # 02 Crushing
 
+![Particles that enter the breakage zone (C) break (B) and return to classification; those that escape form the product.](../svg/02-crushing.svg)
+
+*Particles that enter the breakage zone (C) break (B) and return to classification; those that escape form the product.*
+
 ## Theory
 
 Whiten's crusher model treats the crushing chamber as a classification step followed by breakage,

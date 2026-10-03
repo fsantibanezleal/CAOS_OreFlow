@@ -10,32 +10,33 @@ const r = String.raw;
 
 function SulphurBandsFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
-  // the molar S/Cu axis from 0 to 2.4, on 380 px
-  const x = (v: number) => 30 + (v / 2.4) * 380;
-  const bands: Array<[number, number, string, string]> = [
-    [0, 0.5, es ? 'sin asignación' : 'no allocation', es ? 'excluida' : 'excluded'],
-    [0.5, 0.8, es ? 'bornita + calcosina' : 'bornite + chalcocite', es ? '36 muestras' : '36 samples'],
-    [0.8, 2.0, es ? 'calcopirita + bornita' : 'chalcopyrite + bornite', es ? '15 muestras' : '15 samples'],
-    [2.0, 2.4, es ? 'calcopirita' : 'chalcopyrite', es ? '1 muestra' : '1 sample'],
+  // the four bands at equal width, so each label fits its box; the ticks give the thresholds between them (a
+  // ratio axis to scale left the 0.5 to 0.8 band 47 px wide for a 20-character label)
+  const left = 30, width = 95;
+  const x = (k: number) => left + k * width;
+  const bands: Array<[string[], string]> = [
+    [es ? ['sin', 'asignación'] : ['no', 'allocation'], es ? 'excluida' : 'excluded'],
+    [es ? ['bornita +', 'calcosina'] : ['bornite +', 'chalcocite'], es ? '36 muestras' : '36 samples'],
+    [es ? ['calcopirita +', 'bornita'] : ['chalcopyrite +', 'bornite'], es ? '15 muestras' : '15 samples'],
+    [es ? ['calcopirita'] : ['chalcopyrite'], es ? '1 muestra' : '1 sample'],
   ];
   return (
     <svg className="fig-svg" viewBox="0 0 440 200" role="img" aria-label={es ? 'Las bandas de la mineralogía normativa según la razón molar azufre a cobre, con las muestras en cada una' : 'The normative mineralogy\'s bands by the molar sulphur to copper ratio, with the samples in each'}>
-      {bands.map(([a, b, name, count], k) => (
-        <g key={name}>
-          <rect className={k === 0 ? 'dg-box' : k === 1 ? 'dg-box accent' : 'dg-box good'} x={x(a)} y={44} width={x(b) - x(a)} height={56} rx={4} />
-          <text className="dg-box-sub" x={(x(a) + x(b)) / 2} y={k === 0 || k === 3 ? 66 : 68} textAnchor="middle">{k === 0 || k === 3 ? name.split(' ')[0] : name}</text>
-          {(k === 0 || k === 3) && name.split(' ').length > 1 && <text className="dg-box-sub" x={(x(a) + x(b)) / 2} y={80} textAnchor="middle">{name.split(' ').slice(1).join(' ')}</text>}
-          <text className="dg-note" x={(x(a) + x(b)) / 2} y={94} textAnchor="middle">{count}</text>
+      {bands.map(([name, count], k) => (
+        <g key={name.join(' ')}>
+          <rect className={k === 0 ? 'dg-box' : k === 1 ? 'dg-box accent' : 'dg-box good'} x={x(k)} y={40} width={width} height={64} rx={4} />
+          {name.map((line, i) => <text key={line} className="dg-box-sub" x={x(k) + width / 2} y={(name.length === 1 ? 66 : 59) + 14 * i} textAnchor="middle">{line}</text>)}
+          <text className="dg-note" x={x(k) + width / 2} y={95} textAnchor="middle">{count}</text>
         </g>
       ))}
-      <line className="dg-axis" x1={x(0)} y1={118} x2={x(2.4)} y2={118} />
-      {[0, 0.5, 0.8, 2.0].map(v => (
+      <line className="dg-axis" x1={x(0)} y1={118} x2={x(4)} y2={118} />
+      {['0', '0.5', '0.8', '2'].map((v, k) => (
         <g key={v}>
-          <line className="dg-axis" x1={x(v)} y1={114} x2={x(v)} y2={122} />
-          <text className="dg-tick" x={x(v)} y={136} textAnchor="middle">{es ? String(v).replace('.', ',') : String(v)}</text>
+          <line className="dg-axis" x1={x(k)} y1={114} x2={x(k)} y2={122} />
+          <text className="dg-tick" x={x(k)} y={136} textAnchor="middle">{es ? v.replace('.', ',') : v}</text>
         </g>
       ))}
-      <text className="dg-axis-label" x={x(1.2)} y={158} textAnchor="middle">{es ? 'razón molar s / c en la muestra' : 'molar ratio s / c in the sample'}</text>
+      <text className="dg-axis-label" x={x(2)} y={158} textAnchor="middle">{es ? 'razón molar s / c en la muestra (bandas, no a escala)' : 'molar ratio s / c in the sample (bands, not to scale)'}</text>
       <text className="dg-note" x={x(0)} y={186}>{es ? 'umbrales: S/Cu de la calcosina (0,5), la bornita (0,8) y la calcopirita (2)' : 'thresholds: the S/Cu of chalcocite (0.5), bornite (0.8) and chalcopyrite (2)'}</text>
     </svg>
   );

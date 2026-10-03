@@ -41,12 +41,13 @@ CAOS_OreFlow/
 │   ├── src/test/                   the Vitest suites
 │   ├── public/svg/tech/            the architecture modal's bilingual diagrams
 │   ├── copy-data.mjs               copies the committed records, models and the ONNX runtime into public/
+│   ├── export-figures.mjs          writes the Methodology figures to docs/svg/ as standalone theme-aware SVGs
 │   └── gate.mjs                    the browser gate
 ├── tests/                          the Python suite
 ├── scripts/                        setup, fetch-data, precompute, smoke, dev, predict-geomet, gpu_probe (PowerShell and bash),
 │                                   the standard-library guards, render_use_cases.mjs
 ├── deploy/                         the VPS setup script, the systemd unit, the nginx virtual hosts
-├── docs/                           the documentation wiki (docs/README.md)
+├── docs/                           the documentation wiki (docs/README.md); docs/svg/ holds the exported figures
 ├── manuscript/                     the manuscript draft
 └── .github/workflows/              CI and the GitHub Pages deployment
 ```

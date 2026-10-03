@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="252" class="fig-svg wide" viewBox="0 0 640 252" role="img" aria-label="Rougher bank, optional regrind, cleaner and optional recleaner with their recycles"><style>
+.fig-svg { color-scheme: light dark; }
+.dg-axis { stroke: var(--color-fg-faint, GrayText); stroke-width: 1.3; }
+.dg-axis-label { fill: var(--color-fg-subtle, GrayText); font: 12px var(--font-sans, system-ui, sans-serif); }
+.dg-tick { fill: var(--color-fg-faint, GrayText); font: 11px var(--font-mono, ui-monospace, monospace); }
+.dg-grid { stroke: var(--color-border, GrayText); stroke-width: 0.5; opacity: 0.6; }
+.dg-curve { fill: none; stroke: var(--color-accent, LinkText); stroke-width: 2.2; stroke-linejoin: round; }
+.dg-curve-2 { fill: none; stroke: var(--color-magenta, VisitedText); stroke-width: 2; }
+.dg-curve-faint { fill: none; stroke: var(--color-fg-faint, GrayText); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.dg-asymptote { stroke: var(--color-bad, VisitedText); stroke-width: 1.4; stroke-dasharray: 4 4; }
+.dg-marker { stroke: var(--color-warn, GrayText); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.dg-marker-label { fill: var(--color-warn, GrayText); font: 600 11px var(--font-mono, ui-monospace, monospace); }
+.dg-note { fill: var(--color-fg-faint, GrayText); font: italic 11px var(--font-sans, system-ui, sans-serif); }
+.dg-fill-accent { fill: color-mix(in oklab, var(--color-accent, LinkText) 16%, transparent); stroke: var(--color-accent, LinkText); stroke-width: 1; }
+.dg-fill-warn { fill: color-mix(in oklab, var(--color-warn, GrayText) 16%, transparent); stroke: var(--color-warn, GrayText); stroke-width: 1; }
+.dg-box { fill: var(--color-surface, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1.3; }
+.dg-box.accent { stroke: var(--color-accent, LinkText); fill: var(--color-accent-soft, Canvas); }
+.dg-box.good { stroke: var(--color-good, LinkText); }
+.dg-box-title { fill: var(--color-fg, CanvasText); font: 650 12px var(--font-sans, system-ui, sans-serif); }
+.dg-box-title.accent { fill: var(--color-accent, LinkText); }
+.dg-box-sub { fill: var(--color-fg-subtle, GrayText); font: 10.5px var(--font-mono, ui-monospace, monospace); }
+.dg-node { fill: var(--color-surface, Canvas); stroke: var(--color-accent, LinkText); stroke-width: 1.4; }
+.dg-node-label { fill: var(--color-fg, CanvasText); font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.dg-edge { stroke: var(--color-fg-faint, GrayText); stroke-width: 1.4; fill: none; }
+.dg-edge-label { fill: var(--color-fg-subtle, GrayText); font: 11px var(--font-mono, ui-monospace, monospace); }
+.dg-arrowhead { fill: var(--color-fg-faint, GrayText); }
+.dg-bar { fill: var(--color-accent, LinkText); }
+.dg-bar-2 { fill: var(--color-magenta, VisitedText); }
+.dg-bar-label { fill: var(--color-fg-subtle, GrayText); font: 11px var(--font-sans, system-ui, sans-serif); }
+.of-dg-frame { fill: none; stroke: var(--color-border, GrayText); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.dg-box.of-dg-optional { stroke-dasharray: 5 3; }
+.of-dg-optional-edge { stroke: var(--color-fg-faint, GrayText); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
+.of-dg-small { fill: var(--color-fg, CanvasText); font: 9.5px var(--font-sans, system-ui, sans-serif); }
+.fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle, GrayText); }
+</style><defs><marker id="of-flot-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="dg-arrowhead"></path></marker></defs><text class="dg-edge-label" x="2" y="114">feed</text><line class="dg-edge" x1="34" y1="110" x2="58" y2="110" marker-end="url(#of-flot-arrow)"></line><g transform="translate(60 90)"><rect class="dg-box" x="0" y="0" width="50" height="40" rx="5"></rect><line class="dg-edge" x1="25" y1="0" x2="25" y2="-22" marker-end="url(#of-flot-arrow)"></line><line class="dg-edge" x1="50" y1="20" x2="58" y2="20" marker-end="url(#of-flot-arrow)"></line></g><g transform="translate(118 90)"><rect class="dg-box" x="0" y="0" width="50" height="40" rx="5"></rect><line class="dg-edge" x1="25" y1="0" x2="25" y2="-22" marker-end="url(#of-flot-arrow)"></line><line class="dg-edge" x1="50" y1="20" x2="58" y2="20" marker-end="url(#of-flot-arrow)"></line></g><g transform="translate(176 90)"><rect class="dg-box" x="0" y="0" width="50" height="40" rx="5"></rect><line class="dg-edge" x1="25" y1="0" x2="25" y2="-22" marker-end="url(#of-flot-arrow)"></line><line class="dg-edge" x1="50" y1="20" x2="58" y2="20" marker-end="url(#of-flot-arrow)"></line></g><g transform="translate(234 90)"><rect class="dg-box" x="0" y="0" width="50" height="40" rx="5"></rect><line class="dg-edge" x1="25" y1="0" x2="25" y2="-22" marker-end="url(#of-flot-arrow)"></line></g><text class="dg-box-sub" x="170" y="154" text-anchor="middle">rougher: N cells, k from S<tspan dy="0.3em" font-size="72%">b</tspan><tspan dy="-0.3em">​</tspan></text><line class="dg-edge" x1="85" y1="66" x2="287" y2="66"></line><line class="dg-edge" x1="284" y1="110" x2="326" y2="110" marker-end="url(#of-flot-arrow)"></line><text class="dg-edge-label" x="332" y="114">tail</text><path class="dg-edge" d="M 287 66 L 300 66 L 300 40 L 330 40" marker-end="url(#of-flot-arrow)"></path><rect class="dg-box of-dg-optional" x="332" y="22" width="78" height="36" rx="6"></rect><text class="dg-box-title" x="371" y="44" text-anchor="middle">regrind</text><line class="dg-edge" x1="410" y1="40" x2="428" y2="40" marker-end="url(#of-flot-arrow)"></line><rect class="dg-box accent" x="430" y="22" width="72" height="36" rx="6"></rect><text class="dg-box-title" x="466" y="44" text-anchor="middle">cleaner</text><line class="dg-edge" x1="502" y1="40" x2="520" y2="40" marker-end="url(#of-flot-arrow)"></line><rect class="dg-box of-dg-optional" x="522" y="22" width="80" height="36" rx="6"></rect><text class="dg-box-title" x="562" y="44" text-anchor="middle">recleaner</text><path class="dg-edge" d="M 602 40 L 618 40 L 618 14" marker-end="url(#of-flot-arrow)"></path><text class="dg-edge-label" x="610" y="12" text-anchor="end">concentrate</text><path class="dg-curve-faint" d="M 450 58 L 450 186 L 46 186 L 46 114" marker-end="url(#of-flot-arrow)"></path><circle class="dg-fill-accent" cx="46" cy="110" r="3"></circle><text class="dg-edge-label" x="248" y="202" text-anchor="middle">cleaner tail to the rougher feed</text><path class="dg-curve-faint" d="M 562 58 L 562 76 L 482 76 L 482 60" marker-end="url(#of-flot-arrow)"></path><text class="dg-edge-label" x="474" y="92">recleaner tail</text><text class="dg-note" x="320" y="226" text-anchor="middle">dashed boxes: in some cases only</text><text class="dg-note" x="320" y="242" text-anchor="middle">recovery by true flotation and by entrainment with the water (ENT)</text></svg>

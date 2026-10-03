@@ -1,5 +1,9 @@
 # 04 Classification
 
+![A dense mineral classifies at a finer cut than the gangue; both curves start at the water bypass.](../svg/04-classification.svg)
+
+*A dense mineral classifies at a finer cut than the gangue; both curves start at the water bypass.*
+
 ## Theory
 
 A hydrocyclone sends particles to the underflow with a probability that rises with size and density,

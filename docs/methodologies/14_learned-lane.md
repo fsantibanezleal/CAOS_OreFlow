@@ -1,5 +1,9 @@
 # 14 Learned lane
 
+![From the Sobol design to the models the browser runs.](../svg/14-learned.svg)
+
+*From the Sobol design to the models the browser runs.*
+
 A surrogate is a fast statistical stand-in for the engine. It is useful only if its error is known,
 and the error that matters depends on the question: predicting a state near states it has seen
 (interpolation), or predicting a plant it has never seen (transfer). OreFlow trains five surrogates

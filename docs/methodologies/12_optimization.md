@@ -1,5 +1,9 @@
 # 12 Constrained operating-point optimization
 
+![One iteration: the poll one mesh step from the feasible incumbent, the screen's candidates one and two steps away, and the one it proposes to the engine.](../svg/12-optimization.svg)
+
+*One iteration: the poll one mesh step from the feasible incumbent, the screen's candidates one and two steps away, and the one it proposes to the engine.*
+
 The question a plant engineer asks of a circuit model is rarely "what happens at this point" and
 more often "where should I run it". OreFlow answers that question for each baked variant with a
 constrained optimization of the engine itself, and the workbench repeats it at any weight.
