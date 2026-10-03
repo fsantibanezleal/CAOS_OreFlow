@@ -133,6 +133,26 @@ def test_current_docs_carry_no_retired_phrase():
     assert not hits, hits
 
 
+def test_the_bake_times_are_the_validation_records():
+    """Guide 02's stage table, architecture 02's first measurement and the manuscript quoted the 0.07 bake's times a
+    release after the bake that wrote the committed records. They are held to `validation.json` here."""
+    v = _read(DERIVED / "validation.json")
+    s, version = v["seconds"], v["engine_version"]
+    guide = (ROOT / "docs" / "guides" / "02_bake-and-gpu.md").read_text(encoding="utf-8")
+    rows = {line.split("|")[1].strip(): line.split("|")[-2].strip() for line in guide.splitlines() if line.startswith("| ") and line.count("|") == 4}
+    for stage in v["stages"]:
+        quoted = rows[stage]
+        if quoted.startswith("under 1 s"):
+            assert s[stage] < 1.0, stage
+        else:
+            assert quoted.startswith(f"{s[stage]:.1f} s"), (stage, quoted, s[stage])
+    assert f"in the committed {version} bake" in guide
+    arch = " ".join((ROOT / "docs" / "architecture" / "02_bake-pipeline.md").read_text(encoding="utf-8").split())
+    assert f"- {s['cases']:.0f} s and {s['learning']:.0f} s for the committed {version} bake" in arch
+    paper = " ".join((ROOT / "manuscript" / "oreflow-digital-twin.md").read_text(encoding="utf-8").split())
+    assert f"took {s['cases']:.0f} s for the cases on {v['workers']} workers and {s['learning']:.0f} s for the learned lane" in paper
+
+
 def test_every_relative_link_resolves():
     """W-05, W-06: the wiki's pages are reachable by links, and every relative link in a tracked Markdown file names
     a file or folder that exists (the review's link checker, kept)."""

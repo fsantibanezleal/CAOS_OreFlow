@@ -6,7 +6,7 @@ Read order: [01 Installation](01_installation.md), **you are on 02**, then [03 A
 
 Every test file opens with the requirement it verifies (the `PE-nn` rows of
 `docs/design/features/process-engine-v2/requirements.md`), and `scripts/check_sdd.py` requires each
-requirement's gate to name a test that exists. The counts are those of 0.08.000 (535 in all); each release's are in
+requirement's gate to name a test that exists. The counts are those of 0.08.000 (538 in all); each release's are in
 `docs/release-verification.md`.
 
 | File | Tests in 0.08.000 | What it verifies |
@@ -39,8 +39,8 @@ requirement's gate to name a test that exists. The counts are those of 0.08.000 
 | `test_ablations.py` | 14 | AB-01 to AB-03: every mechanism switch is on by default and changes nothing when on, every ablated state closes its balances, and a case without the mechanism is not applicable |
 | `test_spa_routes.py` | 2 | the service's version and its document-route fallback |
 | `test_manuscript_claims.py` | 9 | every result number and count the manuscript quotes, against the committed records |
-| `test_docs_claims.py` | 9 | every number methodology pages 04, 06, 09, 12, 13, 15 to 18 and data contracts 03 to 06 quote |
-| `test_docs_counts.py` | 4 | the SDD coverage matrix, guide 03's snippets, methodology pages 02, 03 and 11, and the changelog's entries |
+| `test_docs_claims.py` | 9 | every number methodology pages 04, 06, 09, 12, 13 and 15 to 18, guide 03 and data contracts 03 to 06 quote |
+| `test_docs_counts.py` | 7 | the SDD coverage matrix, guide 03's snippets, methodology pages 02, 03 and 11, the bake times, retired phrases, every relative link, and the changelog's entries |
 
 ## Cached engine runs (`tests/engine_helpers.py`)
 

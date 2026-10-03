@@ -2,6 +2,67 @@
 
 ## [Unreleased]
 
+## [0.08.000] - 2026-10-03
+
+The fixes of the adversarial review of 0.07.000 (issue #60: seven dimensions, each verified by a second reviewer;
+the verified findings under #72) and the gravity rebuild. Every fix carries a test or a gate check that fails on
+0.07.000.
+
+### Changed
+
+- **Gravity on the published GRG model** (E-11, PE-18 restated). Gravity-recoverable gold enters liberated with a GRG
+  test's sizes, breaks at Banisi's slower rate, classifies with a density exponent fitted to measured GRG partitions,
+  and the unit may treat a share of the mill discharge, as Laplante, Woodcock and Noaparast's model does. The
+  Laplante oracle runs the published simulator example like for like and states its miss: a perfect unit leaves the
+  GRG recovery 5 to 10 points low, because GRG finer than about 37 um escapes the cyclone.
+- **The Moly-Cop oracle** runs every published input with the base case's own breakage parameters and compares net
+  energy with net (7.30 against 7.71 kWh/t, 5.2% below). The Plitt cyclone sizing is a stated failure, and the
+  `cyclone_pressure` flag is retired (E-05, E-07, E-08).
+- **The head grade is the feed's total assay** of the payable; the magnetite case's control is 29.7% total Fe (E-02).
+- **The cut mode refuses a state with no steady state** (CM-09), in Python, the service and the browser (E-01).
+- **The iron-plant lane** compares the sensors with the fitted last assay, an AR(1) baseline, with day-block bootstrap
+  intervals (M-04), and names the laboratory values carried over unchanged for three or more hours, scoring every
+  model with and without the pairs that touch them (S-16).
+- **The GeoMet comparison** is reported over 200 hole partitions and leave one hole out, with intervals widened for
+  the six model pairs; no surface names a winner (M-05).
+- **The real-sample record** states what its gap to the locked-cycle tests depends on: the assumed laboratory grind,
+  the residence, the host circuit and every authored choice (S-01 to S-09).
+- **The learned lane** records five MLP seeds, equal training rows, coverage under both protocols, and the guard's
+  acceptance by distance and by input (M-07, M-08, M-11, M-16, M-21).
+
+### Fixed
+
+- The phosphate and clay cases state what the engine computes (E-03, E-04); the KPI ranges are presented as
+  authoring constraints with their margins (E-12 to E-14); the refractory gold grade ceiling is 38.6 g/t (E-19).
+- The workbench shows only current, honest state: rejections, stale sweeps, losses never in the success colour,
+  units, flags, one precision per column and layout (U-01 to U-37, R-07, S-12 to S-15, S-20).
+- The figures are drawn from their equations and the engine (D-01 to D-32), the flowsheet places every label and
+  draws no crossing line, and content-bearing small text meets WCAG AA (D-29, shell known defect 12).
+- The pages and the docs say what the records hold, in both languages (the T and M batches, W-01 to W-57).
+- Claims checked against their primary sources on 2026-10-03: the phosphate review gives neither a desliming size
+  nor a 35% P2O5 target, so the case labels its 20 um cut authored; the collector and bank-model citations are
+  narrowed to what their sources state.
+
+### Added
+
+- Methodology pages 17 (the HZDR particle lane) and 18 (the GeoMet lane); data contract 06 (the iron plant), field
+  tables for the lanes, and the studies and real-sample schemas.
+- The Methodology figures as standalone theme-aware SVGs in `docs/svg/`, embedded on pages 01 to 16 and held to the
+  app's by a test.
+- Claims tests for the docs: methodology pages 02 to 04, 06, 09, 11 to 18, the data contracts, the SDD's coverage
+  matrix, guide 03's snippets and the CHANGELOG; the content guard flags private references.
+- `scripts/setup -NoGpu` (`--no-gpu`), and `scripts/precompute` runs the three measured lanes before the bake.
+
+### Records
+
+- The release bake of 2026-10-03 (learning 15303 s, cases 4445 s on 12 workers, while another job held every core),
+  compared leaf by leaf with the development bake adopted during the release: 397,647 values equal; the differences
+  are the engine version, the contract digest (E-15 changed the cut's help text), the refractory gold grade ceiling
+  (60 to 38.6 g/t, E-19), the rewritten source notes, the benchmark's new range sources, the timings and the byte
+  counts that follow, and 186 learning scores in their last bits (below 1e-12 relative). The exported networks,
+  the scalers and the optimizer's screen are byte-identical.
+- The iron-plant record gains the held-label block (S-16); the particle and GeoMet records are unchanged.
+
 ## [0.07.000] - 2026-09-30
 
 The rest of the plan that the audit of 2026-09-27 found missing (issues #51 to #57, under #63): the optimizer the

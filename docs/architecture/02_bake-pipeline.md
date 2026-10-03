@@ -50,10 +50,12 @@ Each stage and each finished case prints a timestamped line, and a bake still ru
 hours, well past a normal run, prints the stack of every thread once, so a stall shows where it is. On the development
 machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about twenty minutes on twelve
 workers since 0.07.000, when every target-mode optimizer began to run twice (with and without the screen) and
-along the weight path, and the learning stage half an hour to over an hour, depending on what else the machine
-runs. The measurements (cases, then learning):
-- 1293 s and 4082 s for the committed 0.07.000 bake of 2026-09-30, with the studies in 129 s and the real samples in
-  3 s, while a parity run, the Python suite and browser checks shared the machine;
+along the weight path, and the learning stage about forty minutes; both run several times longer when another
+job holds the machine's cores. The measurements (cases, then learning):
+- 4445 s and 15303 s for the committed 0.08.000 bake of 2026-10-03, with the studies in 378 s and the real
+  samples in 394 s, while another job held every core of the machine;
+- 1293 s and 4082 s for the 0.07.000 bake of 2026-09-30, while a parity run, the Python suite and browser checks
+  shared the machine;
 - 375 s and 1688 s for 0.05.000, unloaded, on 2026-09-26;
 - 517 s and 3180 s for the committed 0.06.000 bake of 2026-09-28, which shared the machine with another job;
 - 605 s and 4622 s for its predecessor that day, also loaded.
