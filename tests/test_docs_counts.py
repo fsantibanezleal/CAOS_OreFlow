@@ -133,6 +133,22 @@ def test_current_docs_carry_no_retired_phrase():
     assert not hits, hits
 
 
+def test_every_relative_link_resolves():
+    """W-05, W-06: the wiki's pages are reachable by links, and every relative link in a tracked Markdown file names
+    a file or folder that exists (the review's link checker, kept)."""
+    import subprocess
+
+    tracked = subprocess.run(["git", "ls-files", "*.md"], cwd=ROOT, capture_output=True, text=True, check=True).stdout.split()
+    broken = []
+    for name in tracked:
+        page = ROOT / name
+        for m in re.finditer(r"\]\(([^)\s]+)\)", page.read_text(encoding="utf-8")):
+            target = m.group(1).split("#")[0]
+            if target and not re.match(r"[a-z]+:", m.group(1)) and not (page.parent / target).resolve().exists():
+                broken.append(f"{name}: {m.group(1)}")
+    assert len(tracked) > 100 and not broken, broken
+
+
 def test_the_changelog_has_one_entry_per_release_in_one_format():
     """W-28, W-50: three tagged releases had no entry, and the entries before 0.05.000 used another heading format.
     The tags are read where the checkout has them (a shallow CI clone has none, and then the format alone is held)."""
