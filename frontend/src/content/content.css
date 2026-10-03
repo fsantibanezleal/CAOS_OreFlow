@@ -18,13 +18,13 @@ html, body, #root { height: auto; min-height: 100%; }
 .main-nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; white-space: nowrap; scrollbar-width: none; }
 .main-nav::-webkit-scrollbar { display: none; }
 .main-nav .nav-link { flex: none; }
-/* U-37: with the scrollbar hidden, the end of the nav that hides links fades (NavOverflow declares which), so a link
+/* Shell known defect 11 (U-37): with the scrollbar hidden, the end of the nav that hides links fades (NavOverflow declares which), so a link
  * cut at the edge reads as more to scroll, not as a broken word */
 .main-nav[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
 .main-nav[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
 .main-nav[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 
-/* U-37: on a phone the shell keeps the workbench footer on one line that scrolls with no scrollbar, so it was cut
+/* Shell known defect 11 (U-37): on a phone the shell keeps the workbench footer on one line that scrolls with no scrollbar, so it was cut
  * after "v0.07.000 · D"; it wraps instead, two short lines under the instrument */
 @media (max-width: 860px) {
   .app-shell.fixed .footer-meta { flex-wrap: wrap; overflow-x: visible; white-space: normal; row-gap: 0.15rem; }
@@ -63,7 +63,7 @@ html, body, #root { height: auto; min-height: 100%; }
 .dg-box.of-dg-optional { stroke-dasharray: 5 3; }
 .of-dg-optional-edge { stroke: var(--color-fg-faint); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
 .of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
-/* D-29: the shell draws figure notes and ticks in --color-fg-faint (4.27:1 on the light page, 3.80:1 on the dark
+/* Shell known defect 12 (D-29): the shell draws figure notes and ticks in --color-fg-faint (4.27:1 on the light page, 3.80:1 on the dark
    surface), below WCAG AA for 11 px text; here they carry content (solve directions, legends, sample counts), so they
    take the subtle text colour (at least 5.7:1 on every page and surface, both themes) */
 .fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle); }
