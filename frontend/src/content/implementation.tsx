@@ -18,43 +18,48 @@ const r = String.raw;
 function ArchitectureFigure({ lang }: { lang: Lang }) {
   const p = (en: string, es: string) => pick(lang, en, es);
   const arrow = 'url(#of-impl-arrow)';
-  const column = (x: number, title: string, boxes: Array<{ y: number; h: number; title: string; lines: string[]; kind?: 'accent' | 'good' }>) => (
+  const column = (x: number, title: string, boxes: Array<{ y: number; h: number; title: string; lines: string[]; kind?: 'accent' | 'good' | 'optional' }>) => (
     <g>
-      <rect className="of-dg-frame" x={x} y="14" width="250" height="332" rx="10" />
+      <rect className="of-dg-frame" x={x} y="14" width="250" height="456" rx="10" />
       <text className="dg-box-title accent" x={x + 12} y="34">{title}</text>
       {boxes.map(b => <Box key={b.title} x={x + 12} y={b.y} w={226} h={b.h} title={b.title} lines={b.lines} kind={b.kind} />)}
     </g>
   );
   return (
-    <svg className="fig-svg" viewBox="0 0 900 440" role="img" aria-label={p('The offline precompute, the committed artifacts, the browser and the service', 'El precálculo fuera de línea, los artefactos versionados, el navegador y el servicio')}>
+    <svg className="fig-svg" viewBox="0 0 900 560" role="img" aria-label={p('The offline precompute in its stage order, the committed artifacts, the browser and the service', 'El precálculo fuera de línea en el orden de sus etapas, los artefactos versionados, el navegador y el servicio')}>
       <Arrow id="of-impl-arrow" />
       {column(12, p('Precompute (workstation)', 'Precálculo (estación de trabajo)'), [
-        { y: 48, h: 58, title: p('Python engine', 'Motor en Python'), kind: 'accent', lines: [p('grid, units, solvers', 'malla, unidades, solucionadores'), p('audit, trace', 'auditoría, traza')] },
-        { y: 116, h: 44, title: p('Contract export', 'Exportación del contrato'), lines: [p('bounds, rules, digest', 'límites, reglas, huella')] },
-        { y: 170, h: 58, title: p('Case stage, 12 workers', 'Etapa de casos, 12 procesos'), lines: [p('traces, optimizer,', 'trazas, optimizador,'), p('uncertainty, Sobol', 'incertidumbre, Sobol')] },
-        { y: 238, h: 44, title: p('Learning stage, CUDA', 'Etapa de aprendizaje, CUDA'), lines: [p('5 models, guard, ONNX', '5 modelos, guardia, ONNX')] },
-        { y: 292, h: 44, title: p('Benchmark and manifests', 'Benchmark y manifiestos'), lines: [p('and the balance recheck', 'y la verificación de balances')] },
+        { y: 48, h: 42, title: p('Python engine', 'Motor en Python'), kind: 'accent', lines: [p('grid, units, solvers, trace', 'malla, unidades, cálculo, traza')] },
+        { y: 95, h: 42, title: p('1 Contract', '1 Contrato'), lines: [p('bounds, rules, digest', 'límites, reglas, huella')] },
+        { y: 142, h: 42, title: p('2 Learning, CUDA', '2 Aprendizaje, CUDA'), lines: [p('networks, guard, screen', 'redes, guardia, filtro')] },
+        { y: 189, h: 42, title: p('3 Cases, 12 workers', '3 Casos, 12 procesos'), lines: [p('traces, optimizer, Sobol', 'trazas, optimizador, Sobol')] },
+        { y: 236, h: 42, title: p('4 Benchmark', '4 Benchmark'), lines: [p('oracles, cross-case summary', 'oráculos, resumen entre casos')] },
+        { y: 283, h: 42, title: p('5 Studies, 12 workers', '5 Estudios, 12 procesos'), lines: [p('ablations, seed study', 'ablaciones, semillas')] },
+        { y: 330, h: 42, title: p('6 Real samples', '6 Muestras reales'), lines: [p('52 GeoMet tests in the engine', '52 ensayos GeoMet en el motor')] },
+        { y: 377, h: 42, title: p('7 Manifests', '7 Manifiestos'), lines: [p('bytes, SHA-256, the index', 'bytes, SHA-256, el índice')] },
+        { y: 424, h: 42, title: p('8 Validation', '8 Validación'), lines: [p('every record checked', 'cada registro verificado')] },
       ])}
       {column(325, p('Committed artifacts', 'Artefactos versionados'), [
         { y: 48, h: 44, title: p('Operating contract', 'Contrato de operación'), lines: [p('13 inputs, 4 families', '13 entradas, 4 familias')] },
         { y: 102, h: 58, title: p('12 case artifacts', '12 artefactos de caso'), lines: [p('96 variants with traces', '96 variantes con trazas'), p('and method records', 'y registros de métodos')] },
-        { y: 170, h: 44, title: p('Manifests and index', 'Manifiestos e índice'), lines: [p('bytes, SHA-256, digest', 'bytes, SHA-256, huella')] },
-        { y: 224, h: 58, title: p('Learning record', 'Registro de aprendizaje'), lines: [p('surrogate and guard ONNX', 'ONNX de sustituto y guardia'), p('scalers, reference', 'escaladores, referencia')] },
-        { y: 292, h: 44, title: p('Benchmark, validation', 'Benchmark, validación'), lines: [p('oracles, lanes, timings', 'oráculos, vías, tiempos')] },
+        { y: 170, h: 58, title: p('Learning and models', 'Aprendizaje y modelos'), lines: [p('surrogate and guard ONNX', 'ONNX de sustituto y guardia'), p('screen: float64 weights, GP', 'filtro: pesos float64, GP')] },
+        { y: 238, h: 58, title: p('Benchmark, studies,', 'Benchmark, estudios,'), lines: [p('real samples, validation', 'muestras reales, validación'), p('oracles, checks, timings', 'oráculos, controles, tiempos')] },
+        { y: 306, h: 44, title: p('Manifests and index', 'Manifiestos e índice'), lines: [p('bytes, SHA-256, digest', 'bytes, SHA-256, huella')] },
+        { y: 360, h: 58, title: p('Measured lanes (source)', 'Vías medidas (source)'), kind: 'optional', lines: [p('HZDR, GeoMet, iron plant:', 'HZDR, GeoMet, planta de hierro:'), p('run_*.py, before the bake', 'run_*.py, antes del precálculo')] },
       ])}
       {column(638, p('Browser (the site)', 'Navegador (el sitio)'), [
         { y: 48, h: 44, title: p('Contract validator', 'Validador del contrato'), lines: [p('same codes as the service', 'mismos códigos del servicio')] },
         { y: 102, h: 58, title: p('TypeScript engine port', 'Motor en TypeScript'), kind: 'good', lines: [p('a trace per control change', 'una traza por cada cambio'), p('within 1e-6 of Python', 'a 1e-6 del de Python')] },
-        { y: 170, h: 44, title: p('Web Worker sweeps', 'Barridos en Web Worker'), lines: [p('on request, cancellable', 'a pedido, cancelables')] },
-        { y: 224, h: 58, title: p('ONNX surrogate and guard', 'Sustituto y guardia ONNX'), lines: [p('onnxruntime-web, wasm', 'onnxruntime-web, wasm'), p('one call per sweep', 'una llamada por barrido')] },
-        { y: 292, h: 44, title: p('Views draw the trace', 'Las vistas dibujan la traza'), lines: [p('no engine formula in the views', 'sin fórmulas del motor en las vistas')] },
+        { y: 170, h: 58, title: p('Web Workers, on request', 'Web Workers, a pedido'), lines: [p('sweeps, optimizer,', 'barridos, optimizador,'), p('uncertainty; cancellable', 'incertidumbre; cancelables')] },
+        { y: 238, h: 58, title: p('Learned models', 'Modelos aprendidos'), lines: [p('surrogate, guard: ONNX, wasm', 'sustituto, guardia: ONNX, wasm'), p('screen: float64, optimizer', 'filtro: float64, optimizador')] },
+        { y: 306, h: 44, title: p('Views draw the trace', 'Las vistas dibujan la traza'), lines: [p('no engine formula in the views', 'sin fórmulas del motor en las vistas')] },
       ])}
       <line className="dg-edge" x1="262" y1="180" x2="323" y2="180" markerEnd={arrow} />
       <line className="dg-edge" x1="575" y1="180" x2="636" y2="180" markerEnd={arrow} />
-      <text className="dg-edge-label" x="293" y="364" textAnchor="middle">{p('the precompute writes, then validates', 'el precálculo escribe y luego valida')}</text>
-      <text className="dg-edge-label" x="606" y="364" textAnchor="middle">{p('the build copies them into the site', 'la compilación los copia al sitio')}</text>
-      <line className="dg-edge" x1="450" y1="346" x2="450" y2="386" markerEnd={arrow} />
-      <Box x={12} y={388} w={876} h={46} title={p('Service: the Python engine behind the same contract', 'Servicio: el motor en Python tras el mismo contrato')}
+      <text className="dg-edge-label" x="293" y="488" textAnchor="middle">{p('the precompute writes, then validates', 'el precálculo escribe y luego valida')}</text>
+      <text className="dg-edge-label" x="606" y="488" textAnchor="middle">{p('the build copies them into the site', 'la compilación los copia al sitio')}</text>
+      <line className="dg-edge" x1="450" y1="470" x2="450" y2="504" markerEnd={arrow} />
+      <Box x={12} y={506} w={876} h={46} title={p('Service: the Python engine behind the same contract', 'Servicio: el motor en Python tras el mismo contrato')}
         lines={[p('validated simulation, catalog and benchmark; serves the built site; never trains or rewrites an artifact', 'simulación validada, catálogo y benchmark; sirve el sitio compilado; nunca entrena ni reescribe un artefacto')]} />
     </svg>
   );
@@ -133,7 +138,7 @@ function ContractFigure({ lang }: { lang: Lang }) {
           {k < bottom.length - 1 && <line className="dg-edge" x1={x + w} y1="200" x2={bottom[k + 1][2] - 2} y2="200" markerEnd={arrow} />}
         </g>
       ))}
-      <text className="dg-note" x="220" y="250" textAnchor="middle">{p('every file carries the engine version and the contract digest', 'cada archivo lleva la versión del motor y la huella del contrato')}</text>
+      <text className="dg-note" x="220" y="250" textAnchor="middle">{p('every engine record carries the engine version and the contract digest', 'cada registro del motor lleva la versión del motor y la huella del contrato')}</text>
     </svg>
   );
 }
@@ -141,15 +146,15 @@ function ContractFigure({ lang }: { lang: Lang }) {
 function LanesFigure({ lang }: { lang: Lang }) {
   const p = (en: string, es: string) => pick(lang, en, es);
   const lanes: Array<{ title: string; kind: 'accent' | 'good' | undefined; items: string[] }> = [
-    { title: p('Live (browser)', 'Vivo (navegador)'), kind: 'good', items: [p('validator', 'validador'), p('engine port', 'motor en TypeScript'), p('worker sweeps', 'barridos en worker'), p('ONNX surrogate', 'sustituto ONNX'), p('ONNX guard', 'guardia ONNX')] },
-    { title: p('Precomputed (read)', 'Precálculo (leído)'), kind: 'accent', items: [p('kinetic fits', 'ajustes cinéticos'), p('optimization', 'optimización'), p('uncertainty', 'incertidumbre'), p('Sobol indices', 'índices de Sobol'), p('learning results', 'resultados ML')] },
+    { title: p('Live (browser)', 'Vivo (navegador)'), kind: 'good', items: [p('validator', 'validador'), p('engine port', 'motor en TypeScript'), p('worker sweeps', 'barridos en worker'), p('optimizer', 'optimizador'), p('uncertainty', 'incertidumbre'), p('ONNX surrogate', 'sustituto ONNX'), p('ONNX guard', 'guardia ONNX'), p('float64 screen', 'filtro float64')] },
+    { title: p('Precomputed (read)', 'Precálculo (leído)'), kind: 'accent', items: [p('kinetic fits', 'ajustes cinéticos'), p('optimization', 'optimización'), p('uncertainty', 'incertidumbre'), p('Sobol indices', 'índices de Sobol'), p('learning results', 'resultados ML'), p('studies, samples', 'estudios, muestras')] },
     { title: p('Service', 'Servicio'), kind: undefined, items: [p('same contract', 'mismo contrato'), p('validated simulate', 'simulación validada'), p('catalog, benchmark', 'catálogo, benchmark'), p('serves the site', 'sirve el sitio'), p('never trains', 'nunca entrena')] },
   ];
   return (
-    <svg className="fig-svg" viewBox="0 0 440 222" role="img" aria-label={p('What runs live in the browser, what is precomputed and read, and what the service does', 'Qué corre en vivo en el navegador, qué se precalcula y se lee, y qué hace el servicio')}>
-      {lanes.map((lane, k) => <Box key={lane.title} x={5 + 145 * k} y={10} w={140} h={164} title={lane.title} lines={lane.items} step={28} kind={lane.kind} />)}
-      <text className="dg-note" x="220" y="198" textAnchor="middle">{p('a moved control re-solves the circuit live;', 'un control movido resuelve el circuito en vivo;')}</text>
-      <text className="dg-note" x="220" y="212" textAnchor="middle">{p('the method records stay those precomputed for the variant', 'los registros de métodos siguen siendo los de la variante')}</text>
+    <svg className="fig-svg" viewBox="0 0 440 252" role="img" aria-label={p('What runs live in the browser, what is precomputed and read, and what the service does', 'Qué corre en vivo en el navegador, qué se precalcula y se lee, y qué hace el servicio')}>
+      {lanes.map((lane, k) => <Box key={lane.title} x={5 + 145 * k} y={10} w={140} h={194} title={lane.title} lines={lane.items} step={20} kind={lane.kind} />)}
+      <text className="dg-note" x="220" y="226" textAnchor="middle">{p('a moved control re-solves the circuit live; the optimizer', 'un control movido resuelve el circuito en vivo; el optimizador')}</text>
+      <text className="dg-note" x="220" y="240" textAnchor="middle">{p('and the uncertainty design re-run only when asked', 'y el diseño de incertidumbre se recalculan solo a pedido')}</text>
     </svg>
   );
 }
@@ -161,16 +166,18 @@ function ReleaseFigure({ lang }: { lang: Lang }) {
     <svg className="fig-svg" viewBox="0 0 440 260" role="img" aria-label={p('Local gates, then the task branch, develop and main, then Pages and the service', 'Controles locales, luego la rama de tarea, develop y main, luego Pages y el servicio')}>
       <Arrow id="of-impl-arrow-5" />
       <Box x={10} y={14} w={420} h={46} title={p('Local, before a release', 'Local, antes de publicar')} kind="accent" lines={[p('Python tests · precompute · browser gate · screenshots read', 'pruebas Python · precalculado · control en navegador · capturas leídas')]} />
-      <line className="dg-edge" x1="220" y1="60" x2="220" y2="78" markerEnd={arrow} />
+      <line className="dg-edge" x1="70" y1="60" x2="70" y2="78" markerEnd={arrow} />
       <Box x={10} y={80} w={120} h={46} title={p('task branch', 'rama de tarea')} lines={[p('no CI', 'sin CI')]} />
       <Box x={160} y={80} w={120} h={46} title="develop" lines={[p('CI checks', 'controles CI')]} />
       <Box x={310} y={80} w={120} h={46} title="main" lines={[p('CI and Pages', 'CI y Pages')]} />
       <line className="dg-edge" x1="130" y1="103" x2="158" y2="103" markerEnd={arrow} />
       <line className="dg-edge" x1="280" y1="103" x2="308" y2="103" markerEnd={arrow} />
-      <path className="dg-edge" d="M 370 126 L 370 150 L 110 150 L 110 166" markerEnd={arrow} />
-      <path className="dg-edge" d="M 370 150 L 330 150 L 330 166" markerEnd={arrow} />
+      <path className="dg-edge" d="M 350 126 L 350 146 L 110 146 L 110 166" markerEnd={arrow} />
+      <path className="of-dg-optional-edge" d="M 390 126 L 390 166" markerEnd={arrow} />
+      <text className="dg-edge-label" x="150" y="140">{p('on push, by the workflow', 'al publicar, por el flujo')}</text>
+      <text className="dg-edge-label" x="384" y="160" textAnchor="end">{p('by hand', 'a mano')}</text>
       <Box x={10} y={168} w={200} h={46} title="GitHub Pages" kind="good" lines={[p('project path, route files', 'ruta del proyecto, rutas')]} />
-      <Box x={230} y={168} w={200} h={46} title={p('Service (VPS)', 'Servicio (VPS)')} kind="good" lines={[p('behind nginx and TLS', 'tras nginx y TLS')]} />
+      <Box x={230} y={168} w={200} h={46} title={p('Service (VPS)', 'Servicio (VPS)')} kind="good" lines={[p('pulled from main over SSH', 'desde main por SSH')]} />
       <text className="dg-note" x="220" y="240" textAnchor="middle">{p('checked from outside: health, routes, catalog, a simulation', 'verificado desde fuera: salud, rutas, catálogo, una simulación')}</text>
     </svg>
   );

@@ -61,6 +61,7 @@ html, body, #root { height: auto; min-height: 100%; }
 /* figure frames and optional units (dashed), small labels for dense schematics */
 .of-dg-frame { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .dg-box.of-dg-optional { stroke-dasharray: 5 3; }
+.of-dg-optional-edge { stroke: var(--color-fg-faint); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
 .of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
 
 /* artifact-bound tables and charts under a topic */
