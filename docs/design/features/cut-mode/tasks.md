@@ -2,8 +2,8 @@
 
 - [x] T1 (CM-02, CM-03). Measure `e (1 + C(e, d50c))` over every case on a grid of cuts, and persist the result.
   Then implement the cut branch in `grinding.py` with its flags and tests.
-- [x] T2 (CM-01). Contract: `grinding_mode`, `d50c_um` with the measured per-case bounds, and the cross-field
-  rule, in Python and the browser.
+- [x] T2 (CM-01). Contract: `d50c_um` with the measured per-case bounds and the off value 0, in Python and the
+  browser. Changed during T2: no `grinding_mode` enumeration and no cross-field rule (design, Contract).
 - [x] T3 (CM-04, CM-05). The agreement test between the modes, and balance closure in the cut mode.
 - [x] T4 (CM-06). Cut-mode variants in the catalog; the bake in a sandbox; the TypeScript branch; parity over all
   variants. Done in `259c242`; the parity over all 96 variants in `81aedea`.

@@ -80,7 +80,8 @@ already agree within 1e-6, and the only decisions are comparisons of those resul
   step's evaluations, stop and screen counts.
 
 **Changed during T3:** the record keeps the rejections as counts per start, not every rejected candidate with its
-features. The full table is about 4,800 candidates per variant, some 35 MB per bake across the 72 variants. The counts
+features. The full table is about 4,800 candidates per variant, some 35 MB per bake across the 72 variants of the time (96
+since the cut mode, whose 24 searches run unscreened). The counts
 and every proposal are what the saving and the surrogate's disagreement are computed from.
 
 ## Browser
@@ -110,7 +111,7 @@ relative. The other weights are exercised by the weight path (0.75, 0.5, 0.25) a
 
 Each variant is a full optimization, about a minute of engine runs, so CI (ADR-0074, cheap checks) runs the
 nominal variants of three cases that cover one decision, a binding water constraint and a screen that rarely
-passes; `OF_PARITY=full` runs all 72 variants locally at every release, and `docs/release-verification.md`
+passes; `OF_PARITY=full` runs all 96 variants locally at every release (72 before the cut mode), and `docs/release-verification.md`
 records the run.
 
 ## Measured on 2026-09-30: the screen does not pay on this engine
@@ -125,7 +126,7 @@ with the screen exported from the committed learning record:
 | the screen limited to one mesh step | 3,753 | 1.9% more |
 
 All three reach the same optimum in every case, to the sixth decimal of recovered metal. Over the 72 variants of the
-first screened development bake (with the weight path) the designed screen spent 8.3% more (23,597 against 21,794).
+first screened development bake (before the cut mode added its 24) (with the weight path) the designed screen spent 8.3% more (23,597 against 21,794).
 Of its 4,812 proposals, 831 (17%) became an incumbent. The surrogate's error on recovery at the proposals had a
 median of 0.59 points. So the surrogate is accurate where it is trusted, but the mesh neighbours differ by less
 than its error, and a failed two-step proposal is an evaluation the poll would not have made.

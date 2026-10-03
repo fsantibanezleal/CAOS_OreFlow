@@ -19,8 +19,8 @@ run failed three of its checks in the full run (`docs/release-verification.md`, 
 
 | Requirement | Result on the release |
 |---|---|
-| AB-01 | met: `test_switches_default_on_and_inert` 1/1 |
-| AB-02 | met: `test_closure_with_each_switch_off` 12/12 |
+| AB-01 | met: `test_switches_default_on_and_inert` 1/1 (the engine declares one of the five switches; the study declares them all, as AB-01 now says) |
+| AB-02 | not met as then written: `test_closure_with_each_switch_off` 12/12 checked the closure, but the trace never recorded the switch. The requirement was reworded in 0.08.000 (the study record names it), and the test reads the committed record (review of 0.07.000, W-03) |
 | AB-03 | met: `check_artifacts.py` passed in the bake; `test_not_applicable_is_not_zero` 1/1 |
 | AB-04 | met: `ablation-parity.test.ts` 12/12 |
 | PG-01 | met: `gate.mjs` tab census: 48/48; `pages.test.ts` 3/3 |

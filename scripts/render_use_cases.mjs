@@ -235,6 +235,35 @@ function casePage(entry, n) {
   return { file: `${code}_${id}.md`, text: out.join('\n'), artifact, manifest };
 }
 
+// ---- the coverage matrix (ADR-0057 item 7; review of 2026-10-02, W-54) ----
+/** Which mechanism each case exercises, read from its nominal topology, its payables and its variants. */
+function coverage(artifacts) {
+  const MECHANISMS = [
+    ['Gravity bleed', a => a.units.has('gravity_split')],
+    ['Desliming', a => a.units.has('deslime')],
+    ['LIMS drums', a => a.units.has('lims_rougher')],
+    ['Flotation', a => a.units.has('rougher')],
+    ['Regrind', a => a.units.has('regrind')],
+    ['Recleaner', a => a.units.has('recleaner')],
+    ['Second payable', a => a.payables.length > 1],
+  ];
+  const COMMON = new Set(['nominal', 'harder_ore', 'coarser_grind', 'higher_throughput', 'more_collector', 'more_air', 'cut_nominal', 'cut_finer']);
+  const rows = artifacts.map(artifact => {
+    const units = new Set(artifact.variants[0].trace.topology.map(u => u.unit));
+    const a = { units, payables: artifact.definition.ore.payables };
+    const own = artifact.variants.map(v => v.id).filter(id => !COMMON.has(id));
+    const limited = artifact.variants.filter(v => v.trace.metrics.power_limited).map(v => v.id);
+    return `| ${artifact.title.en} | ${artifact.category} | ${MECHANISMS.map(([, has]) => (has(a) ? 'yes' : '')).join(' | ')} | ${own.join(', ') || ''} | ${limited.join(', ')} |`;
+  });
+  return [
+    '## Coverage', '',
+    'Which mechanism each case exercises, read from its nominal circuit, its payables and its variants. Every case also runs the grinding circuit in the cut mode (its last two variants), where the mill draws its installed power by design. In the target mode a variant is power-limited when the mill cannot reach the target grind; every harder-ore and higher-throughput variant is, because each plant\'s installed power is authored at 1.02 to 1.20 times its nominal requirement.', '',
+    `| Case | Category | ${MECHANISMS.map(([name]) => name).join(' | ')} | Levers of its own | Power-limited variants |`,
+    `|---|---|${MECHANISMS.map(() => '---').join('|')}|---|---|`,
+    ...rows, '',
+  ];
+}
+
 // ---- the landing page ----
 const pages = index.cases.map((entry, i) => casePage(entry, i + 1));
 const landing = [
@@ -249,6 +278,7 @@ const landing = [
     return `| [${file.slice(0, 2)} ${artifact.title.en}](use-cases/${file}) | ${artifact.question.en} | ${artifact.family} | ${metric('recovery_pct', t.metrics.recovery_pct, t.metric_units)} | ${metric('concentrate_grade', t.metrics.concentrate_grade, t.metric_units)} | ${metric('specific_energy_total_kwh_t', t.metrics.specific_energy_total_kwh_t, t.metric_units)} |`;
   }),
   '', 'The four circuit families: `rougher` (a flotation rougher with cleaners), `gravity_rougher` (a gravity unit on the grinding circuit, then flotation), `magnetic` (low-intensity magnetic drums instead of flotation) and `deslime_rougher` (desliming cyclones ahead of flotation).', '',
+  ...coverage(pages.map(p => p.artifact)),
   'To add a case, see [guide 04](guides/04_add-a-case.md); the pages are regenerated with `node --experimental-strip-types scripts/render_use_cases.mjs`.', '',
 ].join('\n');
 

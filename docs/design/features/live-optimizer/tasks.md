@@ -9,7 +9,8 @@
   against scikit-learn. Run the screen through `onnxruntime` in the bake. Done in `c8b78e3`, changed during T2: the export is `process_screen.json` with `process_gp_cholesky.bin`, and both languages run the networks and the GP in float64 instead of ONNX Runtime (design, Screen).
 - [x] T3 (OP-06, OP-07). Records, schema and `scripts/check_artifacts.py` checks: the screen table, the saving,
   the weight path. Done in `c8b78e3`; the benchmark's screen fields in `5c33cb3`.
-- [x] T4 (OP-08). TypeScript port in `frontend/src/engine/optimize.ts` and `frontend/src/learning/gp.ts`, and the
+- [x] T4 (OP-08). TypeScript port in `frontend/src/engine/optimize.ts` and the screen in `frontend/src/learning/screen.ts` (planned as
+  `learning/gp.ts`), and the
   parity test over all variants and weights. Done in `c8b78e3` and `259c242` (the declared decrease tolerance), with the Gaussian process in `learning/screen.ts`; the full parity ran on the release records.
 - [x] T5 (OP-09, OP-10). The contract's weights control; the worker's `optimize` request; the Methods view
   control, trace and screen table; the browser-gate check. Done in `c8b78e3`; the gate check in `495dad3`.

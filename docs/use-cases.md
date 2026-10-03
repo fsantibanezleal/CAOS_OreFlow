@@ -23,4 +23,23 @@ The pages below are rendered from the committed case artifacts, so every number 
 
 The four circuit families: `rougher` (a flotation rougher with cleaners), `gravity_rougher` (a gravity unit on the grinding circuit, then flotation), `magnetic` (low-intensity magnetic drums instead of flotation) and `deslime_rougher` (desliming cyclones ahead of flotation).
 
+## Coverage
+
+Which mechanism each case exercises, read from its nominal circuit, its payables and its variants. Every case also runs the grinding circuit in the cut mode (its last two variants), where the mill draws its installed power by design. In the target mode a variant is power-limited when the mill cannot reach the target grind; every harder-ore and higher-throughput variant is, because each plant's installed power is authored at 1.02 to 1.20 times its nominal requirement.
+
+| Case | Category | Gravity bleed | Desliming | LIMS drums | Flotation | Regrind | Recleaner | Second payable | Levers of its own | Power-limited variants |
+|---|---|---|---|---|---|---|---|---|---|---|
+| Soft copper porphyry | liberation |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Hard copper porphyry | liberation |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Free-milling gold with gravity | classification | yes |  |  | yes |  |  |  | larger_bleed | harder_ore, higher_throughput |
+| Fine magnetite concentration | liberation |  |  | yes |  |  |  |  | finer_grind, finer_crusher | harder_ore, finer_grind, higher_throughput |
+| Nickel sulphide with serpentine slimes | classification |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Phosphate with clay slimes | classification |  | yes |  | yes |  | yes |  | coarser_deslime | harder_ore, higher_throughput |
+| Copper-molybdenum bulk flotation | flotation |  |  |  | yes | yes | yes | yes |  | harder_ore, higher_throughput |
+| Oxide copper by sulphidisation | flotation |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Zinc sulphide | flotation |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Copper ore with clay | integration |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Low-grade copper at high throughput | integration |  |  |  | yes | yes | yes |  |  | harder_ore, higher_throughput |
+| Refractory gold in sulphides | integration |  |  |  | yes |  |  |  |  | harder_ore, higher_throughput |
+
 To add a case, see [guide 04](guides/04_add-a-case.md); the pages are regenerated with `node --experimental-strip-types scripts/render_use_cases.mjs`.

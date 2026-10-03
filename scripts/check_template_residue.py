@@ -8,7 +8,10 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 TEXT = {".ts", ".tsx", ".js", ".jsx", ".mjs", ".py", ".md", ".json", ".css", ".html", ".yml", ".yaml", ".toml", ".txt"}
-FORBIDDEN = ("SIRChart", "EX01_subcritical", "EX02_epidemic", "CTRL_degenerate", "PENDING-training", "CAOS product template")
+# W-01 (review of 2026-10-02): the template's stage list and its kernel file outlived the template in the pipeline
+# README, which gave a bake command that fails
+FORBIDDEN = ("SIRChart", "EX01_subcritical", "EX02_epidemic", "CTRL_degenerate", "PENDING-training", "CAOS product template",
+             "preprocess -> dataset -> feature_extraction", "pipeline/model/process.py", "run.py all --seed")
 PATHS = ("data/derived/EX01_", "data/derived/EX02_", "data/derived/EX03_", "data/derived/EX04_", "data/derived/manifests/EX0", "architecture.ts.txt")
 
 
