@@ -137,6 +137,11 @@ def test_page_16_quotes_the_iron_plant_record():
         assert min(scores, key=lambda m: scores[m]["rmse_pct_points"]) == "ar1_previous_lab"
 
 
+def _cases() -> list[dict]:
+    index = _read(DERIVED / "manifests" / "index.json")
+    return [_read(DERIVED / "cases" / f"{entry['case_id']}.json") for entry in index["cases"]]
+
+
 def _missing_doc(relative: str, phrases: list[str]) -> list[str]:
     flat = re.sub(r"\s+", " ", (ROOT / "docs" / relative).read_text(encoding="utf-8"))
     return [p for p in phrases if p not in flat]
@@ -223,6 +228,171 @@ def test_page_18_and_contract_05_quote_the_geomet_record():
         f"pinned at {s['usable_rows']} usable tests and {len(s['exclusions'])} exclusion (source row {s['exclusions'][0]['source_row']}",
         f"({real['work_index_assignment']['nearest_in_hole']} and {real['work_index_assignment']['deposit_median']} tests)",
         f"`raw_rows` {s['raw_rows']}, `usable_rows` {s['usable_rows']}, `holes` {s['holes']}",
+    ])
+    assert not missing, missing
+
+
+def test_page_12_quotes_the_optimizer_records():
+    """Page 12 said the Benchmark page's claims test held its numbers; that test reads the Benchmark page only, and
+    page 12 kept the 0.07 screen counts after the 0.08 records changed them. Every number it quotes is held here."""
+    bench = _read(DERIVED / "benchmark.json")
+    records = [(c, v, r) for c, variants in bench["optimization"].items() for v, r in variants.items()]
+    feasible = [x for x in records if x[2]["status"] == "optimal"]
+    target = [x for x in records if not x[1].startswith("cut_")]
+    cut = [x for x in records if x[1].startswith("cut_")]
+    gains = sorted((r["gain_pct"], c, v) for c, v, r in records if r["gain_pct"] is not None)
+    nominal = sorted((v["nominal"]["gain_pct"], c) for c, v in bench["optimization"].items())
+    cut_gains = sorted((r["gain_pct"], c) for c, _, r in cut)
+    active = {n: sum(1 for x in feasible if n in x[2]["active"]) for n in ("power", "grade", "water")}
+    screened = [x for x in records if x[2]["screened"]]
+    with_screen = sum(r["evaluations"] for _, _, r in screened)
+    without = sum(r["evaluations_without_screen"] for _, _, r in screened)
+    change = [r["evaluations"] - r["evaluations_without_screen"] for _, _, r in screened]
+    cases = {c: _read(DERIVED / "cases" / f"{c}.json") for c in bench["optimization"]}
+    rejected = {"guard": 0, "interval": 0}
+    for c, v, _ in screened:
+        variant = next(x for x in cases[c]["variants"] if x["id"] == v)
+        for start in variant["methods"]["optimization"]["starts"]:
+            for reason in rejected:
+                rejected[reason] += start["screen"]["rejected"][reason]
+    errors = [r["surrogate_abs_error_pp"] for _, _, r in screened if r["surrogate_abs_error_pp"] is not None]
+    same = sum(1 for _, _, r in screened if r["same_optimum_without_screen"])
+    trade = []
+    for c in bench["optimization"]:
+        optimum, last = cases[c]["variants"][0]["methods"]["optimization"]["optimum"], bench["optimization"][c]["nominal"]["path"][-1]
+        trade.append((c, 100 * (1 - last["energy_kwh_t"] / optimum["values"]["energy_kwh_t"]), 100 * (1 - last["recovered_tph"] / optimum["recovered_tph"])))
+    moved = [t for t in trade if t[0] != "iron_magnetite_fine"]
+    still = next(t for t in trade if t[0] == "iron_magnetite_fine")
+    assert abs(still[1]) < 1e-9 and abs(still[2]) < 1e-9 and "grade" in bench["optimization"]["iron_magnetite_fine"]["nominal"]["active"]
+    worst = 0.0
+    for c, v, r in feasible:
+        if not all(s["status"] == "optimal" for s in r["path"]):
+            continue
+        optimum = next(x for x in cases[c]["variants"] if x["id"] == v)["methods"]["optimization"]["optimum"]
+        for series in ([optimum["values"]["energy_kwh_t"], *[s["energy_kwh_t"] for s in r["path"]]], [optimum["recovered_tph"], *[s["recovered_tph"] for s in r["path"]]]):
+            worst = max(worst, *(b / a - 1 for a, b in zip(series, series[1:])))
+    names = {"iron_magnetite_fine": "magnetite", "copper_oxide": "oxide copper", "zinc_sulfide": "zinc"}
+    infeasible = sorted(v for c, v, r in records if r["status"] != "optimal")
+    assert infeasible == ["harder_ore", "higher_throughput"]
+    assert gains[0][1:] == ("iron_magnetite_fine", "coarser_grind") and gains[-1][1:] == ("copper_oxide", "coarser_grind")
+    page = "12_optimization.md"
+    missing = _missing(page, [
+        f"{len(feasible)} of the {len(records)} variants reach an optimum",
+        f"{sum(1 for x in target if not x[2]['base_feasible'])} of the {len(target)} target-mode variants break a constraint as run; "
+        f"the {len(cut)} cut-mode variants break {'none' if all(x[2]['base_feasible'] for x in cut) else 'some'}",
+        f"runs from {gains[0][0]:.1f}% (magnetite, coarser grind", f"to +{gains[-1][0]:.1f}% (oxide copper, coarser grind)",
+        f"from {nominal[0][0]:.1f}% ({names[nominal[0][1]]}) to {nominal[-1][0]:.1f}% ({names[nominal[-1][1]]})",
+        f"in the cut mode from {cut_gains[0][0]:.1f}% ({names[cut_gains[0][1]]}) to {cut_gains[-1][0]:.1f}% ({names[cut_gains[-1][1]]})",
+        f"Installed power at {active['power']} of the {len(feasible)} optima, and at all {sum(1 for x in cut if 'power' in x[2]['active'])} in the cut mode; "
+        f"the grade specification at {active['grade']}; the water capacity at {active['water']}",
+        f"Over the {len(screened)} screened variants the search spent {with_screen:,} engine evaluations, and the same starts and weight "
+        f"without the screen {without:,}: {100 * (with_screen / without - 1):.1f}% more with the screen",
+        f"It took fewer evaluations in {sum(c < 0 for c in change)} variant{'' if sum(c < 0 for c in change) == 1 else 's'}, more in {sum(c > 0 for c in change)} and the same in {sum(c == 0 for c in change)}",
+        f"Of the {sum(r['screened_candidates'] for _, _, r in screened):,} candidates screened, the guard rejected {rejected['guard']:,} and the interval "
+        f"{rejected['interval']:,}; the engine evaluated the best passing candidate {sum(r['proposed'] for _, _, r in screened):,} times, and "
+        f"{sum(r['improved'] for _, _, r in screened)} of those became an incumbent",
+        f"in {same} of the {len(screened)} variants it ends at the same decisions",
+        f"the surrogate's recovery was on average {sum(errors) / len(errors):.2f} points from the engine's (the mean of the variants' means; "
+        f"{max(errors):.2f} at worst)",
+        f"the nominal optima spend {min(t[1] for t in moved):.0f} to {max(t[1] for t in moved):.0f}% less energy per tonne and recover "
+        f"{min(t[2] for t in moved):.0f} to {max(t[2] for t in moved):.0f}% less metal",
+        f"beyond {worst:.1e} relative".replace("e-0", "e-"),
+    ])
+    assert not missing, missing
+
+
+def test_page_06_quotes_the_gravity_oracle():
+    """The rebuilt gravity page quotes the like-for-like Laplante oracle; no test read it."""
+    lap = _read(DERIVED / "benchmark.json")["oracles"]["laplante"]
+    e, p, w, audit = lap["engine"], lap["published"], lap["without_grg_below_25um"], lap["audit"]
+    low = [-d for d in e["grg_recovery_difference_points"]]
+    below = [-r for r in e["grg_circulating_load_relative_error"]]
+    w_below = [-r for r in w["grg_circulating_load_relative_error"]]
+    assert lap["within_tolerance"] is False and e["fit_at_bound"] and w["fit_at_bound"] is False
+    assert w["grg_recovery_difference_points"][0] < -4 and max(abs(d) for d in w["grg_recovery_difference_points"][1:]) < 1.1
+    missing = _missing("06_gravity-gold.md", [
+        f"the GRG recovery is {e['grg_recovery_pct'][0]:.1f} to {e['grg_recovery_pct'][-1]:.1f}% against "
+        # the published 95.85 is printed half up, as the manuscript's test does
+        f"{p['grg_recovery_pct'][0] + 1e-9:.1f} to {p['grg_recovery_pct'][-1] + 1e-9:.1f}%, {low[0]:.1f} to {low[-1]:.1f} points low",
+        f"The GRG circulating load is {100 * min(below):.0f} to {100 * max(below):.0f}% below the printed "
+        f"{p['grg_circulating_load_pct'][0]:.0f} to {p['grg_circulating_load_pct'][-1]:.0f}%",
+        f"{min(e['grg_to_overflow_pct']):.0f} to {max(e['grg_to_overflow_pct']):.0f}% of the GRG leaves by the overflow",
+        f"{min(e['discharge_grg_below_150um_pct']):.1f} to {max(e['discharge_grg_below_150um_pct']):.1f}% of the mill discharge's GRG "
+        "lies below 150 um, against the printed 87.7%",
+        f"the fitted $R_{{max}}$ is {w['max_recovery']:.2f}",
+        f"within {max(abs(d) for d in w['grg_recovery_difference_points'][1:]):.1f} points from the 20% row on "
+        f"({-w['grg_recovery_difference_points'][0]:.1f} points low at 10%)",
+        f"the circulating load stays {100 * min(w_below):.0f} to {100 * max(w_below):.0f}% low",
+        f"the engine's GRG circulates at {audit['grg_circulating_load_pct']:.0f}% of its feed",
+        f"gold grade ratio of {p['audit']['underflow_au_gpt'] / p['audit']['overflow_au_gpt']:.1f} and "
+        f"{100 * p['audit']['underflow_grg_share']:.0f}% GRG in the underflow gold; the engine gives "
+        f"{audit['underflow_over_overflow_au_grade']:.1f} and {100 * audit['underflow_grg_share']:.0f}%",
+    ])
+    assert not missing, missing
+
+
+def test_pages_04_and_09_quote_the_records():
+    """Page 04's Plitt sizing failure (E-07) and page 09's oversize-feed disclosure (E-18), held to the oracle and case
+    records; their engine tests pinned the numbers but never read the pages."""
+    import math
+
+    sizing = _read(DERIVED / "benchmark.json")["oracles"]["molycop"]["sizing"]
+    ex, r = sizing["examples"], sizing["ratio"]
+    sim, par = ex["BallSim_Direct"], ex["BallParam_Direct"]
+
+    def ratio(example: dict, key: str, published: str) -> float:
+        return example["plitt_at_published_flow"][key] / example["published"][published]
+
+    cases = _cases()
+    solids = [a["variants"][0]["trace"]["metrics"]["cyclone_feed_solids_vol_pct"] for a in cases]
+    missing = _missing("04_classification.md", [
+        f"(a1 {sim['molycop_constants']['a1']:.3f} and {par['molycop_constants']['a1']:.3f} on the pressure, "
+        f"a2 {sim['molycop_constants']['a2']:.3f} and {par['molycop_constants']['a2']:.3f} on the cut)",
+        f"the engine's Plitt cut is {ratio(sim, 'cut_um', 'd50c_um'):.2f} and {ratio(par, 'cut_um', 'd50c_um'):.2f} times the published corrected "
+        f"cut and its pressure {ratio(sim, 'pressure_kpa', 'pressure_kpa'):.1f} and {ratio(par, 'pressure_kpa', 'pressure_kpa'):.1f} times",
+        f"differ in the ratio {r['engine_cut']:.2f} on the cut and {r['engine_pressure']:.2f} on the pressure, against "
+        f"{r['molycop_a2']:.2f} and {r['molycop_a1']:.2f} between Moly-Cop's own constants",
+        f"the engine sizes {sim['sized_for_published_cut']['cyclones']} cyclones at {sim['sized_for_published_cut']['pressure_kpa']:.0f} kPa against the "
+        f"published {sim['published']['cyclones']} at {sim['published']['pressure_kpa']:.0f} kPa",
+        f"feed their cyclones at {min(solids):.0f} to {max(solids):.0f}% solids by volume against Moly-Cop's {sim['feed_solids_vol_pct']:.0f}%",
+    ])
+    assert not missing, missing
+    # E-18: Rowland's EF4 at F0 = 4000 (13/Wi)^0.5 um on every nominal mill, from the case records
+    ratios, ef4, eff, eff4, feeds = [], [], [], [], []
+    for a in cases:
+        m, wi = a["variants"][0]["trace"]["metrics"], a["nominal"]["work_index_kwh_t"]
+        f0 = 4000.0 * math.sqrt(13.0 / wi)
+        rr = m["crusher_p80_um"] / m["p80_um"]
+        factor = (rr + (wi - 7.0) * (m["crusher_p80_um"] - f0) / f0) / rr
+        feeds.append(m["crusher_p80_um"]), ratios.append(m["crusher_p80_um"] / f0), ef4.append(factor)
+        eff.append(m["bond_efficiency_ratio"]), eff4.append(m["bond_efficiency_ratio"] * factor)
+    assert max(feeds) - min(feeds) < 1.0
+    missing = _missing("09_energy.md", [
+        f"the crusher product of {feeds[0] / 1000:.1f} mm, {min(ratios):.1f} to {max(ratios):.1f} times Rowland's optimum feed size, "
+        f"where EF4 would be {min(ef4):.2f} to {max(ef4):.2f} and raise the efficiency ratio from {min(eff):.2f} to {max(eff):.2f} "
+        f"to {min(eff4):.2f} to {max(eff4):.2f}",
+    ])
+    assert not missing, missing
+
+
+def test_page_13_quotes_the_nominal_uncertainty_records():
+    """Page 13's two nominal cases, held to their uncertainty and Sobol records."""
+    soft = _read(DERIVED / "cases" / "copper_porphyry_soft.json")["variants"][0]
+    magnetite = _read(DERIVED / "cases" / "iron_magnetite_fine.json")["variants"][0]
+    u, st = soft["methods"]["uncertainty"], soft["methods"]["sensitivity"]["indices"]
+    driver = {o: max(st[o]["ST"], key=st[o]["ST"].get) for o in st}
+    assert driver == {"recovery_pct": "floatability", "concentrate_grade": "liberation_size",
+                      "specific_energy_grinding_kwh_t": "work_index", "recovered_primary_tph": "head_grade"}
+    m = magnetite["methods"]["uncertainty"]
+    missing = _missing("13_uncertainty-sensitivity.md", [
+        f"recovery P05 to P95 of {u['outputs']['recovery_pct']['p05']:.1f} to {u['outputs']['recovery_pct']['p95']:.1f}%",
+        f"in {100 * u['probabilities']['power_within_installed']:.0f}% of the samples, because a harder ore trips the power limit",
+        f"(total index about {st['recovery_pct']['ST']['floatability']:.1f})",
+        f"liberation size drives grade (about {st['concentrate_grade']['ST']['liberation_size']:.1f})",
+        f"the work index drives grinding energy (about {st['specific_energy_grinding_kwh_t']['ST']['work_index']:.2f})",
+        f"head grade drives recovered metal (about {st['recovered_primary_tph']['ST']['head_grade']:.2f})",
+        f"meets its 65% Fe specification in {100 * m['probabilities']['grade_meets_spec']:.0f}% of the samples",
+        f"nominal grade ({magnetite['trace']['metrics']['concentrate_grade']:.1f}%)",
     ])
     assert not missing, missing
 

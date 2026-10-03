@@ -120,9 +120,9 @@ and weight on a fresh cache, so the saving is a record), `path` (the optimum at 
 
 ## What the records show
 
-Measured on the 0.07.000 records of 2026-09-30, with all the weight on recovered metal (the Benchmark page's
-optimization tab gives every variant, and `frontend/src/test/benchmark-claims.test.ts` holds each number here to
-the benchmark and case records):
+Measured on the committed records, with all the weight on recovered metal (the Benchmark page's optimization tab
+gives every variant). `tests/test_docs_claims.py` holds each number here to the benchmark and case records, as
+`frontend/src/test/benchmark-claims.test.ts` holds the Benchmark page's:
 
 - **Feasibility.** 94 of the 96 variants reach an optimum. The two that do not are the magnetite case's harder ore
   and higher throughput: the grind is the only decision, the mill is already at installed power, and no grind
@@ -133,21 +133,21 @@ the benchmark and case records):
   from 0.3% (magnetite) to 7.6% (oxide copper), and in the cut mode from 0.3% (magnetite) to 5.1% (zinc).
 - **Active constraints.** Installed power at 81 of the 94 optima, and at all 24 in the cut mode; the grade
   specification at 23; the water capacity at 10.
-- **What the screen cost (OP-06, OP-11).** Over the 72 screened variants the search spent 23,535 engine
-  evaluations, and the same starts and weight without the screen 21,692: 8.5% more with the screen. It took fewer
-  evaluations in 9 variants, more in 54 and the same in 9. Of the 73,897 candidates screened, the guard rejected
-  3,962 and the interval 44,511; the engine evaluated the best passing candidate 4,838 times, and 828 of those
-  became an incumbent. Without the screen the search reaches the same optima: in 63 of the 72 variants it ends at
-  the same decisions, and in the other nine within 0.02% of the recovered metal and at most five of the finest
+- **What the screen cost (OP-06, OP-11).** Over the 72 screened variants the search spent 24,758 engine
+  evaluations, and the same starts and weight without the screen 21,692: 14.1% more with the screen. It took fewer
+  evaluations in 1 variant, more in 64 and the same in 7. Of the 74,327 candidates screened, the guard rejected
+  5,023 and the interval 42,306; the engine evaluated the best passing candidate 5,142 times, and 829 of those
+  became an incumbent. Without the screen the search reaches the same optima: in 65 of the 72 variants it ends at
+  the same decisions, and in the other seven within 0.02% of the recovered metal and at most five of the finest
   mesh steps in any decision. The measurement before the build (`docs/design/features/live-optimizer/design.md`,
   "Measured on 2026-09-30") gave 7.9% more over the 12 nominal states, and 1.9% more with one-step candidates
   only; the design was kept as validated, and the cost is its result.
-- **The surrogate against the engine.** Where the screen proposed, the surrogate's recovery was on average 0.64
-  points from the engine's (the mean of the variants' means; 1.56 at worst).
+- **The surrogate against the engine.** Where the screen proposed, the surrogate's recovery was on average 0.63
+  points from the engine's (the mean of the variants' means; 1.90 at worst).
 - **The weight path (OP-07).** With a quarter of the weight on metal, the nominal optima spend 31 to 46% less
-  energy per tonne and recover 10 to 35% less metal than the metal-only optimum. The magnetite optimum does not
+  energy per tonne and recover 7 to 35% less metal than the metal-only optimum. The magnetite optimum does not
   move: its grade specification already binds at the metal-only optimum, and a coarser grind would break it. Along
-  every path neither the energy nor the metal rises as the weight falls, beyond 3.2e-5 relative, the mesh's
+  every path neither the energy nor the metal rises as the weight falls, beyond 2.4e-5 relative, the mesh's
   resolution.
 
 ## Verification
