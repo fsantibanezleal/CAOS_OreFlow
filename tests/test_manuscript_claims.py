@@ -1,4 +1,5 @@
-"""The manuscript quotes the committed records; this pins every quoted number to them.
+"""The manuscript quotes the committed records; this pins its result numbers and counts to them (the test counts are
+the release record's, which the draft points to).
 
 Tables 1 and 2 are parsed and compared with ``data/derived/learning.json`` at the precision they print; the
 numbers in the prose are formatted from the records and must appear in the text. A new bake therefore cannot
@@ -186,6 +187,44 @@ def test_the_method_records_quote_the_benchmark():
         f"liberation size drives concentrate grade in {words[grade['liberation_size']]} and the head grade in the other {words[grade['head_grade']]}",
     ])
     assert not missing, missing
+
+
+def test_the_counts_and_the_verification_claims_quote_the_records():
+    """W-26, W-27 (review of 0.07.000): the counts the draft quoted unpinned, and the verification claims it overstated
+    (four examples with no qualifier, an "independent" port that reads the engine's own constant files)."""
+    index = _read(DERIVED / "manifests" / "index.json")
+    learning = _read(DERIVED / "learning.json")
+    contract = _read(DERIVED / "contract" / "operating_contract.json")
+    validation = _read(DERIVED / "validation.json")
+    oracles = _read(DERIVED / "benchmark.json")["oracles"]
+    particles = _read(DERIVED / "source" / "hzdr_particle_benchmark.json")["protocol"]
+    geomet = _read(DERIVED / "source" / "geomet_lct_benchmark.json")
+    net = oracles["molycop"]["comparison"]["net_specific_energy_kwh_t"]
+    lap = oracles["laplante"]
+    short = [p - e for p, e in zip(lap["published"]["grg_recovery_pct"], lap["engine"]["grg_recovery_pct"], strict=True)]
+    words = {13: "thirteen"}
+    assert lap["within_tolerance"] is False and 5.0 <= min(short) and max(short) < 11.0
+    missing = _missing([
+        f"reproduces all {index['n_variants']} committed states within 1e-6",
+        f"All {index['n_variants']} committed states close within 1e-9",
+        f"a ball-mill base case's net energy, {abs(100 * net['relative_error']):.1f}% below",
+        f"net {net['published']:.2f} kWh/t, gross {oracles['molycop']['comparison']['gross_specific_energy_kwh_t']['published']:.2f}",
+        "whose recovery it underestimates by 5 to 10 points",
+        "it catches translation errors, not modelling errors",
+        f"On a {learning['design']['rows']}-state design over",
+        f"draws {learning['design']['per_case']} states the contract accepts",
+        f"{learning['design']['rows']} in all",
+        f"described by {len(learning['features'])} physical features",
+        f"The operating point is {words[len(contract['inputs'])]} inputs declared once",
+        f"training sheet ({particles['train_rows']:,} particles".replace(",", " "),
+        f"test sheet ({particles['test_rows']:,} particles".replace(",", " "),
+        f"{geomet['source']['usable_rows']} GeoMet locked-cycle copper recoveries from {geomet['source']['holes']} drill holes",
+        f"({geomet['protocols']['hole']['paired_bootstrap']['samples']} resamples)",
+        f"took {validation['seconds']['cases']:.0f} s for the cases on {validation['workers']} workers and {validation['seconds']['learning']:.0f} s for the learned lane",
+    ])
+    assert not missing, missing
+    flat = _flat()
+    assert "independent browser implementation" not in flat and "independent second implementation" not in flat
 
 
 def test_the_published_examples_quote_the_oracles():

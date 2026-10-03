@@ -8,7 +8,7 @@ Three future windows are evaluated with expanding training histories and a 24-ho
 
 The Benchmark route gains an independent industrial-quality tab with fold/model controls, time-linked observed/predicted curves, residual diagnostics and explicit limits. Since sensor interventions were not randomized and the iron system is not the copper circuit, the app does not turn observed relationships into set-point advice.
 
-## References (dossier of 2026-09-28, section 5)
+## References
 
 - Kadlec, P., Gabrys, B. and Strandt, S. (2009). Data-driven soft sensors in the process industry. Computers and
   Chemical Engineering 33(4):795-814. doi:10.1016/j.compchemeng.2008.12.012.

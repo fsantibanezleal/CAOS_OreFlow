@@ -4,8 +4,9 @@ Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research program
 
 Draft of 2026-09-30, written against OreFlow 0.07.000. Not deposited; no DOI. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
-`data/derived/source/*.json`, the twelve case artifacts), and `tests/test_manuscript_claims.py` fails if a
-number here and the records disagree.
+`data/derived/source/*.json`, the twelve case artifacts, the operating contract and the validation record), and
+`tests/test_manuscript_claims.py` fails if one of them and the records disagree. The test counts of section 9 are
+the release's, recorded in `docs/release-verification.md`.
 
 ## Abstract
 
@@ -15,8 +16,12 @@ trained on. We ask how far such surrogates transfer to an ore and plant they hav
 use an open steady-state flowsheet engine that carries every stream as the mass flow of every mineral in 63
 size classes plus water, solves closed grinding circuits with an energy-specific population balance and
 Plitt hydrocyclones, separates by flotation banks, gravity, magnetic drums or desliming, and closes the
-balance of every unit within 1e-9. The engine is checked against four published examples and is reproduced
-by an independent browser implementation within 1e-6 on all 96 committed states. On a 3072-state design over
+balance of every unit within 1e-9. The engine is checked against four published examples: two at their level (a
+ball-mill base case's net energy, 5.2% below, and two work-index examples), and two it misses or checks only in
+direction (a gravity circuit run like for like, whose recovery it underestimates by 5 to 10 points, and the grind
+response of a magnetite ore unlike its case). A line-by-line TypeScript port, which shares the engine's constant
+files, reproduces all 96 committed states within 1e-6; it catches translation errors, not modelling errors.
+On a 3072-state design over
 twelve authored plants, five surrogates (ridge, random forest, histogram gradient boosting, a Gaussian
 process and a multilayer perceptron) are scored by interpolation inside the cases and by leave one case out.
 The protocols rank the models differently: the perceptron interpolates recovery best (RMSE 3.70 points) and
@@ -43,8 +48,8 @@ This work measures both on the same models, with a simulator whose answers are k
 reproduced. Its contributions are three:
 
 1. an open flowsheet engine that represents streams by size and mineral, solves closed circuits, audits
-   every balance from its output streams, and is verified against published examples and against an
-   independent second implementation;
+   every balance from its output streams, is checked against published examples with every miss stated, and
+   is reproduced by a line-by-line second implementation;
 2. a test protocol that scores learned surrogates of it by interpolation and by leave one case out over
    twelve authored plants in four circuit families, with interval coverage and an out-of-envelope guard;
 3. the finding that transfer failure is concentrated in the plants unlike the others, that the ranking of
@@ -122,7 +127,8 @@ recomputed from the stored streams by the artifact checks.
 
 **The second implementation.** A line-by-line TypeScript port runs the engine in the browser. Re-simulating
 every committed state from its own definition, it matches every metric, stream record, curve and kinetic
-record within 1e-6 relative, with the same flags.
+record within 1e-6 relative, with the same flags. It is a translation by the same author that reads the same
+constant, atomic-weight and mineral files, so it catches translation errors and not modelling errors.
 
 **Published examples.** Each is labelled as a published example, not as plant data:
 
@@ -366,7 +372,8 @@ the browser port, the service and the documentation are versioned together; this
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
 workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed precompute took 885 s for the cases on 12
 workers and 2483 s for the learned lane, while other jobs shared the machine; the measured lanes follow it.
-`./scripts/smoke.ps1` runs the checks, including 490 Python tests and 323 frontend tests. The workbench at
+`./scripts/smoke.ps1` runs the checks: the guards, the Python and frontend suites and the build, with the counts
+of each release in `docs/release-verification.md`. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.
 
 ## References

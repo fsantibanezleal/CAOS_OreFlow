@@ -88,6 +88,15 @@ def test_the_unit_and_kinetic_pages_quote_the_records():
     feed = {a["definition"]["plant"]["crusher"]["feed_f80_um"] for a in cases}
     assert feed == {60000.0}
     assert "| crusher feed F80, slope | 60,000 (60 mm), 0.9 | um, 1 |" in flat("02_crushing.md")
+    # E-04: page 03 quoted the 0.07 oracle (a net engine energy against the gross published one) after it changed
+    molycop = _read(DERIVED / "benchmark.json")["oracles"]["molycop"]
+    net, gross = molycop["comparison"]["net_specific_energy_kwh_t"], molycop["comparison"]["gross_specific_energy_kwh_t"]
+    assert molycop["within_tolerance"] and molycop["tolerance"]["net_specific_energy_kwh_t"] == 0.2
+    page = flat("03_grinding-circuit.md")
+    assert (f"the net specific energy is {net['engine']:.2f} kWh/t against the published {net['published']:.2f}, "
+            f"{abs(100 * net['relative_error']):.1f}% below, inside the 20% tolerance") in page
+    assert f"the gross is {gross['engine']:.2f} against {gross['published']:.2f}" in page
+    assert "moves the net energy from 7.12 to 7.45 kWh/t" in page and "7.12 to 7.45 kWh/t" in molycop["parameters"]["note"]
 
 
 def test_the_guide_snippets_print_what_their_comments_say(monkeypatch, capsys):

@@ -32,7 +32,7 @@ requirement's gate to name a test that exists.
 | `test_ablations.py` | 14 | AB-01 to AB-03: every mechanism switch is on by default and changes nothing when on, every ablated state closes its balances, and a case without the mechanism is not applicable |
 | `test_case_rules.py` | 3 | the authoring rules every case keeps (#58): each plausibility range has a source note, the nominal state sits inside its ranges and meets its own grade, and the water capacity is 5% above the nominal need |
 | `test_iron_plant.py` | 5 | IS-01 to IS-04, IS-06: the soft-sensor lane on its committed artifact and on small synthetic frames; never refits the lane or reads the 184 MB CSV |
-| `test_manuscript_claims.py` | 8 | every number the manuscript quotes, against the committed records |
+| `test_manuscript_claims.py` | 9 | every result number and count the manuscript quotes, against the committed records |
 | `test_real_samples.py` | 6 | RS-01 to RS-05: the pinned GeoMet tables, the Bond work index, the sulphur-limited allocation and the engine runs of the samples in the soft porphyry's circuit |
 
 ## Cached engine runs (`tests/engine_helpers.py`)

@@ -43,8 +43,9 @@ BANNED_ARROWS = {0x2190, 0x2192, 0x2194, 0x21D0, 0x21D2, 0x27F5, 0x27F6}
 ARROW_SCOPE = "frontend/src/"
 # a drive path into a machine folder (E:\_Temp, C:/Users) or a bare temp folder; a URL scheme is not a drive
 LOCAL_PATH = re.compile(r"(?<![A-Za-z])[A-Za-z]:[\\/](?:_Temp|Users|_Repos|Program Files|Windows)\b|(?<![\w./-])_Temp[\\/]", re.I)
-PRIVATE_REFERENCE = re.compile(r"CAOS_MANAGE|wip/oreflow|plans/oreflow|conventions/shell-known-defects|dossier sections? \d"
-                               r"|(?<![\w/])PMC\d{6,}|pdfcoffee\.com")
+PRIVATE_REFERENCE = re.compile(r"CAOS_MANAGE|wip/oreflow|plans/oreflow|conventions/shell-known-defects"
+                               r"|(?:dossier|research note)[^.\"]{0,40}?\bsections? \d"
+                               r"|(?<![\w/])PMC\d{6,}|pdfcoffee\.com", re.I)
 HISTORY = {"CHANGELOG.md", "docs/release-verification.md"}
 
 

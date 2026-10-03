@@ -2,7 +2,7 @@
   "schema": "oreflow.oracles/v1",
   "note": "Published examples the engine is checked against. Each is a published tool or paper example, not plant data. Values under 'published' are transcribed from the research dossier of 2026-09-26; values under 'authored' are inputs the example does not state and this product chose.",
   "molycop": {
-    "source": "Moly-Cop Tools (Sepúlveda), BallSim_Direct base case: its Data_File (breakage parameters, fresh-feed size distribution, classifier constants), its Reports (classifiers performance, mass balance around the classifiers, stream size distributions, mill power) and its Flowsheet; the BallParam_Direct Reports for the second classifier state. Two public copies of the Moly-Cop Tools document agree on every value used. Research note of 2026-10-02 (0.08), sections 4 and 5.",
+    "source": "Moly-Cop Tools (Sepúlveda), BallSim_Direct base case: its Data_File (breakage parameters, fresh-feed size distribution, classifier constants), its Reports (classifiers performance, mass balance around the classifiers, stream size distributions, mill power) and its Flowsheet; the BallParam_Direct Reports for the second classifier state. Two public copies of the Moly-Cop Tools document agree on every value used. Methodology page 03 states the comparison.",
     "published": {
       "feed_tph": 504.0,
       "feed_f80_um": 6913.0,
@@ -168,7 +168,7 @@
     "tolerance_abs_kwh_t": 0.05
   },
   "laplante": {
-    "source": "Laplante and Staunton, Gravity recovery of gold, an overview of recent developments (AMIRA P420B), Figures 10 and 11, read from the images; the GRG model of Laplante, Woodcock and Noaparast (1995) as Vincent (1997, McGill M.Eng. thesis, chapter 5) states it; Snip's measured GRG by size from Vincent's Table 5.1. Gravity research note of 2026-10-02, sections 7 and 8.",
+    "source": "Laplante and Staunton, Gravity recovery of gold, an overview of recent developments (AMIRA P420B), Figures 10 and 11, read from the images; the GRG model of Laplante, Woodcock and Noaparast (1995) as Vincent (1997, McGill M.Eng. thesis, chapter 5) states it; Snip's measured GRG by size from Vincent's Table 5.1. Methodology page 06 states the comparison.",
     "published": {
       "feed_tph": 150.0,
       "ore_sg": 2.8,
@@ -293,7 +293,7 @@
       "grg_recovery_points": 5.0,
       "grg_circulating_load_relative": 0.35
     },
-    "tolerance_basis": "Set in the research note before the first run (2026-10-02, section 8); a miss is recorded, not tuned away.",
+    "tolerance_basis": "Set before the first run (2026-10-02) and stated on methodology page 06; a miss is recorded, not tuned away.",
     "why": "Until 0.08.000 this was a trend oracle comparing the gold case's recovery of all its gold with the published GRG figures. It now runs the published example's inputs with an ore of 80.4% GRG and compares GRG recovery and GRG circulating load at each bleed."
   },
   "zandrivierspoort": {
