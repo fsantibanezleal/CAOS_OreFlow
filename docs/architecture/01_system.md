@@ -33,9 +33,11 @@ The non-goals are those of the [software design document](../design/SDD.md):
 - It does not model hydrometallurgy (leaching, pressure oxidation, smelting).
 
 The engine is checked against published examples (the Moly-Cop BallSim base case, the GMG Bond
-worked examples, the Laplante gravity example, the Zandrivierspoort magnetite tests), labelled as
-examples and never as plant data. Two lanes use measured data and stay separate from the engine: the
-HZDR particle dataset and the GeoMet locked-cycle tests. Neither calibrates the engine's controls.
+worked examples, Laplante's gravity example on the gravity-recoverable gold, the Zandrivierspoort magnetite tests),
+labelled as examples and never as plant data. Three lanes use measured data and stay separate from the engine: the
+HZDR particle dataset, the GeoMet locked-cycle tests and the hours of one iron-ore plant. None calibrates the
+engine's controls; the real samples run the GeoMet tests through an engine circuit as a comparison, not a
+calibration.
 
 ## Where the engine runs
 
@@ -59,7 +61,7 @@ writes artifacts; CI and deployment never train and never rewrite an artifact (A
 | The case artifact (definitions and eight variants with traces and method records), its manifest and the index | `oreflow.case/v2`, `oreflow.manifest/v2`, `oreflow.index/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
 | The learning record and the exported networks with their scalers and reference block | `oreflow.learning/v1` | [data contract 03](../data-contract/03_case-artifacts.md), [methodology 14](../methodologies/14_learned-lane.md) |
 | The benchmark and the validation record | `oreflow.benchmark/v2`, `oreflow.validation/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
-| The measured lanes | `oreflow.particle-benchmark/v1`, `oreflow.geomet-lct/v1`, `oreflow.iron-plant-soft-sensor/v1` | [data contract 04](../data-contract/04_particle-lane.md), [05](../data-contract/05_geomet-lane.md), [methodology 16](../methodologies/16_industrial-soft-sensor.md) |
+| The measured lanes | `oreflow.particle-benchmark/v1`, `oreflow.geomet-lct/v1`, `oreflow.iron-plant-soft-sensor/v1` | [data contract 04](../data-contract/04_particle-lane.md), [05](../data-contract/05_geomet-lane.md), [06](../data-contract/06_iron-plant.md); [methodology 16](../methodologies/16_industrial-soft-sensor.md), [17](../methodologies/17_particle-lane.md), [18](../methodologies/18_geomet-lane.md) |
 
 Every engine artifact (the case artifacts, the manifests and the index, the learning record, the
 benchmark, the studies, the real samples and the validation record) carries the engine version, which

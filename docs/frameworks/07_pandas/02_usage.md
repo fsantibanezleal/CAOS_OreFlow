@@ -2,7 +2,7 @@
 
 Read order: [01 Installation](01_installation.md), **you are on 02**, then [03 Applying](03_applying.md).
 
-The rule shared by both lanes is the one every OreFlow boundary follows: a value that is missing,
+The rule shared by the three lanes is the one every OreFlow boundary follows: a value that is missing,
 non-numeric, non-finite or impossible is rejected or excluded with a named reason; nothing is coerced
 silently ([data contract](../../data-contract.md)).
 

@@ -21,5 +21,6 @@ The contracts are documented in `docs/data-contract/`:
 - [The trace and the live API](../docs/data-contract/02_trace-and-live-api.md).
 - [Contract 2, the case artifacts](../docs/data-contract/03_case-artifacts.md), with the checks of
   `scripts/check_artifacts.py`.
-- [The particle lane](../docs/data-contract/04_particle-lane.md) and
-  [the GeoMet lane](../docs/data-contract/05_geomet-lane.md).
+- [The particle lane](../docs/data-contract/04_particle-lane.md),
+  [the GeoMet lane](../docs/data-contract/05_geomet-lane.md) and
+  [the iron-plant soft sensor](../docs/data-contract/06_iron-plant.md).

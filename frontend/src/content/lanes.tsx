@@ -1,5 +1,5 @@
 /**
- * Benchmark, the two measured lanes (ADR-0016 section 9.C): the GeoMet locked-cycle tests with their
+ * Benchmark, two of the three measured lanes (ADR-0016 section 9.C; the iron plant is in industrial.tsx): the GeoMet locked-cycle tests with their
  * grouped folds and paired bootstrap, the HZDR particles with their probability errors, threshold and
  * calibration curves, and the particle network run in the browser. Transcribed from the particle-lane
  * and GeoMet-lane data contracts; every number is read from the committed lane artifacts.

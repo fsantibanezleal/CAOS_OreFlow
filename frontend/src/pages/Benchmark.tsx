@@ -1,7 +1,7 @@
 /**
  * Benchmark (ADR-0016 section 9.C): the real numbers from the committed artifacts, grouped by the
  * question each answers: does the engine reproduce published examples, what do its method records
- * show, how far can the learned lane be trusted, and what do the two measured lanes say.
+ * show, how far can the learned lane be trusted, and what do the three measured lanes say.
  */
 import { useShellLang } from '@fasl-work/caos-app-shell';
 import { ENGINE_BENCHMARK } from '../content/benchmark';
@@ -13,8 +13,8 @@ import type { Lang } from '../lib/format';
 const T = {
   title: { en: 'Benchmark', es: 'Benchmark' },
   lede: {
-    en: 'The numbers behind OreFlow, read from the committed artifacts: the published examples the engine reproduces, what its method records found across the twelve cases, how the learned lane scores on plants it never saw, the two lanes that use measured data, kept apart from the engine, and the quality forecast of one plant.',
-    es: 'Los números detrás de OreFlow, leídos desde los artefactos versionados: los ejemplos publicados que reproduce el motor, lo que encontraron sus registros de métodos en los doce casos, cómo puntúa la vía aprendida en plantas que nunca vio, las dos vías que usan datos medidos, separadas del motor, y el pronóstico de calidad de una planta.',
+    en: 'The numbers behind OreFlow, read from the committed artifacts: the published examples the engine reproduces, what its method records found across the twelve cases, how the learned lane scores on plants it never saw, and the three lanes that use measured data, kept apart from the engine: the GeoMet tests, the HZDR particles and the quality forecast of one plant.',
+    es: 'Los números detrás de OreFlow, leídos desde los artefactos versionados: los ejemplos publicados que reproduce el motor, lo que encontraron sus registros de métodos en los doce casos, cómo puntúa la vía aprendida en plantas que nunca vio, y las tres vías que usan datos medidos, separadas del motor: los ensayos GeoMet, las partículas HZDR y el pronóstico de calidad de una planta.',
   },
   sections: { en: 'Benchmark sections', es: 'Secciones del benchmark' },
 };

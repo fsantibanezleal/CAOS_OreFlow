@@ -135,3 +135,119 @@ def test_page_16_quotes_the_iron_plant_record():
     for scores in (score, clean):
         assert min(scores, key=lambda m: scores[m]["mae_pct_points"]) == "previous_lab"
         assert min(scores, key=lambda m: scores[m]["rmse_pct_points"]) == "ar1_previous_lab"
+
+
+def _missing_doc(relative: str, phrases: list[str]) -> list[str]:
+    flat = re.sub(r"\s+", " ", (ROOT / "docs" / relative).read_text(encoding="utf-8"))
+    return [p for p in phrases if p not in flat]
+
+
+def test_page_17_and_contract_04_quote_the_particle_record():
+    """W-15 (review of 0.07.000): the particle lane's own pages, held to its record."""
+    r = _read(DERIVED / "source" / "hzdr_particle_benchmark.json")
+    p = r["protocol"]
+    cases = {c["case"]: c for c in r["cases"]}
+    rmse = {k: {m: c["models"][m]["rmse"] for m in ("published_reference", "l1_logistic", "particle_mlp")} for k, c in cases.items()}
+
+    def row(case: str, label: str) -> str:
+        v = rmse[case]
+        return f"| {label} | {v['published_reference']:.4f} | {v['l1_logistic']:.4f} | {v['particle_mlp']:.4f} |"
+
+    four = cases["4"]
+    missing = _missing_doc("methodologies/17_particle-lane.md", [
+        f"Its training sheet holds {p['train_rows']:,} particles",
+        f"Its test sheet holds {p['test_rows']:,} particles",
+        f"15% of it ({p['validation_rows']:,} rows, stratified by the first case's class, seed {p['seed']})",
+        f"(epoch {p['mlp_best_epoch']} in the record)",
+        row("1", "1"), row("2", "2"), row("3", "3"), row("4", f"4 ({four['test_rows']:,} rows)"),
+        f"the same {four['test_rows']:,} finite test rows of that case ({four['excluded_test_rows']:,} excluded)",
+        f"use all {p['test_rows']:,} rows",
+        f"({rmse['2']['particle_mlp']:.4f} against {rmse['2']['published_reference']:.4f})",
+    ])
+    assert not missing, missing
+    # the comparisons the page states in words
+    assert [k for k in "1234" if rmse[k]["l1_logistic"] < rmse[k]["particle_mlp"]] == ["1", "2"]
+    assert [k for k in "1234" if rmse[k]["l1_logistic"] < rmse[k]["published_reference"]] == ["1", "2", "3"]
+    assert [k for k in "1234" if rmse[k]["particle_mlp"] < rmse[k]["published_reference"]] == ["1", "3", "4"]
+    assert all(c["test_rows"] == p["test_rows"] for k, c in cases.items() if k != "4")
+    missing = _missing_doc("data-contract/04_particle-lane.md", [
+        f"Train data ({p['train_rows']:,} rows)", f"Test data ({p['test_rows']:,} rows)",
+        f"`fit_rows` {p['fit_rows']:,}, `validation_rows` {p['validation_rows']:,}",
+        f"Case 4 is scored on {four['test_rows']:,} rows ({four['excluded_test_rows']:,} left out); the others on all {p['test_rows']:,}",
+        r["source"]["sha256"],
+    ])
+    assert not missing, missing
+
+
+def test_page_18_and_contract_05_quote_the_geomet_record():
+    """W-15 (review of 0.07.000): the GeoMet lane's own pages, held to its record and to the real samples."""
+    g = _read(DERIVED / "source" / "geomet_lct_benchmark.json")
+    s, hole, zone = g["source"], g["protocols"]["hole"], g["protocols"]["zone"]
+    parts, loho = hole["robust"]["repeated_partitions"], hole["robust"]["leave_one_hole_out"]
+    gain = parts["ridge_gain_over_mean_pp"]
+    published = hole["paired_bootstrap"]["rmse_differences"]["train_mean-ridge"]
+    order = ("train_mean", "ridge", "random_forest", "gaussian_process")
+
+    def row(name: str, protocol: dict) -> str:
+        return f"| {name} | " + " | ".join(f"{protocol['scores'][m]['rmse_pp']:.4f}" for m in order) + " |"
+
+    def span(values: list[int]) -> str:
+        return f"{min(values)} or {max(values)}"
+
+    def pair(d: dict, unit: str = "") -> str:
+        low, high = d["interval_adjusted_pp"]
+        return f"{d['difference_pp']:.2f}{unit} ({low:.2f} to {high:.2f})"
+
+    missing = _missing_doc("methodologies/18_geomet-lane.md", [
+        f"holds {s['raw_rows']} locked-cycle tests",
+        f"(source row {s['exclusions'][0]['source_row']})",
+        f"so {s['usable_rows']} tests in {s['holes']} holes remain",
+        s["md5"],
+        f"({span([f['train_rows'] for f in hole['folds']])} training tests, {span([f['test_rows'] for f in hole['folds']])} held out, "
+        f"{span([f['test_holes'] for f in hole['folds']])} holes)",
+        f"({span([f['train_rows'] for f in zone['folds']])} training tests, {span([f['test_rows'] for f in zone['folds']])} held out)",
+        f"{hole['paired_bootstrap']['samples']} resamples (seed {hole['paired_bootstrap']['seed']})",
+        f"{parts['partitions']} random five-fold hole partitions (seed {parts['partition_seed']})",
+        f"a bootstrap of {parts['samples']} resamples", f"(seed {loho['seed']})",
+        row("Hole", hole), row("Zone", zone),
+        f"ridge beats the training mean by {published['mean_pp']:.2f} points (95% interval {published['interval_95_pp'][0]:.2f} to "
+        f"{published['interval_95_pp'][1]:.2f})",
+        f"at the {gain['published_percentile']}th percentile", f"whose mean is {gain['mean']:.2f}",
+        f"the gain is {pair(parts['rmse_differences']['train_mean-ridge'], ' points')}",
+        f"leaving one hole out it is {pair(loho['rmse_differences']['train_mean-ridge'])}",
+    ])
+    assert not missing, missing
+    real = _read(DERIVED / "real_samples.json")["summary"]
+    missing = _missing_doc("data-contract/05_geomet-lane.md", [
+        f"`flotation.csv` ({s['raw_rows']} rows)", f"`comminution.csv` ({real['comminution_samples']} rows)",
+        f"pinned at {s['usable_rows']} usable tests and {len(s['exclusions'])} exclusion (source row {s['exclusions'][0]['source_row']}",
+        f"({real['work_index_assignment']['nearest_in_hole']} and {real['work_index_assignment']['deposit_median']} tests)",
+        f"`raw_rows` {s['raw_rows']}, `usable_rows` {s['usable_rows']}, `holes` {s['holes']}",
+    ])
+    assert not missing, missing
+
+
+def test_contract_06_and_03_quote_their_records():
+    """W-14 (review of 0.07.000): the iron-plant contract page and the studies schema, held to the records."""
+    a = _read(DERIVED / "source" / "iron_plant_soft_sensor.json")
+    q, h = a["quality"], a["held_labels"]
+    traced = max(len(f["trace"]) for f in a["folds"])
+    missing = _missing_doc("data-contract/06_iron-plant.md", [
+        f"The CSV has {q['source_rows']:,} rows and 24 columns",
+        f"{q['changing_lab_hours_excluded']} of the {q['nominal_hours']:,} nominal hours ({q['changing_lab_rows_excluded']:,} rows)",
+        f"({a['protocol']['pair_rows']:,} pairs)", f"({h['held_runs']} runs, {h['held_hours']} hours)",
+        f"a `trace` of up to {traced} test hours", "the 21 `features`", a["source"]["archive_sha256"],
+        f"{({8: 'eight'})[len(a['comparisons'])]} paired differences",
+    ])
+    assert not missing, missing
+    assert len(a["protocol"]["features"]) == 21 and len(a["pooled_scores"]) == 8
+    st = _read(DERIVED / "studies.json")
+    off = sum(1 for c in st["cases"].values() for rec in c["ablations"].values() if rec["status"] == "not_applicable")
+    pairs = sum(len(c["ablations"]) for c in st["cases"].values())
+    seed = next(iter(st["cases"].values()))["seed_study"]
+    missing = _missing_doc("data-contract/03_case-artifacts.md", [
+        f"{off} of the {pairs} case-switch pairs are not applicable",
+        f"`seeds` ({seed['seeds'][0]} to {seed['seeds'][-1]} in steps of {seed['seeds'][1] - seed['seeds'][0]}), `samples` ({seed['samples']} per seed)",
+        "(`" + "`, `".join(st["switches"]) + "`)",
+    ])
+    assert not missing, missing

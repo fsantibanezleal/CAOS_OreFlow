@@ -16,7 +16,7 @@ engine never uses it: the process lanes work on NumPy arrays and plain JSON.
 | Declared in | `requirements-precompute.txt` |
 | Lane | Offline: the three measured lanes and the local GeoMet prediction script |
 | Used by | `data-pipeline/pipeline/stages/particle_experiment.py`, `stages/preprocess.py` (`read_excel`, `ExcelFile`), `data-pipeline/run_geomet.py` (`read_csv`, `to_numeric`, the assay validation), `data-pipeline/run_iron_plant.py` (`read_csv`, `groupby`, the hourly medians and the held labels) |
-| Raw data | never committed: `scripts/fetch-data` downloads it into `data/raw/` and verifies its hashes |
+| Raw data | never committed: `scripts/fetch-data` downloads the HZDR workbook and the GeoMet tables into `data/raw/` and verifies their hashes; `run_iron_plant.py` downloads its own archive and verifies its SHA-256 |
 
 ## Read in order
 
