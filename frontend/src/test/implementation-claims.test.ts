@@ -28,6 +28,17 @@ describe('the Implementation page says what the records and environments hold', 
     for (const e of Object.values(learning.final.exports)) expect(e.max_abs_difference).toBeLessThanOrEqual(1e-5);
   });
 
+  it('the system figure numbers the precompute stages in the order the record ran them (D-01)', () => {
+    const source = readFileSync(fileURLToPath(new URL('../content/implementation.tsx', import.meta.url)), 'utf-8');
+    const figure = source.slice(source.indexOf('function ArchitectureFigure'), source.indexOf('function ParityFigure'));
+    const drawn = [...figure.matchAll(/title: p\('(\d) ([^,']+)/g)].map(m => [Number(m[1]), m[2].toLowerCase().replace(' ', '_')]);
+    const stages = Object.keys(readDerived<{ seconds: Record<string, number> }>('validation.json').seconds);
+    expect(drawn.map(d => d[0])).toEqual(stages.map((_, i) => i + 1));
+    expect(drawn.map(d => d[1])).toEqual(stages);
+    // D-16: the model files carry no engine version, so the figures never say every file does
+    expect(source).not.toMatch(/every file carries the engine version/);
+  });
+
   it('GPU lane: the design size, the fourteen fits, the seed refits, CUDA 12.6', () => {
     const t = text(GPU);
     expect(t).toMatch(new RegExp(`at most ${learning.design.rows} rows`));
