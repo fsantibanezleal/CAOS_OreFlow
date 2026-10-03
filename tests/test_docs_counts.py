@@ -99,6 +99,25 @@ def test_the_unit_and_kinetic_pages_quote_the_records():
     assert "moves the net energy from 7.12 to 7.45 kWh/t" in page and "7.12 to 7.45 kWh/t" in molycop["parameters"]["note"]
 
 
+def test_the_changelog_has_one_entry_per_release_in_one_format():
+    """W-28, W-50: three tagged releases had no entry, and the entries before 0.05.000 used another heading format.
+    The tags are read where the checkout has them (a shallow CI clone has none, and then the format alone is held)."""
+    import subprocess
+
+    text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
+    headings = re.findall(r"^## (.+)$", text, re.M)
+    assert headings[0] == "[Unreleased]"
+    versions = []
+    for heading in headings[1:]:
+        match = re.fullmatch(r"\[(\d\.\d\d\.\d\d\d)\] - \d{4}-\d\d-\d\d", heading)
+        assert match, heading
+        versions.append(match.group(1))
+    assert versions == sorted(versions, reverse=True) and len(set(versions)) == len(versions)
+    tags = subprocess.run(["git", "tag", "-l", "v*"], cwd=ROOT, capture_output=True, text=True).stdout.split()
+    released = {t[1:] for t in tags if re.fullmatch(r"v\d\.\d\d\.\d\d\d", t)}
+    assert released <= set(versions), sorted(released - set(versions))
+
+
 def test_the_guide_snippets_print_what_their_comments_say(monkeypatch, capsys):
     """W-41: guide 03's two Python snippets run as written from the repository root, and their output agrees with the
     numbers their comments state (one had drifted by 0.01 and named a flag the engine had retired)."""

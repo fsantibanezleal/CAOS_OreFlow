@@ -244,6 +244,9 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 - Production phone inspection of 0.03.002 found an empty CSS grid row under the flowsheet after hiding the obsolete stage tabs. 0.03.003 removed that row; a 390 px live browser check confirmed the panel fills its available space.
 - 0.03.004 changes the focus classifier description from "measured" to "calculated" streams, preserving the simulator-truth boundary.
 
+The record of the 0.03.004 candidate continues with the checks below; it does not say whether they were repeated
+for 0.03.002 and 0.03.003.
+
 - TypeScript typecheck: passed.
 - Frontend unit tests: passed.
 - Vite production build: passed.

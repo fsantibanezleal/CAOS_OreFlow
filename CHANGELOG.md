@@ -59,8 +59,8 @@ the test or check that fails when it is broken.
 - **The uncertainty draws.** The SplitMix64 design replaces SciPy's scrambled Latin hypercube. Every uncertainty
   record therefore holds new draws of the same distributions, and the quoted spreads and probabilities move:
   the recovery spread between P05 and P95 runs from 2.9 points (free-milling gold) to 7.7 (zinc), where it ran from 3.7 to 9.1, and the chance of meeting every constraint from 52% (magnetite) to 83% (phosphate), where it ran from 53% to 82%.
-- The records of the 0.07.000 bake. Every page, guide and methodology page that quotes them was updated, and the
-  page-claim tests with them:
+- The records of the 0.07.000 bake. The pages the page-claim tests hold were updated with them; several guides and
+  architecture and methodology pages kept older counts, corrected in 0.08.000 (review of 2026-10-02, W-11 to W-24):
   - **optimization.** 94 of the 96 variants reach an optimum; the two magnetite variants that cannot are the
     same as before. 28 of the 72 target-mode variants break a constraint as run, and none of the 24 cut-mode
     variants. The gains run from -0.8% to +18.1% (+18.2% with COBYLA), 0.3% to 7.6% at the nominal states and
@@ -324,18 +324,33 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - The 0.04 one-pass engine and its operating-envelope Investigate view, superseded by the Response view and
   the constrained optimizer; the unused three.js dependency; the documentation pages of the 0.04 engine.
 
-## 0.04.000, 2026-09-24
+## [0.04.000] - 2026-09-24
 
 - Added a case-aware operating-envelope investigation: explicit feasible limits, declared perturbation stress, finite-grid Pareto classification, point inspection, baseline comparison, apply-to-circuit and reproducible JSON export.
 - Added an independent measured GeoMet locked-cycle recovery lane from pinned CC BY 4.0 source data: 52 usable tests from 29 holes, whole-hole and spatial-zone holdouts, four evaluated baselines/models, rendered observed-versus-predicted and spatial diagnostics.
 - Added local, checksummed five-assay CSV inference with a full-data checkpoint and out-of-reference-range flags. Measured inference and circuit simulation remain separate; neither is a calibrated plant set-point predictor.
 - Added feature-level software design contracts, automated artifact/numerical/browser gates and responsive EN/ES light/dark visual QA at phone, tablet and desktop viewports.
 
-## 0.03.001, 2026-09-24
+## [0.03.004] - 2026-09-24
+
+- The focus workbench labels its classifier streams "calculated", not "measured": they are the simulator's.
+
+## [0.03.003] - 2026-09-24
+
+- The circuit panel fills its space on a phone: hiding the old stage tabs in 0.03.002 had left an empty grid row
+  under the flowsheet, found on the live site at 390 px. The release version is aligned across the service and the
+  site.
+
+## [0.03.002] - 2026-09-24
+
+- The flowsheet is again the workbench's primary circuit view, with its stream values, and a focus route opens the
+  selected case outside the document shell, through the shared app shell's focus layout.
+
+## [0.03.001] - 2026-09-24
 
 - Preserve and validate process family at the live API boundary. Requests for known authored cases infer their gravity, magnetic, desliming or rougher path when the family field is omitted; explicit unsupported families are rejected.
 
-## 0.03.000, 2026-09-24
+## [0.03.000] - 2026-09-24
 
 - Rebuilt the contained workbench around selectable, mass-linked circuit operations and an explicit walkthrough with playback, stage selection and local-versus-baked state.
 - Added distinct gravity/rougher, magnetite magnetic-separation and phosphate-desliming process paths alongside generic rougher scenarios; exported applicability status for 21 method records in all 72 variants.
@@ -344,11 +359,11 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - Added an independent HZDR particle-learning lane with original-sheet train/test separation, L1 and CUDA-capable MLP models, common-row missingness handling, calibration and threshold artifacts, and on-demand browser ONNX inference. Constructed probabilities are not plant recovery.
 - Reworked research pages, assumptions, sources and mobile workbench access. Pinned CAOS App Shell v0.06.009 for a single-row mobile header and footer.
 
-## 0.02.001, 2026-09-23
+## [0.02.001] - 2026-09-23
 
 - Version and bypass browser caches for baked artifact requests, preventing old case JSON from persisting after a shell deployment.
 
-## 0.02.000, 2026-09-23
+## [0.02.000] - 2026-09-23
 
 - Rebuilt the fixed-viewport instrument: quantitative circuit, response curves, selectable grind-by-collector decision surface, method-specific plots, variant comparison and mobile control view. Added bilingual linked readouts and light/dark responsive layouts.
 - Corrected the classifier to partition size-bin masses, normalized the overflow cumulative distribution, connected classifier split to overall recovery and capped concentrate mass pull by rougher feed.
@@ -357,6 +372,6 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - Repaired direct document-route serving on the VPS and GitHub Pages; project-site builds now carry the correct base path and a 404 fallback document.
 - Emit real GitHub Pages route files so direct document links return HTTP 200, not merely rendered fallback content with status 404.
 
-## 0.01.000, 2026-09-13
+## [0.01.000] - 2026-09-13
 
 - Initial OreFlow release with six-route visual workbench, 12 x 6 case matrix, 19 process and learned methods, HZDR source summary, reproducible pipeline, manuscript proposal, GitHub Pages workflow and ML VPS service files.
