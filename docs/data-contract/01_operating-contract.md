@@ -46,13 +46,15 @@ absolute ranges, from the research dossier of 2026-09-26:
 - Gas velocity 0.5 to 2.5 cm/s is the range of the gas-dispersion literature (Gorain et al. 1997,
   doi:10.1016/S0892-6875(97)00014-9; Nesset et al. 2006, Minerals Engineering 19:807-815), recorded
   there as a plant range and not as a single published figure.
-- Banks of three to nine mechanical cells are well described as perfect mixers in series (MDPI
-  review, Minerals 2(4):258); the bound of 12 extends the same model by three cells.
+- Each cell of a bank is modelled as fully mixed with first-order kinetics, the common assumption of the bank
+  analysis by Maldonado, Araya and Finch (2012, *An overview of optimizing strategies for flotation banks*,
+  Minerals 2(4):258-271, doi:10.3390/min2040258), whose examples are banks of two to ten cells; the contract's 3 to
+  12 rougher cells are authored around them.
 - The gravity bleed range is the range of the Laplante simulator example (10 to 60% of the underflow,
   AMIRA P420B), which is also the product's gravity oracle.
 - Circulating load brackets the Moly-Cop BallSim base case (277%) and the Laplante example (250%);
-  the water, crusher-setting and desliming ranges are authored around the case nominals (desliming
-  near 20 um is common phosphate practice, dossier section 6).
+  the water, crusher-setting and desliming ranges are authored around the case nominals (the phosphate review
+  gives no desliming size, so the 20 um nominal is authored too; [methodology 08](../methodologies/08_desliming.md)).
 
 **The classifier cut's bounds are an engine result.** Its reference is the cut the target mode solves at the case's
 nominal state (`catalog.nominal_cut`), so the contract builder runs the engine once per case, and the entry records

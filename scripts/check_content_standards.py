@@ -20,7 +20,10 @@ ADR-0067's amendment of 2026-07-29 also bans the arrow characters in interface s
 U+2192, U+2194, U+21D0, U+21D2, U+27F5 and U+27F6. The review of 0.07.000 (2026-10-02) found the guard had never
 checked them (none existed), and three public docs carrying a development machine's temp folder (W-23): a drive
 letter followed by a known machine folder, or a temp folder named for that machine, is flagged in every tracked
-text file.
+text file. The same review found references a public reader cannot follow (W-44, W-45, W-57): the private management
+repository's paths, its research dossier's section numbers, a bare PubMed Central id in place of a citation, and a
+vendor manual on a third-party document host. They are flagged in the current-state content; the CHANGELOG and the
+release verification, which record their own releases, are left as they were written.
 
 Scanned set = git-tracked text files only. Exit 1 on any hit, printing file:line:col.
 """
@@ -40,6 +43,9 @@ BANNED_ARROWS = {0x2190, 0x2192, 0x2194, 0x21D0, 0x21D2, 0x27F5, 0x27F6}
 ARROW_SCOPE = "frontend/src/"
 # a drive path into a machine folder (E:\_Temp, C:/Users) or a bare temp folder; a URL scheme is not a drive
 LOCAL_PATH = re.compile(r"(?<![A-Za-z])[A-Za-z]:[\\/](?:_Temp|Users|_Repos|Program Files|Windows)\b|(?<![\w./-])_Temp[\\/]", re.I)
+PRIVATE_REFERENCE = re.compile(r"CAOS_MANAGE|wip/oreflow|plans/oreflow|conventions/shell-known-defects|dossier sections? \d"
+                               r"|(?<![\w/])PMC\d{6,}|pdfcoffee\.com")
+HISTORY = {"CHANGELOG.md", "docs/release-verification.md"}
 
 
 def is_emoji(cp: int) -> bool:
@@ -79,9 +85,13 @@ def main() -> int:
                     hits.append(f"  {rel}:{lineno}:{col}  arrow (U+{cp:04X})")
             for match in LOCAL_PATH.finditer(line):
                 hits.append(f"  {rel}:{lineno}:{match.start() + 1}  local path ({match.group(0)!r})")
+            if rel not in HISTORY:
+                for match in PRIVATE_REFERENCE.finditer(line):
+                    hits.append(f"  {rel}:{lineno}:{match.start() + 1}  private or unfollowable reference ({match.group(0)!r})")
 
     if not hits:
-        print("check_content_standards: OK, no em-dash, emoji, interface arrow or local path in tracked content.")
+        print("check_content_standards: OK, no em-dash, emoji, interface arrow, local path or private reference in "
+              "tracked content.")
         return 0
 
     print("::error::banned characters found (no em-dash, no emoji in product content, ADR-0067):")
@@ -89,7 +99,8 @@ def main() -> int:
         print(h)
     print("\nReplace an em-dash with a comma, colon, semicolon, period, parentheses, or a middot "
           "as the sense requires. Remove emojis. Write an arrow in words. Replace a local path with a "
-          "placeholder or a path relative to the repository. This applies to code, docs, and UI strings alike.")
+          "placeholder or a path relative to the repository. Replace a private reference with the public page "
+          "that transcribes it, and a bare id with the full citation and its DOI. This applies to code, docs, and UI strings alike.")
     return 1
 
 

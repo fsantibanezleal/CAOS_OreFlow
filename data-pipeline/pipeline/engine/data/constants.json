@@ -332,7 +332,7 @@
     "grinding.cut_mode_load_max": {
       "value": 6.0,
       "unit": "1 (underflow solids over new feed)",
-      "source": "Authored (E-01, review of 2026-10-02): the cut mode refuses a state whose circulating load exceeds 600%. Plant practice reports loads up to about 600% in secondary statements; the primary sources (Neesse et al. 2004, Minerals Engineering 17:1237-1240) were not opened. Research: CAOS_MANAGE wip/oreflow/research-2026-10-02-0.08.md section 1."
+      "source": "Authored (E-01, review of 2026-10-02): the cut mode refuses a state whose circulating load exceeds 600%. Plant practice reports loads up to about 600% in secondary statements; the primary sources (Neesse et al. 2004, Minerals Engineering 17:1237-1240) were not opened. Data contract 02 states the refusal."
     },
     "grinding.cut_mode_load_range": {
       "value": [
@@ -391,7 +391,7 @@
         5.0
       ],
       "unit": "1",
-      "source": "Declared: range of the exponent that keeps the model identifiable on a nine-point batch curve; above 1 the curve has a delayed onset (compressed), below 1 it reflects a spread of rates (stretched); dossier section 3.6, Vinnett and Waters (2025), doi:10.1016/j.mineng.2025.109246."
+      "source": "Declared: range of the exponent that keeps the model identifiable on a nine-point batch curve; above 1 the curve has a delayed onset (compressed), below 1 it reflects a spread of rates (stretched); methodology page 11; Vinnett and Waters (2025), doi:10.1016/j.mineng.2025.109246."
     },
     "kinetics.dense_points": {
       "value": 65,
@@ -424,7 +424,7 @@
     "minerals.bornite_floatability_ratio": {
       "value": 0.8,
       "unit": "1 (bornite's floatability over chalcopyrite's)",
-      "source": "Authored, an upper bound (RS-03b): Jiang et al. (2025, Minerals 15:1148, doi:10.3390/min15111148, abstract only) report chalcopyrite above 90% in every collector system and bornite at 84.2% at best; with first-order kinetics at equal time, ln(1 - 0.842) / ln(1 - 0.90) = 0.80 (CAOS_MANAGE dossier of 2026-09-30)."
+      "source": "Authored, an upper bound (RS-03b): Jiang et al. (2025, Minerals 15:1148, doi:10.3390/min15111148, abstract only) report chalcopyrite above 90% in every collector system and bornite at 84.2% at best; with first-order kinetics at equal time, ln(1 - 0.842) / ln(1 - 0.90) = 0.80 (methodology page 15)."
     },
     "minerals.chalcocite_to_bornite_floatability_ratio": {
       "value": 1.5,

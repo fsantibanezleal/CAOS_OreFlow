@@ -18,8 +18,10 @@ $$k_{s,i} = 60\,P_s\,S_b\;\exp\!\left(-\tfrac12\left[\ln(d_i/x_{opt})/w\right]^2
 with a width $w$ that differs below and above the optimum size, collector dose $D$ (g/t) and half-dose
 $K_s$. A composite floats on its exposed valuable surface, $P_{comp} = P_V c^{2/3}$. Gangue saturates
 at a higher dose than the valuable mineral, so beyond the valuable saturation dose more collector
-buys little recovery and floats gangue and poorly liberated particles, lowering grade, which is what
-plant practice reports for xanthate (critical review, PMC9572913).
+buys little recovery and floats gangue and poorly liberated particles, lowering grade. The form is authored. The
+chalcopyrite/pyrite review of Castellón et al. (2022, Materials 15(19):6536, doi:10.3390/ma15196536) supports its
+direction: collectors are not selective enough, so a significant portion adheres to pyrite and other gangue, and an
+appropriate dose gives the best performance while an excess may lower recovery, which the model does not represent.
 
 **Entrainment.** Fine free gangue reports to the concentrate with the water. Savassi et al. (1998)
 describe the degree of entrainment (Minerals Engineering 11(3):243-256,

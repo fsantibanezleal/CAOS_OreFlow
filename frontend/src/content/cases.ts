@@ -152,14 +152,14 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   phosphate_clay: {
     problem: [
-      { en: 'Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.',
-        es: 'Las lamas de arcilla consumen colector de ácidos grasos y se arrastran a la espuma, por eso las plantas deslaman; el fosfato de las clases finas se va con las lamas.' },
-      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
-        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso envía menos arcilla a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
+      { en: 'Slimes harm the flotation that follows, which is why phosphate flowsheets deslime; the phosphate in the fine classes leaves with the slimes.',
+        es: 'Las lamas dañan la flotación que sigue, por eso los diagramas de fosfato deslaman; el fosfato de las clases finas se va con las lamas.' },
+      { en: 'The wet phosphoric-acid process needs a concentrate above 30% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
+        es: 'El proceso de ácido fosfórico por vía húmeda pide un concentrado sobre 30% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso envía menos arcilla a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
     ],
     scope: [
       { en: 'The desliming cyclone uses the Rosin-Rammler partition with a declared sharpness and water bypass; its cut is an operating control bounded by half the grind target.', es: 'El ciclón de deslamado usa la partición Rosin-Rammler con nitidez y cortocircuito de agua declarados; su corte es un control de operación acotado por la mitad del objetivo de molienda.' },
-      { en: 'The phosphate practice figures come from a review summary (the full text was not reachable when the research was done).', es: 'Las cifras de práctica del fosfato vienen del resumen de una revisión (el texto completo no estaba disponible al hacer la investigación).' },
+      { en: 'The reason to deslime and the concentrate requirement come from a review read in full; the 20 µm cut and the grade band are authored.', es: 'La razón para deslamar y el requisito del concentrado vienen de una revisión leída completa; el corte de 20 µm y la banda de ley son de autor.' },
       { en: 'Clay acts only through mass, size and entrainment. Slime coating and collector consumption by slimes, the reasons plants deslime, are not modelled, so the engine shows what the cut costs and not what it buys: a coarser cut lowers recovery and concentrate grade together, and only the flotation-stage recovery, a ratio, rises.',
         es: 'La arcilla actúa solo por masa, tamaño y arrastre. El recubrimiento por lamas y el consumo de colector por las lamas, las razones por las que las plantas deslaman, no se modelan, así que el motor muestra lo que cuesta el corte y no lo que compra: un corte más grueso baja la recuperación y la ley del concentrado a la vez, y solo sube la recuperación de la etapa de flotación, que es una razón.' },
     ],

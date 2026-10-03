@@ -5,7 +5,7 @@ Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is i
 Scope: issues #53 and #54 (objective weights). The optimizer runs identically in the bake (Python) and in the
 browser worker (TypeScript). It is a generalized pattern search with a progressive barrier (Torczon 1997; Audet and
 Dennis 2009), and its search step is screened by the exported surrogate under the surrogate management framework
-(Booker et al. 1999). Research: CAOS_MANAGE `wip/oreflow/research-2026-09-28-0.07.md` section 1.
+(Booker et al. 1999). Research: the dossier of 2026-09-28 (not published); the sources it verified are cited on [methodology page 12](../../../methodologies/12_optimization.md).
 
 | ID | Requirement | Named gate |
 | --- | --- | --- |

@@ -4,7 +4,7 @@ Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is i
 
 Scope: issue #52, brought from branch `task/oreflow-industrial-soft-sensor` onto the 0.07 code. An observational
 next-hour quality forecast on open data from one iron-ore plant, separate from the copper circuit and from any
-set-point advice. Research: CAOS_MANAGE `wip/oreflow/research-2026-09-28-0.07.md` section 5.
+set-point advice. Research: the dossier of 2026-09-28 (not published); the sources it verified are cited on [methodology page 16](../../../methodologies/16_industrial-soft-sensor.md).
 
 | ID | Requirement | Named gate |
 | --- | --- | --- |

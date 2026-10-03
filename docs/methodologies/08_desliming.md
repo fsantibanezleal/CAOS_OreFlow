@@ -2,11 +2,14 @@
 
 ## Theory
 
-Phosphate plants deslime the flotation feed, commonly below about 20 um, because clay slimes consume
-fatty-acid collector and entrain into the froth; the price is the apatite lost with the slimes
-(Brazilian practice at Catalao, Tapira and Cajati; review in Minerals 9(4):253, 2019,
-doi:10.3390/min9040253, cited through its summary because the full text was not reachable on
-2026-09-26). A coarser desliming cut sends less clay to flotation and loses more phosphate.
+Phosphate flowsheets deslime ahead of flotation to discard the clay minerals and remove the detrimental effect of
+slimes on the flotation that follows; amine collectors in particular are sensitive to slimes, and long-chain fatty
+acids are the common anionic collectors (Ruan, He and Chi 2019, *Review on beneficiation techniques and reagents used
+for phosphate ores*, Minerals 9(4):253, doi:10.3390/min9040253, read in full on 2026-10-03). Fine particles also
+entrain into the froth (Hoang et al. 2019, doi:10.1016/j.cherd.2018.11.036). The price is the apatite lost with the
+slimes. The review gives no desliming size, so the engine's 20 um cut is authored; the 0.07 pages' "below about
+20 um" and "about 35% P2O5" came from a search summary and are not in the review, which asks the wet phosphoric-acid
+process for a concentrate above 30% P2O5. A coarser desliming cut sends less clay to flotation and loses more phosphate.
 A coarser grind makes fewer slimes, which is why overgrinding a desliming feed costs recovery.
 
 ## Implementation
@@ -22,7 +25,7 @@ grinding balance rather than being assumed.
 
 | Parameter | Value | Unit | Source |
 |---|---|---|---|
-| desliming cut | 20 nominal (control) | um | practice below about 20 um |
+| desliming cut | 20 nominal (control) | um | authored; the review gives no size |
 | sharpness, water bypass | 2.5, 0.12 | 1, fraction | authored |
 | rougher feed solids after repulping | 33 | % w/w | authored |
 

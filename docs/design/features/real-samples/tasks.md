@@ -2,7 +2,7 @@
 
 - [x] T1 (RS-01, RS-02). A real-sample stage: pinned sources, the ledger and the Bond work index, with tests. Done in `19e67cb`.
 - [x] T2a (RS-03b). Read Tafirenyika et al. 2022 and Jiang et al. 2025; author bornite and chalcocite (formula,
-  density, flotation parameters relative to chalcopyrite) with their sources, and test the stoichiometry. Done in `259c242`, from the primary texts (CAOS_MANAGE `wip/oreflow/`, T2a of #51).
+  density, flotation parameters relative to chalcopyrite) with their sources, and test the stoichiometry. Done in `259c242`, from the primary texts cited on methodology page 15 (T2a of #51).
 - [x] T2 (RS-03, RS-04). The normative mineralogy and the work-index assignment, with tests. Done in `19e67cb` and `92f6cd2` (the nearest sample by 3-D distance).
 - [x] T3 (RS-05). Engine runs, the record, the schema and checks; the bake in a sandbox. Done in `259c242`.
 - [x] T4 (RS-06). The browser runs and parity. Done in `259c242`.

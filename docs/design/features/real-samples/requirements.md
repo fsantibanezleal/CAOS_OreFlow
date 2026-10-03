@@ -2,8 +2,8 @@
 
 Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
-Scope: issue #51. The workbench's source is a synthetic case, a GeoMet ore sample or an iron-plant hour. Research:
-CAOS_MANAGE `wip/oreflow/research-2026-09-28-0.07.md` sections 4 and 5; the soft sensor's own requirements are
+Scope: issue #51. The workbench's source is a synthetic case, a GeoMet ore sample or an iron-plant hour. Research: the dossier of 2026-09-28 (not published); the sources it verified are cited on [methodology pages 15](../../../methodologies/15_real-samples.md) and
+[16](../../../methodologies/16_industrial-soft-sensor.md); the soft sensor's own requirements are
 IS-01 to IS-06 (`features/industrial-soft-sensor/`).
 
 | ID | Requirement | Named gate |

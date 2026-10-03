@@ -67,7 +67,8 @@ targets inside mean ± 1.96 standard deviations is the empirical coverage of its
 interval. Coverage far below 95% means overconfident intervals; far above, needlessly wide ones.
 
 **The guard.** An autoencoder (22 inputs, 16, 6, 16 tanh units, 22 outputs) is trained to
-reconstruct standardized training features, with the same early stopping. Its threshold is the 99th
+reconstruct standardized training features, under the same stopping rule; in the record it ran to the 3000-epoch
+cap (best epoch 2995), so it never stopped early. Its threshold is the 99th
 percentile of the reconstruction error on the rows held out from fitting, so about 1% of in-envelope
 states raise a false alarm by construction. The false-alarm rate is then measured on the held-out
 test states, and the false-accept rate on probes: each test state with one continuous feature moved
@@ -137,7 +138,8 @@ seven orders of magnitude above it.
 
 | Guard | Value |
 |---|---|
-| Threshold (mean squared error) | 0.387 |
+| Threshold of the interpolation-split guard (mean squared error) | 0.387 |
+| Threshold of the exported guard, fitted on every state | 0.348 |
 | False alarms on held-out in-envelope states | 2.3% |
 | False accepts on shifted probes | 17.7% |
 | States of the held-out case flagged (mean over folds) | 51.5% |

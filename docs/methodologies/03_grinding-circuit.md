@@ -123,7 +123,7 @@ particle-class split, in both engines.
 | $\beta_0, \beta_1, \beta_2$ | 0.4, 0.65, 4.02 | 1 | Moly-Cop documented alternative set |
 | reference work index | 12 | kWh/t | declared for the $\alpha_0$ scaling |
 | mixer fractions | 0.70, 0.15, 0.15 | 1 | Austin structure; values declared |
-| design circulating load | 250% nominal (control) | % | operating control |
+| design circulating load | 250% nominal (220% in the phosphate case) (control) | % | operating control |
 | mill discharge solids | 72 | % w/w | Moly-Cop base case |
 | installed power | 1.12 to 1.13 times the nominal requirement (hard porphyry 1.02, oxide copper 1.20) | kW | authored sizing; every +25% hardness or throughput variant is therefore power-limited |
 

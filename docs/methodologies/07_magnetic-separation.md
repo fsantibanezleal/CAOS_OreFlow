@@ -6,7 +6,7 @@ Low-intensity magnetic separators (LIMS, 800 to 2000 G drums) recover magnetite 
 including composites that carry enough magnetite, so the concentrate's iron grade is set by how much
 silica those composites carry, which is set by the grind. At Zandrivierspoort a 35.7% Fe feed gave
 64.9% Fe (7.7% SiO2) at 80% passing 75 um and 69.0% Fe (2.25% SiO2) at 80% passing 45 um, with rougher
-magnetite recovery above 98% (Muthaphuli 2014, J. S. Afr. Inst. Min. Metall. 114(7)).
+magnetite recovery above 98% (Muthaphuli 2014, J. S. Afr. Inst. Min. Metall. 114(7):505-510).
 
 ## Implementation
 

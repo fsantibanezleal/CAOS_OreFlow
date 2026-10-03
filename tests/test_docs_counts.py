@@ -62,6 +62,34 @@ def test_the_sdd_coverage_matrix_is_the_records():
     assert re.search(r"every harder-ore and higher-throughput\s+variant is power-limited", text)
 
 
+def test_the_unit_and_kinetic_pages_quote_the_records():
+    """W-24, W-43: page 11's fit count (it said 330 after the bake had 440), page 03's design load (phosphate is
+    220%, not 250%) and page 02's feed F80 (a millimetre value in a micrometre column)."""
+    def flat(page: str) -> str:
+        return " ".join((ROOT / "docs" / "methodologies" / page).read_text(encoding="utf-8").split())
+
+    kinetics = _read(DERIVED / "benchmark.json")["kinetics"]
+    per_model = {v["fits"] for v in kinetics.values()}
+    assert len(per_model) == 1 and all(v["converged_share"] == 1.0 for v in kinetics.values())
+    fits = sum(v["fits"] for v in kinetics.values())
+    cases = _cases()
+    flotation = [a for a in cases if "rougher" in {u["unit"] for u in a["variants"][0]["trace"]["topology"]}]
+    variants = sum(len(a["variants"]) for a in flotation)
+    assert variants == per_model.pop()
+    words = {5: "five", 11: "eleven", 12: "twelve"}
+    eleven = flat("11_kinetic-fits.md")
+    assert f"All {fits} fits on the baked flotation variants converge ({variants} variants, {words[len(kinetics)]} models each" in eleven
+    assert f"On the {words[len(flotation)]} flotation cases' nominal states" in eleven
+    loads = {a["case_id"]: round(100 * a["nominal"]["circulating_load"]) for a in cases}
+    common = max(set(loads.values()), key=list(loads.values()).count)
+    others = {k: v for k, v in loads.items() if v != common}
+    assert (common, others) == (250, {"phosphate_clay": 220})
+    assert f"| design circulating load | {common}% nominal ({others['phosphate_clay']}% in the phosphate case) (control) |" in flat("03_grinding-circuit.md")
+    feed = {a["definition"]["plant"]["crusher"]["feed_f80_um"] for a in cases}
+    assert feed == {60000.0}
+    assert "| crusher feed F80, slope | 60,000 (60 mm), 0.9 | um, 1 |" in flat("02_crushing.md")
+
+
 def test_the_guide_snippets_print_what_their_comments_say(monkeypatch, capsys):
     """W-41: guide 03's two Python snippets run as written from the repository root, and their output agrees with the
     numbers their comments state (one had drifted by 0.01 and named a flag the engine had retired)."""

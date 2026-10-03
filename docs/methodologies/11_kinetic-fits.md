@@ -16,7 +16,7 @@ $$R_{batch}(t) = \frac{\sum_j c_j x_j \left(1 - e^{-k_j t}\right)}{\sum_j c_j x_
 The feed is a distribution of rates (fast liberated grains near the optimum size, slow composites
 and ultrafines), so $R_{batch}$ is a mixture of exponentials, not one exponential.
 
-**Lumped models.** Five classical forms summarize such a curve (dossier section 3.6):
+**Lumped models.** Five classical forms summarize such a curve (their sources follow the table):
 
 | Model | $R(t)$ | Parameters |
 |---|---|---|
@@ -79,8 +79,9 @@ On the eleven flotation cases' nominal states the first-order model underestimat
 because it caps the ultimate recovery at the plateau of a 16 min test. The Kelsall and gamma forms
 fit the batch curve to within 0.2 points RMSE and project within about 1.6 points. The stretched
 exponential settles at $\beta$ between 0.83 and 0.94: a spread of rates, as the class structure
-implies. These ranges are pinned by `test_documented_findings_on_nominal_cases`. All 330 fits on
-the baked variants converge, which the browser parity depends on. In the seeded envelope sample of
+implies. These ranges are pinned by `test_documented_findings_on_nominal_cases`. All 440 fits on
+the baked flotation variants converge (88 variants, five models each; the magnetite case has no flotation), which
+the browser parity depends on. In the seeded envelope sample of
 the contract gate (measured on 2026-09-26), 12 of 1670 fits, gamma and Kelsall at states whose batch
 curve reaches only 6 to 35% by 16 min, stop at the iteration cap: there the curve has no plateau, so
 the ultimate recovery and the slow rate trade off along a flat valley and are not separately

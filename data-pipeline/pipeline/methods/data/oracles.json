@@ -149,7 +149,7 @@
     "previous": "Until 0.08.000 the oracle used BallParam_Direct's parameter guesses, an authored Rosin-Rammler feed, sharpness 1.66, 35% overflow solids and an authored geometry, and compared 9.13 kWh/t with the gross 8.56 (review of 2026-10-02, E-05 and E-08)."
   },
   "gmg": {
-    "source": "Global Mining Guidelines Group, GMG01-MP-2021, sections 4.2.1 and 4.2.2; dossier section 1.1.",
+    "source": "Global Mining Guidelines Group, GMG01-MP-2021, sections 4.2.1 and 4.2.2; methodology page 09.",
     "examples": [
       {
         "power_kw": 3150.0,
