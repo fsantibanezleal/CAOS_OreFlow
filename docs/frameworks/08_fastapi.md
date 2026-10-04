@@ -4,8 +4,8 @@ FastAPI is the web framework of OreFlow's service, the one process that runs on 
 built site, the committed artifacts read-only, the operating contract, and a single live route that
 validates an operating point against Contract 1 and runs the Python engine. uvicorn is the server that
 runs it; pydantic checks the request's types; Starlette, underneath FastAPI, supplies the static files,
-compression and CORS middleware. The workbench does not call the service (the browser runs its own
-engine), so the site works identically on GitHub Pages, where there is no service at all.
+compression and CORS middleware. The workbench does not call the service for its results (the browser
+runs its own engine); the service serves the site and the records and answers the API.
 
 ## At a glance
 

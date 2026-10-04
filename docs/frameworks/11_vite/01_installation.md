@@ -39,8 +39,7 @@ pin, and commit the lock file with it.
 | `npm run preview` | serves `frontend/dist` on `127.0.0.1:4914`, where the gate expects it |
 | `npm run gate` | `node gate.mjs` against the served build ([14](../14_playwright.md)) |
 
-`VITE_BASE_PATH=/CAOS_OreFlow/` before `npm run build` makes the Pages build; without it the site is
-built for the root, as the VPS serves it.
+The site is built for the root, as its one host, the VPS, serves it.
 
 ## TypeScript settings (`frontend/tsconfig.json`)
 

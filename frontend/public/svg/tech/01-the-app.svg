@@ -126,11 +126,11 @@
   <rect class="bx bx-good" x="28" y="352" width="240" height="78" rx="8"/>
   <text class="ttl l-en" x="40" y="371">6 Site</text>
   <text class="ttl l-es" x="40" y="371">6 Sitio</text>
-  <text class="it l-en" x="40" y="387">GitHub Pages and the VPS</text>
-  <text class="it l-es" x="40" y="387">GitHub Pages y el VPS</text>
+  <text class="it l-en" x="40" y="387">the VPS, behind nginx and TLS</text>
+  <text class="it l-es" x="40" y="387">el VPS, tras nginx y TLS</text>
   <text class="it l-en" x="40" y="401">checked from outside</text>
   <text class="it l-es" x="40" y="401">verificado desde fuera</text>
-  <text class="cd mono l-neutral" x="40" y="415">deploy-pages.yml · deploy/</text>
+  <text class="cd mono l-neutral" x="40" y="415">deploy/setup-vps.sh</text>
   <path class="flow" d="M 268 293 L 318 293" marker-end="url(#of-arch-1)"/>
   <text class="lbl l-en" x="293" y="287" text-anchor="middle">sources</text>
   <text class="lbl l-es" x="293" y="287" text-anchor="middle">fuentes</text>

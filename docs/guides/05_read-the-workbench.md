@@ -1,6 +1,6 @@
 # 05 Read the workbench
 
-The workbench (`https://oreflow.ml.fasl-work.com/`, or the Pages mirror) opens on a case. Everything it shows
+The workbench (`https://oreflow.ml.fasl-work.com/`) opens on a case. Everything it shows
 comes from one of four places, and knowing which one tells you how far a number can be trusted.
 
 | Where a number comes from | What it is | How it is held to the engine |

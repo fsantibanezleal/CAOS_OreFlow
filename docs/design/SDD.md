@@ -156,10 +156,12 @@ establish plant accuracy.
 
 ## 7. Deploy driver
 
-Unchanged from 0.04.000 and re-measured at release: the repository is public and ships a static SPA
-with a live browser engine, so GitHub Pages serves the companion site; the bounded Python API and
-artifacts need a Python runtime, which stays on the ML VPS (`oreflow.ml.fasl-work.com`, CPU only).
-The driver is the API: if the API is retired, the VPS target is retired with it.
+The plan's decision, re-measured at release: OreFlow is deployed in one place, the ML VPS
+(`oreflow.ml.fasl-work.com`, CPU only, deploy class `vps-service`), because the repository carries Python
+dependencies, model checkpoints and records, and the bounded Python API needs a Python runtime. The site
+is built and served there with the API. A second publish path breaks the rule that a repository carries
+only the deploy path it declares: the template's GitHub Pages workflow, which published a copy from
+0.02.001 to 0.07.000, is removed in 0.08.000 and named by the template-residue guard.
 
 ## 8. Risks and kill criteria
 

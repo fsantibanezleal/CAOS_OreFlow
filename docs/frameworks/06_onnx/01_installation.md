@@ -39,7 +39,7 @@ served:
   about 14 MB.
 - **One thread.** The code sets `ort.env.wasm.numThreads = 1`. Several threads need
   `SharedArrayBuffer`, which a browser only enables on a cross-origin isolated page (served with
-  COOP and COEP headers); GitHub Pages cannot send them, and for networks this small one thread is
+  COOP and COEP headers); OreFlow's pages do not send them, and for networks this small one thread is
   fast enough.
 
 The ONNX files themselves are copied by the same script from `models/` into `frontend/public/models/`

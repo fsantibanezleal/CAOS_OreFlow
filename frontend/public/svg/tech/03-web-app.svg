@@ -55,15 +55,15 @@
   <text class="it l-es" x="332" y="125">cinco páginas, diferidas</text>
   <text class="cd mono l-neutral" x="332" y="139">main.tsx · AppShell, FocusShell</text>
   <rect class="bx bx-good" x="620" y="62" width="240" height="90" rx="8"/>
-  <text class="ttl l-en" x="632" y="81">Static hosting</text>
-  <text class="ttl l-es" x="632" y="81">Hospedaje estático</text>
-  <text class="it l-en" x="632" y="97">a route file for every page</text>
-  <text class="it l-es" x="632" y="97">un archivo por cada ruta</text>
-  <text class="it l-en" x="632" y="111">404 fallback for deep links</text>
-  <text class="it l-es" x="632" y="111">respaldo 404 para enlaces profundos</text>
-  <text class="it l-en" x="632" y="125">Pages path or the VPS root</text>
-  <text class="it l-es" x="632" y="125">ruta de Pages o raíz del VPS</text>
-  <text class="cd mono l-neutral" x="632" y="139">vite.config.ts · 404.html</text>
+  <text class="ttl l-en" x="632" y="81">The service (VPS)</text>
+  <text class="ttl l-es" x="632" y="81">El servicio (VPS)</text>
+  <text class="it l-en" x="632" y="97">FastAPI behind nginx and TLS</text>
+  <text class="it l-es" x="632" y="97">FastAPI tras nginx y TLS</text>
+  <text class="it l-en" x="632" y="111">every page route opens the app</text>
+  <text class="it l-es" x="632" y="111">cada ruta abre la aplicación</text>
+  <text class="it l-en" x="632" y="125">the records and the API</text>
+  <text class="it l-es" x="632" y="125">los registros y la API</text>
+  <text class="cd mono l-neutral" x="632" y="139">app/main.py · deploy/</text>
   <path class="flow" d="M 260 104 L 318 104" marker-end="url(#of-arch-3)"/>
   <text class="lbl l-en" x="289" y="98" text-anchor="middle">bundle</text>
   <text class="lbl l-es" x="289" y="98" text-anchor="middle">paquete</text>

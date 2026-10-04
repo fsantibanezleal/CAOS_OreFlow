@@ -101,7 +101,7 @@ function AppRoutes() {
       </AppShell>;
 }
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
+  <BrowserRouter>
     <Citations>
       <AppRoutes />
     </Citations>

@@ -49,7 +49,7 @@ CAOS_OreFlow/
 ├── deploy/                         the VPS setup script, the systemd unit, the nginx virtual hosts
 ├── docs/                           the documentation wiki (docs/README.md); docs/svg/ holds the exported figures
 ├── manuscript/                     the manuscript draft
-└── .github/workflows/              CI and the GitHub Pages deployment
+└── .github/workflows/              CI
 ```
 
 The documentation starts at [docs/README.md](docs/README.md), the service's routes at [app/README.md](app/README.md).

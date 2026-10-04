@@ -2,9 +2,9 @@
 
 Vite builds and serves OreFlow's interface; TypeScript is the language of the interface and of the
 browser port of the engine; Vitest runs the frontend's tests, the parity of the port with the
-Python engine first among them. Vite also carries three things specific to OreFlow: the data overlay
-that puts the committed artifacts next to the site, the build condition that serves the ONNX runtime
-once, and the plugin that writes an `index.html` for every route GitHub Pages must answer.
+Python engine first among them. Vite also carries two things specific to OreFlow: the data overlay
+that puts the committed artifacts next to the site, and the build condition that serves the ONNX runtime
+once.
 
 ## At a glance
 

@@ -4,15 +4,14 @@ Read order: [01 Installation](01_installation.md), [02 Usage](02_usage.md), **yo
 
 ## Checking a deployment
 
-The same gate runs against a public host:
+The same gate runs against the public host:
 
 ```powershell
 $env:OF_BASE = 'https://oreflow.ml.fasl-work.com'; node gate.mjs
-$env:OF_BASE = 'https://fsantibanezleal.github.io/CAOS_OreFlow'; node gate.mjs
 ```
 
 A deployment check measures what readers get: the artifacts the host serves, its caching, its deep-link
-handling. Run it after both hosts deploy the same commit, and read its screenshots as well.
+handling. Run it once the host serves the release's commit, and read its screenshots as well.
 
 ## Writing a probe that can fail
 

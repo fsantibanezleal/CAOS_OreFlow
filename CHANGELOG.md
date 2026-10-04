@@ -10,6 +10,11 @@ the verified findings under #72) and the gravity rebuild. Every fix carries a te
 
 ### Changed
 
+- **One deployment, the VPS.** OreFlow is served from its ML VPS only, its declared deploy class (`vps-service`).
+  The template's GitHub Pages workflow, which published a second copy of the site from 0.02.001 to 0.07.000, is
+  removed with its build path (the `/CAOS_OreFlow/` base, the per-route copies of `index.html`), Pages is disabled
+  on the repository, and the template-residue guard names the workflow. The pages, the diagrams and the docs
+  describe the one host.
 - **Gravity on the published GRG model** (E-11, PE-18 restated). Gravity-recoverable gold enters liberated with a GRG
   test's sizes, breaks at Banisi's slower rate, classifies with a density exponent fitted to measured GRG partitions,
   and the unit may treat a share of the mill discharge, as Laplante, Woodcock and Noaparast's model does. The

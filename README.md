@@ -1,7 +1,6 @@
 # CAOS OreFlow
 
 - Live: [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/) (the site and the live API)
-- Mirror: [fsantibanezleal.github.io/CAOS_OreFlow](https://fsantibanezleal.github.io/CAOS_OreFlow/) (the site)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_OreFlow/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_OreFlow/actions)
 [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_OreFlow)](LICENSE)

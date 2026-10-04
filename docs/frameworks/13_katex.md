@@ -3,7 +3,7 @@
 KaTeX typesets every equation OreFlow shows: the governing equations of each Methodology topic, the
 formulas of the Implementation, Experiments and Benchmark topics, and the family's formulas in the
 workbench's Case view. It renders TeX to HTML with its own fonts, synchronously and without a server, so an
-equation looks the same on GitHub Pages and on the VPS. OreFlow never calls KaTeX directly: the shared
+equation looks the same on every browser. OreFlow never calls KaTeX directly: the shared
 shell's `Equation` component does, and OreFlow supplies the TeX.
 
 ## At a glance

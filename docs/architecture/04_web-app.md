@@ -36,10 +36,9 @@ from the previous release. The version shown in the footer and sent with those r
 | `/introduction`, `/methodology`, `/implementation`, `/experiments`, `/benchmark` | The content pages, which keep the document scroll | On first use |
 | any other path | The workbench | With the app |
 
-On GitHub Pages the app lives under `/CAOS_OreFlow/` and the router takes that base; on the VPS it is
-served from the root. Pages answers a deep link with the app only where a file exists, so the build
-writes a copy of `index.html` for every route and for the focus route of every baked case
-(`frontend/vite.config.ts`).
+The app is served from the root of its one host, the VPS. The service answers every document route with
+`index.html` (`SpaStaticFiles` in `app/main.py`) while a missing asset or API path still answers 404, so a
+deep link such as `/methodology` or `/focus/copper_porphyry_soft` opens its page.
 
 ## The workbench loop
 

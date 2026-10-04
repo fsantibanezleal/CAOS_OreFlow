@@ -58,14 +58,6 @@ resolve: {
 The condition selects onnxruntime-web's build that loads its WebAssembly from `ort/` (served by the
 overlay) instead of embedding a second, hashed 14 MB copy in the bundle.
 
-## The Pages plugin (`spa-pages-fallback`)
-
-GitHub Pages answers a deep link with a page only where a file exists. After the bundle is written, the
-plugin copies `index.html` to `404.html` and to `<route>/index.html` for each content page and for the
-focus route of every baked case (read from `data/derived/manifests/index.json`), so
-`/methodology` and `/focus/copper_porphyry_soft` load the app with status 200. The Pages workflow checks
-that those files exist before it publishes.
-
 ## Code splitting
 
 The content pages and the focus route are separate chunks (React's `lazy`), and so are the worker and
