@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-## [0.08.000] - 2026-10-03
+## [0.08.000] - 2026-10-04
 
 The fixes of the adversarial review of 0.07.000 (issue #60: seven dimensions, each verified by a second reviewer;
 the verified findings under #72) and the gravity rebuild. Every fix carries a test or a gate check that fails on

@@ -11,6 +11,28 @@
 - [x] T6 (CM-08). The Methodology comminution page and its claim test. The page in `495dad3`; its claim test, `methodology-claims.test.ts`, in `b490ee3`.
 - [x] Convergence: every CM requirement with its gate's result. Below.
 
+## Convergence verdict, 0.08.000 (2026-10-04)
+
+ADR-0075 section 4: each live requirement, the gate it names and that gate's result on the 0.08.000 release: the
+release bake and its validation, the Python and frontend suites on the final tree,
+the full optimizer parity (`OF_PARITY=full`, six processes) and the browser gate's records on the served release
+build, every capture read (`docs/release-verification.md`, 0.08.000). A parametrized test passes when every one
+of its cases does.
+
+| Requirement | Result on the 0.08.000 release |
+|---|---|
+| CM-01 | met: `test_cut_mode_declared` passed; `contract.test.ts` passed (3 tests) |
+| CM-02 | met: `test_cut_mode_meets_installed_power` passed (12 cases) |
+| CM-03 | met: `test_cut_mode_reports_and_flags` passed (12 cases) |
+| CM-04 | met: `test_modes_agree_at_the_same_state` passed (12 cases) |
+| CM-05 | met: `test_cut_mode_closure` passed (24 cases); `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
+| CM-06 | met: `parity.test.ts` passed (96 tests) |
+| CM-07 | met: `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| CM-08 | met: `methodology-claims.test.ts` passed (5 tests) |
+| CM-09 | met: `test_cut_mode_refuses_a_state_without_a_steady_state` passed (3 cases); `test_cut_mode_never_serves_an_impossible_state` passed (3 cases); `test_engine_refusal_is_a_rejection` passed; `refusal.test.ts` passed (5 tests) |
+
+9 of 9 met.
+
 ## Convergence verdict, 0.07.000 (2026-09-30)
 
 ADR-0075 section 4: each requirement, the gate it names and that gate's result on the release (the committed
