@@ -700,7 +700,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     layout: (() => {
       const main = document.querySelector('.of-view-hour .of-hour-main')?.getBoundingClientRect();
       const aside = document.querySelector('.of-view-hour .of-split > .of-aside')?.getBoundingClientRect();
-      const table = document.querySelector('.of-view-hour .of-hour-main table')?.getBoundingClientRect();
+      const table = document.querySelector('.of-view-hour .of-hour-main table.of-table')?.getBoundingClientRect();
       return { beside: !!main && !!aside && Math.abs(aside.top - main.top) < 4 && aside.left >= main.right - 1, whole: !!main && !!table && table.bottom <= main.bottom + 1 };
     })() }));
   await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`) });
