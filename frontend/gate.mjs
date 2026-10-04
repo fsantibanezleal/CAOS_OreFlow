@@ -402,7 +402,9 @@ async function checkArchitecture(page, tag, lang) {
   const tabs = page.locator('[role=dialog] [role=tab]');
   const count = await tabs.count();
   record(`${tag} architecture tabs`, count >= 5, { count });
-  // shell known defect 13: the full-size toggle reads in both themes (WCAG 1.4.3, 4.5:1 for its 12 px text)
+  // shell known defect 13: the full-size toggle reads in both themes (WCAG 1.4.3, 4.5:1 for its 12 px text); the shell
+  // renders it once the tab's diagram has loaded, so the check waits for it
+  await page.waitForSelector("[role=dialog] button[aria-controls$='-diagram']", { timeout: 30000 }).catch(() => undefined);
   const toggle = await page.evaluate(() => {
     const b = document.querySelector("[role=dialog] button[aria-controls$='-diagram']");
     if (!b) return null;
