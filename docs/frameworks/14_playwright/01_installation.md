@@ -34,12 +34,16 @@ The library looks for the browser build its own version expects (for 1.61.0, `ch
 
 ## Running
 
-The gate needs a served build:
+The gate needs the build served as the VPS serves it, by the service:
 
 ```powershell
 npm run build
-npm run preview          # 127.0.0.1:4914, in its own terminal
+# from the repository root, in its own terminal: the service on 127.0.0.1:4914
+.venv/Scripts/uvicorn app.main:app --host 127.0.0.1 --port 4914
 node gate.mjs            # in another; OF_MATRIX=full for the release matrix
 ```
 
-Stop the preview server when you are done; the gate does not start or stop it.
+`npm run preview` serves the same files on the same port and is enough while developing, but it answers every
+route with the app on its own, so a release gate runs against the service: 0.08.000's direct routes answered 404
+on the VPS while the gate, run against the preview, passed. Stop the server when you are done; the gate does not
+start or stop it.

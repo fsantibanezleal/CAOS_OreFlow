@@ -36,7 +36,7 @@ pin, and commit the lock file with it.
 | `npm run typecheck` | `tsc --noEmit` over `src/` and `vite.config.ts` |
 | `npm run test` | `vitest run`, once, in Node |
 | `npm run build` | typecheck, `copy-data.mjs`, `vite build` into `frontend/dist` |
-| `npm run preview` | serves `frontend/dist` on `127.0.0.1:4914`, where the gate expects it |
+| `npm run preview` | serves `frontend/dist` on `127.0.0.1:4914` while developing; a release gate runs against the service on the same port ([14](../14_playwright.md)) |
 | `npm run gate` | `node gate.mjs` against the served build ([14](../14_playwright.md)) |
 
 The site is built for the root, as its one host, the VPS, serves it.

@@ -77,8 +77,9 @@ Every shell script has a bash twin (`scripts/*.sh`).
 
 ```powershell
 ./scripts/smoke.ps1                 # guards, ruff, the Python and frontend suites, the build (counts per release in docs/release-verification.md)
-cd frontend; npm run build; npm run preview   # then, in another terminal:
-node gate.mjs                       # the browser gate (OF_MATRIX=full for every viewport, theme and language)
+cd frontend; npm run build; cd ..
+.venv/Scripts/uvicorn app.main:app --host 127.0.0.1 --port 4914   # the service, as on the VPS; then, in another terminal:
+cd frontend; node gate.mjs          # the browser gate (OF_MATRIX=full for every viewport, theme and language)
 ```
 
 ## How it is built

@@ -1,7 +1,10 @@
 /**
  * OreFlow's browser gate (design §12.3; ADR-0058, ADR-0070, ADR-0071), run against a served build:
  *
- *   npm run build && npm run preview        (serves on 127.0.0.1:4914)
+ *   npm run build, then, from the repository root, the service as the VPS runs it:
+ *   .venv/Scripts/uvicorn app.main:app --host 127.0.0.1 --port 4914
+ *   (npm run preview serves the same files, but answers every route itself: 0.08.000's direct routes answered
+ *   404 on the VPS while the gate, run against the preview, passed)
  *   node gate.mjs                           (smoke: two viewport, theme and language combinations)
  *   OF_MATRIX=full node gate.mjs            (three viewports, both themes, both languages)
  *   OF_MATRIX=none node gate.mjs            (the phone and tablet pass alone)

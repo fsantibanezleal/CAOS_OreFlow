@@ -79,9 +79,9 @@ $env:PLAYWRIGHT_BROWSERS_PATH = '<a folder with room>'    # optional: wherever y
 cd frontend
 npx playwright install chromium                            # once per Playwright version
 npm run build
-npm run preview                                            # terminal 1: 127.0.0.1:4914
+cd ..; .venv/Scripts/uvicorn app.main:app --host 127.0.0.1 --port 4914   # terminal 1: the service, as on the VPS
 node gate.mjs                                              # terminal 2; $env:OF_MATRIX='full' for a release
 ```
 
 The gate prints one line per check and ends `GATE PASSED: <n> checks` or with the failures; the
-screenshots are in `frontend/qa-output/`. Read them. Stop the preview server when you are done.
+screenshots are in `frontend/qa-output/`. Read them. Stop the service when you are done.
