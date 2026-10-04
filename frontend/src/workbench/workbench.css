@@ -414,7 +414,8 @@ input, select, textarea { font: inherit; }
 .of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-subtle); }
 /* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
  * phone never scrolls sideways */
-.of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+/* the sample's facts, then the chart of every sample against its test in the height that is left */
+.of-sample-main { display: grid; grid-template-rows: auto auto auto minmax(240px, 1fr); gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
 /* RS-07: an hour's main column is the window's chart over the forecasts and their note. A two-row stack gave the note
  * an implicit third row that ran 60 px past the frame at 1280x800; the chart now takes what the rows leave, at least
  * 220 px, and the column scrolls where the frame is shorter than its content */
@@ -523,6 +524,7 @@ input, select, textarea { font: inherit; }
   .of-compare-charts { grid-auto-rows: 260px; }
   .of-hour-main, .of-sample-main, .of-split > .of-aside, .of-panel, .of-side { overflow: visible; }
   .of-hour-main { grid-template-rows: 260px auto auto; }
+  .of-sample-main { grid-template-rows: auto auto auto 280px; }
   .of-table-scroll { overflow-x: auto; overflow-y: visible; }
   .of-table-scroll thead th { position: static; }
   .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }

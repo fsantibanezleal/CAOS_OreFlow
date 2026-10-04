@@ -234,7 +234,7 @@ export default function Workbench() {
     else if (view === 'response') body = <SourceStatement kind="sample-response" lang={lang} />;
     else if (view === 'methods') body = <SourceStatement kind="sample-methods" lang={lang} />;
     else body = <SampleView record={samples} sample={sample} recovery={trace.metrics.recovery_pct ?? null} p80={trace.metrics.p80_um ?? null}
-      powerLimited={trace.metrics.power_limited === 1} lang={lang} />;
+      powerLimited={trace.metrics.power_limited === 1} lang={lang} onCursor={setCursor} />;
   } else if (source === 'case' && trace && accepted) {
     if (view === 'circuit') body = <CircuitView trace={trace} primary={primary} lang={lang} selected={selectedUnit} onSelect={selectUnit} />;
     else if (view === 'grinding') body = <GrindingView trace={trace} ore={artifact.definition.ore} lang={lang} onCursor={setCursor} />;

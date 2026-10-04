@@ -60,6 +60,10 @@ record keeps:
 - the difference, labelled as a comparison between a locked-cycle test and a simulated plant, not a
   calibration.
 
+The Case view of a sample charts every sample against its test from the record: the engine at the case's nominal
+state and the lane's out-of-fold ridge prediction, with the chosen sample at the current state, which moves with the
+controls (0.08.000: on a large screen the view had held two short tables on an empty screen).
+
 ## Workbench
 
 - The rail gets a top-level source selector: synthetic case, GeoMet sample or iron-plant hour.

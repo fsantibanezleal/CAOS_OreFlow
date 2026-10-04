@@ -656,12 +656,14 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForSelector('.of-rail select option', { state: 'attached', timeout: 60000 });
   await page.locator('.of-rail-sections button').first().click();
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
-  await page.waitForSelector('.of-view-sample table', { timeout: 90000 });
+  await page.waitForSelector('.of-view-sample table.of-table', { timeout: 90000 });
   await page.waitForFunction(() => !document.querySelector('.of-readout-busy'), null, { timeout: 90000 }).catch(() => undefined);
-  await page.waitForTimeout(250);
+  await settleCharts(page, 1);
   const sampleCheck = await page.evaluate(() => ({
     fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
-    tables: document.querySelectorAll('.of-view-sample table').length,
+    tables: document.querySelectorAll('.of-view-sample table.of-table').length,
+    // the chart of every sample against its test is drawn (it fills the view on large screens; 0.08 gate)
+    chart: document.querySelectorAll('.of-view-sample .of-plot canvas').length,
     url: location.search.includes('source=sample'),
     // the Case view's engine recovery is the sample's own, the readout's: the 0.07/0.08 views showed the synthetic
     // case's 94.2% as "Engine, this state" while the sample computed
@@ -680,7 +682,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   }));
   const sampleView = await measure(page);
   await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
-  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
+  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.chart >= 1 && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
   await settleCharts(page, 1);
   const sampleGrinding = await measure(page);

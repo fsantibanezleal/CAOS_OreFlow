@@ -69,6 +69,18 @@ export const SOURCE_TEXT = {
     es: 'Una planta simulada en un punto de operación frente a un ensayo de laboratorio en ciclo cerrado: una comparación, no una calibración. Nada del motor se ajusta a estas muestras.',
   },
   source: { en: 'GeoMet dataset, Zenodo 7051975, CC BY 4.0', es: 'Conjunto GeoMet, Zenodo 7051975, CC BY 4.0' },
+  // the 52 samples against their tests: what the comparison table says for one sample, for all of them
+  samplesTitle: { en: 'Every sample against its locked-cycle test', es: 'Cada muestra frente a su ensayo en ciclo cerrado' },
+  samplesSummary: {
+    en: 'Recovery of the 52 GeoMet samples against each one\'s measured locked-cycle recovery: the engine at the case\'s nominal state, the GeoMet lane\'s out-of-fold ridge prediction, the chosen sample at the current state, and the line where a prediction equals the test.',
+    es: 'Recuperación de las 52 muestras GeoMet frente a la recuperación medida en ciclo cerrado de cada una: el motor en el estado nominal del caso, la predicción ridge fuera de la partición de la vía GeoMet, la muestra elegida en el estado actual, y la línea donde una predicción iguala al ensayo.',
+  },
+  samplesX: { en: 'Measured locked-cycle recovery (%)', es: 'Recuperación medida en ciclo cerrado (%)' },
+  samplesY: { en: 'Recovery (%)', es: 'Recuperación (%)' },
+  engineAll: { en: 'Engine, nominal state', es: 'Motor, estado nominal' },
+  laneRidge: { en: 'GeoMet lane, ridge out of fold', es: 'Vía GeoMet, ridge fuera de la partición' },
+  thisSample: { en: 'This sample, this state', es: 'Esta muestra, este estado' },
+  equal: { en: 'Prediction equals the test', es: 'Predicción igual al ensayo' },
   hourTitle: { en: 'The hour and the next one', es: 'La hora y la siguiente' },
   sensor: { en: 'Sensor (hourly median)', es: 'Sensor (mediana horaria)' },
   labNow: { en: 'Assays of this hour', es: 'Ensayes de esta hora' },
@@ -159,8 +171,36 @@ function gapFrame(record: RealSamples, lang: Lang): string {
     : `${head} The deficit is mostly the host circuit's size: with a mill sized for the grind, the mean difference is ${signed(a.mean_gap_pp)} points at an assumed laboratory P80 of 75 µm, ${signed(b.mean_gap_pp)} at 150 µm and ${signed(c.mean_gap_pp)} at 300 µm; the laboratory grind is not in the open data. At any assumed grind the engine's recovery does not follow the samples' order (Pearson r between ${rLow} and ${rHigh}).`;
 }
 
-export function SampleView({ record, sample, recovery, p80, powerLimited, lang }: {
+/**
+ * The 52 samples against their tests, which the comparison table gives for one: the engine at the case's nominal
+ * state (from the record), the GeoMet lane's out-of-fold ridge prediction, and the chosen sample at the current state,
+ * so the point moves with the controls. At 2560 x 1440 the view held two short tables on a mostly empty screen (0.08
+ * gate), and the chart shows what the tables cannot: the engine's points do not follow the tests' order.
+ */
+function SamplesChart({ record, sample, recovery, lang, onCursor }: {
+  record: RealSamples; sample: RealSample; recovery: number | null; lang: Lang; onCursor: (text: string | null) => void;
+}) {
+  const rows = [...record.samples].sort((a, b) => a.measured_recovery_pct - b.measured_recovery_pct);
+  const xs = rows.map(s => s.measured_recovery_pct);
+  const data = [xs, rows.map(s => s.metrics.recovery_pct ?? null), rows.map(s => s.geomet_lane?.predictions_pct.ridge ?? null),
+    rows.map(s => (s.id === sample.id ? recovery : null)), xs] as uPlot.AlignedData;
+  const pct = (v: number | null | undefined) => (v === null || v === undefined ? '-' : `${formatFixed(v, lang, 1)}%`);
+  return (
+    <Chart data={data} title={SOURCE_TEXT.samplesTitle[lang]} summary={SOURCE_TEXT.samplesSummary[lang]}
+      xLabel={SOURCE_TEXT.samplesX[lang]} yLabel={SOURCE_TEXT.samplesY[lang]}
+      series={[{ label: SOURCE_TEXT.engineAll[lang], colour: 'accent', points: true }, { label: SOURCE_TEXT.laneRidge[lang], colour: 'good', points: true },
+        { label: SOURCE_TEXT.thisSample[lang], colour: 'magenta', points: true, width: 3 }, { label: SOURCE_TEXT.equal[lang], colour: 'subtle', dash: [4, 4] }]}
+      format={(v, axis) => (v === null ? '-' : axis === 'x' ? formatFixed(v, lang, 0) : `${formatFixed(v, lang, 0)}%`)}
+      onCursor={c => {
+        const s = c ? rows[c.index] : null;
+        onCursor(s ? `${s.id}: ${SOURCE_TEXT.measured[lang]} ${pct(s.measured_recovery_pct)}, ${SOURCE_TEXT.engineAll[lang]} ${pct(s.metrics.recovery_pct)}, ${SOURCE_TEXT.laneRidge[lang]} ${pct(s.geomet_lane?.predictions_pct.ridge)}` : null);
+      }} />
+  );
+}
+
+export function SampleView({ record, sample, recovery, p80, powerLimited, lang, onCursor }: {
   record: RealSamples; sample: RealSample; recovery: number | null; p80: number | null; powerLimited: boolean; lang: Lang;
+  onCursor: (text: string | null) => void;
 }) {
   const shares = Object.entries(sample.allocation.copper_shares).filter(([, v]) => v > 0);
   const lanePredictions = sample.geomet_lane?.predictions_pct ?? {};
@@ -184,6 +224,7 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang }
           </table>
           <p className="of-facts-title">{SOURCE_TEXT.authors[lang]}</p>
           <p className="of-sample-text">{SOURCE_TEXT.authored[lang]}</p>
+          <SamplesChart record={record} sample={sample} recovery={recovery} lang={lang} onCursor={onCursor} />
         </div>
         <div className="of-aside">
           <table className="of-table">
