@@ -231,7 +231,8 @@ def _metrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, streams: dict[str
         put("rougher_recovery_pct", 100.0 * f["rougher_concentrate"].species_tph(primary, comp) / f["rougher_feed"].species_tph(primary, comp), "%")
         put("cleaner_recovery_pct", 100.0 * f["cleaner_concentrate"].species_tph(primary, comp) / f["cleaner_feed"].species_tph(primary, comp), "%")
         put("rougher_concentrate_grade", _grade(f["rougher_concentrate"], r, primary), r.units[primary])
-        put("rougher_mass_pull_pct", 100.0 * f["rougher_concentrate"].tph() / f["flotation_feed"].tph(), "%")
+        # on the rougher's own feed, the basis of its recovery (F-05, K-09)
+        put("rougher_mass_pull_pct", 100.0 * f["rougher_concentrate"].tph() / f["rougher_feed"].tph(), "%")
         put("rougher_residence_min", flotation.rougher.residence_min, "min")
         put("cleaner_residence_min", flotation.cleaner.residence_min, "min")
         put("rougher_water_recovery_pct", 100.0 * flotation.rougher.water_recovery, "%")
@@ -239,10 +240,13 @@ def _metrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, streams: dict[str
         put("bubble_surface_flux_s", flotation.sb_rougher, "1/s")
         put("cleaner_recycle_tph", f["cleaner_tail"].tph() if plant.flotation.cleaner_tail_to_rougher else 0.0, "t/h")
         put("recycle_iterations", flotation.iterations, "1")
+        # the share of the rougher concentrate's free gangue that the rougher recovered by entrainment, exact from the
+        # bank's own split (F-04, K-08); 0.08.001 weighted the final concentrate by the rougher's share, which mixed
+        # stages and, after a regrind, size classes
         free = [d for d in flotation.defs if d.kind == "free"]
-        final = flotation.species_final
-        gangue_mass = sum(float(np.sum(final[d.id])) for d in free)
-        entrained = sum(float(np.sum(final[d.id] * flotation.rougher.entrained_share[d.id])) for d in free)
+        x, rougher = flotation.rougher_feed_species, flotation.rougher
+        gangue_mass = sum(float(np.sum(x[d.id] * rougher.recovery[d.id])) for d in free)
+        entrained = sum(float(np.sum(x[d.id] * rougher.recovery[d.id] * rougher.entrained_share[d.id])) for d in free)
         put("entrained_gangue_share_pct", 100.0 * entrained / gangue_mass if gangue_mass > 0.0 else 0.0, "%")
     if magnetic is not None:
         magnetic_ids = [mid for mid in r.ids if r.spec[mid].magnetic]
@@ -289,7 +293,7 @@ def _curves(r: ResolvedOre, op: OperatingPoint, streams: dict[str, Stream], grin
             "host_gangue": [float(v) for v in flotation.rougher.recovery[host]],
             "host_gangue_entrained_share": [float(v) for v in flotation.rougher.entrained_share[host]],
         }
-        curves["bank_profile"] = bank_profile(flotation, r, primary, op.rougher_cells)
+        curves["bank_profile"] = bank_profile(flotation, r, primary)
     if magnetic is not None:
         curves["capture"] = {k: [float(v) for v in arr] for k, arr in magnetic.capture_rougher.items()}
     if deslime is not None:

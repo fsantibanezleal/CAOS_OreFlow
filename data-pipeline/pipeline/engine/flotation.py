@@ -1,9 +1,10 @@
 """Flotation circuit: rougher, optional regrind, cleaner and optional recleaner, with recycles.
 
 Per perfectly mixed cell, with residence ``tau`` (min), true-flotation rate ``k`` (1/min), degree of
-entrainment ``ENT`` and water recovery ``r_w`` (``w = r_w/(1 - r_w)``), a particle class is
-recovered with ``r = (k tau + ENT w)/(1 + k tau + ENT w)``; a bank of N equal cells recovers
-``1 - (1 - r)^N``, which reduces to ``1 - (N/(N + k tau_bank))^N`` without entrainment.
+entrainment ``ENT`` and water recovery ``r_w`` (``w = r_w/(1 - r_w) = k_w tau``), a particle class is
+recovered with ``r = (k tau + ENT w)/(1 + k tau + ENT w)``. The tail carries the pulp composition, so
+``tau`` is the cell's pulp volume over its own tail flow; the cells of a bank are solved in series, each
+on the tail of the one before, and the bank recovers ``1 - prod_j (1 - r_j)`` (F-02).
 ``k = 60 P Sb f_size f_dose`` with ``Sb = 6 Jg/D32`` (Gorain et al. 1997); ENT after Savassi et al.
 (1998). Cleaner tails return to the rougher feed and recleaner tails to the cleaner feed; the
 regrind (open-circuit population balance) changes sizes, and so liberation, before cleaning.
@@ -68,7 +69,9 @@ def rate_constants(ore: ResolvedOre, defs: list[SpeciesDef], sb: float, dose_gpt
             continue
         p = response.floatability
         if d.kind == "composite":
-            p = p * ore.spec[d.mineral].composite_content ** float(constant("flotation.composite_surface_exponent"))
+            # the exposed valuable surface goes with the two-thirds power of the valuable's VOLUME share (F-01)
+            volume = {mineral: share / ore.density[mineral] for mineral, share in d.makeup}
+            p = p * (volume[d.mineral] / sum(volume.values())) ** float(constant("flotation.composite_surface_exponent"))
         shape = size_response(response.optimum_size_um, response.fine_width, response.coarse_width)
         out[d.id] = per_minute * p * sb * shape * dose_response(dose_gpt, response.half_dose_gpt, response.unresponsive_fraction)
     return out
@@ -76,13 +79,15 @@ def rate_constants(ore: ResolvedOre, defs: list[SpeciesDef], sb: float, dose_gpt
 
 @dataclass
 class BankResult:
-    recovery: Species
+    recovery: Species                  # over the bank, per class and size
     water_recovery: float
-    cell_water_recovery: float
-    tau_cell_min: float
-    residence_min: float
-    entrained_share: Species
-    cell_recovery: Species
+    cell_water_recovery: list[float]   # per cell
+    tau_cell_min: float                # the mean of the cells' residences
+    residence_min: float               # their sum
+    entrained_share: Species           # share of what the bank recovers of a class that came by entrainment
+    cell_recovery: list[Species]       # per cell
+    cell_residence_min: list[float]
+    converged: bool                    # every cell's tail flow settled
 
 
 def pulp_flow_m3_min(species: Species, defs: list[SpeciesDef], water_tph: float) -> float:
@@ -92,22 +97,73 @@ def pulp_flow_m3_min(species: Species, defs: list[SpeciesDef], water_tph: float)
     return (solids + water_tph / water_density) / minutes
 
 
-def bank(rates: Species, ent: np.ndarray, cells: int, bank_def: Bank, flow_m3_min: float,
-         sb: float, water_floatability: float) -> BankResult:
+def tail_flow(g: Callable[[float], float], q0: float) -> tuple[float, bool]:
+    """The fixed point ``q = g(q)`` of a cell's tail flow, from the feed flow ``q0``. ``g`` rises with ``q`` (a faster
+    pulp floats less), so a plain substitution from ``q0`` descends to it; the secant takes over while its step stays
+    inside ``(0, q0]``."""
+    tolerance = float(constant("numerics.cell_tail_tolerance"))
+    q_prev, h_prev = q0, q0 - g(q0)
+    if h_prev == 0.0:
+        return q0, True
+    q = q0 - h_prev
+    for _ in range(int(constant("numerics.root_max_iterations"))):
+        h = q - g(q)
+        if abs(h) <= tolerance * q:
+            return q, True
+        candidate = q - h * (q - q_prev) / (h - h_prev) if h != h_prev else q - h
+        q_prev, h_prev = q, h
+        q = candidate if 0.0 < candidate <= q0 else q - h
+    return q, False
+
+
+def bank(rates: Species, ent: np.ndarray, cells: int, bank_def: Bank, feed: Species, feed_water: float,
+         defs: list[SpeciesDef], sb: float, water_floatability: float) -> BankResult:
+    """A bank of ``cells`` perfect mixers in series. Each cell's residence is its pulp volume over its own tail flow,
+    as the single-cell balance requires (the tail carries the pulp composition); until 0.09.000 every cell took the
+    bank feed's flow, which understated recovery by 0.3 to 1 point (review of 2026-10-04, F-02)."""
     per_minute = float(constant("time.seconds_per_minute"))
-    tau = bank_def.cell_volume_m3 * (1.0 - bank_def.gas_holdup) / flow_m3_min
+    volume = bank_def.cell_volume_m3 * (1.0 - bank_def.gas_holdup)
     kw = per_minute * water_floatability * sb
-    rw = kw * tau / (1.0 + kw * tau)
-    w = rw / (1.0 - rw)
     ent_eff = ent * bank_def.wash_factor
-    recovery, share, cell = {}, {}, {}
-    for key, k in rates.items():
-        numerator = k * tau + ent_eff * w
-        r = numerator / (1.0 + numerator)
-        cell[key] = r
-        recovery[key] = 1.0 - np.power(1.0 - r, cells)
-        share[key] = np.where(numerator > 0.0, ent_eff * w / np.where(numerator > 0.0, numerator, 1.0), 0.0)
-    return BankResult(recovery, 1.0 - (1.0 - rw) ** cells, rw, tau, tau * cells, share, cell)
+    n = grid().n
+    x = {k: v.copy() for k, v in feed.items()}
+    water = feed_water
+    unfloated = {k: np.ones(n) for k in rates}
+    entrained = {k: np.zeros(n) for k in rates}
+    water_unfloated = 1.0
+    cell_recovery: list[Species] = []
+    cell_water: list[float] = []
+    residence: list[float] = []
+    converged = True
+
+    def cell(q: float) -> tuple[float, float, Species]:
+        tau = volume / q
+        w = kw * tau
+        return tau, w, {key: (k * tau + ent_eff * w) / (1.0 + k * tau + ent_eff * w) for key, k in rates.items()}
+
+    def tail(q: float) -> float:
+        _, w, r = cell(q)
+        return pulp_flow_m3_min({key: x[key] * (1.0 - r[key]) for key in x}, defs, water / (1.0 + w))
+
+    for _ in range(cells):
+        q, settled = tail_flow(tail, pulp_flow_m3_min(x, defs, water))
+        converged = converged and settled
+        tau, w, r = cell(q)
+        for key, k in rates.items():
+            numerator = k * tau + ent_eff * w
+            share = np.where(numerator > 0.0, ent_eff * w / np.where(numerator > 0.0, numerator, 1.0), 0.0)
+            entrained[key] = entrained[key] + unfloated[key] * r[key] * share
+            unfloated[key] = unfloated[key] * (1.0 - r[key])
+            x[key] = x[key] * (1.0 - r[key])
+        water = water / (1.0 + w)
+        water_unfloated /= 1.0 + w
+        cell_recovery.append(r)
+        cell_water.append(w / (1.0 + w))
+        residence.append(tau)
+    recovery = {key: 1.0 - unfloated[key] for key in rates}
+    share = {key: np.where(recovery[key] > 0.0, entrained[key] / np.where(recovery[key] > 0.0, recovery[key], 1.0), 0.0) for key in rates}
+    total = float(sum(residence))
+    return BankResult(recovery, 1.0 - water_unfloated, cell_water, total / cells, total, share, cell_recovery, residence, converged)
 
 
 @dataclass
@@ -173,7 +229,7 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
     zeros = {d.id: np.zeros(grid().n) for d in defs}
 
     def pass_once(x: Species, water_x: float, t_rc: Species, water_t_rc: float) -> dict[str, object]:
-        rougher = bank(k_r, ent, op.rougher_cells, plant.rougher, pulp_flow_m3_min(x, defs, water_x), sb_r, plant.water_floatability)
+        rougher = bank(k_r, ent, op.rougher_cells, plant.rougher, x, water_x, defs, sb_r, plant.water_floatability)
         conc_r = {k: rougher.recovery[k] * x[k] for k in x}
         water_conc_r = rougher.water_recovery * water_x
         if regrind is not None:
@@ -183,7 +239,7 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
         y = {k: ground[k] + t_rc[k] for k in x}
         water_y0 = water_conc_r + water_t_rc
         water_y = _diluted(water_y0, _solids(y), plant.cleaner.feed_solids)
-        cleaner = bank(k_c, ent, plant.cleaner.cells, plant.cleaner, pulp_flow_m3_min(y, defs, water_y), sb_c, plant.water_floatability)
+        cleaner = bank(k_c, ent, plant.cleaner.cells, plant.cleaner, y, water_y, defs, sb_c, plant.water_floatability)
         conc_c = {k: cleaner.recovery[k] * y[k] for k in x}
         tail_c = {k: y[k] - conc_c[k] for k in x}
         water_conc_c = cleaner.water_recovery * water_y
@@ -193,7 +249,7 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
                                   "water_tail_c": water_y - water_conc_c}
         if recl is not None:
             water_z = _diluted(water_conc_c, _solids(conc_c), recl.feed_solids)
-            recleaner = bank(k_rc, ent, recl.cells, recl, pulp_flow_m3_min(conc_c, defs, water_z), sb_rc, plant.water_floatability)
+            recleaner = bank(k_rc, ent, recl.cells, recl, conc_c, water_z, defs, sb_rc, plant.water_floatability)
             final = {k: recleaner.recovery[k] * conc_c[k] for k in x}
             water_final = recleaner.water_recovery * water_z
             out.update({"recleaner": recleaner, "water_z": water_z, "dilution_rc": water_z - water_conc_c, "final": final,
@@ -229,6 +285,8 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
         flags.add("recycle_not_converged", f"Flotation recycle residual {residual:.2e} t/h (relative {relative:.2e}) "
                                            f"after {iterations} iterations.")
     s = pass_once(x, water_x, t_rc, water_t_rc)
+    if not all(b.converged for b in (s["rougher"], s["cleaner"], s["recleaner"]) if b is not None):
+        flags.add("cell_residence_not_converged", "A flotation cell's tail flow did not settle; the last iterate is reported.")
 
     def stream(species: Species, water: float) -> Stream:
         return Stream(to_minerals(species, defs, ore), water)
@@ -262,16 +320,20 @@ def final_stream_name(result: FlotationResult) -> str:
     return "recleaner_concentrate" if result.recleaner is not None else "cleaner_concentrate"
 
 
-def bank_profile(result: FlotationResult, ore: ResolvedOre, species: str, cells_in_bank: int) -> list[dict[str, float]]:
-    """Cumulative grade and recovery of ``species`` along the rougher cells (grade-recovery curve)."""
-    x, defs, cells = result.rougher_feed_species, result.defs, result.rougher.cell_recovery
+def bank_profile(result: FlotationResult, ore: ResolvedOre, species: str) -> list[dict[str, float]]:
+    """Cumulative grade and recovery of ``species`` along the rougher cells (grade-recovery curve), each cell with its
+    own recovery (F-02)."""
+    x, defs = result.rougher_feed_species, result.defs
     content = {d.id: species_content(d, ore, species) for d in defs}
     total = sum(content[d.id] * float(np.sum(x[d.id])) for d in defs)
     feed_mass = sum(float(np.sum(x[d.id])) for d in defs)
+    unfloated = {d.id: np.ones(grid().n) for d in defs}
     out = []
-    for j in range(1, cells_in_bank + 1):
-        mass = sum(float(np.sum(x[d.id] * (1.0 - np.power(1.0 - cells[d.id], j)))) for d in defs)
-        value = sum(content[d.id] * float(np.sum(x[d.id] * (1.0 - np.power(1.0 - cells[d.id], j)))) for d in defs)
+    for j, cell in enumerate(result.rougher.cell_recovery, start=1):
+        for d in defs:
+            unfloated[d.id] = unfloated[d.id] * (1.0 - cell[d.id])
+        mass = sum(float(np.sum(x[d.id] * (1.0 - unfloated[d.id]))) for d in defs)
+        value = sum(content[d.id] * float(np.sum(x[d.id] * (1.0 - unfloated[d.id]))) for d in defs)
         out.append({"cell": j, "recovery": value / total if total > 0.0 else 0.0, "grade": value / mass if mass > 0.0 else 0.0,
                     "mass_pull": mass / feed_mass if feed_mass > 0.0 else 0.0})
     return out

@@ -79,6 +79,7 @@ classes) and `upper_um` (class upper bounds).
 | `cut_mode_load_not_converged` | in the cut mode, the circulating load's fixed point did not settle; the last pass is reported |
 | `mill_water_negative`, `sump_water_negative` | the declared densities leave no room for water addition at the mill or the sump |
 | `recycle_not_converged` | the flotation recycle did not meet its absolute and relative tolerances |
+| `cell_residence_not_converged` | a flotation cell's tail flow, which sets its residence, did not settle; the last iterate is reported |
 | `composite_scale_not_converged` | the host-limited composite fixed point of the reported pass did not converge (a trial point of a root search raises no flag since 0.09.000) |
 | `negative_mass` | a class mass is negative beyond round-off |
 | `non_finite_output` | a non-finite number was replaced by `null` |

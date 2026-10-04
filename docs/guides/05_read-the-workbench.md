@@ -66,6 +66,7 @@ Escape or the reset button to restore, and the arrow keys to step through sample
 | `cut_mode_load_not_converged` | in the cut mode, the circulating load did not settle; the last pass is reported |
 | `mill_water_negative`, `sump_water_negative` | the declared densities leave no room for water at the mill or the sump |
 | `recycle_not_converged` | the flotation recycle did not converge |
+| `cell_residence_not_converged` | a flotation cell's tail flow did not settle |
 | `composite_scale_not_converged` | the host-limited composites did not converge |
 | `negative_mass` | a class mass is negative beyond round-off |
 | `non_finite_output` | a non-finite number was replaced by null |

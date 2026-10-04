@@ -353,7 +353,7 @@
     "flotation.composite_surface_exponent": {
       "value": 0.6666666666666666,
       "unit": "1",
-      "source": "Declared: the exposed surface of a composite grain scales with the two-thirds power of its valuable content."
+      "source": "Declared: the exposed valuable surface of a composite grain scales with the two-thirds power of the valuable's volume fraction in the particle, phi = (c/rho_V)/(c/rho_V + (1 - c)/rho_host) for a mass content c; until 0.09.000 the mass content itself was raised to 2/3, which overstated composite rates by 7 to 47% (review of 2026-10-04, F-01)."
     },
     "numerics.negative_mass_tolerance_per_tph": {
       "value": 1e-09,
@@ -379,6 +379,21 @@
       "value": 4.0,
       "unit": "1",
       "source": "Numerics: geometric step of the cut-size bracket search."
+    },
+    "numerics.cell_tail_tolerance": {
+      "value": 1e-13,
+      "unit": "1 (relative change of a cell's tail flow)",
+      "source": "Numerics: convergence of a flotation cell's tail flow, the fixed point q = Q_tail(tau = V (1 - eps_g)/q) of the single-cell balance (F-02); solved by secant from the feed flow, measured to settle in under ten steps."
+    },
+    "numerics.fit_bound_tolerance": {
+      "value": 1e-09,
+      "unit": "1 (relative distance of a fitted parameter to its bound)",
+      "source": "Numerics: a kinetic fit whose bounded parameter (R_inf, phi, beta) lies within this relative distance of its bound is reported at that bound (F-07); the logistic reparameterization saturates there in double precision."
+    },
+    "kinetics.signal_floor": {
+      "value": 1e-06,
+      "unit": "1 (batch recovery at the last time)",
+      "source": "Design: a virtual batch curve that ends below this recovery has no signal to fit; the record says so instead of reporting five unidentified fits (F-08)."
     },
     "numerics.load_log_floor": {
       "value": 1e-300,

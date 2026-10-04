@@ -239,7 +239,8 @@ function computeMetrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, stream
     put('rougher_recovery_pct', 100.0 * f.rougher_concentrate.speciesTph(primary, comp) / f.rougher_feed.speciesTph(primary, comp), '%');
     put('cleaner_recovery_pct', 100.0 * f.cleaner_concentrate.speciesTph(primary, comp) / f.cleaner_feed.speciesTph(primary, comp), '%');
     put('rougher_concentrate_grade', grade(f.rougher_concentrate, r, primary), r.units[primary]);
-    put('rougher_mass_pull_pct', 100.0 * f.rougher_concentrate.tph() / f.flotation_feed.tph(), '%');
+    // on the rougher's own feed, the basis of its recovery (F-05, K-09)
+    put('rougher_mass_pull_pct', 100.0 * f.rougher_concentrate.tph() / f.rougher_feed.tph(), '%');
     put('rougher_residence_min', flotation.rougher.residence_min, 'min');
     put('cleaner_residence_min', flotation.cleaner.residence_min, 'min');
     put('rougher_water_recovery_pct', 100.0 * flotation.rougher.water_recovery, '%');
@@ -247,14 +248,20 @@ function computeMetrics(r: ResolvedOre, plant: Plant, op: OperatingPoint, stream
     put('bubble_surface_flux_s', flotation.sb_rougher, '1/s');
     put('cleaner_recycle_tph', (plant.flotation as NonNullable<Plant['flotation']>).cleaner_tail_to_rougher === false ? 0.0 : f.cleaner_tail.tph(), 't/h');
     put('recycle_iterations', flotation.iterations, '1');
+    // the share of the rougher concentrate's free gangue that the rougher recovered by entrainment, exact from the
+    // bank's own split (F-04, K-08)
     const free = flotation.defs.filter(d => d.kind === 'free');
-    const final = flotation.species_final;
+    const x = flotation.rougher_feed_species;
     let gangueMass = 0.0;
     let entrained = 0.0;
     for (const d of free) {
-      gangueMass += vsum(final[d.id]);
+      const recovery = flotation.rougher.recovery[d.id];
       const share = flotation.rougher.entrained_share[d.id];
-      for (let i = 0; i < share.length; i += 1) entrained += final[d.id][i] * share[i];
+      let mass = 0.0;
+      let part = 0.0;
+      for (let i = 0; i < share.length; i += 1) { mass += x[d.id][i] * recovery[i]; part += x[d.id][i] * recovery[i] * share[i]; }
+      gangueMass += mass;
+      entrained += part;
     }
     put('entrained_gangue_share_pct', gangueMass > 0.0 ? 100.0 * entrained / gangueMass : 0.0, '%');
   }
@@ -313,7 +320,7 @@ function computeCurves(r: ResolvedOre, op: OperatingPoint, streams: Record<strin
       host_gangue: Array.from(flotation.rougher.recovery[host]),
       host_gangue_entrained_share: Array.from(flotation.rougher.entrained_share[host]),
     };
-    curves.bank_profile = bankProfile(flotation, r, primary, op.rougher_cells);
+    curves.bank_profile = bankProfile(flotation, r, primary);
   }
   if (magnetic !== null) {
     const capture: Record<string, number[]> = {};
