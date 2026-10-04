@@ -247,6 +247,10 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
           </table>
           <p className="of-facts-title">{SOURCE_TEXT.authors[lang]}</p>
           <p className="of-sample-text">{SOURCE_TEXT.authored[lang]}</p>
+          {/* the comparison's two notes read under the facts: in the panel they crowded it while the facts' column stood
+              half empty at 1600 x 900 (0.08 gate captures) */}
+          <p className="of-footnote">{SOURCE_TEXT.comparison[lang]}</p>
+          <p className="of-footnote">{gapFrame(record, lang)}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">
@@ -261,8 +265,6 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
               ))}
             </tbody>
           </table>
-          <p className="of-footnote">{SOURCE_TEXT.comparison[lang]}</p>
-          <p className="of-footnote">{gapFrame(record, lang)}</p>
         </div>
       </div>
   );
