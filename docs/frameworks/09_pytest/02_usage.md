@@ -6,7 +6,7 @@ Read order: [01 Installation](01_installation.md), **you are on 02**, then [03 A
 
 Every test file opens with the requirement it verifies (the `PE-nn` rows of
 `docs/design/features/process-engine-v2/requirements.md`), and `scripts/check_sdd.py` requires each
-requirement's gate to name a test that exists. The counts are those of 0.08.001 (540 in all); each release's are in
+requirement's gate to name a test that exists. The counts are those of 0.08.001 (541 in all); each release's are in
 `docs/release-verification.md`.
 
 | File | Tests in 0.08.001 | What it verifies |
@@ -37,7 +37,7 @@ requirement's gate to name a test that exists. The counts are those of 0.08.001 
 | `test_iron_plant.py` | 7 | IS-01 to IS-04, IS-06: the soft-sensor lane on its committed artifact and on small synthetic frames, the held laboratory labels and the fitted last assay; never refits the lane or reads the 184 MB CSV |
 | `test_real_samples.py` | 8 | RS-01 to RS-05: the pinned GeoMet tables, the Bond work index, the sulphur-limited allocation, the engine runs of the samples in the soft porphyry's circuit and the comparison's dependences |
 | `test_ablations.py` | 14 | AB-01 to AB-03: every mechanism switch is on by default and changes nothing when on, every ablated state closes its balances, and a case without the mechanism is not applicable |
-| `test_spa_routes.py` | 4 | the service's version; its document-route fallback with and without a `404.html` (0.08.000 answered 404 without one); a build with no Pages `404.html` |
+| `test_spa_routes.py` | 5 | the service's version; its document-route fallback with and without a `404.html` (0.08.000 answered 404 without one); the runtime module served as JavaScript whatever the host's type table; a build with no Pages `404.html` |
 | `test_manuscript_claims.py` | 9 | every result number and count the manuscript quotes, against the committed records |
 | `test_docs_claims.py` | 9 | every number methodology pages 04, 06, 09, 12, 13 and 15 to 18, guide 03 and data contracts 03 to 06 quote |
 | `test_docs_counts.py` | 7 | the SDD coverage matrix, guide 03's snippets, methodology pages 02, 03 and 11, the bake times, retired phrases, every relative link, and the changelog's entries |

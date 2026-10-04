@@ -1,6 +1,7 @@
 """OreFlow service: static SPA plus read-only artifacts and bounded live API."""
 from __future__ import annotations
 
+import mimetypes
 from pathlib import Path
 
 from fastapi import FastAPI
@@ -14,6 +15,14 @@ from fastapi.staticfiles import StaticFiles
 from . import __version__
 from .config import Settings, origins
 from .routers import content
+
+# The browser runs the ONNX runtime as a JavaScript module, which it refuses unless it is served as JavaScript.
+# Starlette takes the type from the host's table: Linux maps .mjs to text/javascript, while Windows maps it to
+# text/plain, and the learned lane never loaded when the service ran there (the 0.08.001 release gate). The service
+# declares the types it depends on instead of inheriting them.
+mimetypes.add_type("text/javascript", ".mjs")
+mimetypes.add_type("text/javascript", ".js")
+mimetypes.add_type("application/wasm", ".wasm")
 
 
 class SpaStaticFiles(StaticFiles):

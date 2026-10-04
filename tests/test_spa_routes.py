@@ -37,6 +37,27 @@ def test_document_routes_fallback_without_masking_missing_assets(tmp_path, with_
     assert client.get("/api/missing").status_code == 404
 
 
+def test_the_runtime_module_is_served_as_javascript(tmp_path):
+    """The ONNX runtime is a JavaScript module: served as text/plain (Windows' type table) the browser refuses it and
+    the learned lane never loads. The service declares the types itself."""
+    import mimetypes
+
+    from app import main  # noqa: F401  (registers the types)
+
+    (tmp_path / "index.html").write_text("<title>OreFlow</title>", encoding="utf-8")
+    (tmp_path / "ort").mkdir()
+    (tmp_path / "ort" / "runtime.mjs").write_text("export {};", encoding="utf-8")
+    (tmp_path / "ort" / "runtime.wasm").write_bytes(b"\0asm")
+    mimetypes.add_type("text/plain", ".mjs")  # a host table that gets it wrong, as Windows' does
+    from importlib import reload
+    reload(main)
+    app = FastAPI()
+    app.mount("/", SpaStaticFiles(directory=tmp_path, html=True))
+    client = TestClient(app)
+    assert client.get("/ort/runtime.mjs").headers["content-type"].startswith("text/javascript")
+    assert client.get("/ort/runtime.wasm").headers["content-type"].startswith("application/wasm")
+
+
 def test_the_built_site_has_no_404_page():
     """The service's fallback is what answers deep links; the build writes no Pages 404.html (one deploy path)."""
     from pathlib import Path

@@ -14,6 +14,10 @@ A patch of 0.08.000: the service answers a direct request for a page again.
   in 0.08.000, wrote one. The fallback now takes both forms of the miss, a test runs it with and without
   `404.html` (it fails on 0.08.000), and the release's browser gate runs against the service itself instead of
   the Vite preview, whose own fallback had hidden the defect. Found by the 0.08.000 deployment's external checks.
+- The service declares the types of the files it serves that the browser checks: the ONNX runtime's `.mjs` module
+  as JavaScript, and `.wasm`. It took them from the host's table, which maps `.mjs` to `text/plain` on Windows, so
+  the learned lane never loaded when the service ran there (found by this release's gate against the service; the
+  VPS, on Linux, served it right). A test serves both through the service with a wrong host table.
 
 ### Records
 
