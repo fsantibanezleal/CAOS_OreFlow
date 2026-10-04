@@ -1,5 +1,6 @@
 """Direct-route fallback is required by the fixed-page app contract."""
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -12,9 +13,6 @@ def test_service_version_matches_package() -> None:
     client = TestClient(create_app())
     assert client.get("/healthz").json()["version"] == __version__
     assert client.get("/openapi.json").json()["info"]["version"] == __version__
-
-
-import pytest
 
 
 @pytest.mark.parametrize("with_404_page", [False, True])

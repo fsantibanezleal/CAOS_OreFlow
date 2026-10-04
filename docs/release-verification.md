@@ -15,6 +15,11 @@ A patch of 0.08.000: the service answers a direct request for a page again.
   follow, the timings, and 183 random-forest scores in their last bits (at most 4.4e-14 relative). The exported
   networks, the scalers and the screen are byte-identical. It was adopted whole.
 - `scripts/check_artifacts.py` and the guards pass on the adopted records.
+- The first develop CI run of the patch failed: ruff flagged an import placed mid-file in the new route test, and
+  the use-case pages still named engine 0.08.000 after the bake's restamp. The local run had taken the suites and
+  the guards but skipped those two steps of `scripts/smoke.sh`; both are fixed, and the whole smoke script then
+  passed (the eight guards, the use-case pages, ruff, the Python suite, the framework examples, the typecheck, the
+  frontend suite and the build).
 - The suites on the final tree: Python 541 of 541 (307 s); frontend 439 of 439 (218 s). The route test runs the service's fallback with and without
   a `404.html`; its first case fails on 0.08.000.
 - The browser gate ran against the service itself (`uvicorn app.main:app`, as the VPS serves the site), not the Vite
