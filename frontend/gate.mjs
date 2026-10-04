@@ -658,7 +658,9 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
   await page.waitForSelector('.of-view-sample table.of-table', { timeout: 90000 });
   await page.waitForFunction(() => !document.querySelector('.of-readout-busy'), null, { timeout: 90000 }).catch(() => undefined);
-  await settleCharts(page, 1);
+  // the chart is on this screen only in the large layout; below it, it waits in its own sub-tab
+  if (!(await page.locator('.of-view-sample .subtablist').count())) await settleCharts(page, 1);
+  else await page.waitForTimeout(250);
   const sampleCheck = await page.evaluate(() => ({
     fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
     tables: document.querySelectorAll('.of-view-sample table.of-table').length,
