@@ -2,7 +2,7 @@
 
 Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research programme, Santiago, Chile
 
-Draft of 2026-10-03, written against OreFlow 0.08.000. Not deposited; no DOI. Every number below is read
+Draft of 2026-10-04, written against OreFlow 0.08.001. Not deposited; no DOI. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
 `data/derived/source/*.json`, the twelve case artifacts, the operating contract and the validation record), and
 `tests/test_manuscript_claims.py` fails if one of them and the records disagree. The test counts of section 9 are
@@ -368,7 +368,7 @@ surrogate preserves the ranking of operating decisions.
 ## 9. Reproducibility
 
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
-the browser port, the service and the documentation are versioned together; this draft describes 0.08.000.
+the browser port, the service and the documentation are versioned together; this draft describes 0.08.001.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
 workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed precompute took 4445 s for the cases on 12
 workers and 15303 s for the learned lane, while other jobs shared the machine; the measured lanes follow it.

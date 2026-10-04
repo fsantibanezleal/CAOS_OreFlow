@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.08.001] - 2026-10-04
+
+A patch of 0.08.000: the service answers a direct request for a page again.
+
+### Fixed
+
+- A direct request for a content page (`/methodology`, `/benchmark`, a focus route) answered 404 on the VPS. The
+  service's fallback to the app read a 404 response, but Starlette's static files answer a miss with a 404
+  response only when the build holds a `404.html`, and raise otherwise; only the GitHub Pages build path, removed
+  in 0.08.000, wrote one. The fallback now takes both forms of the miss, a test runs it with and without
+  `404.html` (it fails on 0.08.000), and the release's browser gate runs against the service itself instead of
+  the Vite preview, whose own fallback had hidden the defect. Found by the 0.08.000 deployment's external checks.
+
+### Records
+
+- The release bake, compared with 0.08.000's: the version stamps change, and nothing else beyond timings.
+
 ## [0.08.000] - 2026-10-04
 
 The fixes of the adversarial review of 0.07.000 (issue #60: seven dimensions, each verified by a second reviewer;
