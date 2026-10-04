@@ -9,7 +9,9 @@
   - Raising `e` makes the product finer, so less reports to the underflow and `C` falls. The product
     `e (1 + C)` is expected to rise with `e`.
   - T1 measures that over every case on a grid of cuts. If a case is not monotone, the solve keeps the root
-    nearest the target-mode energy, and the record flags `cut_mode_multiple_roots`.
+    nearest the target-mode energy, and the record flags `cut_mode_multiple_roots`. Dropped after T1: the power was
+    monotone in the energy in all 60 measured series, so the flag was never implemented (review of 0.07.000, W-48); CM-09 (0.08.000)
+    refuses a cut with no steady state instead.
   - If no root lies inside the bracket, the state is flagged `power_unreachable_at_cut` and runs at the bracket
     end nearest the power.
 - **The water bypass follows the achieved load.** In the target mode the underflow water, and with it the
@@ -19,7 +21,8 @@
     `R_f = W_u / (W_u + W_o)`, then `C` from the pass;
   - T1 measures its convergence over every case (`cutmode_measure`) before the solver relies on it.
 - **Outputs.** The same `GrindingResult`: the P80 is read from the overflow, the circulating load from the
-  underflow, and the power from `e (1 + C) F`. The trace records `grinding.mode` and which quantities were set.
+  underflow, and the power from `e (1 + C) F`. The trace records the `cut_mode` metric (1 in the cut mode, 0 in the target mode); in the cut mode the
+  achieved P80 and load take the targets' place.
 - **Contract. Changed during T2.** The mode is the cut itself: `d50c_um = 0`, the nominal of every case, is the
   target mode, and a positive cut is the cut mode. Its per-case bounds are 0.8 and 1.6 times the cut the target mode
   solves at the nominal state (`catalog.nominal_cut`, computed by the engine when the contract is built), rounded to

@@ -18,28 +18,29 @@ the change.
 
 ```powershell
 ./scripts/fetch-data.ps1          # once: the HZDR workbook and the GeoMet tables (the measured lanes need them)
-./scripts/precompute.ps1          # the process bake, then the particle lane, then the GeoMet lane
+./scripts/precompute.ps1          # the particle, GeoMet and iron-plant lanes, then the process bake
 ```
 
 `precompute.ps1` uses `.venv-gpu` when it exists and `.venv` otherwise, and passes its arguments to
 `data-pipeline/run.py`: `--workers N` sets the number of case processes (default half the logical cores,
-at most twelve); `--output` and `--models` redirect the output (see the sandbox below). The process bake
-runs six stages and stops with an error if the last one, the artifact checks, finds anything:
+at most twelve); `--output` and `--models` redirect the output (see the sandbox below). The measured lanes run
+first, so the bake reads the fresh GeoMet record and its validation checks all three. The process bake runs eight
+stages and stops with an error if the last one, the artifact checks, finds anything:
 
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
-| contract | `contract/operating_contract.json`, `contract/contract_probes.json` | under 1 s |
-| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 4082.2 s on CUDA in the committed 0.07.000 bake, under the same load (1688.0 s unloaded for 0.05.000); it runs before the cases, which read the screen |
-| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 1292.8 s on 12 workers in the committed 0.07.000 bake, which shared the machine with a parity run and browser checks (374.9 s unloaded for 0.05.000, before the optimizer ran twice) |
-| benchmark | `benchmark.json` | under 1 s |
-| studies | `studies.json`: the ablations and the uncertainty seed study | 128.9 s on 12 workers |
-| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 2.6 s |
+| contract | `contract/operating_contract.json`, `contract/contract_probes.json` | 2.1 s |
+| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 15302.6 s on CUDA in the committed 0.08.000 bake, while another job held every core of the machine |
+| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 4445.0 s on 12 workers in the committed 0.08.000 bake |
+| benchmark | `benchmark.json` | 3.9 s |
+| studies | `studies.json`: the ablations and the uncertainty seed study | 377.7 s on 12 workers |
+| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 393.6 s |
 | manifests | `manifests/<case>.json`, `manifests/index.json` | under 1 s |
-| validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | under 1 s |
+| validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | 3.0 s |
 
 The times are those recorded in the committed `validation.json` (development machine: 32 logical cores,
 RTX 4070 Laptop GPU). Each stage and each finished case prints a timestamped line; a bake still running
-after 45 minutes prints every thread's stack once, so a stall shows where it is.
+after four hours, well past a normal run, prints every thread's stack once, so a stall shows where it is.
 
 ## The GPU lane
 

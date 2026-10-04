@@ -19,7 +19,7 @@ sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "data-pipeline"))
 
 from app.main import create_app  # noqa: E402
-from pipeline.cases.catalog import CASE_BY_ID  # noqa: E402
+from pipeline.cases.catalog import CASE_BY_ID, CASES  # noqa: E402
 from pipeline.engine.circuit import simulate  # noqa: E402
 from pipeline.engine.trace import trace  # noqa: E402
 
@@ -33,10 +33,13 @@ assert health == {"status": "ok", "service": "oreflow", "version": version}
 index = client.get("/api/cases").json()
 contract = client.get("/api/contract").json()
 print(f"catalog: {index['n_cases']} cases, {index['n_variants']} variants; contract digest {contract['digest'][:12]}...")
-assert (index["n_cases"], index["n_variants"]) == (12, 72) and index["contract_digest"] == contract["digest"]
+# the counts come from the catalog, so the example cannot fall behind it (it asserted 72 variants after the cut
+# mode had made them 96)
+assert (index["n_cases"], index["n_variants"]) == (len(CASES), sum(len(c.variants) for c in CASES))
+assert index["contract_digest"] == contract["digest"]
 assert client.get("/api/cases/not_a_case").status_code == 404
 
-# an accepted state: two inputs changed, the other ten taken from the case's nominal point
+# an accepted state: two inputs changed, the other eleven taken from the case's nominal point
 point = {"target_p80_um": 120, "collector_gpt": 30}
 reply = client.post("/api/simulate", json={"case_id": "copper_porphyry_soft", "point": point})
 body = reply.json()

@@ -1,7 +1,6 @@
 # CAOS OreFlow
 
 - Live: [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/) (the site and the live API)
-- Mirror: [fsantibanezleal.github.io/CAOS_OreFlow](https://fsantibanezleal.github.io/CAOS_OreFlow/) (the site)
 
 [![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_OreFlow/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_OreFlow/actions)
 [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_OreFlow)](LICENSE)
@@ -23,7 +22,8 @@ far a learned surrogate of a process can be trusted when the ore changes.
   design circulating load, at installed power when the target cannot be met, or, in the cut mode, holds the
   cyclone's cut at installed power and lets the P80 and the load follow; Plitt hydrocyclones with water
   bypass and density-corrected cuts per mineral; flotation banks with rates from bubble surface area flux,
-  entrainment and cleaner recycles; a gravity unit on the underflow; low-intensity magnetic drums;
+  entrainment and cleaner recycles; a gravity unit on part of the cyclone underflow that recovers the
+  gravity-recoverable gold (Laplante's GRG model); low-intensity magnetic drums;
   desliming; Bond, Rittinger and Kick energy; an independent audit of every balance.
 - **Method records** for every variant: five lumped kinetic models fitted to a virtual batch test and
   projected to the bank; a constrained optimizer (a pattern search with a progressive barrier from six starts,
@@ -34,13 +34,14 @@ far a learned surrogate of a process can be trusted when the ore changes.
 - **A learned lane**: ridge, random forest, gradient boosting, a Gaussian process and a PyTorch MLP trained
   on 3072 engine states, scored inside the cases and on held-out cases, with an autoencoder guard; the MLP
   and the guard run in the browser as ONNX.
-- **Two measured lanes**, kept apart from the engine: the HZDR particle dataset (RODARE 336, CC BY 4.0) and
-  52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0).
+- **Three measured lanes**, none of which calibrates the engine: the HZDR particle dataset (RODARE 336,
+  CC BY 4.0), 52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0) and the iron-plant hours below.
 - **Real sources in the workbench**: the 52 GeoMet samples run on their own assays, a sulphur-limited normative
   mineralogy (bornite and chalcocite) and their Bond work index in the soft porphyry's circuit, beside the measured
   recovery; and hours of one iron-ore plant (Kaggle 6294, CC0) with a leakage-safe next-hour silica soft sensor.
-- **Checks against published examples**: the Moly-Cop base case, the GMG Bond worked examples, the Laplante
-  gravity example and the Zandrivierspoort magnetite tests.
+- **Checks against published examples**: the Moly-Cop base case, the GMG Bond worked examples, Laplante's
+  gravity example compared like for like on the gravity-recoverable gold, and the Zandrivierspoort magnetite tests;
+  each record states its miss.
 
 Twelve cases, eight variants each (six of the target mode, two of the cut mode): soft and hard copper porphyry, low-grade copper at high throughput, copper
 ore with clay, copper-molybdenum bulk flotation, oxide copper by sulphidisation, zinc sulphide, nickel
@@ -49,12 +50,18 @@ and phosphate with clay slimes ([use cases](docs/use-cases.md)).
 
 ## Quick start
 
-Python 3.12, Node 20 or later (22 in CI), git:
+The workbench alone needs only Node 20 or later (22 in CI): it reads the committed records and runs the engine's
+port in the browser.
 
 ```powershell
-./scripts/setup.ps1                 # .venv and .venv-gpu, never a global interpreter
-cd frontend; npm ci; cd ..
-./scripts/dev.ps1                   # the workbench on http://127.0.0.1:5914
+cd frontend; npm ci; npm run dev    # the workbench on http://127.0.0.1:5914
+```
+
+The Python engine, the service and the tests also need Python 3.12:
+
+```powershell
+./scripts/setup.ps1 -NoGpu          # .venv only, never a global interpreter (bash: setup.sh --no-gpu)
+./scripts/setup.ps1                 # .venv and .venv-gpu, the CUDA build of PyTorch for training the learned lane
 ```
 
 The committed records in `data/derived/` and `models/` are all the site needs; a bake is only needed after
@@ -81,21 +88,32 @@ TypeScript port that reproduces every baked variant within 1e-6 and runs in a We
 interface on the shared CAOS app shell, with uPlot charts and KaTeX equations; a FastAPI service that runs
 the Python engine behind the same operating contract. See [architecture](docs/architecture.md).
 
+![What runs where: the measured lanes, the precompute, the committed records, the browser and the service](frontend/public/svg/tech/02-lanes.svg)
+
+The service's routes (the cases, a case's manifest, the contract, the benchmark, `POST /api/simulate` and the
+health checks) are in [app/README.md](app/README.md); the files of the repository in [STRUCTURE.md](STRUCTURE.md).
+
 ## Documentation
 
 | Section | Contents |
 |---|---|
+| [Wiki index](docs/README.md) | every theme of the documentation and its pages |
 | [Architecture](docs/architecture.md) | the system, the bake, the browser engine, the web app, release and deployment |
-| [Methodologies](docs/methodologies.md) | every unit model and method, with its equations, parameters, sources and tests |
-| [Data contract](docs/data-contract.md) | the operating contract, the trace, the artifacts and the measured lanes |
+| [Methodologies](docs/methodologies.md) | every unit model and method, the real samples and the three measured lanes, with their equations, parameters, sources and tests |
+| [Data contract](docs/data-contract.md) | the operating contract, the trace, the records, and the inputs and records of the three measured lanes |
 | [Frameworks](docs/frameworks.md) | each library, how OreFlow uses it, with runnable examples |
 | [Guides](docs/guides.md) | running it locally, baking, using it on other data, adding a case, reading the workbench |
 | [Use cases](docs/use-cases.md) | the twelve cases, rendered from the committed records |
 | [Design](docs/design/SDD.md) | the software design document and the requirements with their gates |
+| [Service](app/README.md) | the FastAPI service and its routes |
+| [Structure](STRUCTURE.md) | the repository's folders and files |
+| [Changelog](CHANGELOG.md) | the releases, newest first |
+| [Release verification](docs/release-verification.md) | what was checked, where and when, for each release |
+| [Manuscript](manuscript/oreflow-digital-twin.md) | the manuscript draft (not deposited; no DOI) |
 
 ## What the results are, and are not
 
-The cases are authored scenarios inside published ranges, not calibrated plants; the directions of the
+The cases are authored scenarios, each parameter and plausibility range cited or labelled authored, not calibrated plants; the directions of the
 effects are the engine's physics, their sizes depend on the authored parameters. The optimizer has no
 prices. The learned lane approximates this engine, and its held-out-case scores bound how it transfers to
 another authored plant, not to a real one. The measured lanes are separate evidence and calibrate nothing in

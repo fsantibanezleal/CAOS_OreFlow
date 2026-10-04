@@ -9,7 +9,7 @@ const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
 const Introduction = React.lazy(() => import("./pages/Introduction"));
 ...
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
+  <BrowserRouter>
     <Citations><AppRoutes /></Citations>
   </BrowserRouter>,
 );

@@ -73,12 +73,18 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
   const sample = source === 'sample' ? samples?.samples.find(s => s.id === sampleId) ?? null : null;
   const [artifact, setArtifact] = useState<CaseArtifact | null>(null);
   const [trace, setTrace] = useState<Trace | null>(null);
+  // the case and sample a trace answers: while another subject computes, the last one's numbers are not its own
+  // (the 0.08 gate caught a GeoMet sample's Case view reading the synthetic case's 94.2% as "Engine, this state")
+  const [traceSubject, setTraceSubject] = useState<string | null>(null);
+  const subject = `${caseId}|${source === 'sample' ? sample?.id ?? '?' : ''}`;
   const [accepted, setAccepted] = useState<OperatingPoint | null>(null);
   const [errors, setErrors] = useState<ContractError[]>([]);
   const [computing, setComputing] = useState(false);
   // U-03: a state the contract rejects or the engine refuses has no current result; the last valid one is hidden
   const [rejected, setRejected] = useState(false);
   const pending = useRef<{ variant: string | null; set: Partial<Record<keyof OperatingPoint, number>> } | null>(null);
+  // S-12: the changed controls of a sample link, applied once the sample is the base
+  const sampleSet = useRef<Partial<Record<keyof OperatingPoint, number>> | null>(null);
   const opened = useRef(false);
 
   // the URL's state, once
@@ -93,6 +99,8 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     const wantedSource = params.get('source') as Source | null;
     if (wantedSource && SOURCES.includes(wantedSource) && wantedSource !== useWorkbench.getState().source) setSource(wantedSource);
     if (params.get('sample')) useWorkbench.setState({ sampleId: params.get('sample') });
+    // S-12: a sample link carries its changed controls, applied after the sample's own point
+    if (wantedSource === 'sample') sampleSet.current = parseSet(params.get('set'));
     if (params.get('hour')) setHour(params.get('hour') as string);
     // back from the focus route the store already holds this state; the URL only mirrors it
     const held = useWorkbench.getState();
@@ -135,8 +143,16 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     if (caseId !== SAMPLE_CASE) { setCase(SAMPLE_CASE); return; }
     if (!samples || !artifact || artifact.case_id !== SAMPLE_CASE) return;
     const wanted = samples.samples.find(s => s.id === sampleId) ?? samples.samples[0];
-    if (appliedSample.current !== wanted.id) { appliedSample.current = wanted.id; setSample(wanted.id, wanted.point); }
-  }, [source, caseId, samples, artifact, sampleId, setCase, setSample, setVariant]);
+    if (appliedSample.current !== wanted.id) {
+      appliedSample.current = wanted.id;
+      setSample(wanted.id, wanted.point);
+      // the sample's assays and work index stay its own; the link's other changes return
+      const set = sampleSet.current;
+      sampleSet.current = null;
+      const free = Object.fromEntries(Object.entries(set ?? {}).filter(([k]) => k !== 'head_grade' && k !== 'work_index_kwh_t'));
+      if (Object.keys(free).length) setPoint({ ...wanted.point, ...free } as OperatingPoint);
+    }
+  }, [source, caseId, samples, artifact, sampleId, setCase, setSample, setVariant, setPoint]);
 
   // validate, then evaluate in the worker; only the newest state's trace is kept
   useEffect(() => {
@@ -152,8 +168,9 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
     const valid = (sample ? { ...verdict.point, head_grade: sample.point.head_grade, work_index_kwh_t: sample.point.work_index_kwh_t }
       : verdict.point) as unknown as OperatingPoint;
     setComputing(true);
+    const asked = `${caseId}|${sample?.id ?? ''}`;
     evaluateInWorker(sample ? sample.ore : artifact.definition.ore, artifact.definition.plant, valid).then(
-      next => { setTrace(next); setAccepted(valid); setComputing(false); },
+      next => { setTrace(next); setTraceSubject(asked); setAccepted(valid); setComputing(false); },
       error => {
         // a state the engine refuses (E-01) is a rejection like the contract's: its error shows, no result is current
         if (error instanceof RefusedState) { setErrors([error.error]); setRejected(true); setComputing(false); return; }
@@ -163,7 +180,7 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
   }, [loaded, artifact, point, caseId, source, sample]);
 
   const variant = artifact?.variants.find(v => v.id === variantId) ?? null;
-  return { artifact, variant, trace: source === 'hour' ? null : trace, accepted, errors, computing, samples, lane, sample,
+  return { artifact, variant, trace: source === 'hour' || traceSubject !== subject ? null : trace, accepted, errors, computing, samples, lane, sample,
     rejected: source !== 'hour' && rejected };
 }
 
@@ -183,6 +200,8 @@ export default function Workbench() {
     if (query !== params.toString()) setParams(query, { replace: true });
   }, [caseId, variantId, base, point, view, source, sampleId, hourKey, params, setParams]);
   useEffect(() => setCursor(null), [view, caseId]);
+  // U-15: an hour of the plant has only its Case view; the source opens it and the other views are disabled
+  useEffect(() => { if (source === 'hour' && view !== 'case') setView('case'); }, [source, view, setView]);
 
   if (failure) return <div className="page-body wide of-bench"><p className="of-failure" role="alert">{failure}</p></div>;
   if (!loaded || !artifact || !variant || !point || artifact.case_id !== caseId) {
@@ -215,7 +234,7 @@ export default function Workbench() {
     else if (view === 'response') body = <SourceStatement kind="sample-response" lang={lang} />;
     else if (view === 'methods') body = <SourceStatement kind="sample-methods" lang={lang} />;
     else body = <SampleView record={samples} sample={sample} recovery={trace.metrics.recovery_pct ?? null} p80={trace.metrics.p80_um ?? null}
-      powerLimited={trace.metrics.power_limited === 1} lang={lang} />;
+      powerLimited={trace.metrics.power_limited === 1} lang={lang} onCursor={setCursor} />;
   } else if (source === 'case' && trace && accepted) {
     if (view === 'circuit') body = <CircuitView trace={trace} primary={primary} lang={lang} selected={selectedUnit} onSelect={selectUnit} />;
     else if (view === 'grinding') body = <GrindingView trace={trace} ore={artifact.definition.ore} lang={lang} onCursor={setCursor} />;
@@ -231,8 +250,13 @@ export default function Workbench() {
       <section className="of-main" aria-label={artifact.title[lang]}>
         {source === 'hour' && lane ? <HourReadout lane={lane} hourKey={hourKey} lang={lang} cursor={cursor} />
           : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} rejected={rejection} />}
-        <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names} />
-        {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
+        {/* the flags' sentences share the tabs' row where it has room: on their own line they took the instrument under
+            half the screen in a flagged state at 1280 x 800 (0.08 gate, a GeoMet sample at installed power) */}
+        <div className="of-viewrow">
+          <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names}
+            disabled={source === 'hour' ? VIEWS.filter(v => v !== 'case') : []} />
+          {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
+        </div>
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>
       </section>
     </div>

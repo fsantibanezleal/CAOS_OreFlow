@@ -495,7 +495,8 @@ def check_iron_plant(derived: Path) -> list[str]:
     a = _load(path)
     errors: list[str] = []
     q, s, protocol = a.get("quality", {}), a.get("source", {}), a.get("protocol", {})
-    models = {"train_mean", "previous_lab", "ridge", "random_forest", "hist_gradient_boosting",
+    # M-04 (review of 2026-10-02): the AR(1) baseline on the previous laboratory hour, fitted in each window
+    models = {"train_mean", "previous_lab", "ar1_previous_lab", "ridge", "random_forest", "hist_gradient_boosting",
               "ridge_with_previous_lab", "boosting_with_previous_lab"}
     if a.get("schema") != "oreflow.iron-plant-soft-sensor/v1" or s.get("archive_sha256") != "fa1fb0c928d84366ec1bd315e0ed1380f5d5576525603458b49ea4cfe446d98e":
         errors.append("iron plant schema or archive pin")
@@ -508,6 +509,30 @@ def check_iron_plant(derived: Path) -> list[str]:
         errors.append("iron plant windows, embargo or model matrix")
     if set(a.get("pooled_scores", {})) != models:
         errors.append("iron plant pooled scores")
+    # M-04: the paired day-block bootstrap comparisons and the share of hours whose assay repeats the previous one
+    comparisons = a.get("comparisons", [])
+    if not comparisons or any(set(c) < {"a", "b", "metric", "difference_pct_points", "interval_95"} or c["a"] not in models
+                              or c["b"] not in models or len(c["interval_95"]) != 2
+                              or not c["interval_95"][0] <= c["difference_pct_points"] <= c["interval_95"][1] for c in comparisons):
+        errors.append("iron plant comparisons")
+    share = a.get("repeated_assay_share")
+    if not isinstance(share, (int, float)) or not 0.0 <= share <= 1.0:
+        errors.append("iron plant repeated-assay share")
+    # S-16: the held laboratory labels, the pairs that touch them, the same matrix without those pairs, and the mark
+    # on every traced hour
+    held = a.get("held_labels", {})
+    pairs = protocol.get("pair_rows")
+    if (not isinstance(held.get("run_hours_min"), int) or held.get("run_hours_min", 0) < 2
+            or not 0 <= held.get("held_hours", -1) <= q.get("constant_lab_hours", 0)
+            or held.get("repeated_both_assays_hours", 0) > held.get("repeated_label_hours", -1)
+            or held.get("longest_run_hours", 0) < held.get("run_hours_min", 0)
+            or held.get("pairs_touching", -1) + held.get("pairs_without", -1) != pairs
+            or set(held.get("pooled_scores_without", {})) != models
+            or len(held.get("comparisons_without", [])) != len(comparisons)):
+        errors.append("iron plant held-label block")
+    traced = [row for f in folds for row in f.get("trace", [])]
+    if not traced or any(not isinstance(row.get("held"), bool) for row in traced):
+        errors.append("iron plant traced hours carry no held mark")
     return errors
 
 

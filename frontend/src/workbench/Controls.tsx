@@ -8,7 +8,7 @@
  */
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
-import { formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
+import { formatRange, formatValue, formatWithUnit, type Lang } from '../lib/format';
 import { t, UI } from '../lib/i18n';
 import { useWorkbench } from './state';
 
@@ -17,7 +17,7 @@ export function contractMessage(contract: OperatingContract, error: ContractErro
   if (rule) return rule.message[lang];
   const text = contract.messages[error.code]?.[lang] ?? error.code;
   if (error.code === 'out_of_range' && error.min !== undefined && error.max !== undefined) {
-    return `${text} (${formatValue(error.min, unit, lang)} – ${formatWithUnit(error.max, unit, lang)})`;
+    return `${text} (${formatRange(error.min, error.max, unit, lang)})`;
   }
   return text;
 }
@@ -46,7 +46,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
         const value = point ? point[name] : bounds.min;
         const unit = spec.unit === 'case' ? primaryUnit : spec.unit;
         const shown = spec.display_scale !== 1 ? `${formatValue(value * spec.display_scale, spec.display_unit, lang)}${spec.display_unit}`
-          : `${formatValue(value, unit, lang)} ${unitLabel(unit)}`.trim();
+          : formatWithUnit(value, unit, lang);   // U-31: "0.74%", and a narrow no-break space before any other unit
         const error = errors.find(e => e.input === name);
         const variantValue = variantPoint?.[name];
         const id = `${idPrefix}-${name}`;
@@ -84,7 +84,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
                 <span>{spec.label[lang]}</span>
                 <output htmlFor={id}>{shown}</output>
               </label>
-              <input id={id} type="range" min={Math.min(bounds.min, value)} max={Math.max(bounds.max, value)} step={bounds.step} value={value} disabled aria-describedby={`${id}-fixed`} />
+              <input id={id} type="range" min={Math.min(bounds.min, value)} max={Math.max(bounds.max, value)} step="any" value={value} disabled aria-describedby={`${id}-fixed`} />
               <small id={`${id}-fixed`} className="of-knob-base">{fixedBy[lang]}</small>
             </div>
           );

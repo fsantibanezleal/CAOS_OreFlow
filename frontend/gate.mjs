@@ -32,6 +32,14 @@
  * - at 390x844 and 768x1024 in both themes and languages (OF_SMALL), where the rail stacks and the page body scrolls, visits every
  *   view: the rail whole and clear of the readout, no sideways document scroll, and no flowsheet unit
  *   box over another; and every tab and sub-tab of every content page, none scrolling the document sideways;
+ * - reads, on every App view, what the review of 2026-10-02 found no probe reading (REVIEW_PROBE): a word or a
+ *   number split over two lines, a unit on the line after its number, an engine code in visible text, a white
+ *   control in the dark theme, a cut readout, a select that cuts its own text, a workbench table that needs its
+ *   scroll box, and a flowsheet that dropped a label, drew a tail as a product or ran an edge through a label;
+ * - once per run (OF_REVIEW, default 1280x800-dark-es; empty for none), drives the states the review reached by hand:
+ *   a sweep and a learned sweep followed by a state change (U-01, U-02), a rule violation (U-03), the optimizer's
+ *   bound corner and the gold unit (U-04, U-05), a flagged variant (U-06, U-11), the phosphate facts (U-12), the
+ *   focus stage from each view (U-25) and the classifier cut that reads off (U-28);
  * - fails on any console error.
  *
  * A screenshot of every state lands in OF_QA (default `qa-output/`, ignored by git); the measurements
@@ -45,7 +53,8 @@ const BASE = process.env.OF_BASE || 'http://127.0.0.1:4914';
 const OUT = process.env.OF_QA || 'qa-output';
 const CASE = process.env.OF_CASE || 'copper_porphyry_soft';
 const FULL = process.env.OF_MATRIX === 'full';
-const VIEWPORTS = [[1280, 800], [1600, 900], [2560, 1440]];
+// 1920x1080 joined in 0.08.000: the review of 2026-10-02 measured it and the gate never had (U-34)
+const VIEWPORTS = [[1280, 800], [1600, 900], [1920, 1080], [2560, 1440]];
 const ALL = VIEWPORTS.flatMap(v => ['dark', 'light'].flatMap(theme => ['en', 'es'].map(lang => ({ v, theme, lang }))));
 const tagOf = ({ v: [w, h], theme, lang }) => `${w}x${h}-${theme}-${lang}`;
 // OF_ONLY names combinations of the full matrix (1280x800-dark-es,...), to re-check one after a fix
@@ -59,6 +68,8 @@ const VIEWS = ['circuit', 'grinding', 'separation', 'response', 'methods', 'case
 // (both themes and both languages at each size: PE-37 names phone, tablet and desktop in both)
 const SMALL = (process.env.OF_SMALL ?? (ONLY.length ? '' : '390x844-light-en,390x844-dark-es,768x1024-light-en,768x1024-dark-es')).split(',').map(s => s.trim()).filter(Boolean);
 const PAGES = (process.env.OF_PAGES ?? 'introduction,methodology,implementation,experiments,benchmark').split(',').filter(Boolean);
+// the review pass (once per run): the combination it runs at, empty for none
+const REVIEW = process.env.OF_REVIEW ?? (ONLY.length ? '' : '1280x800-dark-es');
 // the tab counts the pages must show: Implementation's nine (PG-02), Experiments' seven (PG-01), and Benchmark's five
 // with the industrial-quality lane (IS-05)
 const TAB_CENSUS = { implementation: 9, experiments: 7, benchmark: 5 };
@@ -133,7 +144,9 @@ const ELLIPSIS_PROBE = () => {
 const CANVAS_TEXT_PROBE = () => {
   const hosts = [...document.querySelectorAll('.of-plot-area')].filter(e => e.getBoundingClientRect().width > 0);
   const name = e => e.getAttribute('aria-label')?.slice(0, 40) ?? 'chart';
-  const cut = hosts.flatMap(e => ['ticksCut', 'titleCut', 'labelsOver'].filter(k => (e.dataset[k] ?? '0') !== '0').map(k => `${name(e)}: ${k} ${e.dataset[k]}`));
+  // marksOver (U-27): a mark label with no place clear of the data and the other marks; yTicksCut (U-05): a y tick
+  // wider than its axis, under the axis title
+  const cut = hosts.flatMap(e => ['ticksCut', 'titleCut', 'labelsOver', 'marksOver', 'yTicksCut'].filter(k => (e.dataset[k] ?? '0') !== '0').map(k => `${name(e)}: ${k} ${e.dataset[k]}`));
   const silent = hosts.filter(e => e.dataset.titleCut === undefined).map(name);
   return { charts: hosts.length, cut, silent, ok: cut.length === 0 && silent.length === 0 };
 };
@@ -155,6 +168,130 @@ const CLIP_PROBE = selector => {
   }
   return out;
 };
+
+// What the review of 2026-10-02 (#60) found that no probe above reads; each list is empty on a sound view, and each
+// was not on 0.07.000. `desktop` is false in the phone pass, where a wide table scrolls in its own box by design.
+const REVIEW_PROBE = desktop => {
+  const vis = el => { const r = el.getBoundingClientRect(); if (r.width === 0 || r.height === 0) return false; const s = getComputedStyle(el); return s.visibility !== 'hidden' && s.display !== 'none'; };
+  const name = el => `${el.tagName.toLowerCase()}.${String(el.className?.baseVal ?? el.className).split(' ')[0]}`;
+  const out = { midword: [], unitwrap: [], rawIds: [], whiteControls: [], readoutCut: [], selectCut: [], tableScroll: [], flow: [] };
+  const UNIT = /^(%|µm|mm|cm|m|t|t\/h|kg\/h|kWh\/t|kW|m³|m³\/t|m³\/h|t\/m³|g\/t|cm\/s|min|s|kPa)[.,;:)]?$/;
+  const scope = document.querySelector('.of-bench, .caos-focus-shell') ?? document.body;
+  const walker = document.createTreeWalker(scope, NodeFilter.SHOW_TEXT);
+  const range = document.createRange();
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    const el = node.parentElement;
+    if (!el || el.closest('.of-sr-only, .sr-only, .katex, svg, code, pre, option, script, style') || !vis(el)) continue;
+    const text = node.textContent ?? '';
+    if (!text.trim()) continue;
+    let prev = null;
+    for (const m of text.matchAll(/\S+/g)) {
+      range.setStart(node, m.index); range.setEnd(node, m.index + m[0].length);
+      const rects = [...range.getClientRects()].filter(r => r.width > 0.5);
+      // U-20, U-21: a word or a number split over two line boxes ("Muest/ra", "60,8 / %"); a hyphen or a slash may break
+      if (new Set(rects.map(r => Math.round(r.top))).size > 1 && !/[-–/]/.test(m[0]) && out.midword.length < 5) out.midword.push(`${m[0]} [${name(el)}]`);
+      // U-31: a unit on the line after its number ("4.19 / t/m³")
+      if (prev && UNIT.test(m[0]) && /\d$/.test(prev.text) && rects[0] && Math.round(rects[0].top) > prev.top + 2 && out.unitwrap.length < 5) out.unitwrap.push(`${prev.text} / ${m[0]} [${name(el)}]`);
+      prev = { text: m[0], top: rects.length ? Math.round(rects[rects.length - 1].top) : 0 };
+    }
+    // U-06: an engine code reaching the reader ("circulating_load_out_of_range")
+    for (const id of text.matchAll(/\b[a-z][a-z0-9]*_[a-z0-9_]+\b/g)) if (out.rawIds.length < 5) out.rawIds.push(`${id[0]} [${name(el)}]`);
+  }
+  // U-22: in the dark theme no form control is a white box (the sample search was)
+  if (document.documentElement.dataset.theme === 'dark') {
+    for (const el of scope.querySelectorAll('input, select, textarea, button')) {
+      if (!vis(el) || el.type === 'range' || el.type === 'checkbox' || el.closest('.of-sr-only')) continue;
+      const bg = (getComputedStyle(el).backgroundColor.match(/[\d.]+/g) || []).map(Number);
+      const lum = (0.2126 * bg[0] + 0.7152 * bg[1] + 0.0722 * bg[2]) / 255;
+      if ((bg.length < 4 || bg[3] > 0.5) && lum > 0.8 && out.whiteControls.length < 5) out.whiteControls.push(name(el));
+    }
+  }
+  // U-23: nothing in the readout is cut by an ellipsis, title or not: it is the one row every warning reaches
+  for (const el of document.querySelectorAll('.of-readout *')) {
+    if (vis(el) && getComputedStyle(el).textOverflow === 'ellipsis' && el.scrollWidth > el.clientWidth + 1) out.readoutCut.push(`${name(el)}: ${(el.textContent ?? '').slice(0, 40)}`);
+  }
+  // U-24: a select shows its whole selected text ("C1 · Oro de molienda libre con gra..." was cut)
+  const ctx = document.createElement('canvas').getContext('2d');
+  for (const sel of scope.querySelectorAll('select')) {
+    if (!vis(sel) || !ctx) continue;
+    const s = getComputedStyle(sel);
+    ctx.font = `${s.fontStyle} ${s.fontWeight} ${s.fontSize} ${s.fontFamily}`;
+    const text = sel.selectedOptions[0]?.text ?? '';
+    const arrow = s.appearance === 'none' ? 0 : 18;
+    const room = sel.clientWidth - parseFloat(s.paddingLeft) - parseFloat(s.paddingRight) - arrow;
+    if (ctx.measureText(text).width > room + 1 && out.selectCut.length < 5) out.selectCut.push(`${text.slice(0, 48)} (${Math.round(ctx.measureText(text).width)} of ${Math.round(room)} px)`);
+  }
+  // U-19, U-35: at a desktop size a workbench table fits its box (the variants' flags column and the optimizer's fifth
+  // column were cut at the edge)
+  if (desktop) {
+    for (const box of scope.querySelectorAll('.of-table-scroll, .of-aside')) {
+      if (vis(box) && box.scrollWidth > box.clientWidth + 1) out.tableScroll.push(`${name(box)} ${box.scrollWidth} > ${box.clientWidth}`);
+    }
+  }
+  // U-09, U-26: the flowsheet names every outlet and the feed (no label dropped), draws a tail apart from a product,
+  // and runs no edge through a label
+  for (const flow of document.querySelectorAll('svg.of-flowmap')) {
+    if (!vis(flow)) continue;
+    // every stream at a desktop stage; below it, where the drawing scrolls, the outlets and the feed (D-21), as the
+    // unit test holds them (0.08: the tablet and phone passes counted the inner streams too)
+    const key = innerWidth >= 1100 ? 'labelsMissing' : 'outletsMissing';
+    if ((flow.dataset[key] ?? '0') !== '0') out.flow.push(`${key === 'labelsMissing' ? 'labels' : 'outlet labels'} missing ${flow.dataset[key]}`);
+    if (!flow.querySelector('.of-flow-edge.tail')) out.flow.push('no outlet drawn as a tail');
+    const samples = [];
+    for (const line of flow.querySelectorAll('.of-flow-edge polyline')) {
+      const total = line.getTotalLength?.() ?? 0;
+      const m = line.getScreenCTM();
+      if (!m || !(total > 0)) continue;
+      for (let i = 0, n = Math.max(8, Math.ceil(total / 2)); i <= n; i += 1) {
+        const q = line.getPointAtLength((total * i) / n);
+        samples.push([m.a * q.x + m.c * q.y + m.e, m.b * q.x + m.d * q.y + m.f]);
+      }
+    }
+    for (const label of flow.querySelectorAll('.of-flow-label text, text.of-flow-label')) {
+      const b = label.getBoundingClientRect();
+      if (b.width === 0) continue;
+      const inset = b.height / 4;
+      if (samples.some(([x, y]) => x > b.left + 1 && x < b.right - 1 && y > b.top + inset && y < b.bottom - inset) && out.flow.length < 5) out.flow.push(`an edge runs through: ${(label.textContent ?? '').slice(0, 30)}`);
+    }
+  }
+  return { ...out, ok: Object.values(out).every(list => list.length === 0) };
+};
+
+// U-18: on a phone no two laid-out blocks of the view overlap (the compare table's header sat on its chart, and the
+// hour's forecast rows under the sensor table); only grid and flex containers are read, absolutely placed overlays aside
+const SIBLING_PROBE = () => {
+  const out = [];
+  const host = document.querySelector('.of-view-host');
+  if (!host) return out;
+  const name = el => `${el.tagName.toLowerCase()}.${String(el.className?.baseVal ?? el.className).split(' ')[0]}`;
+  for (const parent of [host, ...host.querySelectorAll('*')]) {
+    const d = getComputedStyle(parent).display;
+    if (!/grid|flex/.test(d) || parent.closest('svg, .u-wrap, .of-sr-only')) continue;
+    const kids = [...parent.children].filter(c => { const r = c.getBoundingClientRect(); const p = getComputedStyle(c).position; return r.width > 0 && r.height > 0 && p !== 'absolute' && p !== 'fixed'; });
+    for (let i = 0; i < kids.length; i += 1) for (let j = i + 1; j < kids.length; j += 1) {
+      const a = kids[i].getBoundingClientRect(), b = kids[j].getBoundingClientRect();
+      if (Math.min(a.right, b.right) - Math.max(a.left, b.left) > 2 && Math.min(a.bottom, b.bottom) - Math.max(a.top, b.top) > 2) out.push(`${name(kids[i])} over ${name(kids[j])}`);
+      if (out.length >= 5) return out;
+    }
+  }
+  return out;
+};
+
+// A slider of the rail set as a user would set it: the rail section that holds it opened, the value written through
+// the input's own setter and announced, so React's change handler runs
+async function setControl(page, input, value) {
+  const sections = page.locator('.of-rail-sections button');
+  const selector = `.of-rail input[type=range][id$="-${input}"]`;
+  for (let k = 0; k < await sections.count() && !(await page.locator(selector).count()); k += 1) await sections.nth(k).click();
+  return page.evaluate(([s, v]) => {
+    const el = document.querySelector(s);
+    if (!el) return false;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(el, String(v));
+    el.dispatchEvent(new Event('input', { bubbles: true }));
+    el.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  }, [selector, value]);
+}
 
 // A schematic's text must stay inside the box that holds it and inside its figure: a translation that
 // runs longer than its box is the commonest way a figure breaks without anyone touching the drawing.
@@ -218,10 +355,19 @@ const LOCALE_PROBE = () => {
       if (!math && /^[1-9]\d{0,2}(?:\.\d{3})+$/.test(m[0])) continue;
       // a decimal has one point: two or more that are not grouping make a version (0.05.000)
       if (!math && m[0].split('.').length > 2) continue;
+      // a section, equation, table or figure number keeps its point in Spanish ("sección 2.3", "ec. 5.1"): it numbers,
+      // it is not a decimal (0.08: three such references were read as decimals)
+      if (!math && /(?:secci[oó]n|secciones|apartado|cap[ií]tulo|ec\.|ecuaci[oó]n|tabla|figura|fig\.)\s*$/i.test(text.slice(0, m.index))) continue;
       out.push(`${math ? 'equation' : el.closest('svg') ? 'figure' : el.tagName.toLowerCase()}: ${m[0]} in ${text.trim().slice(0, 50)}`);
       break;
     }
     if (out.length >= 6) break;
+  }
+  // a count in a table cell goes through the formatter too: the iron plant's windows printed 1826 and 2939 training
+  // hours beside 3.701 pairs (0.08 gate captures); a whole cell of four or more bare digits escaped it
+  for (const cell of document.querySelectorAll('td')) {
+    const r = cell.getBoundingClientRect();
+    if (r.width > 0 && /^-?\d{4,}$/.test((cell.textContent || '').trim())) { out.push(`ungrouped count: ${cell.textContent.trim()}`); break; }
   }
   return out;
 };
@@ -256,6 +402,19 @@ async function checkArchitecture(page, tag, lang) {
   const tabs = page.locator('[role=dialog] [role=tab]');
   const count = await tabs.count();
   record(`${tag} architecture tabs`, count >= 5, { count });
+  // shell known defect 13: the full-size toggle reads in both themes (WCAG 1.4.3, 4.5:1 for its 12 px text); the shell
+  // renders it once the tab's diagram has loaded, so the check waits for it
+  await page.waitForSelector("[role=dialog] button[aria-controls$='-diagram']", { timeout: 30000 }).catch(() => undefined);
+  const toggle = await page.evaluate(() => {
+    const b = document.querySelector("[role=dialog] button[aria-controls$='-diagram']");
+    if (!b) return null;
+    const rgb = s => (s.match(/[\d.]+/g) ?? []).slice(0, 3).map(Number);
+    const lum = c => { const [r, g, bl] = c.map(v => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4; }); return 0.2126 * r + 0.7152 * g + 0.0722 * bl; };
+    const cs = getComputedStyle(b);
+    const [a, c] = [lum(rgb(cs.color)), lum(rgb(cs.backgroundColor))];
+    return { color: cs.color, background: cs.backgroundColor, ratio: Math.round(100 * (Math.max(a, c) + 0.05) / (Math.min(a, c) + 0.05)) / 100 };
+  });
+  record(`${tag} architecture full-size toggle`, !!toggle && toggle.ratio >= 4.5, toggle);
   for (let k = 0; k < count; k += 1) {
     // the tab's own diagram, not the previous one still in place: on a public host the next svg arrives
     // after the click, and a probe taken in between found none (tabs 2 to 5 against the VPS, 0.05.000)
@@ -279,6 +438,7 @@ async function measure(page, stageSelector) {
   const railCut = await page.evaluate(RAIL_PROBE);
   const ellipsis = await page.evaluate(ELLIPSIS_PROBE);
   const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
+  const review = await page.evaluate(REVIEW_PROBE, true);
   // an equation wider than its box (the Case view's context shows the family's formulas in a side column)
   const cut = await page.evaluate(() => [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length);
   const m = await page.evaluate(selector => {
@@ -331,7 +491,7 @@ async function measure(page, stageSelector) {
       lang: de.lang,
     };
   }, stageSelector ?? null);
-  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, canvasText, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok,
+  return { ...m, outside, clipped, cut, decimals, railCut, ellipsis, canvasText, review, fits: outside.length === 0 && clipped.length === 0 && cut === 0 && decimals.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && review.ok,
     filled: (m.drawn === null || m.drawn.ok) && m.panels.every(f => f >= 0.3) };
 }
 
@@ -409,9 +569,16 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
             await rerun.locator('select').selectOption('32');
             await rerun.locator('.of-run').click();
             live = await page.waitForSelector('.of-view-methods .of-rerun .of-status-line', { timeout: 120000 }).then(() => true, () => false);
-            if (live) await rerun.locator('.of-revert').click();
+            if (live) {
+              await rerun.locator('.of-revert').click();
+              // back on the baked record, the fields name the seed and samples the shown record was drawn with
+              const seedNow = await rerun.locator('input[type=number]').inputValue();
+              const samplesNow = await rerun.locator('select').inputValue();
+              const text = await page.locator('.of-view-methods').textContent();
+              live = { seedNow, samplesNow, agrees: text.includes(seedNow) && new RegExp(`${samplesNow} (samples|muestras)`).test(text) };
+            }
           }
-          record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false, { ...controls, live });
+          record(`${tag} methods/uncertainty re-run`, controls.box === 1 && controls.seed === 1 && controls.samples === 1 && controls.run === 1 && live !== false && live?.agrees !== false, { ...controls, live });
         }
         // OP-09: the optimizer carries its weight control and run button in every combination, and once per run of
         // the gate a live run at 50% completes, replaces the baked record and offers the four charts
@@ -435,14 +602,18 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
                 const good = getComputedStyle(document.documentElement).getPropertyValue('--color-good').trim();
                 const probe = document.createElement('span'); probe.style.color = good; document.body.append(probe);
                 const goodRgb = getComputedStyle(probe).color; probe.remove();
-                const loss = /: -|: \u2212/.test(line?.textContent ?? '');
+                const loss = /(recovered metal|metal recuperado) -|: -|: \u2212/.test(line?.textContent ?? '');
                 return { loss, green: line ? getComputedStyle(line).color === goodRgb : null,
                   note: /not advice|no es una recomendaci/.test(document.querySelector('.of-view-methods .of-aside')?.textContent ?? '') };
               });
               await rerun.locator('.of-revert').click();
+              // back on the baked record, the selector names the weight the shown result answers to
+              const weightNow = await rerun.locator('select').inputValue();
+              const statement = await page.locator('.of-view-methods .of-aside > .of-status-line').last().textContent();
+              tone.selector = { weightNow, agrees: (statement ?? '').includes(`${weightNow}%`) };
             }
           }
-          const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note);
+          const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note && tone.selector?.agrees !== false);
           record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false && toneOk, { ...controls, live, tone });
         }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
@@ -469,7 +640,11 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     url: location.search.includes('d50c_um'),
   }));
   await page.screenshot({ path: join(OUT, `cut-mode-${tag}.png`) });
-  record(`${tag} grinding mode`, cut.slider === 1 && cut.follows === 2 && cut.stated && cut.url, cut);
+  // U-08: in cut mode, with the "modified" chip shown, the rail keeps every control reachable and the focus button
+  // over none (in Spanish at 1280x800 all twelve cases overflowed by 8 to 26 px)
+  const cutView = await measure(page);
+  record(`${tag} grinding mode`, cut.slider === 1 && cut.follows === 2 && cut.stated && cut.url && cutView.railScrolls === false && cutView.railCut.length === 0 && cutView.review.ok,
+    { ...cut, railScrolls: cutView.railScrolls, railCut: cutView.railCut, review: cutView.review });
   await page.locator('.of-rail .of-segmented:not(.of-segmented-3) button').first().click();
   await page.waitForFunction(() => !location.search.includes('d50c_um'), null, { timeout: 30000 }).catch(() => undefined);
 
@@ -481,29 +656,75 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForSelector('.of-rail select option', { state: 'attached', timeout: 60000 });
   await page.locator('.of-rail-sections button').first().click();
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
-  await page.waitForSelector('.of-view-sample table', { timeout: 90000 });
+  await page.waitForSelector('.of-view-sample table.of-table', { timeout: 90000 });
+  await page.waitForFunction(() => !document.querySelector('.of-readout-busy'), null, { timeout: 90000 }).catch(() => undefined);
+  // the chart is on this screen only in the large layout; below it, it waits in its own sub-tab
+  if (!(await page.locator('.of-view-sample .subtablist').count())) await settleCharts(page, 1);
+  else await page.waitForTimeout(250);
   const sampleCheck = await page.evaluate(() => ({
     fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
-    tables: document.querySelectorAll('.of-view-sample table').length,
+    tables: document.querySelectorAll('.of-view-sample table.of-table').length,
+    // the chart of every sample against its test is drawn (it fills the view on large screens; 0.08 gate)
+    chart: document.querySelectorAll('.of-view-sample .of-plot canvas').length,
     url: location.search.includes('source=sample'),
+    // the Case view's engine recovery is the sample's own, the readout's: the 0.07/0.08 views showed the synthetic
+    // case's 94.2% as "Engine, this state" while the sample computed
+    engineAgrees: (() => {
+      const row = [...document.querySelectorAll('.of-view-sample tr')].find(r => /Engine, this state|Motor, este estado/.test(r.textContent ?? ''));
+      const cell = row?.lastElementChild?.textContent ?? '';
+      const head = document.querySelector('.of-readout .of-readout-item strong')?.textContent ?? '';
+      return cell.replace(/\s/g, '') !== '' && cell.replace(/\s/g, '') === head.replace(/\s/g, '');
+    })(),
+    // the comparison stays beside the sample's facts: as a strip it sat under a blank band (0.08 gate captures)
+    beside: (() => {
+      const main = document.querySelector('.of-view-sample .of-sample-main')?.getBoundingClientRect();
+      const aside = document.querySelector('.of-view-sample .of-split > .of-aside')?.getBoundingClientRect();
+      return !!main && !!aside && Math.abs(aside.top - main.top) < 4 && aside.left >= main.right - 1;
+    })(),
   }));
   const sampleView = await measure(page);
   await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
-  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.url && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
+  // below the large layout the chart of every sample has its own sub-tab: under the facts it got a 60 px plot at
+  // 1280x800 in Spanish (0.08 gate); there it is held to the view rules like any chart
+  const sampleTabs = page.locator('.of-view-sample .subtablist [role=tab]');
+  const tabbed = await sampleTabs.count() === 2;
+  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && (tabbed || sampleCheck.chart >= 1) && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, tabbed, ...sampleView });
+  if (tabbed) {
+    await sampleTabs.nth(1).click();
+    await settleCharts(page, 1);
+    const chartView = await measure(page);
+    const drawn = await page.evaluate(() => document.querySelectorAll('.of-view-sample .subtabpanel:not([hidden]) .of-plot canvas').length);
+    await page.screenshot({ path: join(OUT, `source-sample-chart-${tag}.png`) });
+    record(`${tag} source sample chart`, drawn >= 1 && chartView.largestViz >= 0.3 && viewOk(chartView, lang), { drawn, ...chartView });
+    await sampleTabs.nth(0).click();
+  }
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
   await settleCharts(page, 1);
   const sampleGrinding = await measure(page);
   record(`${tag} source sample grinding`, viewOk(sampleGrinding, lang), sampleGrinding);
   await sourceButton(2).click();
-  await page.waitForSelector('.of-view-statement .of-note', { timeout: 60000 });
-  const statement = await page.evaluate(() => /reverse cationic|catiónica inversa/.test(document.querySelector('.of-view-statement')?.textContent ?? ''));
-  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  // U-15: the source opens the Case view and closes the engine views, so the hour's view says why (RS-07); until 0.08
+  // this step waited for a statement on an engine view the source no longer opens
   await page.waitForSelector('.of-view-hour table', { timeout: 90000 });
+  const statement = await page.evaluate(() => /reverse cationic|catiónica inversa/.test(document.querySelector('.of-view-hour .of-hour-statement')?.textContent ?? ''));
   await settleCharts(page, 1);
   const hourView = await measure(page);
-  const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table.of-table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour') }));
+  const hourCheck = await page.evaluate(() => ({ tables: document.querySelectorAll('.of-view-hour table.of-table').length, controls: document.querySelectorAll('.of-rail input[type=range]').length, url: location.search.includes('source=hour'),
+    // U-15: only the Case view is open; U-14: every sensor row names its unit (pH has none), in the interface language
+    disabled: document.querySelectorAll('.of-viewbar [role=tab]:disabled').length,
+    unitless: [...document.querySelectorAll('.of-view-hour table.of-table th[scope=row]')].map(th => th.textContent.trim()).filter(s => /Flow|Level|Feed|Density|Flujo|Nivel|alimentación|Densidad/.test(s) && !/\(.+\)$/.test(s)),
+    english: document.documentElement.lang === 'es' ? [...document.querySelectorAll('.of-view-hour table.of-table th[scope=row]')].map(th => th.textContent.trim()).filter(s => /\b(Flow|Level|Feed|Column|Iron|Silica|Starch|Amina|Pulp)\b/.test(s)) : [],
+    // the assays stay beside the forecast, and the forecast table shows all its rows: as a strip at 1920x1080 the
+    // table showed four of nine rows over a narrow assay column (0.08 gate captures)
+    layout: (() => {
+      const main = document.querySelector('.of-view-hour .of-hour-main')?.getBoundingClientRect();
+      const aside = document.querySelector('.of-view-hour .of-split > .of-aside')?.getBoundingClientRect();
+      const table = document.querySelector('.of-view-hour .of-hour-main table.of-table')?.getBoundingClientRect();
+      return { beside: !!main && !!aside && Math.abs(aside.top - main.top) < 4 && aside.left >= main.right - 1, whole: !!main && !!table && table.bottom <= main.bottom + 1 };
+    })() }));
   await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`) });
-  record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
+  const hourLayoutOk = hourCheck.layout.whole && hourCheck.layout.beside;
+  record(`${tag} source hour`, statement && hourCheck.tables === 2 && hourCheck.controls === 0 && hourCheck.url && hourCheck.disabled === VIEWS.length - 1 && hourCheck.unitless.length === 0 && hourCheck.english.length === 0 && hourLayoutOk && viewOk(hourView, lang), { statement, ...hourCheck, ...hourView });
   await sourceButton(0).click();
   await page.waitForFunction(() => !location.search.includes('source='), null, { timeout: 30000 }).catch(() => undefined);
   await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
@@ -560,17 +781,172 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
           cutEquations: [...document.querySelectorAll('.katex-display')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
           // a table's scroll box is for narrower screens: at the gated desktop sizes every table fits its page
           // (the uncertainty table once needed 135 px of sideways scroll at 1280 px in Spanish)
-          scrollTables: [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-doc-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
+          scrollTables: [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-doc-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length
+            // nor a figure: FigureScroll's sideways scroll is for a phone, and at the desktop sizes every figure fits
+            + [...document.querySelectorAll('.page-body .tabpanel:not([hidden]) .of-figure-scroll')].filter(e => e.getBoundingClientRect().width > 0 && e.scrollWidth > e.clientWidth + 1).length,
           // the page taller than the viewport must scroll the document (shell known defect 1: under the
           // defect scrollTo does nothing while the wheel still scrolls <body>, so the page looks fine)
           ...(() => { const tall = Math.max(document.documentElement.scrollHeight, document.body.scrollHeight) > innerHeight + 2;
-            window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })() }));
+            window.scrollTo(0, 1200); const moved = window.scrollY; window.scrollTo(0, 0); return { tall, moved }; })(),
+          // a tab row wider than the page shows that it scrolls: the end that hides tabs fades (0.08: the Spanish
+          // Implementation row was cut at "Controles y publicaci" at 1280 px with no sign that a tab followed)
+          tabRow: (() => { const row = document.querySelector('.page-body .tablist'); if (!row) return null;
+            const hides = row.scrollWidth > row.clientWidth + 1;
+            return { hides, fades: row.dataset.fadeEnd === '1' || row.dataset.fadeStart === '1' }; })() }));
         const canvasText = await page.evaluate(CANVAS_TEXT_PROBE);
-        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && canvasText.ok, { ...doc, outside, figures, decimals, canvasText });
+        const rowOk = !doc.tabRow || !doc.tabRow.hides || doc.tabRow.fades;
+        record(`${tag} ${route} ${g + 1}.${k + 1}`, !doc.overX && (!doc.tall || doc.moved > 0) && outside.length === 0 && figures.length === 0 && decimals.length === 0 && doc.lang === lang && doc.katexErrors === 0 && doc.loadErrors === 0 && doc.cutEquations === 0 && doc.scrollTables === 0 && rowOk && canvasText.ok, { ...doc, outside, figures, decimals, canvasText });
         await page.screenshot({ path: join(OUT, `${route}-${g + 1}-${k + 1}-${tag}.png`), fullPage: true });
       }
     }
   }
+
+  record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
+  await context.close();
+}
+
+// The review pass (#60, U items): the states the review of 2026-10-02 reached by hand, once per run
+if (REVIEW) {
+  const [size, theme, lang] = REVIEW.split('-');
+  const [w, h] = size.split('x').map(Number);
+  const tag = `review ${REVIEW}`;
+  const context = await browser.newContext({ viewport: { width: w, height: h } });
+  await context.addInitScript(([t, l]) => { localStorage.setItem('caos.theme', t); localStorage.setItem('caos.lang', l); }, [theme, lang]);
+  const page = await context.newPage();
+  const errors = [];
+  page.on('pageerror', error => errors.push(String(error)));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const open = async (query, view) => {
+    await page.goto(`${BASE}/?${query}`, { waitUntil: 'networkidle', timeout: 90000 });
+    await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
+    if (view) await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf(view)).click();
+  };
+  const methodsTab = async pattern => {
+    const subtabs = page.locator('.of-view-methods .subtablist [role=tab]');
+    for (let k = 0; k < await subtabs.count(); k += 1) if (pattern.test((await subtabs.nth(k).textContent()).trim())) { await subtabs.nth(k).click(); return true; }
+    return false;
+  };
+
+  // U-01: a computed surface does not outlive its state: after the variant changes, the cells are gone and the view
+  // says the state changed (0.07.000 kept the surface and its "81 / 81 states" through a variant and a throughput change)
+  await open('case=copper_porphyry_soft', 'response');
+  await page.locator('.of-view-response .of-cta').click();
+  await page.waitForFunction(() => { const p = document.querySelector('.of-progress'); if (!p) return false; const [a, b] = p.textContent.split('/').map(s => parseInt(s, 10)); return a === b; }, null, { timeout: 120000 });
+  const drawnBefore = await page.evaluate(() => document.querySelectorAll('.of-view-response canvas').length);
+  await page.locator('.of-rail select:has(option[value="harder_ore"])').selectOption('harder_ore');
+  await page.waitForTimeout(800);
+  const stale = await page.evaluate(() => ({ canvases: document.querySelectorAll('.of-view-response canvas').length, hint: document.querySelector('.of-view-response .of-hint')?.textContent ?? null }));
+  record(`${tag} U-01 response cleared on a state change`, drawnBefore > 0 && stale.canvases === 0 && !!stale.hint, { drawnBefore, ...stale });
+
+  // U-02: the learned lane's sweep, the same after a throughput change
+  await open('case=copper_porphyry_soft', 'methods');
+  const learned = await methodsTab(/^(Learned lane|Vía aprendida)$/);
+  await page.waitForFunction(() => !document.querySelector('.of-view-methods .of-run')?.disabled, null, { timeout: 60000 });
+  await page.locator('.of-view-methods .of-run').click();
+  await settleCharts(page, 2);
+  const learnedBefore = await page.evaluate(() => document.querySelectorAll('.of-view-methods canvas').length);
+  const moved = await setControl(page, 'throughput_tph', 1080);
+  await page.waitForTimeout(800);
+  const learnedAfter = await page.evaluate(() => ({ canvases: document.querySelectorAll('.of-view-methods .subtabpanel:not([hidden]) canvas').length, hint: document.querySelector('.of-view-methods .subtabpanel:not([hidden]) .of-hint')?.textContent ?? null }));
+  record(`${tag} U-02 learned sweep cleared on a state change`, learned && moved && learnedBefore > 0 && learnedAfter.canvases === 0 && !!learnedAfter.hint, { learned, moved, learnedBefore, ...learnedAfter });
+
+  // U-03: a rejected state shows the rejection at the top of the rail and in place of the views, and the readout no
+  // longer says "within every engine check" (phosphate: a desliming cut above half the grind target)
+  await open('case=phosphate_clay', 'grinding');
+  const set1 = await setControl(page, 'deslime_cut_um', 45);
+  await page.waitForTimeout(600);
+  const set2 = await setControl(page, 'target_p80_um', 75);
+  await page.waitForTimeout(800);
+  const rejected = await page.evaluate(() => ({
+    rail: document.querySelector('.of-rail-rejected')?.textContent ?? null,
+    panel: !!document.querySelector('.of-rejection[role=alert]'),
+    clean: /No engine flags|Sin avisos|Within every engine check/.test(document.querySelector('.of-readout')?.textContent ?? ''),
+  }));
+  await page.screenshot({ path: join(OUT, `review-U-03-${REVIEW}.png`) });
+  record(`${tag} U-03 rejected state`, set1 && set2 && !!rejected.rail && rejected.panel && !rejected.clean, rejected);
+
+  // U-04: an optimum decision on its search bound says so (the soft porphyry's collector sat at 75.0 of 0.00 to 75.0)
+  await open('case=copper_porphyry_soft', 'methods');
+  await methodsTab(/^(Optimizer|Optimizador)$/);
+  await settleCharts(page, 1);
+  const bounds = await page.evaluate(() => {
+    const rows = [...document.querySelectorAll('.of-view-methods .of-aside table.of-table')][0]?.querySelectorAll('tbody tr:not(.of-table-group)') ?? [];
+    return [...rows].map(r => {
+      const cells = r.querySelectorAll('td');
+      if (cells.length < 3) return null;
+      const optimum = [...cells[1].childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+      const [lo, hi] = cells[2].textContent.split('–').map(s => s.trim());
+      return { optimum, lo, hi, tagged: !!cells[1].querySelector('.of-tag') };
+    }).filter(Boolean);
+  });
+  const untagged = bounds.filter(b => (b.optimum === b.lo || b.optimum === b.hi) && !b.tagged);
+  record(`${tag} U-04 decisions at a bound are marked`, bounds.length > 0 && untagged.length === 0, { bounds, untagged });
+
+  // U-05: a gold plant's metal reads in kg/h, and a non-zero gain never prints as zero ("+0,0000 t/h")
+  await open('case=gold_free_milling', 'methods');
+  await methodsTab(/^(Optimizer|Optimizador)$/);
+  await settleCharts(page, 1);
+  const gold = await page.evaluate(() => [...document.querySelectorAll('.of-view-methods .of-aside > .of-status-line')].at(-1)?.textContent ?? '');
+  record(`${tag} U-05 gold gain in kg/h`, /kg\/h/.test(gold) && !/(metal|recuperado|:)\s*[+-]?0[.,]0+\s/.test(gold), { status: gold });
+
+  // U-06, U-11: the hard porphyry's finer classifier cut raises a flag: no raw code anywhere, the flagged facts in the
+  // warning colour, and the full sentences under the tab row
+  await open('case=copper_porphyry_hard&variant=cut_finer', 'grinding');
+  await settleCharts(page, 1);
+  const flagged = await page.evaluate(() => ({ warned: document.querySelectorAll('.of-fact-warn').length, line: document.querySelector('.of-flags-line')?.textContent ?? null }));
+  const flaggedView = await measure(page);
+  record(`${tag} U-06 U-11 flagged variant`, flagged.warned > 0 && !!flagged.line && flaggedView.review.rawIds.length === 0, { ...flagged, rawIds: flaggedView.review.rawIds });
+  await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('case')).click();
+  const caseTabs = page.locator('.of-view-case .subtablist [role=tab]');
+  const raw = [];
+  for (let k = 0; k < await caseTabs.count(); k += 1) {
+    await caseTabs.nth(k).click();
+    await page.waitForTimeout(400);
+    raw.push(...(await page.evaluate(REVIEW_PROBE, true)).rawIds);
+  }
+  record(`${tag} U-06 no raw code in the Case view`, raw.length === 0, raw.slice(0, 5));
+
+  // U-12: phosphate's own facts (the slimes loss) are inside the Separation panel without scrolling it
+  await open('case=phosphate_clay', 'separation');
+  await settleCharts(page, 1);
+  const facts = await page.evaluate(() => {
+    const panel = document.querySelector('.of-view-host .of-side, .of-view-host .of-panel');
+    if (!panel) return null;
+    const box = panel.getBoundingClientRect();
+    const first = [...panel.querySelectorAll('.of-facts > div')].slice(0, 3).map(d => { const r = d.getBoundingClientRect(); return { text: d.textContent.trim().slice(0, 40), inside: r.top >= box.top - 1 && r.bottom <= box.bottom + 1 }; });
+    return { first, slimes: /slime|lama/i.test(first.map(f => f.text).join(' ')) };
+  });
+  record(`${tag} U-12 the family's facts first and in view`, !!facts && facts.slimes && facts.first.every(f => f.inside), facts);
+
+  // U-25: the focus route opens on the stage of the view it was opened from
+  const stages = {};
+  for (const [view, stage] of [['grinding', 'psd'], ['separation', 'recovery_by_size'], ['response', 'response']]) {
+    await open('case=copper_porphyry_soft', view);
+    await page.locator('.of-focus-open').click();
+    await page.waitForSelector('.of-focus-rail select', { timeout: 60000 });
+    // the stage select holds no value until the trace's charts exist; on a loaded machine it was read before (0.08)
+    await page.waitForFunction(() => !!document.querySelector('.of-focus-rail select')?.value, null, { timeout: 30000 }).catch(() => undefined);
+    stages[view] = { expected: stage, shown: await page.locator('.of-focus-rail select').first().inputValue() };
+  }
+  record(`${tag} U-25 focus stage from the view`, Object.values(stages).every(s => s.expected === s.shown), stages);
+
+  // U-28: the classifier cut's off value reads as off in the Case context, not as 0.0 µm
+  await open('case=copper_porphyry_soft', 'case');
+  await page.waitForSelector('.of-context .katex', { timeout: 60000 });
+  const off = await page.evaluate(() => /off: the cut follows|apagado: el corte sigue/.test(document.querySelector('.of-context')?.textContent ?? ''));
+  record(`${tag} U-28 the cut reads off`, off, { off });
+
+  // S-12, S-20: a sample link with a changed control opens with that control (0.07.000 reset it to 720 t/h), and the
+  // sample's fixed sliders sit on their own value
+  await page.goto(`${BASE}/?case=copper_porphyry_soft&source=sample&sample=lct-9&set=throughput_tph:360`, { waitUntil: 'networkidle', timeout: 90000 });
+  await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
+  await page.waitForTimeout(800);
+  const sampleLink = await page.evaluate(() => ({
+    url: location.search.includes('throughput_tph%3A360') || location.search.includes('throughput_tph:360'),
+    throughput: Number(document.querySelector('.of-rail input[type=range][id$="-throughput_tph"]')?.value ?? NaN),
+    fixedSteps: [...document.querySelectorAll('.of-rail .of-knob.fixed input[type=range]')].map(i => i.getAttribute('step')),
+  }));
+  record(`${tag} S-12 S-20 sample link and fixed sliders`, sampleLink.url && sampleLink.throughput === 360 && sampleLink.fixedSteps.length > 0 && sampleLink.fixedSteps.every(s => s === 'any'), sampleLink);
 
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();
@@ -621,9 +997,47 @@ for (const tag of SMALL) {
         lang: document.documentElement.lang, units, overlaps,
       };
     });
-    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText });
+    const review = await page.evaluate(REVIEW_PROBE, false);
+    record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && review.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText, review });
+    // the capture shows the view, not wherever the stacked page was left scrolled (0.08: some showed only the rail)
+    await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
+    // U-18, U-33: every sub-tab of the Case and Methods views, not only the first: no block over another, every
+    // chart's text declared clear, and the sub-tab row inside the screen (the fourth Methods tab was a sliver)
+    if (view === 'case' || view === 'methods') {
+      const subtabs = page.locator(`.of-view-${view} .subtablist [role=tab]`);
+      for (let k = 0; k < await subtabs.count(); k += 1) {
+        await subtabs.nth(k).click();
+        await page.waitForTimeout(600);
+        const sub = await page.evaluate(() => ({ overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
+          offscreenTabs: [...document.querySelectorAll('.of-view-host .subtablist [role=tab]')].filter(b => { const r = b.getBoundingClientRect(); return r.width > 0 && (r.right > innerWidth + 1 || r.left < -1); }).map(b => b.textContent.trim()) }));
+        const overlaps = await page.evaluate(SIBLING_PROBE);
+        const subCanvas = await page.evaluate(CANVAS_TEXT_PROBE);
+        const subReview = await page.evaluate(REVIEW_PROBE, false);
+        record(`${tag} ${view}/${k + 1}`, !sub.overX && sub.offscreenTabs.length === 0 && overlaps.length === 0 && subCanvas.ok && subReview.ok, { ...sub, overlaps, canvasText: subCanvas, review: subReview });
+        await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
+        await page.screenshot({ path: join(OUT, `${view}-${k + 1}-${tag}.png`), fullPage: true });
+      }
+    }
   }
+  // U-18: the hour source on a phone: its forecast rows are not hidden under the sensor table
+  await page.locator('.of-rail .of-segmented-3 button').nth(2).click();
+  await page.waitForSelector('.of-view-hour table', { timeout: 90000 });
+  await page.waitForTimeout(600);
+  const hourOverlaps = await page.evaluate(SIBLING_PROBE);
+  record(`${tag} source hour`, hourOverlaps.length === 0, { overlaps: hourOverlaps });
+  await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
+  await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`), fullPage: true });
+  await page.locator('.of-rail .of-segmented-3 button').nth(0).click();
+  await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
+  // U-37: the route links show that they scroll (the end hiding links fades), and the footer is not cut
+  const chrome = await page.evaluate(() => {
+    const nav = document.querySelector('.site-header .main-nav');
+    const meta = document.querySelector('.site-footer .footer-meta');
+    const hides = nav ? nav.scrollWidth > nav.clientWidth + 1 : false;
+    return { hides, fades: nav ? nav.dataset.fadeEnd === '1' || nav.dataset.fadeStart === '1' : false, footerCut: meta ? meta.scrollWidth > meta.clientWidth + 1 : null };
+  });
+  record(`${tag} header and footer`, (!chrome.hides || chrome.fades) && chrome.footerCut === false, chrome);
   // the content pages at a phone's and a tablet's width (ADR-0071): no tab or sub-tab scrolls the document
   // sideways. Until 0.07.000 this pass visited the App route only, and 16 content tabs overflowed a phone, their
   // wide tables and the charts beside them past the edge; a wide table now scrolls inside its own box
@@ -633,6 +1047,7 @@ for (const tag of SMALL) {
     const topTabs = page.locator('.page-body .tablist [role=tab]');
     const groups = await topTabs.count();
     const over = [];
+    const small = [];
     let visited = 0;
     for (let g = 0; g < Math.max(1, groups); g += 1) {
       if (groups) await topTabs.nth(g).click();
@@ -645,12 +1060,23 @@ for (const tag of SMALL) {
         const state = await page.evaluate(() => ({
           overX: document.documentElement.scrollWidth > innerWidth + 1 || document.body.scrollWidth > document.body.clientWidth + 1,
           tab: [...document.querySelectorAll('.page-body [role=tab][aria-selected=true]')].map(t => t.textContent.trim()).join(' / '),
+          // a figure's smallest label as drawn on this screen: shrunk to a phone the wide figures drew theirs at 4 to
+          // 5 px (0.08 gate captures); FigureScroll keeps them at 7.5 px and lets the figure scroll in its row
+          figures: [...document.querySelectorAll('.page-body svg.fig-svg')].filter(s => s.getBoundingClientRect().width > 0).map(s => {
+            const scale = s.getScreenCTM()?.a ?? 1;
+            const sizes = [...s.querySelectorAll('text')].map(t => parseFloat(getComputedStyle(t).fontSize) * scale).filter(v => v > 0);
+            return { label: (s.getAttribute('aria-label') ?? '').slice(0, 40), smallest: sizes.length ? Math.min(...sizes) : null };
+          }),
+          tabRow: (() => { const row = document.querySelector('.page-body .tablist'); if (!row) return null;
+            return { hides: row.scrollWidth > row.clientWidth + 1, fades: row.dataset.fadeEnd === '1' || row.dataset.fadeStart === '1' }; })(),
         }));
         if (state.overX) over.push(state.tab);
+        if (state.tabRow && state.tabRow.hides && !state.tabRow.fades) over.push(`${state.tab}: tab row cut with no fade`);
+        for (const f of state.figures) if (f.smallest !== null && f.smallest < 7.4) small.push(`${state.tab}: ${f.label} (${f.smallest.toFixed(1)} px)`);
       }
     }
     await page.screenshot({ path: join(OUT, `${route}-${tag}.png`) });
-    record(`${tag} ${route} page`, over.length === 0, { visited, over });
+    record(`${tag} ${route} page`, over.length === 0 && small.length === 0, { visited, over, small });
   }
   record(`${tag} console`, errors.length === 0, errors.slice(0, 5));
   await context.close();

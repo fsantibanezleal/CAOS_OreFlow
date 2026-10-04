@@ -2,8 +2,8 @@
 
 Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is in `tasks.md`
 
-Scope: issue #51. The workbench's source is a synthetic case, a GeoMet ore sample or an iron-plant hour. Research:
-CAOS_MANAGE `wip/oreflow/research-2026-09-28-0.07.md` sections 4 and 5; the soft sensor's own requirements are
+Scope: issue #51. The workbench's source is a synthetic case, a GeoMet ore sample or an iron-plant hour. Research: the dossier of 2026-09-28 (not published); the sources it verified are cited on [methodology pages 15](../../../methodologies/15_real-samples.md) and
+[16](../../../methodologies/16_industrial-soft-sensor.md); the soft sensor's own requirements are
 IS-01 to IS-06 (`features/industrial-soft-sensor/`).
 
 | ID | Requirement | Named gate |
@@ -15,7 +15,7 @@ IS-01 to IS-06 (`features/industrial-soft-sensor/`).
 | RS-04 | THE pipeline SHALL give each locked-cycle sample the work index of the nearest comminution sample in its drill hole, or the deposit median, and SHALL record which and the distance. | `tests/test_real_samples.py::test_work_index_assignment` |
 | RS-05 | THE engine SHALL run the soft porphyry's circuit on each sample's feed and work index, at the case's nominal operating point, and the record SHALL keep the engine's recovery beside the measured locked-cycle recovery and the GeoMet lane's out-of-fold predictions. | `scripts/check_artifacts.py` real-sample schema; `tests/test_real_samples.py::test_record_fields` |
 | RS-06 | THE browser SHALL reproduce each sample's engine run within 1e-6 relative. | `frontend/src/test/real-samples-parity.test.ts` |
-| RS-07 | WHEN an iron-plant hour is the source, THE workbench SHALL show the hour's sensors and lab grades, the soft sensor's out-of-fold next-hour silica against the measured value, and the persistence baseline. The engine views SHALL state that the plant's reverse cationic circuit is not an engine family. | `frontend/gate.mjs` real-sample checks; `frontend/src/test/real-samples-claims.test.ts` |
+| RS-07 | WHEN an iron-plant hour is the source, THE workbench SHALL show the hour's sensors and lab grades, the soft sensor's out-of-fold next-hour silica against the measured value, and the persistence baseline. The engine views SHALL state that the plant's reverse cationic circuit is not an engine family. (Amended in 0.08.000: since U-15 an hour opens only its Case view and closes the engine views, so the Case view states it, and the focus stage's engine views do.) | `frontend/gate.mjs` real-sample checks; `frontend/src/test/real-samples-claims.test.ts` |
 | RS-08 | WHILE a real sample is the source, THE rail SHALL disable the controls that describe the datum (the ore, the head grade, the work index), keep the plant's operating controls, and say why each disabled one is fixed. | `frontend/gate.mjs` rail check in each source |
 | RS-09 | THE Case view SHALL state what the sample fixes and what the engine still authors (the circuit, the breakage and flotation parameters, the liberation). | `frontend/src/test/real-samples-claims.test.ts` |
 | RS-10 | THE browser gate SHALL cover each source in both themes and languages at the three desktop viewports and on the phone. | `frontend/gate.mjs` matrix with the source axis |

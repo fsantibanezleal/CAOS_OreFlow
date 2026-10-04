@@ -10,6 +10,27 @@
 - [x] T5 (UQ-08). Methodology and Benchmark texts.
 - [x] Convergence: every UQ requirement with its gate's result. Below.
 
+## Convergence verdict, 0.08.000 (2026-10-04)
+
+ADR-0075 section 4: each live requirement, the gate it names and that gate's result on the 0.08.000 release: the
+release bake and its validation, the Python and frontend suites on the final tree,
+the full optimizer parity (`OF_PARITY=full`, six processes) and the browser gate's records on the served release
+build, every capture read (`docs/release-verification.md`, 0.08.000). A parametrized test passes when every one
+of its cases does.
+
+| Requirement | Result on the 0.08.000 release |
+|---|---|
+| UQ-01 | met: `test_splitmix64_vector` passed; `splitmix64.test.ts` passed (3 tests) |
+| UQ-02 | met: `test_uniform_bits` passed; `splitmix64.test.ts` passed (3 tests) |
+| UQ-03 | met: `test_lhs_strata` passed; `lhs.test.ts` passed (2 tests) |
+| UQ-04 | met: `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
+| UQ-05 | met: `uncertainty-parity.test.ts` passed (12 tests) |
+| UQ-06 | met: `worker-uncertainty.test.ts` passed (2 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| UQ-07 | met: `test_uncertainty_controls_declared` passed; `contract.test.ts` passed (3 tests) |
+| UQ-08 | met: `benchmark-claims.test.ts` passed (13 tests) |
+
+8 of 8 met.
+
 ## Convergence verdict, 0.07.000 (2026-09-30)
 
 ADR-0075 section 4: each requirement, the gate it names and that gate's result on the release (the committed

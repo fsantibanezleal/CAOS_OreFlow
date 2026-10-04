@@ -63,7 +63,9 @@ def test_guard_table_quotes_the_record():
     record = json.loads(RECORD.read_text(encoding="utf-8"))
     folds = record["leave_one_case_out"]
     measured = {
-        "Threshold (mean squared error)": record["guard"]["threshold"],
+        "Threshold of the interpolation-split guard (mean squared error)": record["guard"]["threshold"],
+        # W-42 (review of 0.07.000): the shipped guard is the final fit's, with its own threshold
+        "Threshold of the exported guard, fitted on every state": record["final"]["guard_threshold"],
         "False alarms on held-out in-envelope states": 100.0 * record["guard"]["false_alarm_rate"],
         "False accepts on shifted probes": 100.0 * record["guard"]["false_accept_rate"],
         "States of the held-out case flagged (mean over folds)": 100.0 * sum(f["held_out_flag_rate"] for f in folds) / len(folds),
@@ -72,6 +74,11 @@ def test_guard_table_quotes_the_record():
     assert {r[0] for r in rows} == set(measured), rows
     for name, quoted, *_ in rows:
         assert _matches(quoted, measured[name]), (name, quoted, measured[name])
+    # W-42: the guard's training ran to the epoch cap, and the page says so instead of "the same early stopping"
+    training = record["guard"]["training"]
+    assert training["epochs_run"] == record["settings"]["max_epochs"]
+    page = " ".join((ROOT / "docs" / "methodologies" / "14_learned-lane.md").read_text(encoding="utf-8").split())
+    assert f"ran to the {record['settings']['max_epochs']}-epoch cap (best epoch {training['best_epoch']})" in page
 
 
 def test_fold_table_quotes_the_record():

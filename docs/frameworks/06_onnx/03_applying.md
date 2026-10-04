@@ -32,7 +32,7 @@ network.
 
 - Serve the WebAssembly runtime from one path and point `ort.env.wasm.wasmPaths` at it; with Vite, the
   `onnxruntime-web-use-extern-wasm` resolve condition keeps a second copy out of the bundle.
-- Set `ort.env.wasm.numThreads = 1` unless the page is cross-origin isolated; GitHub Pages cannot be.
+- Set `ort.env.wasm.numThreads = 1` unless the page is cross-origin isolated.
 - Load the runtime and the sessions lazily, on the first request that needs them, and keep the
   sessions for the page's life.
 - Batch: with a dynamic row axis, a sweep of 81 states is one `run` call, not 81.

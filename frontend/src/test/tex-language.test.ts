@@ -19,13 +19,14 @@ const { STREAMS } = await import('../content/methodology/streams');
 const { COMMINUTION } = await import('../content/methodology/comminution');
 const { SEPARATION } = await import('../content/methodology/separation');
 const { METHODS } = await import('../content/methodology/methods');
+const { MEASURED } = await import('../content/methodology/measured');
 const { CIRCUIT, FLOTATION, GRAVITY, MAGNETIC, DESLIME } = await import('../content/equations');
 
 const topics: Topic[] = [
   ...[INTRODUCTION, IMPLEMENTATION, EXPERIMENTS].flatMap(groups => (groups as Group[]).flatMap(g => g.topics)),
   ...Object.values(ENGINE_BENCHMARK as Record<string, Topic>), ...Object.values(MEASURED_LANES as Record<string, Topic>),
   ...Object.values(INDUSTRIAL as Record<string, Topic>),
-  ...(STREAMS as Topic[]), ...(COMMINUTION as Topic[]), ...(SEPARATION as Topic[]), ...(METHODS as Topic[]),
+  ...(STREAMS as Topic[]), ...(COMMINUTION as Topic[]), ...(SEPARATION as Topic[]), ...(METHODS as Topic[]), ...(MEASURED as Topic[]),
 ];
 const formulas: Array<{ where: string; tex: string | Bi }> = [
   ...topics.flatMap(t => (t.equations ?? []).map(e => ({ where: t.id, tex: e.tex }))),
@@ -34,7 +35,8 @@ const formulas: Array<{ where: string; tex: string | Bi }> = [
 
 // what reads the same in both languages: units, the RMSE and MAE acronyms (kept in Spanish technical writing),
 // operator names that are notation, not words, and the two runtimes' proper names
-const NEUTRAL = new Set(['RMSE', 'MAE', 'diag', 'kPa', 't/h', 'kWh', 'kW', 'MW', 'ppm', 'g/t', 'ONNX', 'PyTorch']);
+// chemical formulas (chalcopyrite, bornite) read the same in both languages
+const NEUTRAL = new Set(['RMSE', 'MAE', 'diag', 'kPa', 't/h', 'kWh', 'kW', 'MW', 'ppm', 'g/t', 'ONNX', 'PyTorch', 'CuFeS_2', 'Cu_5FeS_4']);
 const WORDS = /\\(?:text|mathrm|operatorname|textrm|textit|mathit)\{([^}]*)\}/g;
 
 describe('formulas in two languages', () => {

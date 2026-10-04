@@ -39,7 +39,7 @@ export const VARIANT_NOTES: Record<string, Bi> = {
   },
   larger_bleed: {
     en: 'Twice the underflow sent to the gravity unit. More free gold is taken out of the grinding loop before it overgrinds or reaches flotation, and less gold circulates.',
-    es: 'El doble del underflow enviado a la unidad gravimétrica. Se retira más oro libre del circuito de molienda antes de que se sobremuela o llegue a flotación, y circula menos oro.',
+    es: 'El doble de la descarga del ciclón enviada a la unidad gravimétrica. Se retira más oro libre del circuito de molienda antes de que se sobremuela o llegue a flotación, y circula menos oro.',
   },
   finer_crusher: {
     en: 'Crusher closed-side setting 20% tighter. The mill receives a finer feed, so the same grind target needs less grinding energy per tonne.',
@@ -50,12 +50,12 @@ export const VARIANT_NOTES: Record<string, Bi> = {
     es: 'Corte de deslamado 50% más grueso. La alimentación a flotación lleva menos lamas, y más del fosfato de las clases finas se va con ellas.',
   },
   cut_nominal: {
-    en: 'The plant\'s direction: the classifier\'s cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.',
-    es: 'La dirección de la planta: el corte del clasificador se fija en el corte que resuelve el estado nominal y el molino consume su potencia instalada, por lo que la molienda y la carga circulante son resultados. Donde la potencia instalada supera lo que necesita el objetivo nominal, la energía extra muele el producto más fino que el objetivo y vuelve menos material al molino.',
+    en: 'The plant\'s way round: the classifier\'s cut is held at the cut the nominal state solves and the mill draws its installed power, so the grind and the circulating load are results. Where the installed power exceeds what the nominal target needs, the extra energy grinds the product finer than the target and less material returns to the mill.',
+    es: 'El sentido de la planta: el corte del clasificador se fija en el corte que resuelve el estado nominal y el molino consume su potencia instalada, por lo que la molienda y la carga circulante son resultados. Donde la potencia instalada supera lo que necesita el objetivo nominal, la energía extra muele el producto más fino que el objetivo y vuelve menos material al molino.',
   },
   cut_finer: {
-    en: 'Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product fines, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and most states flag the cyclone pressure such a cut would take.',
-    es: 'Corte del clasificador 20% más fino que el corte nominal, con la misma potencia instalada. Más de la descarga del molino vuelve como underflow, por lo que la carga circulante sube y el producto se afina, mientras la energía por tonelada casi no cambia porque la potencia y el tratamiento están fijos. La carga puede salir del rango que acepta el modo objetivo, y la mayoría de los estados marca la presión de ciclón que ese corte requeriría.',
+    en: 'Classifier cut 20% finer than the nominal cut, at the same installed power. More of the mill discharge returns as underflow, so the circulating load rises and the product becomes finer, while the energy per tonne barely moves because the power and the feed rate are both fixed. The load can pass the range the target mode accepts, and the cyclone count and pressure such a cut would take are only an uncalibrated estimate.',
+    es: 'Corte del clasificador 20% más fino que el corte nominal, con la misma potencia instalada. Una parte mayor de lo que sale del molino vuelve a él con la descarga del ciclón, por lo que la carga circulante sube y el producto se afina, mientras la energía por tonelada casi no cambia porque la potencia y el tratamiento están fijos. La carga puede salir del rango que acepta el modo objetivo, y el número de ciclones y la presión que ese corte requeriría son solo una estimación sin calibrar.',
   },
 };
 
@@ -64,11 +64,11 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     problem: [
       { en: 'Grinding finer keeps paying while chalcopyrite is still locked in composites, and stops paying below its liberation size, where every extra micron costs energy and the fines float more slowly and entrain more gangue.',
         es: 'Moler más fino rinde mientras la calcopirita sigue atrapada en mixtos y deja de rendir bajo su tamaño de liberación, donde cada micrón extra cuesta energía y los finos flotan más lento y arrastran más ganga.' },
-      { en: 'Porphyry plants clean a rougher concentrate to reach smelter grades of 25 to 50% Cu depending on the copper minerals (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content) and usually recover 80 to 90% of the copper, above 90% for sulphide copper. The case asks where on that trade the grind should sit.',
-        es: 'Las plantas de pórfido limpian un concentrado rougher hasta leyes de fundición de 25 a 50% Cu según los minerales de cobre (un concentrado de calcopirita como este no puede superar 34,6% Cu, su contenido estequiométrico) y suelen recuperar 80 a 90% del cobre, sobre 90% en cobre sulfurado. El caso pregunta dónde de ese compromiso conviene fijar la molienda.' },
+      { en: 'Porphyry plants clean a rougher concentrate to the grades copper concentrates are bought at, generally 25 to 35% Cu (a chalcopyrite concentrate like this one cannot pass 34.6% Cu, its stoichiometric content), and in normal practice over 90% of the sulphide copper can be recovered. The case asks where on that trade the grind should sit.',
+        es: 'Las plantas de pórfido limpian un concentrado rougher hasta las leyes a las que se compran los concentrados de cobre, en general 25 a 35% Cu (un concentrado de calcopirita como este no puede superar 34,6% Cu, su contenido estequiométrico), y en la práctica normal es posible recuperar más de 90% del cobre sulfurado. El caso pregunta dónde de ese compromiso conviene fijar la molienda.' },
     ],
     scope: [
-      { en: 'An authored plant: every parameter is inside a range recorded in the research, none is a plant measurement or a calibration.', es: 'Una planta de autor: cada parámetro está dentro de un rango registrado en la investigación; ninguno es una medición de planta ni una calibración.' },
+      { en: 'An authored plant: its parameters come from cited ranges where the research found one and are labelled authored otherwise; none is a plant measurement or a calibration.', es: 'Una planta de autor: sus parámetros vienen de rangos citados donde la investigación encontró uno y se marcan de autor en los demás casos; ninguno es una medición de planta ni una calibración.' },
       { en: 'Liberation follows a characteristic liberation size (King 1979); composites float on their exposed chalcopyrite surface.', es: 'La liberación sigue un tamaño característico de liberación (King 1979); los mixtos flotan según su superficie expuesta de calcopirita.' },
       { en: 'Pyrite is depressed but not inert, and quartz reports by entrainment, so the concentrate grade is a result, not an input.', es: 'La pirita está deprimida pero no es inerte y el cuarzo reporta por arrastre, por lo que la ley del concentrado es un resultado, no una entrada.' },
     ],
@@ -77,14 +77,14 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
       { en: 'Response: sweep the grind target against recovery, then add collector as the second input to see the decision surface with the grade specification and installed power drawn.', es: 'Respuesta: barra el objetivo de molienda contra la recuperación y agregue el colector como segunda entrada para ver la superficie de decisión con la ley mínima y la potencia instalada dibujadas.' },
       { en: 'Methods, optimizer: where the six starts converge and which constraint binds at the optimum.', es: 'Métodos, optimizador: dónde convergen los seis inicios y qué restricción queda activa en el óptimo.' },
     ],
-    refs: ['king1979', 'trahar1981', 'porphyry-practice', 'herbst1980', 'gorain1997'],
+    refs: ['king1979', 'trahar1981', 'porphyry-practice', 'kroha1985', 'herbst1980', 'gorain1997'],
   },
   copper_porphyry_hard: {
     problem: [
       { en: 'The ball mill needs most of its installed power to reach the design grind at the design throughput. Any further hardness or tonnage cannot be met with more energy, so the grind coarsens until the power balance closes.',
         es: 'El molino de bolas necesita casi toda su potencia instalada para alcanzar la molienda de diseño al tratamiento de diseño. Más dureza o más toneladas ya no se pueden cubrir con energía, por lo que la molienda se engruesa hasta que el balance de potencia cierra.' },
-      { en: 'This is the most common way a concentrator loses recovery without any change in its flotation circuit, and the case is built to show that chain: power, then grind, then liberation, then recovery.',
-        es: 'Es la forma más común en que un concentrador pierde recuperación sin cambio alguno en su flotación, y el caso está hecho para mostrar esa cadena: potencia, luego molienda, luego liberación, luego recuperación.' },
+      { en: 'This is a common way for a concentrator to lose recovery without any change in its flotation circuit, and the case is built to show that chain: power, then grind, then liberation, then recovery.',
+        es: 'Es una forma frecuente en que un concentrador pierde recuperación sin cambio alguno en su flotación, y el caso está hecho para mostrar esa cadena: potencia, luego molienda, luego liberación, luego recuperación.' },
     ],
     scope: [
       { en: 'The energy-specific population balance (Herbst and Fuerstenau 1980) scales breakage with power per tonne, so a power cap is a cap on breakage.', es: 'El balance poblacional de energía específica (Herbst y Fuerstenau 1980) escala la fractura con la potencia por tonelada, por lo que un tope de potencia es un tope de fractura.' },
@@ -108,7 +108,7 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
       { en: 'The unit treats 10% of the underflow and recovers up to 70% per pass, slightly less below 37 µm; these are authored, anchored to Camchib and Meston. At the nominal state it recovers 60% of the GRG, 27% of all the gold. The model is checked against the published simulator example on the Benchmark, not calibrated to a plant.', es: 'La unidad trata 10% de la descarga y recupera hasta 70% por pasada, algo menos bajo 37 µm; son valores de autor, anclados a Camchib y Meston. En el estado nominal recupera 60% del GRG, 27% de todo el oro. El modelo se contrasta con el ejemplo de simulador publicado en el Benchmark, no se calibra a una planta.' },
     ],
     read: [
-      { en: 'Circuit: the gravity unit sits on the underflow return; its concentrate is a product and its tail returns to the mill.', es: 'Circuito: la unidad gravimétrica está sobre el retorno del underflow; su concentrado es un producto y su relave vuelve al molino.' },
+      { en: 'Circuit: the gravity unit sits on the underflow return; its concentrate is a product and its tail returns to the mill.', es: 'Circuito: la unidad gravimétrica está sobre el retorno de la descarga del ciclón; su concentrado es un producto y su relave vuelve al molino.' },
       { en: 'Separation: the gravity and flotation recoveries are reported separately, with the GRG recovery and the GRG circulating load.', es: 'Separación: las recuperaciones gravimétrica y de flotación se informan por separado, con la recuperación de GRG y la carga circulante de GRG.' },
       { en: 'Response: sweep the gravity bleed to see recovery saturate.', es: 'Respuesta: barra la purga gravimétrica para ver cómo se satura la recuperación.' },
     ],
@@ -152,14 +152,14 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   phosphate_clay: {
     problem: [
-      { en: 'Clay slimes consume fatty-acid collector and entrain into the froth, which is why plants deslime; the phosphate in the fine classes leaves with the slimes.',
-        es: 'Las lamas de arcilla consumen colector de ácidos grasos y se arrastran a la espuma, por eso las plantas deslaman; el fosfato de las clases finas se va con las lamas.' },
-      { en: 'Plants target about 35% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
-        es: 'Las plantas apuntan a unos 35% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso envía menos arcilla a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
+      { en: 'Slimes harm the flotation that follows, which is why phosphate flowsheets deslime; the phosphate in the fine classes leaves with the slimes.',
+        es: 'Las lamas dañan la flotación que sigue, por eso los diagramas de fosfato deslaman; el fosfato de las clases finas se va con las lamas.' },
+      { en: 'The wet phosphoric-acid process needs a concentrate above 30% P₂O₅ (stoichiometric fluorapatite holds 42.2%). A coarser cut sends less clay to flotation and loses more phosphate; a coarser grind makes fewer slimes. The case asks what the cut costs.',
+        es: 'El proceso de ácido fosfórico por vía húmeda pide un concentrado sobre 30% P₂O₅ (la fluorapatita estequiométrica tiene 42,2%). Un corte más grueso envía menos arcilla a flotación y pierde más fosfato; una molienda más gruesa produce menos lamas. El caso pregunta cuánto cuesta el corte.' },
     ],
     scope: [
       { en: 'The desliming cyclone uses the Rosin-Rammler partition with a declared sharpness and water bypass; its cut is an operating control bounded by half the grind target.', es: 'El ciclón de deslamado usa la partición Rosin-Rammler con nitidez y cortocircuito de agua declarados; su corte es un control de operación acotado por la mitad del objetivo de molienda.' },
-      { en: 'The phosphate practice figures come from a review summary (the full text was not reachable when the research was done).', es: 'Las cifras de práctica del fosfato vienen del resumen de una revisión (el texto completo no estaba disponible al hacer la investigación).' },
+      { en: 'The reason to deslime and the concentrate requirement come from a review read in full; the 20 µm cut and the grade band are authored.', es: 'La razón para deslamar y el requisito del concentrado vienen de una revisión leída completa; el corte de 20 µm y la banda de ley son de autor.' },
       { en: 'Clay acts only through mass, size and entrainment. Slime coating and collector consumption by slimes, the reasons plants deslime, are not modelled, so the engine shows what the cut costs and not what it buys: a coarser cut lowers recovery and concentrate grade together, and only the flotation-stage recovery, a ratio, rises.',
         es: 'La arcilla actúa solo por masa, tamaño y arrastre. El recubrimiento por lamas y el consumo de colector por las lamas, las razones por las que las plantas deslaman, no se modelan, así que el motor muestra lo que cuesta el corte y no lo que compra: un corte más grueso baja la recuperación y la ley del concentrado a la vez, y solo sube la recuperación de la etapa de flotación, que es una razón.' },
     ],
@@ -172,17 +172,17 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   copper_molybdenum: {
     problem: [
       { en: 'In bulk roughers molybdenite usually recovers 2 to 12 points below copper, and more variably, because part of it is platy, fine and unresponsive.',
-        es: 'En roughers colectivos la molibdenita suele recuperarse entre 2 y 12 puntos bajo el cobre, y con más variabilidad, porque parte de ella es laminar, fina y poco respondedora.' },
+        es: 'En roughers colectivos la molibdenita suele recuperarse entre 2 y 12 puntos bajo el cobre, y con más variabilidad, porque parte de ella es laminar, fina y responde poco.' },
       { en: 'The case asks why molybdenite trails copper in the same froth, and how much of that gap belongs to size and how much to the mineral itself.',
         es: 'El caso pregunta por qué la molibdenita queda detrás del cobre en la misma espuma, y cuánto de esa brecha es tamaño y cuánto es el mineral mismo.' },
     ],
     scope: [
-      { en: 'Molybdenite carries an unresponsive fraction and a finer optimum size than chalcopyrite; both are authored within the mechanisms Zanin et al. describe.', es: 'La molibdenita tiene una fracción poco respondedora y un tamaño óptimo más fino que la calcopirita; ambos son de autor dentro de los mecanismos que describen Zanin y colaboradores.' },
+      { en: 'Molybdenite carries an unresponsive fraction and a finer optimum size than chalcopyrite; both are authored within the mechanisms Zanin et al. describe.', es: 'La molibdenita tiene una fracción que responde poco y un tamaño óptimo más fino que la calcopirita; ambos son de autor dentro de los mecanismos que describen Zanin y colaboradores.' },
       { en: 'Molybdenum is a second payable: the grade specification applies to copper, and molybdenum recovery is reported beside it.', es: 'El molibdeno es un segundo pagable: la ley mínima aplica al cobre y la recuperación de molibdeno se informa junto a ella.' },
     ],
     read: [
       { en: 'The readout and the Compare table give copper recovery; the molybdenum recovery is in the Separation facts.', es: 'La lectura y la tabla de Comparar dan la recuperación de cobre; la de molibdeno está en los datos de Separación.' },
-      { en: 'Separation, batch kinetics: the fitted models show how a slow, unresponsive fraction flattens the curve.', es: 'Separación, cinética batch: los modelos ajustados muestran cómo una fracción lenta y poco respondedora aplana la curva.' },
+      { en: 'Separation, batch kinetics: the fitted models show how a slow, unresponsive fraction flattens the curve.', es: 'Separación, cinética batch: los modelos ajustados muestran cómo una fracción lenta y que responde poco aplana la curva.' },
     ],
     refs: ['zanin2009', 'polat2000', 'porphyry-practice'],
   },
@@ -206,14 +206,14 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   zinc_sulfide: {
     problem: [
-      { en: 'Stoichiometric ZnS holds 67.1% Zn and commercial concentrates run at about 50 to 55% Zn, so the concentrate grade is set by how much pyrite and gangue the froth carries.',
-        es: 'El ZnS estequiométrico tiene 67,1% Zn y los concentrados comerciales rondan 50 a 55% Zn, por lo que la ley del concentrado la fija cuánta pirita y ganga lleva la espuma.' },
+      { en: 'Stoichiometric ZnS holds 67.1% Zn and commercial concentrates run at about 50 to 60% Zn (US EPA, citing Kirk-Othmer), so the concentrate grade is set by how much pyrite and gangue the froth carries.',
+        es: 'El ZnS estequiométrico tiene 67,1% Zn y los concentrados comerciales rondan 50 a 60% Zn (US EPA, citando a Kirk-Othmer), por lo que la ley del concentrado la fija cuánta pirita y ganga lleva la espuma.' },
       { en: 'The high head grade makes the grade-recovery separation explicit: the case asks how pyrite controls the zinc grade.',
         es: 'La alta ley de cabeza hace explícita la separación ley-recuperación: el caso pregunta cómo controla la pirita la ley del zinc.' },
     ],
     scope: [
       { en: 'Activation is folded into sphalerite\'s floatability; pyrite depression into pyrite\'s lower floatability.', es: 'La activación se incorpora en la flotabilidad de la esfalerita; la depresión de la pirita en su menor flotabilidad.' },
-      { en: 'The commercial grade range is recorded as unverified as a single figure; the grade specification is authored.', es: 'El rango de ley comercial está registrado como no verificado como cifra única; la ley mínima es de autor.' },
+      { en: 'The commercial grade range is a secondary source\'s; the grade specification is authored.', es: 'El rango de ley comercial es de una fuente secundaria; la ley mínima es de autor.' },
     ],
     read: [
       { en: 'Separation: the bank profile shows the grade falling cell by cell as recovery accumulates.', es: 'Separación: el perfil del banco muestra la ley cayendo celda a celda a medida que se acumula la recuperación.' },

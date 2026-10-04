@@ -1,5 +1,9 @@
 # 02 Crushing
 
+![Particles that enter the breakage zone (C) break (B) and return to classification; those that escape form the product.](../svg/02-crushing.svg)
+
+*Particles that enter the breakage zone (C) break (B) and return to classification; those that escape form the product.*
+
 ## Theory
 
 Whiten's crusher model treats the crushing chamber as a classification step followed by breakage,
@@ -41,7 +45,7 @@ crusher-feed F80.
 | $K_2$ | 2.3 CSS | um | inside the reported 1.7 to 3.5 CSS |
 | $K_3$ | 2.3 | 1 | commonly used value |
 | breakage $\beta_0, \beta_1, \beta_2$ | 0.4, 0.7, 3.5 | 1 | authored; Austin form |
-| crusher feed F80, slope | 60 mm, 0.9 | um, 1 | authored secondary-crusher feed |
+| crusher feed F80, slope | 60,000 (60 mm), 0.9 | um, 1 | authored secondary-crusher feed |
 | CSS | 8 mm (control) | mm | operating control, bounds in Contract 1 |
 
 Crushing energy is reported with Bond's equation and the case crushing work index (page 09).

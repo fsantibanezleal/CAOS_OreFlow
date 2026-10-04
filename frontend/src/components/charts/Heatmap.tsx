@@ -118,15 +118,18 @@ export function Heatmap({ title, xs, ys, z, xLabel, yLabel, zLabel, summary, con
     const font = style.fontFamily;
     // a colour given as a shell token (--color-...) follows the theme
     const colourOf = (c: string) => (c.startsWith('--') ? style.getPropertyValue(c).trim() || strong : c);
-    // text over the colour map carries a halo, so it reads on any cell
+    // text over the colour map sits on a chip of the surface colour, so it reads on any cell: a 3 px halo stroke
+    // left the colour map showing through the letters in the dark theme (0.08 gate captures)
     const label = (text: string, x: number, y: number, colour: string) => {
       ctx.save();
-      ctx.lineWidth = 3;
-      ctx.strokeStyle = halo;
-      ctx.lineJoin = 'round';
-      ctx.strokeText(text, x, y);
+      const m = ctx.measureText(text);
+      const ascent = m.actualBoundingBoxAscent || 9;
+      const descent = m.actualBoundingBoxDescent || 3;
+      const left = Math.min(x, size.width - MARGIN.right - m.width - 4);
+      ctx.fillStyle = halo;
+      ctx.fillRect(left - 3, y - ascent - 2, m.width + 6, ascent + descent + 4);
       ctx.fillStyle = colour;
-      ctx.fillText(text, x, y);
+      ctx.fillText(text, left, y);
       ctx.restore();
     };
     ctx.clearRect(0, 0, size.width, size.height);

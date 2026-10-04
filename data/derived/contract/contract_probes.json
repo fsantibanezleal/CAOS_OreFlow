@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "dbeb20842d2c693bd19a1b8b288f8cf93b68c0f7bfc58822446f50b4b73bb2de",
+ "digest": "2b35e7d0fd6b3744b1fe43173097521ea746c4df02f6340a06f7ccfb0144274a",
  "probes": [
   {
    "case_id": "no_such_case",

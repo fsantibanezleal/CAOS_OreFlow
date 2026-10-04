@@ -68,7 +68,7 @@ input, select, textarea { font: inherit; }
 .of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
-.of-knob-base { font-size: 0.68rem; color: var(--color-fg-faint); }
+.of-knob-base { font-size: 0.68rem; color: var(--color-fg-subtle); }
 /* CM-07: the classifier cut is a mode switch; the inputs it replaces stay visible, disabled, as results */
 .of-knob-title { font-size: 0.8rem; color: var(--color-fg); }
 .of-segmented { display: flex; gap: 4px; }
@@ -111,13 +111,19 @@ input, select, textarea { font: inherit; }
   white-space: nowrap;
   overflow: hidden;
   font-size: 0.8rem;
+  /* the row never wraps: at 1280 px the Spanish labels left the status 60 px and it was cut (0.08 gate), so the
+     items sit closer and the status is short */
+  gap: 12px;
 }
 .of-readout-item { display: inline-flex; align-items: baseline; gap: 6px; flex: none; }
-.of-readout-label { color: var(--color-fg-subtle); font-size: 0.72rem; }
-.of-readout-item strong { font-family: var(--font-mono); font-size: 0.9rem; color: var(--color-fg); }
+.of-readout-label { color: var(--color-fg-subtle); font-size: 0.7rem; }
+.of-readout-item strong { font-family: var(--font-mono); font-size: 0.86rem; color: var(--color-fg); }
 .of-readout-flags { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--color-good); font-size: 0.74rem; }
 .of-readout-flags.warn { color: var(--color-warn); }
 .of-flags-line { flex: none; margin: 0; padding: 0 2px; font-size: 0.74rem; line-height: 1.35; color: var(--color-warn); }
+.of-bench .of-viewrow { flex: none; display: flex; flex-wrap: wrap; align-items: center; column-gap: 14px; border-bottom: 1px solid var(--color-border); }
+.of-bench .of-viewrow > .tablist.of-viewbar { width: auto; flex: 0 1 auto; border-bottom: 0; }
+.of-bench .of-viewrow > .of-flags-line { flex: 1 1 18rem; min-width: 0; padding-bottom: 0.35rem; }
 .of-readout-busy { flex: none; color: var(--color-accent); font-size: 0.72rem; }
 .of-readout-cursor { flex: 0 1 auto; max-width: 48%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg); }
 
@@ -180,7 +186,7 @@ input, select, textarea { font: inherit; }
   font-size: 0.8rem;
 }
 .of-side h3 { margin: 0; font-size: 0.95rem; }
-.of-stage-hint { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: 0.74rem; color: var(--color-fg-faint); pointer-events: none; }
+.of-stage-hint { position: absolute; left: 12px; bottom: 8px; margin: 0; font-size: 0.74rem; color: var(--color-fg-subtle); pointer-events: none; }
 .of-unit-card {
   position: absolute;
   top: 10px;
@@ -203,13 +209,35 @@ input, select, textarea { font: inherit; }
 .of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
 /* The Methods records' side panel filled a fifth to a third of its column at 2560x1440 (the Sobol table the
  * least): on a large screen it becomes a strip under the chart, its parts side by side, as tall as its
- * content and never more than 42% of the screen (it scrolls inside beyond that) */
+ * content and never more than 42% of the screen (it scrolls inside beyond that). Below 1300 px of height the learned
+ * lane keeps its panel beside the charts: as a strip it left the guard chart a 40 px plot whose axis title was cut at
+ * 1920x1080 (0.08 gate); its panel is full enough beside them */
 @media (min-width: 1800px) and (min-height: 1000px) {
-  .of-split { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .of-split > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
-  .of-split > .of-aside > * { flex: 0 1 auto; min-width: 0; }
-  .of-split > .of-aside > .of-table { width: auto; }
-  .of-split > .of-aside > .of-status-line, .of-split > .of-aside > .of-note { flex-basis: 100%; }
+  .of-split:not(.of-split-beside) { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .of-split:not(.of-split-beside) > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
+  .of-split:not(.of-split-beside) > .of-aside > * { flex: 0 1 auto; min-width: 0; }
+  .of-split:not(.of-split-beside) > .of-aside > .of-table { width: auto; }
+  .of-split:not(.of-split-beside) > .of-aside > .of-status-line, .of-split:not(.of-split-beside) > .of-aside > .of-note { flex-basis: 100%; }
+}
+/* The real sources' Case views keep their two columns at every size: their side panels are long tables, and as a strip
+ * a GeoMet sample left a blank band between its two tables, and an hour of the iron plant cut its forecast table to
+ * four of nine rows over a 21-row assay column with a blank band beside it, at 1920x1080 and 2560x1440 (0.08 gate) */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .of-view-sample > .of-split, .of-view-hour > .of-split { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); }
+  /* a sample: the facts and the comparison at their own heights, and the samples chart across the view below */
+  .of-view-sample-wide { gap: 10px; }
+  .of-view-sample-wide > .of-split { flex: none; grid-template-rows: auto; }
+  .of-view-sample-wide > .of-split > .of-sample-main { overflow: visible; }
+  .of-view-sample-wide > .of-sample-chart { min-height: 300px; }
+  .of-view-sample > .of-split > .of-aside, .of-view-hour > .of-split > .of-aside { flex-direction: column; flex-wrap: nowrap; max-height: none; }
+  .of-view-sample > .of-split > .of-aside > .of-table, .of-view-hour > .of-split > .of-aside > .of-table { width: 100%; }
+}
+@media (min-width: 1800px) and (min-height: 1300px) {
+  .of-split.of-split-beside { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .of-split.of-split-beside > .of-aside { flex-direction: row; flex-wrap: wrap; align-items: flex-start; align-content: flex-start; column-gap: 28px; max-height: 42vh; }
+  .of-split.of-split-beside > .of-aside > * { flex: 0 1 auto; min-width: 0; }
+  .of-split.of-split-beside > .of-aside > .of-table { width: auto; }
+  .of-split.of-split-beside > .of-aside > .of-status-line, .of-split.of-split-beside > .of-aside > .of-note { flex-basis: 100%; }
 }
 .of-stack { display: grid; grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; min-width: 0; min-height: 0; }
 .of-stack.of-stack-2-1 { grid-template-rows: minmax(0, 2fr) minmax(0, 1fr); }
@@ -298,12 +326,19 @@ input, select, textarea { font: inherit; }
 .of-flow-arrow { fill: var(--color-fg-subtle); }
 .of-flow-arrow.recycle { fill: var(--color-warn); }
 .of-flow-arrow.product { fill: var(--color-good); }
+.of-flow-edge.tail polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
+.of-flow-arrow.tail { fill: var(--color-fg-subtle); }
 .of-flow-label { fill: var(--color-fg-subtle); font: 10.5px var(--font-mono); paint-order: stroke; stroke: var(--color-surface); stroke-width: 3px; stroke-linejoin: round; }
 .of-flow-unit { cursor: pointer; outline: none; }
 .of-flow-unit rect { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
 .of-flow-unit text { fill: var(--color-fg); font: 600 11px var(--font-sans); pointer-events: none; }
 .of-flow-unit:hover rect, .of-flow-unit:focus-visible rect { stroke: var(--color-accent); }
 .of-flow-unit.selected rect { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
+/* D-20: a junction (streams join, or water is added) is a small node with its name in small type, not a unit box */
+.of-flow-junction circle { fill: var(--color-surface-2); stroke: var(--color-fg-subtle); stroke-width: 1.4; }
+.of-flow-junction:hover circle, .of-flow-junction:focus-visible circle { stroke: var(--color-accent); }
+.of-flow-junction.selected circle { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
+.of-flow-unit text.of-flow-junction-name { fill: var(--color-fg-subtle); font: 9.5px var(--font-sans); }
 
 /* ---- tables, facts and text ---- */
 .of-table { width: 100%; border-collapse: collapse; font-size: 0.78rem; font-variant-numeric: tabular-nums; }
@@ -312,6 +347,10 @@ input, select, textarea { font: inherit; }
 .of-table th:first-child, .of-table td:first-child { text-align: left; }
 .of-table thead th { color: var(--color-fg-subtle); font-weight: 600; }
 .of-table tbody th { font-weight: 500; color: var(--color-fg); white-space: normal; }
+/* a search range may break after its dash, so the optimizer's table fits the aside in Spanish (0.08 gate: 7 px over) */
+.of-table td.of-range { white-space: normal; min-width: 4.5rem; }
+/* the start-by-start screen table's Spanish headers took it 7 px past the aside at 1280 px (0.08 gate) */
+.of-table.of-table-wraphead thead th { white-space: normal; vertical-align: bottom; }
 .of-table tr.of-table-group > * { border-top: 1px solid var(--color-fg-faint); }
 .of-table tr.is-selected > * { background: var(--color-accent-soft); }
 .of-table.of-table-wide { flex: none; }
@@ -325,7 +364,7 @@ input, select, textarea { font: inherit; }
 .of-table-scroll { flex: 0 1 auto; min-height: 0; overflow: auto; border: 1px solid var(--color-border); border-radius: 6px; }
 .of-table-scroll thead th { position: sticky; top: 0; background: var(--color-bg); }
 .of-compare-charts { min-height: 220px; }
-.of-muted { color: var(--color-fg-faint); font-weight: 400; font-size: 0.72rem; }
+.of-muted { color: var(--color-fg-subtle); font-weight: 400; font-size: 0.72rem; }
 .of-tag.ok { background: color-mix(in oklab, var(--color-good) 18%, transparent); color: var(--color-good); }
 
 /* the Case view's context: text on the left, components and equations on the right; the panel is the one scroller */
@@ -360,6 +399,8 @@ input, select, textarea { font: inherit; }
 .of-context-side .katex-display { overflow-x: auto; overflow-y: hidden; }
 @media (max-width: 1100px) { .of-context { grid-template-columns: minmax(0, 1fr); } }
 .of-tag { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: color-mix(in oklab, var(--color-warn) 18%, transparent); color: var(--color-warn); font-size: 0.66rem; font-weight: 600; }
+/* under its value, so the optimizer's table fits the aside in Spanish ('en su cota' beside 75,0 took it 7 px past) */
+.of-tag.of-tag-below { display: block; width: max-content; margin: 2px 0 0 auto; }
 
 .of-facts { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 4px 14px; margin: 0; font-size: 0.78rem; }
 .of-facts > div { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px dashed var(--color-border); }
@@ -375,10 +416,13 @@ input, select, textarea { font: inherit; }
 .of-status-line { margin: 0; font-size: 0.8rem; font-weight: 600; color: var(--color-good); }
 .of-status-line.warn { color: var(--color-warn); }
 .of-status-line.neutral { color: var(--color-fg); }
-.of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-faint); }
+.of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-subtle); }
 /* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
  * phone never scrolls sideways */
 .of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+/* every sample against its test: its own sub-tab, or across the view under the facts on a large screen */
+.of-sample-chart { flex: 1 1 auto; display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; }
+.of-view-sample .subtabpanel > .of-split { flex: 1 1 auto; }
 /* RS-07: an hour's main column is the window's chart over the forecasts and their note. A two-row stack gave the note
  * an implicit third row that ran 60 px past the frame at 1280x800; the chart now takes what the rows leave, at least
  * 220 px, and the column scrolls where the frame is shorter than its content */
@@ -441,14 +485,23 @@ input, select, textarea { font: inherit; }
   /* the rail's row takes its content: with min-height 0 the stacked row shrank to 61 px and the controls
      spilled over the readout and the tab row; the page body scrolls instead */
   .of-rail { overflow: visible; min-height: auto; }
-  /* the readout stays one row and scrolls sideways rather than cutting its last readings */
-  .of-readout { overflow-x: auto; scrollbar-width: none; }
+  /* the readout wraps: scrolling sideways hid its status at the end of the row, which a reader never saw (0.08 gate,
+     768 px); the stacked page has the height for a second line */
+  .of-readout { flex-wrap: wrap; row-gap: 2px; }
+  .of-readout-flags { flex: 1 0 auto; min-width: auto; }
+  /* the Response view's selects wrap two to a row: in one row with the button they were 46 px wide on a phone and cut
+     their names (0.08 gate) */
+  .of-response-controls { flex-wrap: wrap; overflow: visible; }
+  .of-response-controls .of-field { flex: 1 1 12rem; min-width: 0; }
+  .of-response-controls .of-field select { width: 100%; }
   .of-main { min-height: 78dvh; }
   .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }
   /* the legend under the title, across the chart: beside it, six series took six lines and left the
      size-distribution plot about 50 px on a phone */
   .of-plot-head { flex-wrap: wrap; row-gap: 2px; }
+  /* a title longer than the phone wraps: a Benchmark title ran 23 px past the page in Spanish (0.08 gate) */
+  .of-plot-title { white-space: normal; flex: 1 1 100%; min-width: 0; }
 }
 
 /* U-03: a rejected state: the rail names it at the top, the view host replaces the stale views */
@@ -456,7 +509,7 @@ input, select, textarea { font: inherit; }
 .of-rejection { display: flex; flex-direction: column; gap: 0.5rem; padding: 1rem 1.2rem; border: 1px solid var(--color-warn); border-radius: 8px; max-width: 46rem; }
 .of-rejection p { margin: 0; }
 .of-rejection-title { font-weight: 700; color: var(--color-warn); }
-.of-rejection-note { font-size: 0.8rem; color: var(--color-fg-faint); }
+.of-rejection-note { font-size: 0.8rem; color: var(--color-fg-subtle); }
 /* U-07: a power-limited sample state is named in the warning colour beside its recovery */
 .of-table tr.of-row-warn th, .of-table tr.of-row-warn td { color: var(--color-warn); }
 
@@ -478,7 +531,15 @@ input, select, textarea { font: inherit; }
   .of-compare-charts { grid-auto-rows: 260px; }
   .of-hour-main, .of-sample-main, .of-split > .of-aside, .of-panel, .of-side { overflow: visible; }
   .of-hour-main { grid-template-rows: 260px auto auto; }
+  .of-sample-chart { grid-template-rows: 320px; }
   .of-table-scroll { overflow-x: auto; overflow-y: visible; }
   .of-table-scroll thead th { position: static; }
   .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }
 }
+/* U-11: a value an engine flag speaks about (power-limited P80 and power, a load outside its window) */
+.of-facts > .of-fact-warn dt, .of-facts > .of-fact-warn dd, .of-readout-item.warn strong, .of-table td.of-cell-warn { color: var(--color-warn); }
+/* U-15: a view the source has nothing for */
+.of-bench .tablist.of-viewbar .tab:disabled { opacity: 0.4; cursor: not-allowed; }
+/* U-33: the key of a category axis whose names did not fit (the Sobol factors on a phone) */
+.of-plot-key { flex: none; display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 4px 0 0; padding: 0 4px; list-style: none; font-size: 0.75rem; color: var(--color-fg-subtle); }
+.of-plot-key b { margin-right: 4px; color: var(--color-fg); font-weight: 600; }

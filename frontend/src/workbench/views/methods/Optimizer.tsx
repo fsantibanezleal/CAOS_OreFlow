@@ -16,7 +16,7 @@ import { cancelOptimize, optimizeInWorker } from '../../../engine/client';
 import { validateControl, type OperatingContract } from '../../../engine/contract';
 import type { OperatingPoint, Ore, Plant } from '../../../engine/model';
 import type { OptimizationRecord, OptimumSummary } from '../../../lib/artifacts.types';
-import { formatFixed, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
+import { formatFixed, formatRange, formatSignificant, formatValue, formatWithUnit, sharedDecimals, unitLabel, type Lang } from '../../../lib/format';
 import { formulaText, metricLabel } from '../../../lib/i18n';
 import { Chart } from '../../../components/charts/Chart';
 
@@ -47,7 +47,12 @@ const TEXT = {
   water: { en: 'Process water per tonne', es: 'Agua de proceso por tonelada' },
   atLeast: { en: 'at least', es: 'al menos' },
   atMost: { en: 'at most', es: 'como máximo' },
-  optimal: { en: 'Optimum found', es: 'Óptimo encontrado' },
+  optimal: {
+    en: (w: number) => `Best weighted objective at ${w}% weight on metal`,
+    es: (w: number) => `Mejor objetivo ponderado con ${w}% de peso en el metal`,
+  },
+  metalChangeLine: { en: 'recovered metal', es: 'metal recuperado' },
+  energyChangeLine: { en: 'specific energy', es: 'energía específica' },
   weightNote: {
     en: 'With part of the weight on energy, the optimum gives up recovered metal for lower energy per tonne. The weight is a modelling choice, not a price, so this point is not advice.',
     es: 'Con parte del peso en la energía, el óptimo cede metal recuperado a cambio de menos energía por tonelada. El peso es una elección de modelo, no un precio, así que este punto no es una recomendación.',
@@ -56,7 +61,7 @@ const TEXT = {
   gain: { en: 'of recovered metal', es: 'de metal recuperado' },
   evaluations: { en: 'engine evaluations', es: 'evaluaciones del motor' },
   starts: { en: 'starts', es: 'inicios' },
-  baked: { en: 'Baked for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
+  baked: { en: 'Precomputed for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
   first: { en: 'the variant state', es: 'el estado de la variante' },
   title: { en: 'Where each optimizer start ended', es: 'Dónde terminó cada inicio del optimizador' },
   chart: { en: 'Chart', es: 'Gráfico' },
@@ -67,7 +72,7 @@ const TEXT = {
     screen: { en: 'Surrogate against engine', es: 'Sustituto frente al motor' },
   } as Record<View, { en: string; es: string }>,
   objective: { en: 'Objective of the feasible incumbent (1 at the base when all weight is on metal)', es: 'Objetivo del incumbente factible (1 en la base con todo el peso en el metal)' },
-  barrier: { en: 'Barrier on the constraint violation, h_max', es: 'Barrera sobre la violación de restricciones, h_max' },
+  barrier: { en: 'Barrier: the largest constraint violation a trial point may carry', es: 'Barrera: la mayor violación de restricciones que puede tener un punto de prueba' },
   engineEvaluations: { en: 'Engine evaluations', es: 'Evaluaciones del motor' },
   incumbent: { en: 'Feasible incumbent', es: 'Incumbente factible' },
   infeasibleIncumbent: { en: 'Barrier', es: 'Barrera' },
@@ -85,15 +90,17 @@ const TEXT = {
   identity: { en: 'Equal to the engine', es: 'Igual al motor' },
   screenTitle: { en: 'The screen\'s proposals: surrogate against engine', es: 'Las propuestas del filtro: sustituto frente al motor' },
   screenSummary: { en: 'The surrogate\'s recovery against the engine\'s at every candidate the screen proposed to the engine.', es: 'La recuperación del sustituto frente a la del motor en cada candidato que el filtro propuso al motor.' },
-  noProposals: { en: 'The screen proposed no candidate: every one it saw was outside the guard or the interval bound.', es: 'El filtro no propuso candidatos: todos los que vio estaban fuera del guardián o de la cota del intervalo.' },
+  noProposals: { en: 'The screen proposed no candidate: every one it saw was outside the guard or the interval bound.', es: 'El filtro no propuso candidatos: todos los que vio estaban fuera del guardia o de la cota del intervalo.' },
   unscreened: { en: 'This record ran without the screen.', es: 'Este registro corrió sin el filtro.' },
   screenCol: { en: 'Start', es: 'Inicio' },
-  withCol: { en: 'Evaluations', es: 'Evaluaciones' },
+  // the table's caption says they are evaluations; the column names wrap, which 'Evaluaciones' could not (0.08 gate)
+  withCol: { en: 'With the screen', es: 'Con el filtro' },
+  startsCaption: { en: 'Engine evaluations by start, and the proposals of the screen', es: 'Evaluaciones del motor por inicio, y las propuestas del filtro' },
   withoutCol: { en: 'Without the screen', es: 'Sin el filtro' },
   proposedCol: { en: 'Proposed', es: 'Propuestos' },
   improvedCol: { en: 'Improved', es: 'Mejoraron' },
   total: { en: 'All starts', es: 'Todos los inicios' },
-  rejected: { en: 'rejected by the guard', es: 'rechazados por el guardián' },
+  rejected: { en: 'rejected by the guard', es: 'rechazados por el guardia' },
   interval: { en: 'by the interval bound', es: 'por la cota del intervalo' },
   screened: { en: 'candidates screened', es: 'candidatos filtrados' },
   disagreement: { en: 'mean absolute surrogate error on recovery at the proposals', es: 'error absoluto medio del sustituto en la recuperación en las propuestas' },
@@ -102,7 +109,7 @@ const TEXT = {
   cancel: { en: 'Cancel', es: 'Cancelar' },
   running: { en: 'Pattern-search runs', es: 'Corridas de la búsqueda por patrones' },
   live: { en: 'Live record at the current state', es: 'Registro en vivo en el estado actual' },
-  showBaked: { en: 'Show the baked record', es: 'Mostrar el registro horneado' },
+  showBaked: { en: 'Show the precomputed record', es: 'Mostrar el registro precalculado' },
   failed: { en: 'The run failed', es: 'La corrida falló' },
   weight: { en: 'weight on recovered metal', es: 'peso del metal recuperado' },
   method: { en: 'pattern search with a progressive barrier', es: 'búsqueda por patrones con barrera progresiva' },
@@ -251,8 +258,15 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
     ...(record.constraints.water ? [{ id: 'water' as const, label: TEXT.water[lang], limit: `${TEXT.atMost[lang]} ${formatWithUnit(record.constraints.water.maximum_m3_t, 'm3/t', lang)}` }] : []),
   ];
   const slackUnit = { grade: gradeUnit, power: 'kW', water: 'm3/t' };
+  // T-17: the weight the optimum answers to, and what it changes in metal and in energy, neither called good
+  const sign = (v: number) => (v >= 0 ? '+' : '');
+  const energyChange = record.optimum ? record.optimum.values.energy_kwh_t - record.base.values.energy_kwh_t : 0;
+  const energyPct = record.optimum && record.base.values.energy_kwh_t ? 100 * (energyChange / record.base.values.energy_kwh_t) : null;
+  // a value and its unit on a narrow no-break space, so the line never breaks between them (0.08 gate, 768 px)
   const status = record.optimum
-    ? `${TEXT.optimal[lang]}: ${(record.gain_tph ?? 0) >= 0 ? '+' : ''}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)} ${TEXT.gain[lang]}${record.gain_pct != null ? ` (${record.gain_pct >= 0 ? '+' : ''}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
+    ? `${TEXT.optimal[lang](Math.round(100 * record.weights.recovered_metal))}: ${TEXT.metalChangeLine[lang]} ${sign(record.gain_tph ?? 0)}${formatFixed(metal(record.gain_tph ?? 0) as number, lang, 3)} ${unitLabel(metalUnit)}`
+      + `${record.gain_pct != null ? ` (${sign(record.gain_pct)}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
+      + `, ${TEXT.energyChangeLine[lang]} ${sign(energyChange)}${formatFixed(energyChange, lang, 2)} kWh/t${energyPct !== null ? ` (${sign(energyPct)}${formatSignificant(energyPct, lang, 3)}%)` : ''}`
     : TEXT.noFeasible[lang];
   const screenTotals = record.screened ? {
     screened: starts.reduce((s, r) => s + (r.screen?.screened ?? 0), 0), guard: starts.reduce((s, r) => s + (r.screen?.rejected.guard ?? 0), 0),
@@ -282,7 +296,9 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
             {failure && <p className="of-note">{`${TEXT.failed[lang]}: ${failure}`}</p>}
             {live && <div className="of-actions">
               <p className="of-status-line neutral">{`${TEXT.live[lang]}: ${Math.round(100 * live.weights.recovered_metal)}% ${TEXT.weight[lang]}`}</p>
-              <button type="button" className="of-revert" onClick={() => setLive(null)}>{TEXT.showBaked[lang]}</button></div>}
+              {/* back on the baked record the selector shows the weight that record answers to: it kept the live run's
+                  50% under a result reading 100% (0.08 gate captures) */}
+              <button type="button" className="of-revert" onClick={() => { setLive(null); setWeightPct(Math.round(100 * baked.weights.recovered_metal)); }}>{TEXT.showBaked[lang]}</button></div>}
           </div>
         )}
         {modified && !live && <p className="of-note">{TEXT.baked[lang]}</p>}
@@ -306,18 +322,21 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
               const step = contract.cases[caseId]?.inputs[n]?.step ?? 0.005 * (high - low);
               const d = outcome?.decisions[n];
               const atBound = record.optimum !== null && d !== undefined && (Math.abs(d - low) <= step || Math.abs(high - d) <= step);
+              // U-30: a row's base, result and bounds at one precision
+              const rd = sharedDecimals([record.base.decisions[n], d, low, high], unitOf(n));
               return (
               <tr key={n}><th scope="row">{`${declared[n].label[lang]} (${unitLabel(unitOf(n)) || '-'})`}</th>
-                <td>{formatValue(record.base.decisions[n], unitOf(n), lang)}</td>
-                <td>{formatValue(d, unitOf(n), lang)}{atBound ? <span className="of-tag">{TEXT.atBound[lang]}</span> : null}</td>
-                <td>{`${formatValue(record.bounds[n][0], unitOf(n), lang)} – ${formatValue(record.bounds[n][1], unitOf(n), lang)}`}</td></tr>
+                <td>{formatFixed(record.base.decisions[n], lang, rd)}</td>
+                <td>{formatFixed(d, lang, rd)}{atBound ? <span className="of-tag of-tag-below">{TEXT.atBound[lang]}</span> : null}</td>
+                <td className="of-range">{formatRange(low, high, unitOf(n), lang, false)}</td></tr>
               );
             })}
             {RESULTS.map(row => {
               // U-05, U-30: recovered metal in the plant's own unit, to the resolution the status line quotes
               const isMetal = row.key === 'recovered_tph';
               const unit = isMetal ? metalUnit : row.unit ?? gradeUnit;
-              const show = (v: number | null | undefined) => (isMetal ? (v == null ? formatValue(v, unit, lang) : formatFixed(metal(v) as number, lang, 3)) : formatValue(v, unit, lang));
+              const rd = sharedDecimals([value(record.base, row.key), value(outcome, row.key)], unit);
+              const show = (v: number | null | undefined) => (isMetal ? (v == null ? formatValue(v, unit, lang) : formatFixed(metal(v) as number, lang, 3)) : formatFixed(v, lang, rd));
               return (
                 <tr key={row.metric} className="of-table-group"><th scope="row">{`${metricLabel(row.metric, lang)} (${unitLabel(unit)})`}</th>
                   <td>{show(value(record.base, row.key))}</td>
@@ -340,22 +359,23 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
           </tbody>
         </table>
         {record.screened && record.without_screen && (
-          <table className="of-table of-table-data">
+          <table className="of-table of-table-data of-table-wraphead">
+            <caption>{TEXT.startsCaption[lang]}</caption>
             <thead><tr><th scope="col">{TEXT.screenCol[lang]}</th><th scope="col">{TEXT.withCol[lang]}</th><th scope="col">{TEXT.withoutCol[lang]}</th>
               <th scope="col">{TEXT.proposedCol[lang]}</th><th scope="col">{TEXT.improvedCol[lang]}</th></tr></thead>
             <tbody>
               {starts.map((s, i) => (
-                <tr key={i}><th scope="row">{i + 1}</th><td>{s.evaluations}</td><td>{record.without_screen!.starts[i]}</td>
-                  <td>{s.screen?.proposed ?? 0}</td><td>{s.screen?.improved ?? 0}</td></tr>
+                <tr key={i}><th scope="row">{i + 1}</th><td>{formatFixed(s.evaluations, lang, 0)}</td><td>{formatFixed(record.without_screen!.starts[i], lang, 0)}</td>
+                  <td>{formatFixed(s.screen?.proposed ?? 0, lang, 0)}</td><td>{formatFixed(s.screen?.improved ?? 0, lang, 0)}</td></tr>
               ))}
-              <tr className="of-table-group"><th scope="row">{TEXT.total[lang]}</th><td>{record.evaluations}</td><td>{record.without_screen.evaluations}</td>
-                <td>{screenTotals!.proposed}</td><td>{screenTotals!.improved}</td></tr>
+              <tr className="of-table-group"><th scope="row">{TEXT.total[lang]}</th><td>{formatFixed(record.evaluations, lang, 0)}</td><td>{formatFixed(record.without_screen.evaluations, lang, 0)}</td>
+                <td>{formatFixed(screenTotals!.proposed, lang, 0)}</td><td>{formatFixed(screenTotals!.improved, lang, 0)}</td></tr>
             </tbody>
           </table>
         )}
         <p className="of-footnote">
-          {`${starts.length} ${TEXT.starts[lang]}, ${record.evaluations} ${TEXT.evaluations[lang]} (${TEXT.method[lang]}), ${Math.round(100 * w)}% ${TEXT.weight[lang]}`}
-          {screenTotals && `; ${screenTotals.screened} ${TEXT.screened[lang]}, ${screenTotals.guard} ${TEXT.rejected[lang]} ${lang === 'es' ? 'y' : 'and'} ${screenTotals.interval} ${TEXT.interval[lang]} (${formatSignificant(record.screen_bound_pct ?? 0, lang, 2)} ${lang === 'es' ? 'puntos' : 'points'})`}
+          {`${starts.length} ${TEXT.starts[lang]}, ${formatFixed(record.evaluations, lang, 0)} ${TEXT.evaluations[lang]} (${TEXT.method[lang]}), ${Math.round(100 * w)}% ${TEXT.weight[lang]}`}
+          {screenTotals && `; ${formatFixed(screenTotals.screened, lang, 0)} ${TEXT.screened[lang]}, ${formatFixed(screenTotals.guard, lang, 0)} ${TEXT.rejected[lang]} ${lang === 'es' ? 'y' : 'and'} ${formatFixed(screenTotals.interval, lang, 0)} ${TEXT.interval[lang]} (${formatSignificant(record.screen_bound_pct ?? 0, lang, 2)} ${lang === 'es' ? 'puntos' : 'points'})`}
           {meanError !== null && `; ${TEXT.disagreement[lang]}: ${formatSignificant(meanError, lang, 3)} ${lang === 'es' ? 'puntos' : 'points'}`}
           {'.'}
         </p>

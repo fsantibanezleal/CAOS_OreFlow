@@ -11,8 +11,8 @@ import type { Lang } from '../lib/format';
 const T = {
   title: { en: 'Experiments', es: 'Experimentos' },
   lede: {
-    en: 'The numerical experiments behind OreFlow: a designed matrix of twelve cases with single-factor variants, the data and the leakage-safe splits every score uses, the metrics that judge each state, what every variant did in every case, how much of the uncertainty record is its own sampling error, and what each mechanism of the engine carries.',
-    es: 'Los experimentos numéricos detrás de OreFlow: una matriz diseñada de doce casos con variantes de un factor, los datos y las particiones sin fuga que usa cada puntaje, las métricas que juzgan cada estado, qué hizo cada variante en cada caso, cuánto del registro de incertidumbre es su propio error de muestreo, y qué lleva cada mecanismo del motor.',
+    en: 'The numerical experiments behind OreFlow: a designed matrix of twelve cases with single-factor variants, the data and the leakage-safe splits every score uses, the metrics that judge each state, what every variant did in every case, how much of the uncertainty record is its own sampling error, and how much each mechanism of the engine carries.',
+    es: 'Los experimentos numéricos detrás de OreFlow: una matriz diseñada de doce casos con variantes de un factor, los datos y las particiones sin fuga que usa cada puntaje, las métricas que juzgan cada estado, qué hizo cada variante en cada caso, cuánto del registro de incertidumbre es su propio error de muestreo, y cuánto aporta cada mecanismo del motor.',
   },
   sections: { en: 'Experiment sections', es: 'Secciones de los experimentos' },
 };

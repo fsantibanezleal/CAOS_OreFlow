@@ -21,7 +21,12 @@ page loads, so the first paint is already in that theme and language.
 
 1. **The workbench.** Opens the App route, checks that the gate's view list matches the tab bar, then
    visits every view, every Case sub-tab and every Methods record, runs the response sweep and the learned
-   lane, and measures each state.
+   lane, and measures each state. It also runs the optimizer at another weight in its worker (OP-09) and the
+   uncertainty design at another seed (UQ-06), switches the grinding circuit into the cut mode and checks what the
+   Grinding view says is set and what follows (CM-07), and opens the two real sources: a GeoMet sample, whose
+   fixed controls and live views it checks, and an iron-plant hour, whose views say it is not simulated
+   (RS-07, RS-08, RS-10). A review pass drives the states a reviewer reached by hand (a sweep followed by a state
+   change, a rejected state, the optimizer at its bounds, a flagged variant).
 2. **The architecture modal.** Opens it from the header, visits every tab, and checks each diagram.
 3. **The focus route.** Enters it by clicking, measures the stage, leaves by clicking, and compares the
    case, the variant and the changed controls with the state it left.

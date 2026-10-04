@@ -2,6 +2,97 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.08.000, 2026-10-04
+
+### Local gate
+
+- The release bake of 2026-10-03 into a sandbox seeded with the committed measured-lane records:
+  - contract, 2.1 s;
+  - learning, 15303 s on CUDA (RTX 4070 Laptop GPU);
+  - cases, 4445 s on 12 workers;
+  - benchmark, 3.9 s;
+  - studies, 378 s;
+  - real samples, 394 s;
+  - manifests and validation, 3.7 s.
+
+  `validation.json` records `passed: true`. Another session's job held every core for the whole bake (CPU load at
+  100%), so the stages ran four to six times longer than the development bake's; the bake's four-hour stack dump
+  fired once in the learning stage (the five-seed network study, progressing) and did not stop it. Its wrapper's
+  2.5-hour deadline was removed while it ran, so the deadline would not kill a bake that cannot reuse its learning
+  record. Compared leaf by leaf with the development bake adopted earlier in the release:
+  - 397,647 values equal;
+  - the differences are the engine version, the contract digest (E-15 changed the classifier cut's help text), the
+    refractory gold grade ceiling (60 to 38.6 g/t, E-19), the source notes the W batch rewrote, the benchmark's
+    range sources (88 new fields), the timings and the byte counts that follow, and 186 learning scores at their
+    last bits (below 1e-12 relative);
+  - the exported networks, the scalers and the optimizer's screen are byte-identical.
+
+  It was adopted whole; `models/` is unchanged.
+- `scripts/check_artifacts.py` passed on the adopted records. The content guard, which now flags private references,
+  passes on them; it had flagged the development bake's source notes.
+- The suites on the adopted records:
+  - Python: 538 tests passed (1534 s, beside the frontend suite and the other job), and 538 of 538 again on the
+    final tree (685 s);
+  - frontend: the first run passed 435 of 436 (514 s); the one that failed was the optimizer parity's
+    `copper_oxide/nominal`, which ran out of its 300 s on the loaded machine, and the limit is now raised for a
+    release (`OF_PARITY_TIMEOUT`). On the final tree, after the capture fixes and the one-deployment change below, 439 of 439 passed (187 s);
+  - `OF_CORNERS=full`: the cut-mode envelope's corners in all 12 cases, 12 of 12 passed (182 s);
+  - `OF_PARITY=full`: 96 of 96 variants passed, in six processes of two cases each.
+- The guards: content standards, template residue (519 tracked files), the SDD (103 live requirements with real
+  gates), the CI budget, the bilingual architecture diagrams, units and interface formulas; the use-case page check
+  (13 pages match the records); the production build.
+- One deployment. The plan's deploy class is `vps-service` on the ML VPS, yet the template's GitHub Pages workflow
+  had published a second copy of the site since 0.02.001, and the releases had checked it as a mirror. This release
+  deletes the workflow and its build path (the `/CAOS_OreFlow/` base, the per-route copies of `index.html`; the
+  service answers every page route itself), disables Pages on the repository, and rewrites the pages, diagrams and
+  docs that described two hosts. The template-residue guard fails on the workflow or on any page or doc pointing to
+  the copy: on the 0.07 tree it names the workflow and three files.
+- The convergence verdicts (W-09): every feature's `tasks.md` gives each live requirement's gate and its result in
+  this release's runs, the process engine's 43 rows included: 103 of 103 live requirements met, across the eight
+  features (the GeoMet lane's seven with the process engine's, where its earlier verdicts are).
+- The browser gate on the served build of the release (bundle `index-NqgWRgWC.js`):
+  - the full matrix (1280x800, 1600x900, 1920x1080 and 2560x1440; dark and light; English and Spanish), the
+    review pass and the phone and tablet pass: 1,332 of 1,332 checks (1,240 in the matrix's 16 combinations, 12 in
+    the review pass, 80 at 390x844 and 768x1024), and every capture read;
+  - the gate had not run since the 2026-10-02 integration merge. Its first run on the candidate failed 24 checks
+    and the first full matrix 29 more: layout, locale and figure defects that the batches had introduced one at a
+    time, each invisible to the unit suites. All were fixed before the matrix passed
+    1,308 of 1,308;
+  - that run's 1,130 captures were then read as contact sheets, and showed 15 defects no check measured. A GeoMet
+    sample's Case view quoted the synthetic case's recovery (94.2%) as "Engine, this state" while the sample
+    computed; the optimizer's weight and the uncertainty record's seed and samples kept the live run's values over
+    the baked record; the dark architecture modal's full-size toggle could not be read (shell known defect 13);
+    the real sources' Case views left blank bands at 1920 and 2560 px, an hour's forecast table cut to four of nine
+    rows; wide figures drew 4 to 5 px labels on a phone; the Spanish Implementation tab row ended mid-word with no
+    sign it scrolled; captions and tables carried raw symbols ("A_j(x)", "2^-10", "diag(S^E)", "Dc", "K1"); a fold
+    table dropped trailing zeros and a windows table printed ungrouped counts. Each is fixed with a check in the gate
+    or a test, except the heatmap's label chips, which are read from the captures; the phone pass now scrolls each
+    view into place before its capture (several had captured only the rail);
+  - two of the new checks were wrong on their first run and were corrected: the hour layout check measured the
+    chart's legend table, and the toggle check ran before the diagram that renders the toggle had loaded;
+  - the next full matrix passed 1,320 of 1,324: the four failures were the GeoMet sample's Case view at 2560 x 1440
+    in every theme and language, whose side panel was 28% filled once it stayed beside the facts. The view now
+    charts every sample against its locked-cycle test (the engine, the GeoMet lane, and the chosen sample at the
+    current state): across the view under the facts and the comparison on large screens, and in a sub-tab of its
+    own below them, where under the facts it had got a 60 px plot at 1280 x 800 in Spanish. The gate holds that
+    sub-tab to the view rules. A full matrix on that build passed 1,332 of 1,332; its captures showed the facts'
+    column half empty beside a crowded comparison panel at 1600 x 900, so the comparison's two notes moved under
+    the facts, and the first run after it caught "150 / µm" broken over two lines in the gap sentence, whose
+    numbers now keep their units on their line. That build passed 1,332 of 1,332 again; the one-deployment
+    change then rewrote the Implementation page's deployment topic, its release figure and the modal's text, and
+    the final build passed 1,332 of 1,332, its captures of those views read.
+- The documentation (review of 0.07.000, W-01 to W-57): every methodology page from 02 to 18 that quotes a record,
+  the data contracts, guide 03 and the manuscript are read by claims tests; methodology pages 03, 12 and 13 had kept
+  0.07 numbers and are current. Claims were checked against their primary sources on 2026-10-03: the phosphate
+  review gives neither the desliming size nor the concentrate target the 0.07 pages cited it for, and the case now
+  labels both authored. The sixteen Methodology figures are exported to `docs/svg/` and held to the app by a test;
+  rendering them showed figure 15's labels overflowing in the app as well (added during 0.08, after the last gate
+  run), and it was redrawn.
+
+### Remote gate
+
+Recorded after the deploy.
+
 ## 0.07.000, 2026-09-30
 
 ### Local gate
@@ -243,6 +334,9 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 - Full multi-route production QA and Felipe's visual acceptance remain release gates. The 12 authored cases are not 12 distinct topologies: they currently fall into rougher, gravity/rougher, magnetic and deslime/rougher families.
 - Production phone inspection of 0.03.002 found an empty CSS grid row under the flowsheet after hiding the obsolete stage tabs. 0.03.003 removed that row; a 390 px live browser check confirmed the panel fills its available space.
 - 0.03.004 changes the focus classifier description from "measured" to "calculated" streams, preserving the simulator-truth boundary.
+
+The record of the 0.03.004 candidate continues with the checks below; it does not say whether they were repeated
+for 0.03.002 and 0.03.003.
 
 - TypeScript typecheck: passed.
 - Frontend unit tests: passed.

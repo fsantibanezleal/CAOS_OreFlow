@@ -4,8 +4,7 @@ Status: implemented in 0.07.000 (CAOS_OreFlow #63); the convergence verdict is i
 
 Scope: issue #55. In operation the cyclone's cut is set by its hardware and pressure, the mill draws its power,
 and the product size and circulating load follow. The engine's target mode solves the reverse. The cut mode adds
-the operating direction on the same contract, in both engines. Research: CAOS_MANAGE
-`wip/oreflow/research-2026-09-28-0.07.md` section 3.
+the operating direction on the same contract, in both engines. Research: the dossier of 2026-09-28 (not published); the sources it verified are cited on [methodology page 03](../../../methodologies/03_grinding-circuit.md).
 
 | ID | Requirement | Named gate |
 | --- | --- | --- |

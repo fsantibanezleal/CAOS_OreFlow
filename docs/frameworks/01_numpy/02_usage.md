@@ -91,8 +91,10 @@ whole audit; `scripts/check_artifacts.py` repeats it on the committed artifacts 
 ## Randomness
 
 The methods use NumPy's `Generator` API with a declared seed (`np.random.default_rng(seed)`): the
-learning splits, the Gaussian-process subsample, the network initialisation order. The scrambled Latin
-hypercube and Sobol sequences of SciPy take the same generator ([02 SciPy](../02_scipy.md)).
+learning splits, the Gaussian-process subsample, the network initialisation order. SciPy's Sobol sequence of the
+learning design takes the same generator ([02 SciPy](../02_scipy.md)). The uncertainty record's Latin hypercube
+does not: since 0.07.000 it is OreFlow's own SplitMix64 design (`methods/sampling.py`), which the browser repeats
+bit for bit.
 
 ## What the TypeScript port has to match
 

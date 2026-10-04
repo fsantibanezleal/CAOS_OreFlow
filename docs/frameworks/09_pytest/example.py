@@ -20,7 +20,7 @@ sys.path.insert(0, str(ROOT / "data-pipeline"))
 
 from pipeline.cases.catalog import CASE_BY_ID, CASES  # noqa: E402
 from pipeline.engine.circuit import simulate  # noqa: E402
-from pipeline.engine.model import operating_from_dict  # noqa: E402
+from pipeline.engine.model import InfeasibleState, operating_from_dict  # noqa: E402
 from pipeline.io.contract import validate  # noqa: E402
 
 CONTRACT = json.loads((ROOT / "data" / "derived" / "contract" / "operating_contract.json").read_text(encoding="utf-8"))
@@ -46,7 +46,12 @@ def test_every_accepted_state_closes_its_balance(case_id):
             # inside the bounds, only the declared cross-field rule may reject a state
             assert {e["code"] for e in verdict["errors"]} == {"deslime_cut_above_half_target"}, state
             continue
-        result = simulate(case.ore, case.plant, operating_from_dict(verdict["point"]))
+        try:
+            result = simulate(case.ore, case.plant, operating_from_dict(verdict["point"]))
+        except InfeasibleState as refusal:
+            # CM-09: in the cut mode a cut with no steady state is refused with its code, never solved wrongly
+            assert refusal.code in ("power_unreachable_at_cut", "circulating_load_above_bound"), (state, refusal)
+            continue
         assert result.balance["max_relative_error"] <= 1e-9, state
         assert not any(f["code"] == "negative_mass" for f in result.flags), state
         assert 0.0 < result.metrics["recovery_pct"] < 100.0, state

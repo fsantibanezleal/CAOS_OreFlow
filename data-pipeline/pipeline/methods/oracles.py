@@ -26,8 +26,6 @@ from ..engine.comminution import crush
 from ..engine.model import Carrier, Cyclone, Flags, GrainSize, GravityPlant, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant
 from ..engine.ore import resolve
 
-INCH_CM = 2.54
-PSI_KPA = 6.894757
 
 DATA = Path(__file__).resolve().parent / "data" / "oracles.json"
 
@@ -67,9 +65,10 @@ def _pair(engine: float, published: float) -> dict[str, float]:
 
 
 def _cyclone(state: dict[str, Any], underflow_solids: float) -> Cyclone:
-    return Cyclone(sharpness=state["plitt_parameter"], underflow_solids=underflow_solids, diameter_cm=state["diameter_in"] * INCH_CM,
-                   inlet_cm=state["inlet_in"] * INCH_CM, vortex_cm=state["vortex_in"] * INCH_CM, apex_cm=state["apex_in"] * INCH_CM,
-                   free_vortex_height_cm=state["height_in"] * INCH_CM)
+    inch_cm = float(constant("units.cm_per_inch"))
+    return Cyclone(sharpness=state["plitt_parameter"], underflow_solids=underflow_solids, diameter_cm=state["diameter_in"] * inch_cm,
+                   inlet_cm=state["inlet_in"] * inch_cm, vortex_cm=state["vortex_in"] * inch_cm, apex_cm=state["apex_in"] * inch_cm,
+                   free_vortex_height_cm=state["height_in"] * inch_cm)
 
 
 def _plitt_at(state: dict[str, Any], rho: float, underflow_solids: float) -> dict[str, Any]:
@@ -83,7 +82,7 @@ def _plitt_at(state: dict[str, Any], rho: float, underflow_solids: float) -> dic
     flow = (solids + water) * float(constant("units.litres_per_m3")) / float(constant("time.minutes_per_hour")) / state["cyclones"]
     cut, pressure = plitt_cut(c, flow, cv, rho), plitt_pressure(c, flow, cv)
     sized = size_cluster(c, state["d50c_um"], solids, water, state["ore_t_h"], water * float(constant("water.density_t_m3")))
-    published = {"cyclones": state["cyclones"], "pressure_kpa": state["pressure_psi"] * PSI_KPA, "d50c_um": state["d50c_um"]}
+    published = {"cyclones": state["cyclones"], "pressure_kpa": state["pressure_psi"] * float(constant("units.kpa_per_psi")), "d50c_um": state["d50c_um"]}
     return {"published": published, "feed_solids_vol_pct": cv,
             "plitt_at_published_flow": {"cut_um": cut, "pressure_kpa": pressure},
             "sized_for_published_cut": {"cyclones": sized.cyclones, "pressure_kpa": sized.pressure_kpa},
@@ -137,7 +136,7 @@ def molycop() -> dict[str, Any]:
             "inputs": inputs, "engine": {"overflow_passing_pct": overflow}, "comparison": comparison,
             "tolerance": tolerance, "tolerance_basis": d["tolerance_basis"],
             "within_tolerance": (abs(comparison["net_specific_energy_kwh_t"]["relative_error"]) <= tolerance["net_specific_energy_kwh_t"]
-                                 and all(abs(v["relative_error"]) <= 1e-6 for v in inputs.values())),
+                                 and all(abs(v["relative_error"]) <= float(constant("oracles.input_match_relative")) for v in inputs.values())),
             "sizing": {"examples": sizing, "ratio": ratio}}
 
 
@@ -174,8 +173,9 @@ def _laplante_run(pub: dict[str, Any], grains: GrainSize, bleed: float, max_reco
     """The published example's grinding circuit with the gravity unit on a share of the mill discharge (E-11)."""
     case = CASE_BY_ID["gold_free_milling"]
     share = pub["grg_share_of_gold"]
-    ore = Ore(minerals=(MineralSpec(id="electrum", gravity=True, grains=grains), MineralSpec(id="pyrite", fraction=0.02),
-                        MineralSpec(id="silicate_fe", fraction=0.6), MineralSpec(id="quartz")),
+    fractions = oracle_data()["laplante"]["authored"]["ore_fractions"]
+    ore = Ore(minerals=(MineralSpec(id="electrum", gravity=True, grains=grains), MineralSpec(id="pyrite", fraction=fractions["pyrite"]),
+                        MineralSpec(id="silicate_fe", fraction=fractions["silicate_fe"]), MineralSpec(id="quartz")),
               payables=(Payable("Au", "g/t", (Carrier("electrum", share), Carrier("pyrite", 1.0 - share, "trace")), pub["head_grade_gpt"]),),
               work_index_kwh_t=case.ore.work_index_kwh_t, crushing_work_index_kwh_t=case.ore.crushing_work_index_kwh_t)
     plant = replace(case.plant, mill=replace(case.plant.mill, installed_power_kw=math.inf),
@@ -198,7 +198,7 @@ def _laplante_run(pub: dict[str, Any], grains: GrainSize, bleed: float, max_reco
     discharge = s["mill_discharge"].solids["electrum"]
     out = {"grg_circulating_load_pct": 100.0 * s["cyclone_underflow"].mineral_tph("electrum") / grg_feed,
            "grg_to_overflow_pct": 100.0 * s["cyclone_overflow"].mineral_tph("electrum") / grg_feed,
-           "discharge_grg_below_150um_pct": passing_at(discharge, [150.0])[0],
+           "discharge_grg_below_150um_pct": passing_at(discharge, [pub["discharge_size_um"]])[0],
            "ore_circulating_load_pct": 100.0 * s["cyclone_underflow"].tph() / pub["feed_tph"]}
     if "gravity_concentrate" in s:
         out["grg_recovery_pct"] = 100.0 * s["gravity_concentrate"].mineral_tph("electrum") / grg_feed

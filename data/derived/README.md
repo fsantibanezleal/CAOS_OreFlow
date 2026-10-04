@@ -17,7 +17,8 @@ The committed, reproducible evidence the public workbench and the API serve.
 | `source/iron_plant_soft_sensor.json` | `data-pipeline/run_iron_plant.py` | the iron-plant soft-sensor lane: next-hour silica on forward windows |
 
 Every process artifact is derived from the declared engine and seeded designs; the cases are
-authored scenarios inside published ranges, not plant measurements, and nothing here is a claim of
-plant accuracy or of transfer across mines. The raw inputs of the measured lanes are not committed:
-recreate them with `scripts/fetch-data.ps1`, then run the lanes. The schemas are documented in
-`docs/data-contract/`.
+authored scenarios whose plausibility ranges are authoring constraints, not plant measurements, and nothing here is
+a claim of plant accuracy or of transfer across mines. The raw inputs of the measured lanes are not committed:
+`scripts/fetch-data.ps1` (or `.sh`) fetches the HZDR workbook and the GeoMet tables, `run_iron_plant.py` downloads
+its own archive, and `scripts/precompute` runs the three lanes before the bake. The schemas are documented in
+[`docs/data-contract/`](../../docs/data-contract.md).

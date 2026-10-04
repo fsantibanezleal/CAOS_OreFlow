@@ -21,9 +21,9 @@ interpreter:
 
 1. [**01 NumPy**](frameworks/01_numpy.md): the engine's arrays: 63 size classes by mineral, the
    Whiten crusher and the mill as matrix solves, the Gauss-Laguerre table.
-2. [**02 SciPy**](frameworks/02_scipy.md): the Sobol sequence of the learning design and the triangular solve of
-   the optimizer's screen; COBYLA and SciPy's Latin hypercube until 0.06, replaced by OreFlow's own code that the
-   browser repeats.
+2. [**02 SciPy**](frameworks/02_scipy.md): the Sobol sequence of the learning design, the triangular solve of
+   the optimizer's screen, and the real-sample stage's root finder and rank correlation; COBYLA and SciPy's Latin
+   hypercube until 0.06, replaced by OreFlow's own code that the browser repeats.
 3. [**03 SALib**](frameworks/03_salib.md): the Saltelli design and the first-order and total Sobol
    indices of the sensitivity record.
 
@@ -43,15 +43,15 @@ interpreter:
 
 8. [**08 FastAPI**](frameworks/08_fastapi.md): the service, with uvicorn and pydantic: the artifact
    routes and the contract-validated live simulation.
-9. [**09 pytest and ruff**](frameworks/09_pytest.md): the 340-test Python suite, the API tests
-   through httpx, and the linter.
+9. [**09 pytest and ruff**](frameworks/09_pytest.md): the Python suite, the API tests through httpx, and the
+   linter.
 
 ## The interface and its gates (browser)
 
 10. [**10 React**](frameworks/10_react.md): the interface, with react-router for the routes and
     zustand for the workbench state.
 11. [**11 Vite, TypeScript and Vitest**](frameworks/11_vite.md): the build and its data overlay, the
-    port's language and the 165 frontend tests.
+    port's language and the frontend tests.
 12. [**12 uPlot**](frameworks/12_uplot.md): every line chart, through one themed host.
 13. [**13 KaTeX**](frameworks/13_katex.md): every equation, in both languages.
 14. [**14 Playwright**](frameworks/14_playwright.md): the browser gate.

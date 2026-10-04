@@ -30,5 +30,6 @@ implements them (Herman and Usher 2017, doi:10.21105/joss.00097).
 4. [`example.py`](03_salib/example.py): SALib's estimates against the Ishigami function's exact indices,
    then the soft porphyry record re-run and compared with the committed one.
 
-Related: [02 SciPy](02_scipy.md) (the Latin hypercube of the uncertainty record),
+Related: [02 SciPy](02_scipy.md) (the Sobol sequence of the learning design; the uncertainty record's Latin
+hypercube is OreFlow's own SplitMix64 design since 0.07.000, `methods/sampling.py`),
 [methodology 13](../methodologies/13_uncertainty-sensitivity.md).

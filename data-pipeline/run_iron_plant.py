@@ -39,6 +39,11 @@ COMPARISONS = (("ridge_with_previous_lab", "ar1_previous_lab"), ("ridge_with_pre
                ("ar1_previous_lab", "previous_lab"), ("ridge", "train_mean"))
 BOOTSTRAP_RESAMPLES = 4000
 BOOTSTRAP_SEED = 20261002
+# S-16 (review of 2026-10-02): IS-02 removes an hour whose laboratory label changes inside the hour (an interpolated
+# value). It does not remove a label repeated unchanged over consecutive hours, which reads as a measurement of each
+# of those hours and is one value carried over. A run of this many consecutive valid hours or more with one silica
+# label is a held run; the lane reports its scores with and without the pairs that touch one.
+HELD_RUN_HOURS = 3
 
 
 def source_archive(path: Path = RAW) -> tuple[Path, str]:
@@ -98,10 +103,36 @@ def prepare_hours(frame: pd.DataFrame) -> tuple[pd.DataFrame, dict]:
         "rows_per_hour_min": int(count.min()), "rows_per_hour_max": int(count.max()),
         "constant_lab_hours": int((~changing).sum()), "changing_lab_hours_excluded": int(changing.sum()),
         "changing_lab_rows_excluded": int(count[changing].sum()),
-        "changing_lab_first_hour": str(unique_lab[changing].index[0]),
+        "changing_lab_first_hour": str(unique_lab[changing].index[0]) if changing.any() else None,
         "gap_hours": int((count.index.to_series().diff() > pd.Timedelta(hours=1)).sum()),
     }
     return hours, quality
+
+
+def held_runs(hours: pd.DataFrame) -> tuple[pd.Series, dict]:
+    """Which hours sit in a run of HELD_RUN_HOURS or more consecutive valid hours with one silica label, and the counts
+    (S-16). A repeated hour is a valid hour whose silica label equals the previous consecutive valid hour's."""
+    valid = hours[hours["constant_lab_label"]]
+    label = valid["silica_lab_pct"]
+    when = label.index.to_series()
+    consecutive = when.diff().eq(pd.Timedelta(hours=1))
+    same = label.eq(label.shift()) & consecutive
+    run = (~same).cumsum()
+    size = label.groupby(run).transform("size")
+    held = size.ge(HELD_RUN_HOURS)
+    lengths = size[held].groupby(run[held]).first()
+    counts = {
+        "run_hours_min": HELD_RUN_HOURS,
+        "repeated_label_hours": int(same.sum()),
+        "repeated_both_assays_hours": int((same & valid["iron_lab_pct"].eq(valid["iron_lab_pct"].shift())).sum()),
+        "held_runs": int(len(lengths)), "held_hours": int(held.sum()),
+    }
+    if len(lengths):
+        longest = lengths.idxmax()
+        first = label.index[(run == longest).to_numpy()][0]
+        counts.update({"longest_run_hours": int(lengths.max()), "longest_run_first_hour": str(first),
+                       "longest_run_silica_pct": round(float(label.loc[first]), 4)})
+    return held.reindex(hours.index, fill_value=False), counts
 
 
 def make_pairs(hours: pd.DataFrame) -> pd.DataFrame:
@@ -147,6 +178,8 @@ def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict
     x = pairs[features].to_numpy(dtype=float)
     y = pairs["target_next_hour_pct"].to_numpy(dtype=float)
     previous = pairs["silica_lab_pct"].to_numpy(dtype=float)
+    # S-16: a pair whose sensor hour or laboratory hour sits in a held run
+    held_pair = pairs["held_pair"].to_numpy(dtype=bool) if "held_pair" in pairs else np.zeros(len(pairs), dtype=bool)
     x_with_lab = np.column_stack((x, previous))
     dates = pairs.index
     n = len(pairs)
@@ -191,6 +224,7 @@ def evaluate(pairs: pd.DataFrame, features: list[str]) -> tuple[list[dict], dict
             "predictions_pct": {name: round(float(values[i]), 4) for name, values in predictions.items()},
             "sensors": {name: round(float(pairs.iloc[test[i]][name]), 4) for name in features},
             "lab_pct": {"silica": round(float(previous[test[i]]), 4), "iron": round(float(pairs.iloc[test[i]]["iron_lab_pct"]), 4)},
+            "held": bool(held_pair[test[i]]),
         } for i in trace_indices]
         folds.append({
             "id": fold_id, "train_rows": len(train), "test_rows": len(test),
@@ -244,7 +278,20 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
     hours, quality = prepare_hours(frame)
     pairs = make_pairs(hours)
     features = [column for column in frame if column not in EXCLUDED]
+    # S-16: the held runs, the pairs that touch one, and the same protocol on the pairs that touch none
+    held, held_counts = held_runs(hours)
+    held_hours = set(held.index[held.to_numpy()])
+    pairs["held_pair"] = pairs.index.isin(held_hours) | pairs["target_hour"].isin(held_hours)
     folds, pooled, extras = evaluate(pairs, features)
+    without = pairs.loc[~pairs["held_pair"]]
+    _, pooled_without, extras_without = evaluate(without, features)
+    held_labels = {
+        "rule": (f"a run of {HELD_RUN_HOURS} or more consecutive valid hours with one silica label is a laboratory value "
+                 "carried over; a pair touches a held run when its sensor hour or its laboratory hour sits in one"),
+        **held_counts, "pairs_touching": int(pairs["held_pair"].sum()), "pairs_without": int(len(without)),
+        "pooled_scores_without": pooled_without, "comparisons_without": extras_without["comparisons"],
+        "repeated_assay_share_without": extras_without["repeated_assay_share"],
+    }
     artifact = {
         "schema": "oreflow.iron-plant-soft-sensor/v1",
         "source": {"title": "Quality Prediction in a Mining Process", "url": SOURCE_PAGE,
@@ -261,7 +308,7 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
                      "splits": "three disjoint chronological future windows; expanding history; at least 24 h train/test embargo",
                      "interpretation": "observational one-plant quality forecast; no causal control effect, recovery or transfer claim",
                      "previous_lab_caveat": "persistence and lab-conditioned models assume previous hourly lab assay is already available; reporting latency is not established"},
-        "pooled_scores": pooled, **extras, "folds": folds,
+        "pooled_scores": pooled, **extras, "held_labels": held_labels, "folds": folds,
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(artifact, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
@@ -272,3 +319,6 @@ if __name__ == "__main__":
     artifact = build()
     print("Iron-plant soft sensor:", artifact["quality"], "valid pairs", artifact["protocol"]["pair_rows"])
     print("Pooled forward-window MAE pp:", {name: values["mae_pct_points"] for name, values in artifact["pooled_scores"].items()})
+    held = artifact["held_labels"]
+    print("Held labels:", {k: v for k, v in held.items() if k not in ("rule", "pooled_scores_without", "comparisons_without")})
+    print("Pooled MAE pp without held pairs:", {name: values["mae_pct_points"] for name, values in held["pooled_scores_without"].items()})

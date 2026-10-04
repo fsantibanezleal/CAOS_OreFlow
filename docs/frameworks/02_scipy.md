@@ -1,7 +1,9 @@
 # 02 SciPy
 
-SciPy supplies two numerical tools the engine does not own, each used in one place: `scipy.stats.qmc.Sobol` for
-the learned lane's design, and `scipy.linalg.solve_triangular` for the variance of the optimizer's screen. Until
+SciPy supplies four numerical tools the engine does not own, each used in one place: `scipy.stats.qmc.Sobol` for
+the learned lane's design, `scipy.linalg.solve_triangular` for the variance of the optimizer's screen, and, in the
+real-sample stage since 0.08.000, `scipy.optimize.brentq` for the throughput at which each GeoMet sample reaches
+the target grind and `scipy.stats.spearmanr` for the rank correlation of the engine with the measured tests. Until
 0.06.000 it also supplied the operating-point optimizer, `scipy.optimize.minimize` with COBYLA; since 0.07.000 the
 optimizer is OreFlow's own pattern search (`methods/pattern_search.py`), because the browser has to take the same
 steps, and COBYLA has no browser counterpart. For the same reason the uncertainty record's Latin hypercube has
@@ -17,7 +19,7 @@ so the live API and the browser need none of it.
 | Licence | BSD-3-Clause |
 | Declared in | `requirements-precompute.txt` (the offline lane) |
 | Lane | Offline bake only |
-| Used by | `data-pipeline/pipeline/methods/learning.py` (Sobol), `methods/screen.py` (the triangular solve) |
+| Used by | `data-pipeline/pipeline/methods/learning.py` (Sobol), `methods/screen.py` (the triangular solve), `stages/real_samples.py` (the root finder and the rank correlation) |
 | Settings | `learning.*` and `optimization.*` in `data-pipeline/pipeline/engine/data/constants.json` |
 
 ## Read in order

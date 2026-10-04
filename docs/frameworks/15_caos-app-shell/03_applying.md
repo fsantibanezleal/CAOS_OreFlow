@@ -16,8 +16,10 @@ Read order: [01 Installation](01_installation.md), [02 Usage](02_usage.md), **yo
 
 A defect in the shell is a defect in every app of the line. When one turns up:
 
-1. **Record it in the shared register** (`conventions/shell-known-defects.md` in the management
-   repository): the version, the symptom, the cause, the override and the gate, in that order.
+1. **Record it in the shell maintainers' register of known defects** (kept outside this repository): the
+   version, the symptom, the cause, the override and the gate, in that order. The comment beside each override
+   names the defect by its number and says what it fixes, so a reader of this repository can follow it without the
+   register.
 2. **Override it in the product**, after the shell's stylesheet or around its component, with a comment
    that names the register entry.
 3. **Write the gate** that fails without the override and passes with it, and check it both ways.

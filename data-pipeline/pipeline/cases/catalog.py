@@ -1,7 +1,7 @@
 """OreFlow's twelve authored cases and their single-factor variants.
 
 Every case is an authored scenario: its ore, plant and operating values are chosen inside the ranges
-recorded in the 2026-09-26 research dossier (transcribed into docs/methodologies/), each with a source note, and none is a
+recorded in the 2026-09-26 research dossier (transcribed into docs/methodologies/, where each source is cited), each with a source note, and none is a
 plant measurement or a calibrated plant model. Each variant changes exactly one declared input of the
 operating point relative to the case nominal (requirement PE-32).
 """
@@ -15,14 +15,14 @@ from ..engine.model import (Bank, Carrier, Crusher, Cyclone, DeslimePlant, Flota
                             GravityPlant, MagneticPlant, Mill, MineralSpec, OperatingPoint, Ore, Payable, Plant)
 
 SOURCES = {
-    "breakage": "Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 µm) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); dossier section 1.4.",
-    "crusher": "Whiten classification K1 0.5 to 0.95 CSS, K2 1.7 to 3.5 CSS, K3 about 2.3; dossier section 1.3.",
-    "cyclone": "Plitt geometry ratios typical of mineral-processing cyclones; sharpness and underflow density authored; dossier section 2.",
-    "flotation": "k from bubble surface area flux (Gorain et al. 1997), Savassi entrainment, perfect-mixer banks; floatability and widths authored within Trahar (1981) size behaviour; dossier section 3.",
-    "collector": "Saturating collector response with gangue saturating at higher dose (chalcopyrite/pyrite critical review, PMC9572913); dossier section 3.5.",
-    "gravity": "Gravity bleed of cyclone underflow and gold circulating load (Laplante and Staunton, AMIRA P420B); dossier section 4.",
-    "magnetic": "LIMS magnetite recovery above 98% and grade rising with finer grind (Muthaphuli 2014); dossier section 5.",
-    "phosphate": "Desliming below about 20 µm and fatty-acid flotation to about 35% P₂O₅; dossier section 6 (secondary source).",
+    "breakage": "Moly-Cop Tools energy-specific selection (alpha0 0.0091 t/kWh, alpha1 0.651, alpha2 2.5, d_crit 6514 µm) and its documented alternative breakage set (beta0 0.4, beta1 0.65, beta2 4.02); methodology page 03.",
+    "crusher": "Whiten classification K1 0.5 to 0.95 CSS, K2 1.7 to 3.5 CSS, K3 about 2.3; methodology page 02.",
+    "cyclone": "Plitt geometry ratios typical of mineral-processing cyclones; sharpness and underflow density authored; methodology page 04.",
+    "flotation": "k from bubble surface area flux (Gorain et al. 1997), Savassi entrainment, perfect-mixer banks; floatability and widths authored within Trahar (1981) size behaviour; methodology page 05.",
+    "collector": "Saturating collector response with gangue saturating at a higher dose, an authored form whose direction the chalcopyrite/pyrite review supports (Castellón et al. 2022, Materials 15(19):6536, doi:10.3390/ma15196536); methodology page 05.",
+    "gravity": "Gravity bleed of cyclone underflow and gold circulating load (Laplante and Staunton, AMIRA P420B); methodology page 06.",
+    "magnetic": "LIMS magnetite recovery above 98% and grade rising with finer grind (Muthaphuli 2014, J. S. Afr. Inst. Min. Metall. 114(7):505-510); methodology page 07.",
+    "phosphate": "Desliming ahead of flotation discards clay and removes the slimes' harm to flotation, fatty acids are the common anionic collectors, and the wet-process concentrate needs more than 30% P₂O₅ (Ruan, He and Chi 2019, Minerals 9(4):253, read in full); the 20 µm cut is authored, since the review gives no size; methodology page 08.",
     "water": "Process-water capacity per tonne of ore (pumping and thickener capacity), authored 5% above each case's nominal requirement; it is the water constraint of the operating-point optimizer.",
     "kpi": "Each nominal KPI range carries its own source in kpi_sources: a published value or range where one was found, labelled authored where none was; they are plausibility gates, not predictions.",
 }
@@ -30,10 +30,11 @@ SOURCES = {
 # Every plausibility range with its source (#58). A range is taken from its source, never widened past it; a bound
 # with no source is labelled authored.
 _PORPHYRY = {
-    "recovery_pct": ((90.0, 96.0), ("Above 90% for sulphide copper in porphyry practice (911metallurgist practice summary, secondary source); the 96% ceiling is authored.",
-                                     "Sobre 90% para cobre sulfurado en la práctica de pórfidos (resumen de práctica de 911metallurgist, fuente secundaria); el techo de 96% es de autor.")),
-    "concentrate_grade": ((25.0, 34.6), ("From 25% Cu, the porphyry practice floor (911metallurgist, secondary source), to 34.6% Cu, the stoichiometric limit of chalcopyrite.",
-                                          "Desde 25% Cu, el piso de la práctica en pórfidos (911metallurgist, fuente secundaria), hasta 34,6% Cu, el límite estequiométrico de la calcopirita.")),
+    "recovery_pct": ((90.0, 96.0), ("Over 90% of the sulphide copper can be recovered in normal porphyry practice (911metallurgist practice summary, secondary source); the 96% ceiling is authored.",
+                                     "En la práctica normal de pórfidos es posible recuperar más de 90% del cobre sulfurado (resumen de práctica de 911metallurgist, fuente secundaria); el techo de 96% es de autor.")),
+    # T-21: the practice page gives no grade floor; a copper-concentrate purchase schedule covers 25 to 35% Cu
+    "concentrate_grade": ((25.0, 34.6), ("From 25% Cu, the floor of the grades a copper-concentrate purchase schedule covers (Kroha and Wesis 1985: 25 to 35% Cu), to 34.6% Cu, the stoichiometric limit of chalcopyrite.",
+                                          "Desde 25% Cu, el piso de las leyes que cubre un programa de compra de concentrados de cobre (Kroha y Wesis 1985: 25 a 35% Cu), hasta 34,6% Cu, el límite estequiométrico de la calcopirita.")),
 }
 _AUTHORED = ("Authored: no published range was found for this case type.", "De autor: no se encontró un rango publicado para este tipo de caso.")
 
@@ -65,8 +66,8 @@ KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
     "low_grade_copper": _PORPHYRY,
     "mixed_ore_high_clay": _PORPHYRY,
     "copper_molybdenum": {**_PORPHYRY, "recovery_Mo_pct": ((82.0, 92.0), (
-        "Molybdenite recovers 2 to 12 points below copper in bulk roughers (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001), taken at this case's copper recovery.",
-        "La molibdenita se recupera 2 a 12 puntos bajo el cobre en rougher colectivo (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001), tomado en la recuperación de cobre de este caso."))},
+        "Molybdenite recovers 2 to 12 points below copper in bulk roughers (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001; from a summary, the full text UNVERIFIED). A rougher statement, applied here to the whole circuit and taken at this case's copper recovery, so the range moves with the engine's own copper recovery.",
+        "La molibdenita se recupera 2 a 12 puntos bajo el cobre en rougher colectivo (Zanin et al. 2009, doi:10.1016/j.minpro.2009.10.001; desde un resumen, el texto completo NO VERIFICADO). Es una afirmación sobre el rougher, aplicada aquí al circuito completo y tomada en la recuperación de cobre de este caso, así que el rango se mueve con la propia recuperación de cobre del motor."))},
     "gold_free_milling": {
         "recovery_pct": ((85.0, 98.0), (
             "Authored. Until 0.08.000 the ceiling was 97%; the rebuilt gravity model recovers coarse gold that flotation partly missed, and the nominal state moved to about 97.7%. Secondary reports of gravity plus flotation tests give 93.6 to 95.6% (unverified), so this case is on the optimistic side.",
@@ -91,8 +92,8 @@ KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
     },
     "phosphate_clay": {
         "recovery_pct": ((50.0, 82.0), _AUTHORED),
-        "concentrate_grade": ((32.0, 38.0), ("About 35% P₂O₅ is the target concentrate (review, Minerals 9(4):253, 2019, UNVERIFIED against the full text); the band is authored, below fluorapatite's 42.2%.",
-                                              "Cerca de 35% P₂O₅ es el concentrado objetivo (revisión, Minerals 9(4):253, 2019, NO VERIFICADO contra el texto completo); la banda es de autor, bajo el 42,2% de la fluorapatita.")),
+        "concentrate_grade": ((32.0, 38.0), ("The wet phosphoric-acid process needs a concentrate above 30% P₂O₅ (Ruan, He and Chi 2019, Minerals 9(4):253); the band is authored above that requirement and below fluorapatite's 42.2%.",
+                                              "El proceso de ácido fosfórico por vía húmeda pide un concentrado sobre 30% P₂O₅ (Ruan, He y Chi 2019, Minerals 9(4):253); la banda es de autor, sobre ese requisito y bajo el 42,2% de la fluorapatita.")),
         "flotation_recovery_pct": ((78.0, 95.0), ("An optimised flotation recovery of 92.3% is reported (same review, UNVERIFIED); the band is authored.",
                                                    "Se informa una recuperación de flotación optimizada de 92,3% (misma revisión, NO VERIFICADO); la banda es de autor.")),
         "slimes_loss_pct": ((5.0, 25.0), _AUTHORED),
@@ -109,8 +110,9 @@ KPI: dict[str, dict[str, tuple[tuple[float, float], tuple[str, str]]]] = {
     },
     "refractory_gold": {
         "recovery_pct": ((80.0, 95.0), _AUTHORED),
-        "concentrate_grade": ((12.0, 60.0), ("Authored: refractory gold concentrate grades are ore specific and no verified typical value was found; the band is wide on purpose.",
-                                              "De autor: las leyes de concentrado de oro refractario dependen de la mena y no se encontró un valor típico verificado; la banda es amplia a propósito.")),
+        # E-19: the ceiling is reachable: a concentrate of pure pyrite and arsenopyrite at the nominal head
+        "concentrate_grade": ((12.0, 38.6), ("Authored: refractory gold concentrate grades are ore specific and no verified typical value was found. The floor is authored; the ceiling, 38.6 g/t, is a concentrate of pure sulphides at the nominal head (2.2 g/t over 5.7% pyrite and arsenopyrite).",
+                                              "De autor: las leyes de concentrado de oro refractario dependen de la mena y no se encontró un valor típico verificado. El piso es de autor; el techo, 38,6 g/t, es un concentrado de sulfuros puros con la cabeza nominal (2,2 g/t sobre 5,7% de pirita y arsenopirita).")),
     },
 }
 
@@ -335,8 +337,8 @@ def _cases() -> tuple[CaseDef, ...]:
         ("breakage", "crusher", "cyclone", "flotation", "collector", "water", "kpi"), kpi_sources=_kpi_sources("nickel_sulphide")))
     cases.append(CaseDef(
         "phosphate_clay", "classification", ("Phosphate with clay slimes", "Fosfato con lamas arcillosas"),
-        ("An igneous phosphate with clay: the grinding overflow is deslimed below about 20 µm before fatty-acid flotation of apatite, and the apatite in the slimes is lost; in this engine a coarser cut costs recovery and grade together.",
-         "Un fosfato ígneo con arcilla: el rebose de molienda se deslama bajo unos 20 µm antes de flotar la apatita con ácidos grasos, y la apatita de las lamas se pierde; en este motor un corte más grueso cuesta recuperación y ley a la vez."),
+        ("An igneous phosphate with clay: the grinding overflow is deslimed at an authored 20 µm cut before fatty-acid flotation of apatite, and the apatite in the slimes is lost; in this engine a coarser cut costs recovery and grade together.",
+         "Un fosfato ígneo con arcilla: el rebose de molienda se deslama con un corte de autor de 20 µm antes de flotar la apatita con ácidos grasos, y la apatita de las lamas se pierde; en este motor un corte más grueso cuesta recuperación y ley a la vez."),
         ("What does the desliming cut cost in phosphate?", "¿Cuánto fosfato cuesta el corte de deslamado?"),
         Ore(minerals=(MineralSpec(id="fluorapatite", grindability=1.4, liberation_size_um=280.0, liberation_slope=1.8, composite_content=0.5,
                                   host="quartz", flotation=Flotability(floatability=1.8e-4, optimum_size_um=70.0, fine_width=1.3, coarse_width=0.7, half_dose_gpt=250.0, unresponsive_fraction=0.02)),

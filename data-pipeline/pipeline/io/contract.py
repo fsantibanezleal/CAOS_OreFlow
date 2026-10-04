@@ -60,7 +60,7 @@ INPUTS: tuple[InputSpec, ...] = (
               ("Grind target (P80)", "Objetivo de molienda (P80)"),
               ("Size that 80% of the cyclone overflow passes. The solver finds the mill energy that meets it; a finer "
                "target needs more energy and liberates more of the valuable mineral.",
-               "Tamaño bajo el cual pasa el 80% del rebose del ciclón. El solver busca la energía de molienda que lo "
+               "Tamaño bajo el cual pasa el 80% del rebose del ciclón. El solucionador busca la energía de molienda que lo "
                "cumple; un objetivo más fino requiere más energía y libera más mineral valioso.")),
     InputSpec("circulating_load", "1", "absolute", 1.0, 4.0, 0.05, False, FAMILIES,
               ("Circulating load", "Carga circulante"),
@@ -130,16 +130,19 @@ INPUTS: tuple[InputSpec, ...] = (
     # is the target mode itself
     InputSpec("d50c_um", "um", "solved", 0.8, 1.6, 0.01, False, FAMILIES,
               ("Classifier cut (d50c)", "Corte del clasificador (d50c)"),
-              ("Corrected cut of the host gangue in the cyclone, set by its hardware and pressure. Off (0), the solver "
-               "finds the cut that holds the circulating load and the energy that meets the grind target. On, the mill "
-               "draws its installed power, and the P80 and the circulating load follow: a finer cut returns more to the "
-               "mill and grinds finer. A cut at which the mill cannot draw its installed power, or that would return "
-               "more than 600% to the mill, has no steady state and is refused.",
-               "Corte corregido de la ganga huésped en el ciclón, fijado por su equipo y su presión. Apagado (0), el "
-               "programa busca el corte que sostiene la carga circulante y la energía que cumple el objetivo de molienda. "
-               "Encendido, el molino consume su potencia instalada, y el P80 y la carga circulante resultan: un corte "
-               "más fino devuelve más al molino y muele más fino. Un corte con el que el molino no puede consumir su "
-               "potencia instalada, o que devolvería más de 600% al molino, no tiene estado estacionario y se rechaza.")),
+              ("Corrected cut of the host gangue in the cyclone. Off (0), the solver finds the cut that holds the "
+               "circulating load and the energy that meets the grind target. On, the mill draws its installed power, "
+               "and the P80 and the circulating load follow: a finer cut returns more to the mill and grinds finer. "
+               "The cyclone cluster is sized again for every cut, so its count and pressure are a design re-sizing by "
+               "uncalibrated equations, not a fixed plant's hardware. A cut at which the mill cannot draw its installed "
+               "power, or that would return more than 600% to the mill, has no steady state and is refused.",
+               "Corte corregido de la ganga huésped en el ciclón. Apagado (0), el solucionador busca el corte que "
+               "sostiene la carga circulante y la energía que cumple el objetivo de molienda. Encendido, el molino "
+               "consume su potencia instalada, y el P80 y la carga circulante resultan: un corte más fino devuelve más "
+               "al molino y muele más fino. La batería de ciclones se dimensiona de nuevo para cada corte, así que su "
+               "número y su presión son un redimensionado con ecuaciones sin calibrar, no el equipo fijo de una planta. "
+               "Un corte con el que el molino no puede consumir su potencia instalada, o que devolvería más de 600% al "
+               "molino, no tiene estado estacionario y se rechaza.")),
 )
 INPUT_BY_NAME = {spec.name: spec for spec in INPUTS}
 

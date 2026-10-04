@@ -17,7 +17,7 @@ constraint lines is not a series chart.
 | Licence | MIT |
 | Declared in | `frontend/package.json` |
 | Host | `frontend/src/components/charts/Chart.tsx` (and `inset.ts` for overlays) |
-| Users | 11 component files across the workbench views, the method records and the content pages |
+| Users | every component that imports the host, across the workbench views, the method records and the content pages (14 in 0.08.000) |
 | Rules | the interactive-visualization rubric of the product line; shell known defect 3 (uPlot's legend is clipped in a sized host) |
 
 ## Read in order

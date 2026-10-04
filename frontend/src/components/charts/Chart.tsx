@@ -43,6 +43,8 @@ export interface Series {
   label: string;
   colour?: Colour;
   points?: boolean;
+  /** The point diameter in pixels (7 by default): a highlighted point among many is drawn larger. */
+  pointSize?: number;
   dash?: number[];
   width?: number;
   /** Index (1-based, in `data`) of the series this one is filled down to, for a band. */
@@ -99,7 +101,7 @@ export interface ChartProps {
   format?: (value: number | null, axis: 'x' | 'y') => string;
 }
 
-const TOKEN: Record<Colour, string> = {
+export const TOKEN: Record<Colour, string> = {
   accent: '--color-accent', 'accent-2': '--color-accent-2', good: '--color-good', warn: '--color-warn',
   bad: '--color-bad', magenta: '--color-magenta', subtle: '--color-fg-subtle',
 };
@@ -125,6 +127,10 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
   const plotRef = useRef<uPlot | null>(null);
   const cursorRef = useRef<number | null>(null);
   const [zoomed, setZoomed] = useState(false);
+  // U-33: categories whose names do not fit their slots are numbered on the axis and named in a key below
+  const [keyed, setKeyed] = useState(false);
+  // the labels of marks drawn by their number, as a string so an unchanged redraw does not render again
+  const [markKey, setMarkKey] = useState('[]');
   const [hidden, setHidden] = useState<Set<string>>(() => new Set());
   const hiddenRef = useRef(hidden);
   hiddenRef.current = hidden;
@@ -167,37 +173,10 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         ctx.fillText(text, x, y);
         ctx.restore();
       };
-      // vertical marks, left to right; a label that would run into the previous one drops a line
-      const placed: Box[] = [];
-      const vertical = (marks ?? []).map(m => ({ ...m, px: self.valToPos(m.x, 'x', true) }))
-        .filter(m => Number.isFinite(m.px) && m.px >= left && m.px <= left + width).sort((a, b) => a.px - b.px);
-      for (const mark of vertical) {
-        ctx.beginPath();
-        ctx.moveTo(mark.px, top);
-        ctx.lineTo(mark.px, top + height);
-        ctx.stroke();
-        const w = ctx.measureText(mark.label).width;
-        // right of the mark, else left of it, and never outside the plot: on a phone a long label placed
-        // left of its mark ran over the y axis
-        const side = mark.px + 4 * ratio + w > left + width ? mark.px - 4 * ratio - w : mark.px + 4 * ratio;
-        const x = Math.max(left, Math.min(side, left + width - w));
-        let row = 0;
-        let box: Box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
-        // a label that touches its neighbour reads as one word ("P50base" in the Uncertainty histogram when the
-        // median and the base state were close), so labels in one row keep a gap of a mark's spacing
-        const gap = 4 * ratio;
-        const crowds = (other: Box) => overlaps(other, { ...box, x0: box.x0 - gap, x1: box.x1 + gap });
-        while (placed.some(crowds) && row < 6) {
-          row += 1;
-          box = { x0: x, y0: top + row * line, x1: x + w, y1: top + (row + 1) * line };
-        }
-        placed.push(box);
-        label(mark.label, x, top + (row + 1) * line - 3 * ratio);
-      }
-      // the data points in canvas pixels, so a level's label goes where it covers none: the "nominal" label
-      // sat on a variant's point in the Case view, and "sin cambio" on the Experiments page's points
+      // the data points in canvas pixels, so a label goes where it covers none: the "nominal" label sat on a variant's
+      // point in the Case view, "sin cambio" on the Experiments page's points, and "P80 150 µm" on the tail curve (U-27)
       const dots: Box[] = [];
-      if (levels?.length) {
+      if (levels?.length || marks?.length) {
         const xs = self.data[0] as number[];
         self.series.forEach((s, i) => {
           if (i === 0 || s.show === false) return;
@@ -211,6 +190,63 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
           }
         });
       }
+      // vertical marks, left to right; a label that would run into a neighbour, another mark's line or the data drops a line
+      const placed: Box[] = [];
+      const vertical = (marks ?? []).map(m => ({ ...m, px: self.valToPos(m.x, 'x', true) }))
+        .filter(m => Number.isFinite(m.px) && m.px >= left && m.px <= left + width).sort((a, b) => a.px - b.px);
+      const lines: Box[] = vertical.map(m => ({ x0: m.px - ratio, y0: top, x1: m.px + ratio, y1: top + height }));
+      let marksOver = 0;
+      // Mark labels live in the strip the plot keeps above its area, so no label covers the data: at the grind target
+      // five size curves fill the band on both sides of the mark, and no row inside the plot was clear (0.08 gate).
+      // When the full labels do not all fit the strip side by side, every mark carries its number there instead and
+      // the key under the plot names it, as U-33 does for categories.
+      const gap = 6 * ratio;
+      const strip = (text: string, px: number, taken: Box[], leftFirst: boolean): Box | null => {
+        const w = ctx.measureText(text).width;
+        const sides = leftFirst ? [px - 3 * ratio - w, px + 3 * ratio] : [px + 3 * ratio, px - 3 * ratio - w];
+        for (const x0 of sides) {
+          const box: Box = { x0, y0: top - line, x1: x0 + w, y1: top };
+          if (x0 >= left - 2 * ratio && x0 + w <= left + width + 14 * ratio && !taken.some(o => overlaps(o, { ...box, x0: box.x0 - gap, x1: box.x1 + gap }))) return box;
+        }
+        return null;
+      };
+      // marks a few pixels apart (a liberation size of 110 um beside a 150 um target) fit when the first ones take
+      // the left of their lines and the rest the right, so each split point is tried until every label fits
+      const drawStrip = (texts: string[]) => {
+        let best: (Box | null)[] = [];
+        for (let split = 0; split <= vertical.length; split += 1) {
+          const taken: Box[] = [];
+          const boxes = vertical.map((mark, i) => {
+            const box = strip(texts[i], mark.px, taken, i < split);
+            if (box) taken.push(box);
+            return box;
+          });
+          if (boxes.every(Boolean)) return boxes;
+          if (!best.length || boxes.filter(Boolean).length > best.filter(Boolean).length) best = boxes;
+        }
+        return best;
+      };
+      let texts = vertical.map(m => m.label);
+      let boxes = drawStrip(texts);
+      const keyedMarks: string[] = [];
+      if (boxes.some(b => b === null)) {
+        texts = vertical.map((_, i) => String(i + 1));
+        boxes = drawStrip(texts);
+        keyedMarks.push(...vertical.map(m => m.label));
+      }
+      vertical.forEach((mark, i) => {
+        ctx.beginPath();
+        ctx.moveTo(mark.px, top);
+        ctx.lineTo(mark.px, top + height);
+        ctx.stroke();
+        const box = boxes[i];
+        if (!box) { marksOver += 1; return; }
+        placed.push(box);
+        label(texts[i], box.x0, top - 3 * ratio);
+      });
+      host.dataset.marksKeyed = String(keyedMarks.length);
+      setMarkKey(JSON.stringify(keyedMarks));
+      if (marks?.length) host.dataset.marksOver = String(marksOver);
       let over = 0;
       for (const level of levels ?? []) {
         const y = self.valToPos(level.y, 'y', true);
@@ -298,9 +334,19 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
     const textWidth = (s: string) => measure?.measureText(s).width ?? 6 * s.length;
     const categoryValues = (self: uPlot) => {
       const plot = self.bbox?.width ? self.bbox.width / uPlot.pxRatio : host.clientWidth - 72;
-      const { values, cut } = categoryTicks(categories ?? [], plot / Math.max(1, categories?.length ?? 1) - 8, textWidth);
-      host.dataset.ticksCut = String(cut);
-      return values;
+      const slot = plot / Math.max(1, categories?.length ?? 1) - 8;
+      const { values, cut } = categoryTicks(categories ?? [], slot, textWidth);
+      if (cut === 0) {
+        host.dataset.ticksCut = '0';
+        delete host.dataset.ticksKeyed;
+        setKeyed(false);
+        return values;
+      }
+      const numbers = (categories ?? []).map((_, i) => String(i + 1));
+      host.dataset.ticksCut = String(categoryTicks(numbers, slot, textWidth).cut);
+      host.dataset.ticksKeyed = String(cut);
+      setKeyed(true);
+      return numbers;
     };
     // uPlot's x axis is 50 px; a wrapped label takes 16.5 px a line more, and a few px keep its last line
     // off the axis title
@@ -336,7 +382,8 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
     const options: uPlot.Options = {
       width: Math.max(160, host.clientWidth),
       height: Math.max(120, host.clientHeight),
-      padding: [12 + inset[0], 16 + inset[1], inset[2], inset[3]],
+      // the top padding holds the mark labels' strip (one line of 11 px text), so a label never covers the data
+      padding: [(marks?.length ? 16 : 12) + inset[0], 16 + inset[1], inset[2], inset[3]],
       cursor: { drag: { x: !categories, y: false, setScale: !categories }, focus: { prox: 24 } },
       legend: { show: false },
       scales: { x: xScale, y: { ...(logY ? { distr: 3 } : {}), ...(yRange ? { range: yRange } : levelYs.length ? { range: withLevels } : { auto: true }) } },
@@ -359,7 +406,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
             label: s.label, stroke, width: s.width ?? 2, dash: s.dash, show: !hiddenRef.current.has(s.label),
             ...(s.fillTo !== undefined ? { fill: `${stroke}22` } : {}),
             ...(s.bars ? { paths: bars, fill: `${stroke}99`, points: { show: false } }
-              : s.points ? { paths: () => null, points: { show: true, size: 7, stroke, fill: stroke } } : { points: { show: false } }),
+              : s.points ? { paths: () => null, points: { show: true, size: s.pointSize ?? 7, stroke, fill: stroke } } : { points: { show: false } }),
           };
         }),
       ],
@@ -444,6 +491,16 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         </div>
       )}
       <div className="of-plot-area" ref={hostRef} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
+      {keyed && categories && (
+        <ol className="of-plot-key" aria-hidden="true">
+          {categories.map((c, i) => <li key={i}><b>{i + 1}</b>{c}</li>)}
+        </ol>
+      )}
+      {markKey !== '[]' && (
+        <ol className="of-plot-key" aria-hidden="true">
+          {(JSON.parse(markKey) as string[]).map((label, i) => <li key={i}><b>{i + 1}</b>{label}</li>)}
+        </ol>
+      )}
       {zoomed && <button type="button" className="of-plot-reset" onClick={reset}>{t(UI.resetZoom, lang)}</button>}
       {/* a table ignores the 1 px width of the hidden class and would widen the page's scroll area, so a
           block holds it */}

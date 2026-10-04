@@ -119,6 +119,11 @@ grinding plus, where the circuit has one, regrind.
 
 ## 10. Method records
 
+The optimization and uncertainty items below are the 0.05.000 design, kept as its record. Since 0.07.000 the
+optimizer is a pattern search with a progressive barrier and a screened search step
+([live-optimizer](../live-optimizer/design.md)), and the uncertainty design uses a SplitMix64 Latin hypercube in both
+languages ([live-uncertainty](../live-uncertainty/design.md)); SALib still computes the Sobol indices.
+
 - Kinetics: a virtual batch test of the rougher feed (true flotation, times 0.5 to 16 min) is fitted
   by the same Levenberg-Marquardt routine in both languages with first-order, Kelsall, Klimpel, gamma
   and compressed/stretched exponential forms; each is projected to the rougher bank with the
@@ -147,9 +152,14 @@ grinding plus, where the circuit has one, regrind.
   digest; `validate()` interprets only that document, and `contract_probes.json` records the
   verdicts every validator must reproduce. Every accepted state must solve (PE-30b).
 - Contract 2: case artifact with the ore and plant definitions (everything the engine needs), six
-  variants each with operating point, metrics, streams, curves, method records and flags.
+  variants each with operating point, metrics, streams, curves, method records and flags. Since 0.07.000
+  eight: the last two run the grinding circuit in the cut mode ([cut-mode](../cut-mode/design.md)).
 
 ## 11a. Pipeline
+
+This section is the 0.05.000 order, kept as its record. Since 0.07.000 the bake runs eight stages, learning
+before the cases, and adds the studies and the real samples ([architecture 02](../../../architecture/02_bake-pipeline.md));
+the validation covers 12 cases and 96 variants.
 
 `data-pipeline/run.py [--output DIR] [--models DIR] [--workers N]` bakes every case and runs the stages in
 order:
@@ -286,7 +296,9 @@ over another.
 
 ## 13. Performance budget
 
-One circuit evaluation: under 50 ms in Python, under 30 ms in the browser. The full bake of 72
+One circuit evaluation: under 50 ms in Python, under 30 ms in the browser. The browser budget was not met: the
+TypeScript port takes about 40 to 150 ms per evaluation in Node ([architecture 03](../../../architecture/03_browser-engine.md)),
+which the workbench absorbs by solving in a worker and drawing only the newest reply. The full bake of 72
 variants with uncertainty, optimization, Sobol and the design matrix takes 35 minutes to over an hour locally,
 on 12 case workers with CUDA:
 - an unloaded 0.05.000 bake of 2026-09-26: cases 375 s, learning 1688 s;

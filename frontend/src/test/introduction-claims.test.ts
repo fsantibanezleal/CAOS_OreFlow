@@ -23,4 +23,32 @@ describe('the Introduction says what the case records hold', () => {
     expect(text('en')).toMatch(/plausible, not validated/);
     expect(text('en')).not.toMatch(/published ranges/);
   });
+
+  // T-02, T-04, T-05, T-46 (review of 2026-10-02): every range is a checked range, cited or labelled authored; three
+  // lanes use measured data and none calibrates the engine (the GeoMet samples pass through it as inputs); the
+  // precompute is named in words a reader can decode, in both languages
+  it('frames the ranges, the measured lanes and the precompute as the records hold them', () => {
+    const all = (lang: 'en' | 'es') => INTRODUCTION.flatMap(g => g.topics)
+      .flatMap(t => [...t.paragraphs, ...(t.limits ?? []), ...(t.equations ?? []).map(e => e.caption), ...(t.figure ? [t.figure.caption] : [])])
+      .map(p => p[lang]).join(' ');
+    expect(all('en')).not.toMatch(/published range|kept apart|separate from the engine|baked/i);
+    expect(all('es')).not.toMatch(/rango publicado|separadas del motor|hornead/i);
+    expect(all('en')).toMatch(/Three lanes use measured data, and none calibrates the engine/);
+    expect(all('es')).toMatch(/Tres vías usan datos medidos, y ninguna calibra el motor/);
+    expect(all('en')).toMatch(/pass through the engine as inputs/);
+  });
+
+  // D-07, D-13, D-18, D-19 (review of 0.07.000): the figures draw what the engine runs
+  it('the figures draw the regrind, the recleaner, the cut-mode variants, the source switch and water as one number', () => {
+    const source = readFileSync(fileURLToPath(new URL('../content/introduction.tsx', import.meta.url)), 'utf-8');
+    const figure = (name: string, next: string) => source.slice(source.indexOf(`function ${name}`), source.indexOf(`function ${next}`));
+    const overview = figure('OverviewFigure', 'StreamFigure');
+    for (const unit of ['Regrind', 'Recleaner', 'recleaner tails']) expect(overview).toContain(unit);
+    expect(overview).not.toMatch(/precomputed for every variant/);
+    expect(overview).toMatch(/Sobol: the nominal only/);
+    expect(figure('VariantFigure', 'EvidenceFigure')).toMatch(/Cut mode, every case/);
+    expect(figure('WorkbenchFigure', 'CaseCatalog')).toMatch(/p\('source', 'fuente'\)/);
+    expect(figure('StreamFigure', 'VariantFigure')).toMatch(/water: one number per stream/);
+    expect(source).not.toMatch(/rendimiento en maco/);
+  });
 });

@@ -20,6 +20,8 @@ import type { Scalers } from '../learning/surrogate';
 // (docs/release-verification.md).
 const SUBSET = new Set(['iron_magnetite_fine/nominal', 'copper_oxide/nominal', 'gold_free_milling/nominal']);
 const FULL = process.env.OF_PARITY === 'full';
+// about a minute per variant on an idle machine; a release run on a loaded one may raise it (OF_PARITY_TIMEOUT, in ms)
+const TIMEOUT = Number(process.env.OF_PARITY_TIMEOUT ?? 300_000);
 const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/derived/', import.meta.url));
 const models = process.env.OF_MODELS ?? fileURLToPath(new URL('../../../models/', import.meta.url));
 const contract = JSON.parse(readFileSync(join(derived, 'contract', 'operating_contract.json'), 'utf-8')) as OperatingContract;
@@ -97,7 +99,7 @@ describe('the browser reproduces the baked optimization records', () => {
           if (b.screen) compareScreen(`path ${i}`, s.screen!, b.screen, problems);
         });
         expect(problems).toEqual([]);
-      }, 300_000);
+      }, TIMEOUT);
     }
   }
 });

@@ -532,7 +532,7 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                 summary[model_name][target].update({
                     "interpolation_coverage": interpolation["models"][model_name][target]["coverage_95"],
                     "loco_coverage_pooled": float(np.sum(cover * rows) / np.sum(rows)),
-                    "loco_coverage_worst": float(cover.min()), "loco_folds_below_80": int(np.sum(cover < 0.8))})
+                    "loco_coverage_worst": float(cover.min()), "loco_folds_below_80": int(np.sum(cover < float(constant("learning.coverage_floor"))))})
             if model_name == "mlp":
                 summary[model_name][target]["seeds"] = seeds["summary"][target]
     return {

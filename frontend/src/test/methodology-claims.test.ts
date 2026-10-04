@@ -58,8 +58,47 @@ describe('the Methodology page says what the engine and the records hold', () =>
     const errors = screened.map(r => r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
     const optimizer = METHODS.find(t => t.id === 'optimization')!;
     const text = optimizer.paragraphs.map(p => p.en).join(' ');
-    expect(text).toMatch(new RegExp(`Over the bake's ${screened.length} screened variants it cost ${round(100 * (withScreen / without - 1), 1)}% more engine evaluations`));
+    expect(text).toMatch(new RegExp(`Over the precompute's ${screened.length} screened variants it cost ${round(100 * (withScreen / without - 1), 1)}% more engine evaluations`));
     expect(text).toMatch(new RegExp(`the surrogate's recovery was ${round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)} points from the engine's on average`));
     expect(text).toMatch(new RegExp(`the same optima in ${screened.filter(r => r.same_optimum_without_screen).length} of the ${screened.length} variants`));
+  });
+});
+
+// D-06, D-15, D-26 (review of 0.07.000): the figures are drawn from the equations they illustrate
+describe('the Methodology figures follow their equations', () => {
+  const src = (path: string) => readFileSync(fileURLToPath(new URL(`../content/methodology/${path}`, import.meta.url)), 'utf-8');
+
+  it('the crusher classification curve is C(x) = 1 - ((K2 - x)/(K2 - K1))^2.3, steepest at K1 and level at K2', () => {
+    const path = src('comminution.tsx').match(/className="dg-curve" d="M 0 80 L ([^"]+) L 300 2"/)![1];
+    const points = path.split(' L ').map(s => s.split(' ').map(Number));
+    for (const [x, y] of points) {
+      const t = (x - 80) / 140;
+      expect(y).toBeCloseTo(80 - 78 * (1 - (1 - t) ** 2.3), 1);
+    }
+  });
+
+  it('the uncertainty figure marks the drawn histogram at its 5% and 95% points, with every S_T >= S_1', () => {
+    const text = src('methods.tsx');
+    const bars = JSON.parse(text.match(/const bars = (\[[\d, ]+\])/)![1]) as number[];
+    const at = (q: number) => {
+      const target = q * bars.reduce((a, b) => a + b, 0);
+      let run = 0;
+      for (let i = 0; i < bars.length; i += 1) {
+        if (run + bars[i] >= target) return 12 * i + 10 * ((target - run) / bars[i]);
+        run += bars[i];
+      }
+      return Number.NaN;
+    };
+    const marks = [...text.matchAll(/className="dg-marker" x1="([\d.]+)" y1="0"/g)].map(m => Number(m[1]));
+    expect(marks[0]).toBeCloseTo(at(0.05), 0);
+    expect(marks[1]).toBeCloseTo(at(0.95), 0);
+    for (const m of text.matchAll(/\[(0\.\d+), (0\.\d+), '/g)) expect(Number(m[2])).toBeGreaterThanOrEqual(Number(m[1]));
+  });
+
+  it('the flotation figure draws the recleaner and both tails', () => {
+    const text = src('separation.tsx');
+    expect(text).toMatch(/'relimpieza' : 'recleaner'/);
+    expect(text).toMatch(/'recleaner tail'/);
+    expect(text).toMatch(/'cleaner tail to the rougher feed'/);
   });
 });

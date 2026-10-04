@@ -78,8 +78,11 @@ export type IronFold = {
   id: number; train_rows: number; test_rows: number; train_first: string; train_last: string; test_first: string; test_last: string;
   embargo_hours_min: number; scores: Record<string, IronScores>;
   trace: Array<{ sensor_hour: string; lab_hour: string; observed_pct: number; predictions_pct: Record<string, number>;
-    sensors: Record<string, number>; lab_pct: { silica: number; iron: number } }>;
+    sensors: Record<string, number>; lab_pct: { silica: number; iron: number };
+    /** S-16: the sensor hour or the laboratory hour sits in a run of repeated laboratory values. */
+    held: boolean }>;
 };
+export type IronComparison = { a: string; b: string; metric: 'mae' | 'rmse'; difference_pct_points: number; interval_95: [number, number] };
 export type IronPlant = {
   schema: string;
   source: { title: string; url: string; publisher: string; dataset_id: number; version: number; license: string; archive_sha256: string; csv_sha256: string; date_first: string; date_last: string };
@@ -88,8 +91,15 @@ export type IronPlant = {
   protocol: { target: string; features: string[]; excluded_features: string[]; pair_rows: number; sampling: string; splits: string; interpretation: string; previous_lab_caveat: string };
   pooled_scores: Record<string, IronScores>;
   /** M-04: paired MAE and RMSE differences (a minus b) with day-block bootstrap intervals. */
-  comparisons: Array<{ a: string; b: string; metric: 'mae' | 'rmse'; difference_pct_points: number; interval_95: [number, number] }>;
+  comparisons: IronComparison[];
   repeated_assay_share: number;
+  /** S-16: laboratory values carried over unchanged across consecutive hours, and the same scores without the pairs
+   * that touch such a run. */
+  held_labels: {
+    rule: string; run_hours_min: number; repeated_label_hours: number; repeated_both_assays_hours: number; held_runs: number; held_hours: number;
+    longest_run_hours: number; longest_run_first_hour: string; longest_run_silica_pct: number; pairs_touching: number; pairs_without: number;
+    pooled_scores_without: Record<string, IronScores>; comparisons_without: IronComparison[]; repeated_assay_share_without: number;
+  };
   folds: IronFold[];
 };
 export const loadIronPlant = () => get<IronPlant>('source/iron_plant_soft_sensor.json');
@@ -119,11 +129,18 @@ export type RealSamples = {
   /** S-01 to S-09: what the comparison depends on (the assumed laboratory grind, the residence, the host, the authored choices). */
   sensitivity?: {
     measured_population_sd_pp: number;
-    gap_by_assumed_p80: Array<{ p80_um: number; mean_gap_pp: number; rmse_pp: number; pearson: number }>;
-    target_grind_throughput: { mean_gap_pp: number; residence_share_pp: number };
-    hosts: Record<string, { mean_gap_pp: number }>;
+    gap_by_assumed_p80: Array<SampleGap & { p80_um: number }>;
+    target_grind_throughput: SampleGap & { residence_share_pp: number; tph: { min: number; median: number; max: number } };
+    hosts: Record<'soft_720_record' | 'hard_nominal' | 'soft_720_sized_150', SampleGap>;
+    ratio_grid: Array<{ bornite: number; chalcocite_to_bornite: number; at_720: SampleGap; sized_150: SampleGap }>;
+    allocation_alternative: { at_720: SampleGap; sized_150: SampleGap };
+    no_magnetite: { at_720: SampleGap; sized_150: SampleGap };
+    work_index: { shift_kwh_t: number; deposit_median_for_all: { mean_gap_pp: number }; global_nearest: { mean_gap_pp: number };
+      all_minus_shift: { mean_gap_pp: number }; all_plus_shift: { mean_gap_pp: number } };
   };
 };
+/** One way of running the 52 samples through the engine: the mean and RMSE of engine minus measured, and whether it orders them. */
+export type SampleGap = { mean_gap_pp: number; rmse_pp: number; pearson: number; spearman: number; engine_sd_pp: number };
 export const loadRealSamples = () => get<RealSamples>('real_samples.json');
 
 export type AblationRecord = { status: 'not_applicable' } | {

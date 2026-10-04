@@ -1,5 +1,9 @@
 # 06 Gravity gold
 
+![A fraction b of the underflow passes the gravity unit; its tail and the rest return to the mill. The engine can also place the unit on the mill discharge, as the published model does.](../svg/06-gravity.svg)
+
+*A fraction b of the underflow passes the gravity unit; its tail and the rest return to the mill. The engine can also place the unit on the mill discharge, as the published model does.*
+
 ## Theory
 
 Gravity-recoverable gold (GRG) is the gold a laboratory Knelson recovers from an ore ground in three stages

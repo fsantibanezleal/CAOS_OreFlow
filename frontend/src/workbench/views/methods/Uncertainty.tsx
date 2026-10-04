@@ -50,13 +50,13 @@ const TEXT = {
   flags: { en: 'Engine flags among the samples', es: 'Avisos del motor en las muestras' },
   none: { en: 'none', es: 'ninguno' },
   seed: { en: 'seed', es: 'semilla' },
-  baked: { en: 'Baked for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
+  baked: { en: 'Precomputed for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
   rerun: { en: 'Re-run the design', es: 'Volver a correr el diseño' },
   run: { en: 'Run', es: 'Correr' },
   cancel: { en: 'Cancel', es: 'Cancelar' },
   running: { en: 'Engine runs', es: 'Corridas del motor' },
   live: { en: 'Live record at the current state', es: 'Registro en vivo en el estado actual' },
-  showBaked: { en: 'Show the baked record', es: 'Mostrar el registro horneado' },
+  showBaked: { en: 'Show the precomputed record', es: 'Mostrar el registro precalculado' },
   failed: { en: 'The run failed', es: 'La corrida falló' },
 };
 /** Equal-width bins for the histogram over the sampled range. */
@@ -148,7 +148,9 @@ export function Uncertainty({ record: baked, contract, ore, plant, point, gradeU
             {failure && <p className="of-note">{`${TEXT.failed[lang]}: ${failure}`}</p>}
             {live && <div className="of-actions">
               <p className="of-status-line">{`${TEXT.live[lang]}: ${TEXT.seed[lang]} ${live.seed}, ${live.samples} ${lang === 'es' ? 'muestras' : 'samples'}`}</p>
-              <button type="button" className="of-revert" onClick={() => setLive(null)}>{TEXT.showBaked[lang]}</button></div>}
+              {/* back on the baked record the fields show the seed and samples it was drawn with: they kept the live
+                  run's seed 7 and 32 samples over a 128-sample record (0.08 gate captures) */}
+              <button type="button" className="of-revert" onClick={() => { setLive(null); setSeedText(String(baked.seed)); setSamples(baked.samples); }}>{TEXT.showBaked[lang]}</button></div>}
           </div>
         )}
         {modified && !live && <p className="of-note">{TEXT.baked[lang]}</p>}

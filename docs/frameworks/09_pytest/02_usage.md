@@ -6,34 +6,41 @@ Read order: [01 Installation](01_installation.md), **you are on 02**, then [03 A
 
 Every test file opens with the requirement it verifies (the `PE-nn` rows of
 `docs/design/features/process-engine-v2/requirements.md`), and `scripts/check_sdd.py` requires each
-requirement's gate to name a test that exists.
+requirement's gate to name a test that exists. The counts are those of 0.08.000 (538 in all); each release's are in
+`docs/release-verification.md`.
 
-| File | Tests | What it verifies |
+| File | Tests in 0.08.000 | What it verifies |
 |---|---|---|
-| `test_engine_core.py` | 2 | PE-01 streams on one grid; PE-03 stoichiometry from atomic weights |
+| `test_engine_core.py` | 3 | PE-01 streams on one grid; PE-03 stoichiometry from atomic weights; E-02 the head grade is the total assay |
 | `test_engine_balances.py` | 120 | PE-02: every unit and the circuit close within 1e-9 on each of the 96 variants, from the named streams, not from the solver; CM-05 again on the 24 cut-mode variants |
 | `test_crusher.py` | 1 | PE-04: the Whiten form, mass conservation, the response to the closed-side setting |
-| `test_grinding.py` | 76 | PE-05 to PE-07: target P80 and circulating load, steady-state delivery, the power-limited mode; CM-02 to CM-04: the cut mode at installed power, its flags, and the two modes' agreement |
-| `test_energy.py` | 2 | PE-09 the GMG worked example of the operating work index; PE-10 the comparison laws |
+| `test_grinding.py` | 82 | PE-05 to PE-07: target P80 and circulating load, steady-state delivery, the power-limited mode; CM-02 to CM-04 and CM-09: the cut mode at installed power, its flags, the two modes' agreement and the states it refuses |
+| `test_energy.py` | 3 | PE-09 the GMG worked example of the operating work index; PE-10 the comparison laws; E-18 the oversize-feed factor left out |
 | `test_classification.py` | 13 | PE-11 the cyclone partition with bypass and density correction; PE-12 Plitt sizing |
 | `test_flotation.py` | 26 | PE-13 to PE-17: banks, the rate from bubble surface flux, entrainment, recycle, stage recoveries |
 | `test_separation.py` | 3 | PE-18 gravity in the grinding loop; PE-19 magnetite grade against grind; PE-20 the desliming trade-off |
-| `test_directions.py` | 46 | PE-21 to PE-25: every direction the product claims (more collector trades grade for recovery; a harder ore coarsens the grind at installed power) |
+| `test_gravity_grg.py` | 7 | E-11: the gravity-recoverable gold on the published model's structure: its own sizes, Banisi's breakage rate, the fitted classification exponent, the unit on the mill discharge, the case inside its sourced range |
+| `test_directions.py` | 50 | PE-21 to PE-25: every direction the product claims (more collector trades grade for recovery; a harder ore coarsens the grind at installed power; the head grade's direction per case) |
 | `test_kinetics.py` | 33 | PE-26: the five lumped fits, their errors and their bank projections |
 | `test_optimization.py` | 15 | PE-27, OP-01 to OP-06: the pattern search with its barrier, the objective, the screen inside its envelope, the optimum as an engine result, the record |
 | `test_uncertainty.py` | 7 | PE-28: the uncertainty and Sobol records; UQ-01 to UQ-03: SplitMix64, its uniforms and the Latin hypercube, with the digests the browser holds |
-| `test_learning.py`, `test_learning_findings.py` | 5, 5 | PE-29: the learned lane's protocols, and every number methodology page 14 quotes |
+| `test_learning.py` | 6 | PE-29: the learned lane's protocols, the records the pages quote, and a reused learning record that cannot ship |
+| `test_learning_findings.py` | 5 | every number methodology page 14 quotes |
 | `test_contract.py` | 19 | PE-30 one contract, identical verdicts; PE-30b every accepted state solves with closed balances; OP-10, UQ-07 and CM-01: the weight, the uncertainty controls and the classifier cut declared |
-| `test_live_api.py` | 16 | PE-30 through the API: probe verdicts, the live trace equals the engine's |
-| `test_cases.py` | 49 | PE-32 single-factor variants; PE-34 units and sources; the nominal KPI plausibility gate |
-| `test_oracles.py` | 4 | the published examples: Moly-Cop, GMG, Laplante, Zandrivierspoort |
-| `test_geomet.py`, `test_particle_experiment.py` | 8, 2 | the measured lanes' committed records |
-| `test_spa_routes.py` | 2 | the service's version and its document-route fallback |
-| `test_ablations.py` | 14 | AB-01 to AB-03: every mechanism switch is on by default and changes nothing when on, every ablated state closes its balances, and a case without the mechanism is not applicable |
+| `test_live_api.py` | 17 | PE-30 through the API: probe verdicts, the live trace equals the engine's |
+| `test_cases.py` | 51 | PE-32 single-factor variants; PE-34 units and sources; the nominal KPI plausibility gate |
 | `test_case_rules.py` | 3 | the authoring rules every case keeps (#58): each plausibility range has a source note, the nominal state sits inside its ranges and meets its own grade, and the water capacity is 5% above the nominal need |
-| `test_iron_plant.py` | 5 | IS-01 to IS-04, IS-06: the soft-sensor lane on its committed artifact and on small synthetic frames; never refits the lane or reads the 184 MB CSV |
-| `test_manuscript_claims.py` | 8 | every number the manuscript quotes, against the committed records |
-| `test_real_samples.py` | 6 | RS-01 to RS-05: the pinned GeoMet tables, the Bond work index, the sulphur-limited allocation and the engine runs of the samples in the soft porphyry's circuit |
+| `test_case_premises.py` | 2 | E-03, E-04: the phosphate and clay cases' stated premises are what the engine computes |
+| `test_oracles.py` | 6 | the published examples: Moly-Cop (every published input, net against net, and the Plitt sizing as a stated failure), GMG, Laplante like for like, Zandrivierspoort |
+| `test_geomet.py` | 8 | GM-01 to GM-07: the GeoMet lane's pinned source, folds, models, assay contract and the uncertainty of its ranking |
+| `test_particle_experiment.py` | 2 | the HZDR particle lane's record and the exported network against its checkpoint |
+| `test_iron_plant.py` | 7 | IS-01 to IS-04, IS-06: the soft-sensor lane on its committed artifact and on small synthetic frames, the held laboratory labels and the fitted last assay; never refits the lane or reads the 184 MB CSV |
+| `test_real_samples.py` | 8 | RS-01 to RS-05: the pinned GeoMet tables, the Bond work index, the sulphur-limited allocation, the engine runs of the samples in the soft porphyry's circuit and the comparison's dependences |
+| `test_ablations.py` | 14 | AB-01 to AB-03: every mechanism switch is on by default and changes nothing when on, every ablated state closes its balances, and a case without the mechanism is not applicable |
+| `test_spa_routes.py` | 2 | the service's version and its document-route fallback |
+| `test_manuscript_claims.py` | 9 | every result number and count the manuscript quotes, against the committed records |
+| `test_docs_claims.py` | 9 | every number methodology pages 04, 06, 09, 12, 13 and 15 to 18, guide 03 and data contracts 03 to 06 quote |
+| `test_docs_counts.py` | 7 | the SDD coverage matrix, guide 03's snippets, methodology pages 02, 03 and 11, the bake times, retired phrases, every relative link, and the changelog's entries |
 
 ## Cached engine runs (`tests/engine_helpers.py`)
 

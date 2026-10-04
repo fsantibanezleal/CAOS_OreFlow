@@ -24,7 +24,7 @@ default, a few hundred megabytes per version. Point it somewhere with room with 
 before installing and before every run:
 
 ```powershell
-$env:PLAYWRIGHT_BROWSERS_PATH = 'E:\_Temp\ms-playwright'     # the development machine's rule: caches on E:
+$env:PLAYWRIGHT_BROWSERS_PATH = '<a folder with room>'      # optional: keep the browser cache off a full system drive
 npx playwright install chromium
 node gate.mjs
 ```

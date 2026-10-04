@@ -18,6 +18,25 @@ html, body, #root { height: auto; min-height: 100%; }
 .main-nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; white-space: nowrap; scrollbar-width: none; }
 .main-nav::-webkit-scrollbar { display: none; }
 .main-nav .nav-link { flex: none; }
+/* Shell known defect 11 (U-37): with the scrollbar hidden, the end of the nav that hides links fades (NavOverflow declares which), so a link
+ * cut at the edge reads as more to scroll, not as a broken word */
+.main-nav[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.main-nav[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.main-nav[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+
+/* the same for a content page's tab row wider than the page (DocPage declares which end hides tabs): in Spanish at
+ * 1280 px the Implementation row was cut at "Controles y publicaci" with nothing to say a tab followed (0.08 gate) */
+.of-doc .tablist[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.of-doc .tablist[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.of-doc .tablist[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
+
+/* Shell known defect 11 (U-37): on a phone the shell keeps the workbench footer on one line that scrolls with no scrollbar, so it was cut
+ * after "v0.07.000 · D"; it wraps instead, two short lines under the instrument */
+@media (max-width: 860px) {
+  .app-shell.fixed .footer-meta { flex-wrap: wrap; overflow-x: visible; white-space: normal; row-gap: 0.15rem; }
+  .app-shell.fixed .footer-meta > * { flex: 0 1 auto; }
+  .app-shell.fixed .footer-build { margin-left: 0; }
+}
 .brand, .header-actions { flex: none; white-space: nowrap; }
 
 .of-doc { min-width: 0; }
@@ -37,6 +56,13 @@ html, body, #root { height: auto; min-height: 100%; }
 /* a wide figure spans its row; a narrow one keeps the shell's figure measure (560 px), centred in its column */
 .of-topic-figure.wide .fig-svg { max-width: 100%; }
 @media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } }
+/* a figure keeps the width at which its smallest label reads (FigureScroll sets it) and scrolls sideways in its own row
+   on a narrower screen; the hidden end fades as the route links' do, so a cut label reads as more to scroll */
+.of-figure-scroll { overflow-x: auto; overflow-y: hidden; }
+.of-figure-scroll > .fig-svg { min-width: var(--of-fig-min, 0px); }
+.of-figure-scroll[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
+.of-figure-scroll[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
+.of-figure-scroll[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
 
 .of-doc-table { width: 100%; max-width: 980px; margin: 1rem 0; border-collapse: collapse; font-size: 0.86rem; }
 .of-doc-table th, .of-doc-table td { padding: 6px 10px; border-bottom: 1px solid var(--color-border); text-align: left; vertical-align: top; }
@@ -48,12 +74,21 @@ html, body, #root { height: auto; min-height: 100%; }
 /* figure frames and optional units (dashed), small labels for dense schematics */
 .of-dg-frame { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .dg-box.of-dg-optional { stroke-dasharray: 5 3; }
+.of-dg-optional-edge { stroke: var(--color-fg-faint); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
 .of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
+/* Shell known defect 12 (D-29): the shell draws figure notes and ticks in --color-fg-faint (4.27:1 on the light page, 3.80:1 on the dark
+   surface), below WCAG AA for 11 px text; here they carry content (solve directions, legends, sample counts), so they
+   take the subtle text colour (at least 5.7:1 on every page and surface, both themes) */
+.fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle); }
+/* Shell known defect 13 (CAOS_APP_SHELL #29, open in 0.6.11): the architecture modal's full-size toggle is a native
+   button with size styles only, so in the dark theme it keeps the browser's light face under the page's light text and
+   cannot be read (found again in the 0.08 captures). It takes the theme's tokens here; the gate measures its contrast. */
+[role=dialog] button[aria-controls$='-diagram'] { color: var(--color-fg); background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 6px; cursor: pointer; }
 
 /* artifact-bound tables and charts under a topic */
 .of-topic-data { margin: 1.2rem 0; min-width: 0; }
 .of-doc-table-data { max-width: none; font-variant-numeric: tabular-nums; }
-.of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-faint); font-style: italic; }
+.of-doc-table caption { caption-side: bottom; text-align: left; padding-top: 0.5rem; font-size: 0.8rem; color: var(--color-fg-subtle); font-style: italic; }
 .of-doc-table td { white-space: nowrap; }
 .of-doc-table td.of-doc-wrap { white-space: normal; min-width: 14rem; }
 /* a name that may break over two lines where the table is short of width (the case catalog) */

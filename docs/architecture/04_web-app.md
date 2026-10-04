@@ -17,7 +17,7 @@ copy:
 
 | Target | Source |
 |---|---|
-| `data/` | `data/derived/` whole: the contract and its probes, the twelve case artifacts, the manifests and the index, the learning record, the benchmark, the validation record and the two measured lanes |
+| `data/` | `data/derived/` whole: the contract and its probes, the twelve case artifacts, the manifests and the index, the learning record, the benchmark, the studies, the real samples, the validation record and the three measured lanes' records |
 | `models/` | every `.onnx` network in `models/` with its scaler document |
 | `ort/` | the onnxruntime-web WebAssembly runtime, served once instead of a second hashed copy in the bundle |
 
@@ -36,17 +36,17 @@ from the previous release. The version shown in the footer and sent with those r
 | `/introduction`, `/methodology`, `/implementation`, `/experiments`, `/benchmark` | The content pages, which keep the document scroll | On first use |
 | any other path | The workbench | With the app |
 
-On GitHub Pages the app lives under `/CAOS_OreFlow/` and the router takes that base; on the VPS it is
-served from the root. Pages answers a deep link with the app only where a file exists, so the build
-writes a copy of `index.html` for every route and for the focus route of every baked case
-(`frontend/vite.config.ts`).
+The app is served from the root of its one host, the VPS. The service answers every document route with
+`index.html` (`SpaStaticFiles` in `app/main.py`) while a missing asset or API path still answers 404, so a
+deep link such as `/methodology` or `/focus/copper_porphyry_soft` opens its page.
 
 ## The workbench loop
 
 1. The case index, the contract and the benchmark load once per page; the benchmark is optional and
    only feeds the Compare sub-tab.
 2. The state lives in a small store (`frontend/src/workbench/state.ts`, zustand) and travels in the
-   URL: `?case=`, `?variant=`, `?set=` for the controls changed from the variant, and `?view=`. The
+   URL: `?case=`, `?variant=`, `?set=` for the controls changed from the variant, `?view=`, and for a real
+   source `?source=` with `?sample=` or `?hour=`. The
    URL is applied once, when the page opens; after that it mirrors the store with a replace, so the
    back button leaves the page instead of undoing a slider, and a state can be shared as a link.
 3. The case artifact loads per case; a reply for a case the user has already left is dropped.
@@ -60,15 +60,18 @@ writes a copy of `index.html` for every route and for the focus route of every b
 
 ## The rail and the readout
 
-The rail holds the shell's case selector, the variant, the case's question and the contract's controls
-for the case's family, in three sections shown one at a time so the rail never scrolls
-(`frontend/src/workbench/Rail.tsx`):
+The rail holds the source switch (a synthetic case, a GeoMet sample or an iron-plant hour), the shell's case
+selector or the sample or hour picker, the variant, the case's question and the contract's controls for the case's
+family, in three sections shown one at a time so the rail never scrolls (`frontend/src/workbench/Rail.tsx`):
 
 | Section | Inputs |
 |---|---|
 | Feed | throughput, work index, head grade, crusher closed-side setting |
-| Classification | target P80, circulating load, water |
+| Classification | the classifier cut (off is the target mode; on, the cut mode, in which the grind target and the load follow), target P80, circulating load, water |
 | Separation | collector dose, superficial gas velocity, rougher cells, gravity bleed, desliming cut |
+
+For a GeoMet sample the head grade and the work index are fixed by the sample, each with its reason; an
+iron-plant hour has no controls, because its circuit is not an engine family.
 
 The readout is one row that never wraps: recovery, concentrate grade, total specific energy, P80 and
 mill power, every engine flag, and, at the end, the reading of whichever chart has the cursor, so every
@@ -82,8 +85,8 @@ instrument reports to the same place.
 | Grinding | Size distributions of the circuit streams, the cyclone partition, the liberation of each valuable mineral and the host-limited composite scale, with the target, the cut and the liberation sizes marked where the engine put them | PE-36 |
 | Separation | By family: the rougher recovery by size, the grade-recovery curve down the bank and the kinetic record (batch curve, five fits, their bank projections); the magnetic capture by particle class; the desliming partition | PE-36 |
 | Response | A metric against one contract input, or over two inputs as a decision surface with the grade-specification and installed-power boundaries, the current state and the baked optimum marked; computed in the worker only when asked | PE-38 |
-| Methods | The variant's method records as sub-tabs: the optimizer, the uncertainty record, the Sobol indices (nominal state) and the learned lane, which runs the exported surrogate and guard in the browser | PE-39 (the learned lane) |
-| Case | The case's context in a fixed order (problem, components and variables, formalization, scope and assumptions, what each variant shows, how to read the views) and the comparison of its six single-factor variants, with the twelve cases on one map of recovery against specific energy | PE-40 (the context), PE-32 (the variants) |
+| Methods | The variant's method records as sub-tabs: the optimizer, with its weight on metal and a run button that re-runs it in its own worker; the uncertainty record, re-run at another seed or sample count on request; the Sobol indices (nominal state); and the learned lane, which runs the exported surrogate and guard in the browser | PE-39, OP-09, UQ-06 |
+| Case | The case's context in a fixed order (problem, components and variables, formalization, scope and assumptions, what each variant shows, how to read the views) and the comparison of its eight variants (five single-factor changes and the two cut-mode variants beside the nominal), with the twelve cases on one map of recovery against specific energy. For a GeoMet sample, what the sample fixes and what the engine still authors, and the engine's recovery beside the measured test and the lane's predictions; for an iron-plant hour, its sensors, its assays and the soft sensor's recorded forecasts | PE-40, PE-32, RS-09 |
 
 The magnetite Separation view holds one chart and six facts. Its facts sit in a strip under the chart at
 every size: in a panel beside the chart they filled 29% of it at 1280x800. On a large screen (from 1800
@@ -128,10 +131,12 @@ languages. A narrow figure sits beside the prose with the limitations under it; 
 | Page | Tabs |
 |---|---|
 | Introduction | What it is, Approach, The cases, Scope and evidence, Using it |
-| Methodology | Streams and conservation, Comminution, Classification and separation, Method records |
-| Implementation | The system, Engine and port, The bake, Contracts and artifacts, What runs where, Gates and release |
-| Experiments | Design and coverage, Metrics, What the variants did, Protocols |
-| Benchmark | Published examples, Method records, Learned lane, Measured lanes |
+| Methodology | Streams and conservation, Comminution, Classification and separation, Method records, Measured data |
+| Implementation | The system, Engine and port, The precompute, Contracts and artifacts, What runs where, Model registry, The GPU lane, Gates and release, Deployment |
+| Experiments | Design and coverage, Data, Splits, Metrics, What the variants did, Uncertainty, Ablations |
+| Benchmark | Published examples, Method records, Learned lane, Measured lanes, Industrial quality |
+
+`frontend/src/test/pages.test.ts` holds this table to the pages' tab arrays.
 
 A number on a page is read from the committed records at run time, never retyped: `useArtifact`
 loads a record and `Loaded` shows a status while it arrives and an alert if it fails
@@ -186,6 +191,11 @@ both languages) it:
   the page body scrolls, visits every view and requires the rail whole and clear of the readout, no
   sideways document scroll, no element outside the viewport except inside its own scroll box, and no
   flowsheet unit box over another;
+- in every combination, runs the optimizer at another weight in its worker (OP-09) and the uncertainty design at
+  another seed (UQ-06), switches the grinding circuit to the cut mode and checks the set and follow labels (CM-07),
+  and opens a GeoMet sample and an iron-plant hour (RS-07, RS-08, RS-10);
+- runs a review pass in one combination that drives the states a reviewer reached by hand: a sweep followed by a
+  state change, a rejected state, the optimizer at its bounds and in a gold case, a flagged variant;
 - fails on any console error, and writes a screenshot of every state and the measurements
   (`gate.json`) to `qa-output/`, which git ignores.
 

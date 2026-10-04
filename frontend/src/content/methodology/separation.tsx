@@ -4,6 +4,7 @@
  */
 import type { Lang } from '../../lib/format';
 import type { Topic } from '../doc';
+import { SvgSub } from '../../lib/math';
 
 const r = String.raw;
 
@@ -24,7 +25,7 @@ function PartitionFigure({ lang }: { lang: Lang }) {
       <line className="dg-axis" x1="50" y1="190" x2="390" y2="190" />
       <line className="dg-axis" x1="50" y1="190" x2="50" y2="20" />
       <line className="dg-asymptote" x1="50" y1="160" x2="390" y2="160" />
-      <text className="dg-marker-label" x="330" y="155">R_f</text>
+      <text className="dg-marker-label" x="330" y="155"><SvgSub base="R" sub="f" /></text>
       <path className="dg-curve" d="M 55 160 C 170 160, 220 150, 250 105 S 300 32, 385 30" />
       <path className="dg-curve-2" d="M 55 160 C 120 160, 160 150, 185 105 S 235 32, 385 30" />
       <line className="dg-marker" x1="250" y1="190" x2="250" y2="95" />
@@ -42,33 +43,41 @@ function PartitionFigure({ lang }: { lang: Lang }) {
 function FlotationFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
   return (
-    <svg className="fig-svg wide" viewBox="0 0 560 230" role="img" aria-label={es ? 'Banco rougher, remolienda y limpieza con recirculación' : 'Rougher bank, regrind and cleaner with recycle'}>
+    <svg className="fig-svg wide" viewBox="0 0 640 252" role="img" aria-label={es ? 'Banco rougher, remolienda opcional, limpieza y relimpieza opcional con sus recirculaciones' : 'Rougher bank, optional regrind, cleaner and optional recleaner with their recycles'}>
       <Arrowhead id="of-flot-arrow" />
-      <text className="dg-edge-label" x="6" y="104">{es ? 'alim.' : 'feed'}</text>
-      <line className="dg-edge" x1="36" y1="100" x2="58" y2="100" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="2" y="114">{es ? 'alim.' : 'feed'}</text>
+      <line className="dg-edge" x1="34" y1="110" x2="58" y2="110" markerEnd="url(#of-flot-arrow)" />
       {[0, 1, 2, 3].map(k => (
-        <g key={k} transform={`translate(${60 + k * 58} 80)`}>
+        <g key={k} transform={`translate(${60 + k * 58} 90)`}>
           <rect className="dg-box" x="0" y="0" width="50" height="40" rx="5" />
           <line className="dg-edge" x1="25" y1="0" x2="25" y2="-22" markerEnd="url(#of-flot-arrow)" />
           {k < 3 && <line className="dg-edge" x1="50" y1="20" x2="58" y2="20" markerEnd="url(#of-flot-arrow)" />}
         </g>
       ))}
-      <text className="dg-box-sub" x="210" y="144" textAnchor="middle">{es ? 'rougher: N celdas, k de S_b' : 'rougher: N cells, k from S_b'}</text>
-      <line className="dg-edge" x1="85" y1="56" x2="287" y2="56" />
-      <line className="dg-edge" x1="284" y1="100" x2="330" y2="100" markerEnd="url(#of-flot-arrow)" />
-      <text className="dg-edge-label" x="340" y="104">{es ? 'relave' : 'tail'}</text>
-      <path className="dg-edge" d="M 287 56 L 300 56 L 300 30 L 360 30" markerEnd="url(#of-flot-arrow)" />
-      <rect className="dg-box" x="362" y="12" width="70" height="36" rx="6" />
-      <text className="dg-box-title" x="397" y="34" textAnchor="middle">{es ? 'remolienda' : 'regrind'}</text>
-      <line className="dg-edge" x1="432" y1="30" x2="458" y2="30" markerEnd="url(#of-flot-arrow)" />
-      <rect className="dg-box accent" x="460" y="12" width="80" height="36" rx="6" />
-      <text className="dg-box-title" x="500" y="34" textAnchor="middle">{es ? 'limpieza' : 'cleaner'}</text>
-      {/* the tail leaves the cleaner left of the concentrate label, so the dashed line never crosses it */}
-      <path className="dg-curve-faint" d="M 468 48 L 468 178 L 110 178 L 110 122" markerEnd="url(#of-flot-arrow)" />
-      <text className="dg-edge-label" x="300" y="194" textAnchor="middle">{es ? 'relave de limpieza de vuelta al rougher' : 'cleaner tail back to the rougher'}</text>
-      <path className="dg-edge" d="M 540 30 L 552 30 L 552 6" markerEnd="url(#of-flot-arrow)" />
-      <text className="dg-edge-label" x="548" y="64" textAnchor="end">{es ? 'concentrado' : 'concentrate'}</text>
-      <text className="dg-note" x="280" y="220" textAnchor="middle">{es ? 'recuperación por flotación verdadera y por arrastre con el agua (ENT)' : 'recovery by true flotation and by entrainment with the water (ENT)'}</text>
+      <text className="dg-box-sub" x="170" y="154" textAnchor="middle">{es ? 'rougher: N celdas, k de ' : 'rougher: N cells, k from '}<SvgSub base="S" sub="b" /></text>
+      <line className="dg-edge" x1="85" y1="66" x2="287" y2="66" />
+      <line className="dg-edge" x1="284" y1="110" x2="326" y2="110" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="332" y="114">{es ? 'relave' : 'tail'}</text>
+      <path className="dg-edge" d="M 287 66 L 300 66 L 300 40 L 330 40" markerEnd="url(#of-flot-arrow)" />
+      <rect className="dg-box of-dg-optional" x="332" y="22" width="78" height="36" rx="6" />
+      <text className="dg-box-title" x="371" y="44" textAnchor="middle">{es ? 'remolienda' : 'regrind'}</text>
+      <line className="dg-edge" x1="410" y1="40" x2="428" y2="40" markerEnd="url(#of-flot-arrow)" />
+      <rect className="dg-box accent" x="430" y="22" width="72" height="36" rx="6" />
+      <text className="dg-box-title" x="466" y="44" textAnchor="middle">{es ? 'limpieza' : 'cleaner'}</text>
+      <line className="dg-edge" x1="502" y1="40" x2="520" y2="40" markerEnd="url(#of-flot-arrow)" />
+      <rect className="dg-box of-dg-optional" x="522" y="22" width="80" height="36" rx="6" />
+      <text className="dg-box-title" x="562" y="44" textAnchor="middle">{es ? 'relimpieza' : 'recleaner'}</text>
+      <path className="dg-edge" d="M 602 40 L 618 40 L 618 14" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="610" y="12" textAnchor="end">{es ? 'concentrado' : 'concentrate'}</text>
+      {/* the cleaner tail joins the rougher feed before the first cell, the recleaner tail the cleaner feed; the two
+          loops leave on either side of the cleaner, so they never cross */}
+      <path className="dg-curve-faint" d="M 450 58 L 450 186 L 46 186 L 46 114" markerEnd="url(#of-flot-arrow)" />
+      <circle className="dg-fill-accent" cx="46" cy="110" r="3" />
+      <text className="dg-edge-label" x="248" y="202" textAnchor="middle">{es ? 'relave de limpieza a la alimentación rougher' : 'cleaner tail to the rougher feed'}</text>
+      <path className="dg-curve-faint" d="M 562 58 L 562 76 L 482 76 L 482 60" markerEnd="url(#of-flot-arrow)" />
+      <text className="dg-edge-label" x="474" y="92">{es ? 'relave de relimpieza' : 'recleaner tail'}</text>
+      <text className="dg-note" x="320" y="226" textAnchor="middle">{es ? 'cajas punteadas: solo en algunos casos' : 'dashed boxes: in some cases only'}</text>
+      <text className="dg-note" x="320" y="242" textAnchor="middle">{es ? 'recuperación por flotación verdadera y por arrastre con el agua (ENT)' : 'recovery by true flotation and by entrainment with the water (ENT)'}</text>
     </svg>
   );
 }
@@ -93,7 +102,7 @@ function GravityFigure({ lang }: { lang: Lang }) {
       <text className="dg-edge-label" x="235" y="132">b</text>
       <rect className="dg-box accent" x="172" y="142" width="110" height="40" rx="7" />
       <text className="dg-box-title" x="227" y="160" textAnchor="middle">{es ? 'gravimetría' : 'gravity unit'}</text>
-      <text className="dg-box-sub" x="227" y="174" textAnchor="middle">E_g(d)</text>
+      <text className="dg-box-sub" x="227" y="174" textAnchor="middle"><SvgSub base="E" sub="g" />(d)</text>
       <line className="dg-edge" x1="282" y1="162" x2="340" y2="162" markerEnd="url(#of-grav-arrow)" />
       <text className="dg-edge-label" x="344" y="166">{es ? 'concentrado' : 'concentrate'}</text>
       <path className="dg-curve-faint" d="M 172 162 L 60 162 L 60 74" markerEnd="url(#of-grav-arrow)" />
@@ -136,12 +145,12 @@ function DeslimeFigure({ lang }: { lang: Lang }) {
       <line className="dg-edge" x1="58" y1="70" x2="116" y2="70" markerEnd="url(#of-des-arrow)" />
       <rect className="dg-box accent" x="118" y="48" width="104" height="44" rx="7" />
       <text className="dg-box-title" x="170" y="68" textAnchor="middle">{es ? 'deslamado' : 'desliming'}</text>
-      <text className="dg-box-sub" x="170" y="83" textAnchor="middle">d_des</text>
+      <text className="dg-box-sub" x="170" y="83" textAnchor="middle"><SvgSub base="d" sub="des" /></text>
       <path className="dg-edge" d="M 170 48 L 170 20 L 300 20" markerEnd="url(#of-des-arrow)" />
       <text className="dg-edge-label" x="306" y="24">{es ? 'lamas a relave' : 'slimes to tail'}</text>
       <line className="dg-edge" x1="222" y1="70" x2="270" y2="70" markerEnd="url(#of-des-arrow)" />
       <rect className="dg-box" x="272" y="50" width="70" height="40" rx="7" />
-      <text className="dg-box-title" x="307" y="74" textAnchor="middle">{es ? 'repulpeo' : 'repulp'}</text>
+      <text className="dg-box-title" x="307" y="74" textAnchor="middle">{es ? 'dilución' : 'dilution'}</text>
       <line className="dg-edge" x1="342" y1="70" x2="392" y2="70" markerEnd="url(#of-des-arrow)" />
       <text className="dg-edge-label" x="352" y="62">rougher</text>
       <text className="dg-note" x="210" y="130" textAnchor="middle">{es ? 'un corte más grueso limpia la alimentación y pierde más fosfato fino' : 'a coarser cut cleans the feed and loses more fine phosphate'}</text>
@@ -162,22 +171,22 @@ export const SEPARATION: Topic[] = [
         es: 'El solucionador del circuito encuentra el corte que necesita el circuito; las ecuaciones de Plitt responden luego la pregunta de equipos con la alimentación resuelta: el caudal por ciclón que da ese corte, el número de ciclones, y la presión, la partición de volumen y la nitidez con ese número. Las ecuaciones no están calibradas, así que son una estimación: nunca avisan ni rechazan un estado.' },
     ],
     equations: [
-      { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_h - 1}{\rho_k - 1}} \end{gathered}`, caption: { en: 'Partition to underflow with water bypass R_f, and the cut of particle class k of density ρ_k, corrected from the host gangue density ρ_h.', es: 'Partición a la descarga con cortocircuito de agua R_f, y el corte de la clase k de densidad ρ_k, corregido desde la densidad de la ganga huésped ρ_h.' } },
-      { tex: r`d_{50c} = \frac{50.5\,D_c^{0.46} D_i^{0.6} D_o^{1.21} e^{0.063 C_v}}{D_u^{0.71} h^{0.38} Q^{0.45} (\rho_s - \rho_l)^{0.5}}\ \mu\mathrm{m}`, caption: { en: 'Plitt cut size (lengths in cm, Q in L/min per cyclone, C_v in percent solids by volume).', es: 'Tamaño de corte de Plitt (longitudes en cm, Q en L/min por ciclón, C_v en porcentaje de sólidos en volumen).' } },
-      { tex: r`\begin{gathered} \Delta P = \frac{1.88\,Q^{1.78} e^{0.0055 C_v}}{D_c^{0.37} D_i^{0.94} h^{0.28} (D_u^2 + D_o^2)^{0.87}}\ \mathrm{kPa} \\ m = 1.94\,e^{-1.58 R_v}\left(\frac{D_c^2 h}{Q}\right)^{0.15} \end{gathered}`, caption: { en: 'Plitt pressure drop and sharpness (R_v the volume split to underflow).', es: 'Caída de presión y nitidez de Plitt (R_v la partición de volumen a la descarga).' } },
+      { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_h - 1}{\rho_k - 1}} \end{gathered}`, caption: { en: 'Partition to underflow with water bypass $R_f$, and the cut of particle class k of density $\\rho_k$, corrected from the host gangue density $\\rho_h$.', es: 'Partición a la descarga con cortocircuito de agua $R_f$, y el corte de la clase k de densidad $\\rho_k$, corregido desde la densidad de la ganga huésped $\\rho_h$.' } },
+      { tex: r`d_{50c} = \frac{50.5\,D_c^{0.46} D_i^{0.6} D_o^{1.21} e^{0.063 C_v}}{D_u^{0.71} h^{0.38} Q^{0.45} (\rho_s - \rho_l)^{0.5}}\ \mu\mathrm{m}`, caption: { en: 'Plitt cut size (lengths in cm, Q in L/min per cyclone, $C_v$ in percent solids by volume).', es: 'Tamaño de corte de Plitt (longitudes en cm, Q en L/min por ciclón, $C_v$ en porcentaje de sólidos en volumen).' } },
+      { tex: r`\begin{gathered} \Delta P = \frac{1.88\,Q^{1.78} e^{0.0055 C_v}}{D_c^{0.37} D_i^{0.94} h^{0.28} (D_u^2 + D_o^2)^{0.87}}\ \mathrm{kPa} \\ m = 1.94\,e^{-1.58 R_v}\left(\frac{D_c^2 h}{Q}\right)^{0.15} \end{gathered}`, caption: { en: 'Plitt pressure drop and sharpness ($R_v$ the volume split to underflow).', es: 'Caída de presión y nitidez de Plitt ($R_v$ la partición de volumen a la descarga).' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
       rows: [
         [{ en: 'sharpness m', es: 'nitidez m' }, '2.0', { en: 'authored; Moly-Cop\'s two examples print 1.34 and 1.66', es: 'de autor; los dos ejemplos de Moly-Cop imprimen 1,34 y 1,66' }],
         [{ en: 'underflow solids', es: 'sólidos en la descarga' }, { en: '75% w/w', es: '75% p/p' }, { en: 'authored', es: 'de autor' }],
-        [{ en: 'geometry ratios Di, Do, Du, h', es: 'razones geométricas Di, Do, Du, h' }, '0.256, 0.335, 0.197, 2.95 Dc', { en: 'typical proportions', es: 'proporciones típicas' }],
-        ['Dc', '25 - 91 cm', { en: 'authored per case', es: 'de autor por caso' }],
+        [{ en: 'geometry ratios $D_i$, $D_o$, $D_u$, $h$', es: 'razones geométricas $D_i$, $D_o$, $D_u$, $h$' }, '0.256, 0.335, 0.197, 2.95 $D_c$', { en: 'typical proportions', es: 'proporciones típicas' }],
+        ['$D_c$', '25 - 91 cm', { en: 'authored per case', es: 'de autor por caso' }],
       ],
     },
     limits: [
-      { en: 'Plitt\'s equations are uncalibrated here. Moly-Cop calibrates them per survey, and at its two published classifier states the engine\'s cut is 1.4 to 1.7 times the published one and its pressure 1.7 to 2.2 times; sizing a cluster from the cut amplifies the error, to 2 cyclones at 816 kPa against the published 6 at 53 kPa. The count and pressure are therefore an estimate, never a result or a flag (the Benchmark shows the comparison). No roping, no fish-hook.',
-        es: 'Las ecuaciones de Plitt no están calibradas aquí. Moly-Cop las calibra por muestreo, y en sus dos estados de clasificación publicados el corte del motor es 1,4 a 1,7 veces el publicado y su presión 1,7 a 2,2 veces; dimensionar una batería a partir del corte amplifica el error, a 2 ciclones a 816 kPa frente a los 6 publicados a 53 kPa. Por eso el número de ciclones y la presión son una estimación, nunca un resultado ni un aviso (el Benchmark muestra la comparación). Sin acordonamiento ni efecto anzuelo.' },
+      { en: 'Plitt\'s equations are uncalibrated here. Moly-Cop calibrates them per survey, and at its two published classifier states the engine\'s cut is 1.4 to 1.7 times the published one and its pressure 1.7 to 2.2 times; sizing a cluster from the cut amplifies the error, to 2 cyclones at 816 kPa against the published 6 at 53 kPa. The count and pressure are therefore an estimate, never a result or a flag (the Benchmark shows the comparison). The cluster is also sized again at every state, in the cut mode as in the target mode, so a cut is never held by a fixed installation: the count and pressure answer what cluster would give that cut. No roping, no fish-hook.',
+        es: 'Las ecuaciones de Plitt no están calibradas aquí. Moly-Cop las calibra por muestreo, y en sus dos estados de clasificación publicados el corte del motor es 1,4 a 1,7 veces el publicado y su presión 1,7 a 2,2 veces; dimensionar una batería a partir del corte amplifica el error, a 2 ciclones a 816 kPa frente a los 6 publicados a 53 kPa. Por eso el número de ciclones y la presión son una estimación, nunca un resultado ni un aviso (el Benchmark muestra la comparación). La batería además se dimensiona de nuevo en cada estado, en el modo de corte como en el modo objetivo, así que ningún corte lo sostiene una instalación fija: el número y la presión responden qué batería daría ese corte. Sin acordonamiento ni efecto anzuelo.' },
     ],
     figure: { caption: { en: 'A dense mineral classifies at a finer cut than the gangue; both curves start at the water bypass.', es: 'Un mineral denso se clasifica con un corte más fino que la ganga; ambas curvas parten del cortocircuito de agua.' }, render: lang => <PartitionFigure lang={lang} /> },
     refs: ['plitt1976', 'laplante-staunton'],
@@ -188,30 +197,32 @@ export const SEPARATION: Topic[] = [
     paragraphs: [
       { en: 'Gorain, Franzidis and Manlapig showed in industrial cells that the flotation rate constant is governed not by gas velocity, bubble size or gas holdup separately but by their combination in the bubble surface area flux. The Sauter bubble size grows with gas velocity, so the flux saturates at high air. Recovery falls at fine and coarse sizes (Trahar), so each class\'s rate carries a size window around an optimum size, and a composite floats on its exposed valuable surface.',
         es: 'Gorain, Franzidis y Manlapig mostraron en celdas industriales que la constante cinética de flotación no la gobiernan por separado la velocidad de gas, el tamaño de burbuja ni la retención de gas, sino su combinación en el flujo de área superficial de burbujas. El tamaño de Sauter crece con la velocidad de gas, por lo que el flujo se satura con mucho aire. La recuperación cae en tamaños finos y gruesos (Trahar), por lo que la tasa de cada clase lleva una ventana de tamaños en torno a un óptimo, y un mixto flota según su superficie valiosa expuesta.' },
-      { en: 'Gangue saturates at a higher collector dose than the valuable mineral, so beyond the valuable saturation dose more collector buys little recovery and floats gangue and poorly liberated particles, lowering grade, which is what plant practice reports for xanthate. Fine free gangue also reports to the concentrate with the water: Savassi\'s degree of entrainment gives the share by size.',
-        es: 'La ganga se satura a una dosis de colector mayor que el mineral valioso, por lo que pasada la dosis de saturación del valioso, más colector compra poca recuperación y flota ganga y partículas mal liberadas, bajando la ley, que es lo que informa la práctica de planta para los xantatos. La ganga libre fina además reporta al concentrado con el agua: el grado de arrastre de Savassi da la fracción por tamaño.' },
+      { en: 'Gangue saturates at a higher collector dose than the valuable mineral, so beyond the valuable saturation dose more collector buys little recovery and floats gangue and poorly liberated particles, lowering grade. That form is authored; the chalcopyrite/pyrite review of Castellón et al. supports its direction: collectors are not selective enough, so a significant portion adheres to pyrite and other gangue, and an appropriate dose gives the best performance while an excess may lower recovery, which the model does not represent. Fine free gangue also reports to the concentrate with the water: Savassi\'s degree of entrainment gives the share by size.',
+        es: 'La ganga se satura a una dosis de colector mayor que el mineral valioso, por lo que pasada la dosis de saturación del valioso, más colector compra poca recuperación y flota ganga y partículas mal liberadas, bajando la ley. Esa forma es de autor; la revisión de calcopirita y pirita de Castellón et al. respalda su dirección: los colectores no son lo bastante selectivos, así que una parte importante se adhiere a la pirita y a otra ganga, y una dosis adecuada da el mejor desempeño mientras un exceso puede bajar la recuperación, lo que el modelo no representa. La ganga libre fina además reporta al concentrado con el agua: el grado de arrastre de Savassi da la fracción por tamaño.' },
       { en: 'Banks of mechanical cells behave as perfect mixers in series. The circuit is a rougher, an optional regrind of the rougher concentrate, a cleaner and an optional recleaner; cleaner tails return to the rougher feed and recleaner tails to the cleaner feed. Residence follows from cell volume, gas holdup and pulp flow, so a higher feed rate or a larger recycle shortens it. The circuit is solved by fixed-point iteration until the largest absolute change is below 1e-10 t/h and the largest change of any particle class, relative to its own flow, below 1e-12; the relative criterion keeps trace gold in balance.',
         es: 'Los bancos de celdas mecánicas se comportan como mezcladores perfectos en serie. El circuito es un rougher, una remolienda opcional del concentrado rougher, una limpieza y una relimpieza opcional; el relave de limpieza vuelve a la alimentación rougher y el de relimpieza a la de limpieza. La residencia sale del volumen de celda, la retención de gas y el caudal de pulpa, por lo que más alimentación o más recirculación la acortan. El circuito se resuelve por iteración de punto fijo hasta que el mayor cambio absoluto baja de 1e-10 t/h y el mayor cambio de cualquier clase, relativo a su propio caudal, baja de 1e-12; el criterio relativo mantiene en balance el oro traza.' },
     ],
     equations: [
-      { tex: r`\begin{aligned} k_{s,i} &= 60\,P_s\,S_b\,f_d(d_i)\,f_D(D) \\ f_d(d) &= \exp\!\left(-\tfrac12\left[\ln(d/x_{opt})/w\right]^2\right) \\ f_D(D) &= u + (1-u)\frac{D}{D + K_s} \\ S_b &= \frac{6J_g}{D_{32}},\qquad P_{comp} = P_V\,c^{2/3} \end{aligned}`, caption: { en: 'Rate constant (1/min) of particle class s in size class i: the size factor f_d around x_opt and the dose factor f_D of collector D; the bubble surface area flux S_b, and the floatability P_comp of a composite of valuable content c.', es: 'Constante cinética (1/min) de la clase s en el tamaño i: el factor de tamaño f_d en torno a x_opt y el factor de dosis f_D de colector D; el flujo de área superficial de burbujas S_b, y la flotabilidad P_comp de un mixto de contenido valioso c.' } },
+      { tex: r`\begin{aligned} k_{s,i} &= 60\,P_s\,S_b\,f_d(d_i)\,f_D(D) \\ f_d(d) &= \exp\!\left(-\tfrac12\left[\ln(d/x_{opt})/w\right]^2\right) \\ f_D(D) &= u + (1-u)\frac{D}{D + K_s} \\ S_b &= \frac{6J_g}{D_{32}},\qquad P_{comp} = P_V\,c^{2/3} \end{aligned}`, caption: { en: 'Rate constant (1/min) of particle class s in size class i: the size factor $f_d$ around $x_{opt}$ and the dose factor $f_D$ of collector D; the bubble surface area flux $S_b$, and the floatability $P_{comp}$ of a composite of valuable content c.', es: 'Constante cinética (1/min) de la clase s en el tamaño i: el factor de tamaño $f_d$ en torno a $x_{opt}$ y el factor de dosis $f_D$ de colector D; el flujo de área superficial de burbujas $S_b$, y la flotabilidad $P_{comp}$ de un mixto de contenido valioso c.' } },
       { tex: r`\begin{aligned} ENT_i &= \frac{2}{e^{a_i} + e^{-a_i}},\qquad a_i = 2.292\,(d_i/\xi)^{adj} \\ adj &= 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)} \end{aligned}`, caption: { en: 'Degree of entrainment (Savassi et al.).', es: 'Grado de arrastre (Savassi y colaboradores).' } },
-      { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1 - r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`, caption: { en: 'Recovery per cell r and over a bank of N cells R_N; without entrainment the tanks-in-series result, and for water (k = 0, ENT = 1) the water recovery itself.', es: 'Recuperación por celda r y en un banco de N celdas R_N; sin arrastre el resultado de tanques en serie, y para el agua (k = 0, ENT = 1) la propia recuperación de agua.' } },
+      { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1 - r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`, caption: { en: 'Recovery per cell r and over a bank of N cells $R_N$; without entrainment the tanks-in-series result, and for water (k = 0, ENT = 1) the water recovery itself.', es: 'Recuperación por celda r y en un banco de N celdas $R_N$; sin arrastre el resultado de tanques en serie, y para el agua (k = 0, ENT = 1) la propia recuperación de agua.' } },
     ],
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Typical value', es: 'Valor típico' }, { en: 'Source', es: 'Fuente' }],
       rows: [
-        ['J_g', '1.3 - 1.4 cm/s', { en: 'gas-dispersion literature range 0.5 to 2.5', es: 'rango de la literatura de dispersión de gas 0,5 a 2,5' }],
-        ['D32', '0.8 + 0.45 J_g mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
-        [{ en: 'P, liberated sulphide', es: 'P, sulfuro liberado' }, '1.8e-4 - 3.2e-4', { en: 'authored so nominal KPIs fall in literature ranges', es: 'de autor para que los KPI nominales caigan en rangos de la literatura' }],
+        ['$J_g$', '1.2 - 1.4 cm/s', { en: 'gas-dispersion literature range 0.5 to 2.5', es: 'rango de la literatura de dispersión de gas 0,5 a 2,5' }],
+        ['$D_{32}$', '0.8 + 0.45 $J_g$ mm', { en: 'declared linear form of the reported increase', es: 'forma lineal declarada del aumento reportado' }],
+        [{ en: 'P, liberated sulphide', es: 'P, sulfuro liberado' }, '1.8e-4 - 3.2e-4', { en: 'authored so nominal KPIs fall in their plausibility ranges (cited or authored)', es: 'de autor para que los KPI nominales caigan en sus rangos de plausibilidad (citados o de autor)' }],
         [{ en: 'K valuable, gangue', es: 'K valioso, ganga' }, '12 - 60, 40 - 1500 g/t', { en: 'authored; gangue saturates later', es: 'de autor; la ganga se satura después' }],
         ['ξ, δ', '30 - 60 µm, 1', { en: 'inside the Savassi and Hoang fits', es: 'dentro de los ajustes de Savassi y Hoang' }],
       ],
     },
     limits: [
       { en: 'No froth model beyond the recovery factor folded into P, no pulp chemistry (pH, Eh and depressants appear only through the authored floatabilities), no cell-by-cell change in residence and no collector adsorption balance.', es: 'Sin modelo de espuma más allá del factor de recuperación incorporado en P, sin química de pulpa (pH, Eh y depresores aparecen solo en las flotabilidades de autor), sin cambio de residencia celda a celda y sin balance de adsorción del colector.' },
+      // E-13: the head-grade direction and its cause
+      { en: 'The cleaner and recleaner volumes are fixed, so a richer feed, which sends more mass to them, shortens their residence: between each case\'s head-grade bounds recovery falls in nine cases (by up to 6.3 points in the zinc case), stays flat in the two gold cases and rises in the magnetite case, where the silicate\'s iron is a smaller share of a richer head. A nearly constant tail, which would make recovery rise with the head, is reported for sulphide copper plants by a secondary source only, so it is stated here and not tested.', es: 'Los volúmenes de limpieza y relimpieza son fijos, así que una alimentación más rica, que les envía más masa, acorta su residencia: entre los límites de ley de cabeza de cada caso la recuperación baja en nueve casos (hasta 6,3 puntos en el caso de zinc), no cambia en los dos casos de oro y sube en el caso de magnetita, donde el hierro del silicato es una fracción menor de una cabeza más rica. Un relave casi constante, que haría subir la recuperación con la cabeza, lo informa para plantas de cobre sulfurado solo una fuente secundaria, así que aquí se declara y no se prueba.' },
     ],
-    figure: { caption: { en: 'The rougher bank, the regrind and the cleaner, with the cleaner tail returning to the rougher.', es: 'El banco rougher, la remolienda y la limpieza, con el relave de limpieza volviendo al rougher.' }, render: lang => <FlotationFigure lang={lang} />, wide: true },
+    figure: { caption: { en: 'The rougher bank, the optional regrind, the cleaner and the optional recleaner; the cleaner tail returns to the rougher feed and the recleaner tail to the cleaner feed.', es: 'El banco rougher, la remolienda opcional, la limpieza y la relimpieza opcional; el relave de limpieza vuelve a la alimentación rougher y el de relimpieza a la de limpieza.' }, render: lang => <FlotationFigure lang={lang} />, wide: true },
     refs: ['gorain1997', 'gorain1999', 'trahar1981', 'savassi1998', 'hoang2019', 'banks2012', 'collector2022'],
   },
   {
@@ -236,7 +247,7 @@ export const SEPARATION: Topic[] = [
         [{ en: 'GRG size distribution', es: 'distribución de tamaños del GRG' }, { en: 'Snip, 83.7% below 150 µm', es: 'Snip, 83,7% bajo 150 µm' }, { en: 'measured (Vincent 1997, Table 5.1)', es: 'medida (Vincent 1997, tabla 5.1)' }],
         [{ en: 'GRG density exponent n', es: 'exponente de densidad del GRG n' }, '1.0', { en: 'fitted to Laplante and Staunton Figure 9 (1.13 and 0.87)', es: 'ajustado a la figura 9 de Laplante y Staunton (1,13 y 0,87)' }],
         [{ en: 'GRG breakage slowdown', es: 'fractura más lenta del GRG' }, { en: '6 at 75 µm, 20 at 707 µm', es: '6 a 75 µm, 20 a 707 µm' }, { en: 'Banisi, cited by Vincent (1997)', es: 'Banisi, citado por Vincent (1997)' }],
-        ['R_max, x_g', '0.70, 20 µm', { en: 'authored: 70% at Camchib, a slight drop below 37 µm at Meston', es: 'de autor: 70% en Camchib, una leve caída bajo 37 µm en Meston' }],
+        ['$R_{max}$, $x_g$', '0.70, 20 µm', { en: 'authored: 70% at Camchib, a slight drop below 37 µm at Meston', es: 'de autor: 70% en Camchib, una leve caída bajo 37 µm en Meston' }],
         [{ en: 'bleed b', es: 'purga b' }, '0.10', { en: 'inside the 6 to 25% that practice treats', es: 'dentro del 6 a 25% que trata la práctica' }],
       ],
     },
@@ -262,9 +273,9 @@ export const SEPARATION: Topic[] = [
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
       rows: [
-        ['p_max, d_f', '0.995, 1.5 µm', { en: 'authored; rougher recovery above 98% reported', es: 'de autor; recuperación rougher sobre 98% reportada' }],
-        ['c_0', '0.1', { en: 'authored composite response', es: 'respuesta de mixtos de autor' }],
-        ['e_0, e_1, d_e', '0.02, 0.12, 12 µm', { en: 'authored entrapment', es: 'atrapamiento de autor' }],
+        ['$p_{max}$, $d_f$', '0.995, 1.5 µm', { en: 'authored; rougher recovery above 98% reported', es: 'de autor; recuperación rougher sobre 98% reportada' }],
+        ['$c_0$', '0.1', { en: 'authored composite response', es: 'respuesta de mixtos de autor' }],
+        ['$e_0$, $e_1$, $d_e$', '0.02, 0.12, 12 µm', { en: 'authored entrapment', es: 'atrapamiento de autor' }],
         [{ en: 'cleaner factor', es: 'factor de limpieza' }, '0.4', { en: 'authored', es: 'de autor' }],
       ],
     },
@@ -278,8 +289,8 @@ export const SEPARATION: Topic[] = [
     id: 'desliming',
     title: { en: 'Desliming', es: 'Deslamado' },
     paragraphs: [
-      { en: 'Phosphate plants deslime the flotation feed, commonly below about 20 µm, because clay slimes consume fatty-acid collector and entrain into the froth; the price is the apatite lost with the slimes. A coarser desliming cut sends less clay to flotation and loses more phosphate, and a coarser grind makes fewer slimes, which is why overgrinding a desliming feed costs recovery.',
-        es: 'Las plantas de fosfato deslaman la alimentación a flotación, por lo general bajo unos 20 µm, porque las lamas de arcilla consumen colector de ácidos grasos y se arrastran a la espuma; el precio es la apatita que se va con las lamas. Un corte más grueso envía menos arcilla a flotación y pierde más fosfato, y una molienda más gruesa produce menos lamas, por eso sobremoler una alimentación a deslamado cuesta recuperación.' },
+      { en: 'Phosphate flowsheets deslime ahead of flotation to discard the clay and remove the slimes\' harm to the flotation that follows, and fine particles entrain into the froth; the price is the apatite lost with the slimes. The review cited gives no desliming size, so the 20 µm cut here is authored. A coarser desliming cut sends less clay to flotation and loses more phosphate, and a coarser grind makes fewer slimes, which is why overgrinding a desliming feed costs recovery.',
+        es: 'Los diagramas de fosfato deslaman antes de la flotación para descartar la arcilla y quitar el daño de las lamas a la flotación que sigue, y las partículas finas se arrastran a la espuma; el precio es la apatita que se va con las lamas. La revisión citada no da un tamaño de deslamado, así que el corte de 20 µm es de autor. Un corte más grueso envía menos arcilla a flotación y pierde más fosfato, y una molienda más gruesa produce menos lamas, por eso sobremoler una alimentación a deslamado cuesta recuperación.' },
       { en: 'A desliming cyclone on the grinding overflow partitions each particle class with the Rosin-Rammler form, a declared sharpness and a water bypass; its cut is an operating control. The overflow reports to tailings as slimes; the underflow is repulped to a declared solids fraction before the rougher, and the dilution water is audited. Apatite is softer than quartz and clay is very soft, so the fines, and the P₂O₅ they carry, emerge from the grinding balance rather than being assumed.',
         es: 'Un ciclón de deslamado sobre el rebose de la molienda particiona cada clase de partícula con la forma Rosin-Rammler, una nitidez y un cortocircuito de agua declarados; su corte es un control de operación. El rebose reporta a relaves como lamas; la descarga se repulpea a una fracción de sólidos declarada antes del rougher, y el agua de dilución se audita. La apatita es más blanda que el cuarzo y la arcilla es muy blanda, por lo que los finos, y el P₂O₅ que llevan, salen del balance de molienda en vez de suponerse.' },
     ],
@@ -289,13 +300,13 @@ export const SEPARATION: Topic[] = [
     table: {
       head: [{ en: 'Parameter', es: 'Parámetro' }, { en: 'Value', es: 'Valor' }, { en: 'Source', es: 'Fuente' }],
       rows: [
-        [{ en: 'desliming cut', es: 'corte de deslamado' }, '20 µm', { en: 'practice below about 20 µm', es: 'práctica bajo unos 20 µm' }],
+        [{ en: 'desliming cut', es: 'corte de deslamado' }, '20 µm', { en: 'authored; the review gives no size', es: 'de autor; la revisión no da un tamaño' }],
         [{ en: 'sharpness, water bypass', es: 'nitidez, cortocircuito de agua' }, '2.5, 0.12', { en: 'authored', es: 'de autor' }],
-        [{ en: 'rougher feed solids after repulping', es: 'sólidos de alimentación rougher tras repulpeo' }, { en: '33% w/w', es: '33% p/p' }, { en: 'authored', es: 'de autor' }],
+        [{ en: 'rougher feed solids after dilution', es: 'sólidos de alimentación rougher tras la dilución' }, { en: '33% w/w', es: '33% p/p' }, { en: 'authored', es: 'de autor' }],
       ],
     },
     limits: [
-      { en: 'The practice figures come from a review summary, because the full text was not reachable when the research was done; the desliming response itself is authored.', es: 'Las cifras de práctica vienen del resumen de una revisión, porque el texto completo no estaba disponible al hacer la investigación; la respuesta del deslamado es de autor.' },
+      { en: 'The review (Ruan, He and Chi 2019, read in full) gives the reason to deslime and the concentrate requirement, not a cut size; the 20 µm cut and the desliming response are authored.', es: 'La revisión (Ruan, He y Chi 2019, leída completa) da la razón para deslamar y el requisito del concentrado, no un tamaño de corte; el corte de 20 µm y la respuesta del deslamado son de autor.' },
       { en: 'Slime coating, collector consumption by slimes and pulp rheology are not modelled; clay acts through mass, size and entrainment only. The engine therefore shows what a coarser cut costs, lower recovery and lower concentrate grade together, and not the benefit plants deslime for.',
         es: 'El recubrimiento por lamas, el consumo de colector por las lamas y la reología de la pulpa no se modelan; la arcilla actúa solo por masa, tamaño y arrastre. Por eso el motor muestra lo que cuesta un corte más grueso, menos recuperación y menos ley del concentrado a la vez, y no el beneficio por el que las plantas deslaman.' },
     ],

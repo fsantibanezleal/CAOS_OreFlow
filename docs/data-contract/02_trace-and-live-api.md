@@ -33,7 +33,8 @@ feed dilution), `rougher_junction` (fresh flotation feed plus cleaner tails), `r
 `regrind`, `cleaner_junction` (with cleaner dilution and, where present, recleaner tails), `cleaner`,
 and optionally `recleaner_dilution` and `recleaner`. Recycle streams are therefore explicit edges:
 `recycle` into `mill_feed_junction`, `cleaner_tail` into `rougher_junction`, `recleaner_tail` into
-`cleaner_junction`. The stream `gravity_feed` is the bleed itself, reported for the circuit view; the
+`cleaner_junction`. The trace's `topology` array is not in flow order (it lists `regrind` after `cleaner`);
+the edges above are what the flow follows. The stream `gravity_feed` is the bleed itself, reported for the circuit view; the
 gravity tails return with the recycle. The whole-circuit envelope is audited as the unit `circuit`
 in `balance` and is not a topology node.
 
@@ -42,7 +43,7 @@ in `balance` and is not a topology node.
 | Group | Keys |
 |---|---|
 | Products | `throughput_tph`, `head_grade`, `recovery_pct` (primary payable, overall), `concentrate_grade`, `tail_grade`, `concentrate_tph`, `mass_pull_pct`, `recovered_primary_tph`; per species `head_<S>`, `concentrate_<S>`; per payable `recovery_<S>_pct` |
-| Grinding | `crusher_feed_f80_um`, `crusher_p80_um` (mill new feed), `target_p80_um`, `p80_um` (achieved), `circulating_load_pct`, `cyclone_cut_um`, `cyclone_bypass_pct`, `mill_power_kw`, `required_mill_power_kw`, `installed_mill_power_kw`, `power_limited` (1 or 0) |
+| Grinding | `crusher_feed_f80_um`, `crusher_p80_um` (mill new feed), `target_p80_um`, `p80_um` (achieved), `circulating_load_pct`, `cyclone_cut_um`, `cyclone_bypass_pct`, `mill_power_kw`, `required_mill_power_kw`, `installed_mill_power_kw`, `power_limited` (1 or 0), `cut_mode` (1 in the classifier-cut mode, where the achieved P80 and load take the targets' place, 0 in the target mode) |
 | Cyclone sizing (Plitt, uncalibrated estimate; never a flag) | `cyclones_required`, `cyclone_pressure_kpa`, `plitt_cut_um`, `plitt_sharpness`, `cyclone_feed_solids_vol_pct` |
 | Energy | `specific_energy_crushing_kwh_t`, `specific_energy_grinding_kwh_t`, `specific_energy_regrind_kwh_t`, `specific_energy_total_kwh_t` (their sum), `bond_energy_kwh_t`, `operating_work_index_kwh_t`, `bond_efficiency_ratio`, and the comparison laws `energy_rittinger_kwh_t`, `energy_kick_kwh_t` (never summed) |
 | Water | `water_use_m3_h`, `water_intensity_m3_t` (fresh water per tonne of ore) |
@@ -73,11 +74,18 @@ classes) and `upper_um` (class upper bounds).
 | `power_limited` | required mill power exceeds installed power; the circuit runs at installed power and the product is coarser than the target |
 | `target_unreachable` | the target P80 cannot be met within the energy search range |
 | `circulating_load_unreachable` | the design circulating load cannot be held at this energy |
+| `circulating_load_out_of_range` | in the cut mode, the cut sets a circulating load outside the range the target mode accepts |
+| `cut_mode_load_not_converged` | in the cut mode, the circulating load's fixed point did not settle; the last pass is reported |
 | `mill_water_negative`, `sump_water_negative` | the declared densities leave no room for water addition at the mill or the sump |
 | `recycle_not_converged` | the flotation recycle did not meet its absolute and relative tolerances |
 | `composite_scale_not_converged` | the host-limited composite fixed point did not converge |
 | `negative_mass` | a class mass is negative beyond round-off |
 | `non_finite_output` | a non-finite number was replaced by `null` |
+
+**Refusals.** A cut-mode state the contract accepts can still have no steady state (CM-09, 0.08.000). The engine
+then raises instead of returning a trace, and the service answers 422 with the `oreflow.rejection/v1` document the
+contract's rejections use: `power_unreachable_at_cut` (the mill cannot draw its installed power at that cut) or
+`circulating_load_above_bound` (the cut would return more than `grinding.cut_mode_load_max`, 600%, to the mill).
 
 ## The live API
 

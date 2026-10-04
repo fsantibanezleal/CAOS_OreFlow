@@ -21,3 +21,29 @@ describe('the planned page tabs', () => {
     }
   });
 });
+
+// W-18 (review of 0.07.000): architecture 04's page-tab table listed four Experiments tabs, six Implementation tabs
+// and four Benchmark tabs after 0.07.000 gave them seven, nine and five. It is held to the pages' tab arrays here.
+describe('architecture 04 lists every page tab', () => {
+  it('the table matches the code', async () => {
+    const { readFileSync } = await import('node:fs');
+    const { fileURLToPath } = await import('node:url');
+    const read = (path: string) => readFileSync(fileURLToPath(new URL(path, import.meta.url)), 'utf-8');
+    const { INTRODUCTION } = await import('../content/introduction');
+    const doc = read('../../../docs/architecture/04_web-app.md');
+    const row = (page: string) => doc.split(/\r?\n/).find(line => line.startsWith(`| ${page} | `))?.slice(page.length + 5, -2).split(', ');
+    // the two pages that declare their groups inside the page component: their labels in the groups' order
+    const groupLabels = (source: string, block: RegExp) => {
+      const text = read(source).match(block)![0];
+      return [...text.matchAll(/label: \{ en: '([^']+)'/g)].map(m => m[1]);
+    };
+    const methodologyText = read('../pages/Methodology.tsx');
+    const order = [...methodologyText.matchAll(/\{ id: '(\w+)', label: T\.(\w+), topics/g)].map(m => m[2]);
+    const methodology = order.map(key => methodologyText.match(new RegExp(`  ${key}: \{ en: '([^']+)'`))![1]);
+    expect(row('Introduction')).toEqual(INTRODUCTION.map(t => t.label.en));
+    expect(row('Methodology')).toEqual(methodology);
+    expect(row('Implementation')).toEqual(IMPLEMENTATION.map(t => t.label.en));
+    expect(row('Experiments')).toEqual(EXPERIMENTS.map(t => t.label.en));
+    expect(row('Benchmark')).toEqual(groupLabels('../pages/Benchmark.tsx', /const GROUPS = \[[\s\S]*?\n\];/));
+  });
+});

@@ -1,5 +1,9 @@
 # 09 Energy
 
+![The three laws agree at the reference reduction and diverge away from it; only Bond is reported as the energy.](../svg/09-energy.svg)
+
+*The three laws agree at the reference reduction and diverge away from it; only Bond is reported as the energy.*
+
 ## Theory
 
 **Bond.** The specific energy to reduce ore from F80 to P80 (um) is
@@ -45,3 +49,10 @@ times Bond's energy).
 ## What it is not
 
 No motor or transmission losses, no media or liner energy, no Morrell SMC model for AG/SAG circuits.
+
+The Bond requirement is the standard-circuit energy with one work index over the rod-mill and ball-mill ranges (GMG01-MP-2021, equation 3, with $W_{i,RM} = W_{i,BM}$), and it leaves out Rowland's oversize-feed factor EF4: every nominal mill is fed at the crusher product of 8.4 mm, 1.7 to 2.5 times Rowland's optimum feed size, where EF4 would be 1.02 to 1.34 and raise the efficiency ratio from 0.83 to 0.91 to 0.88 to 1.17.
+The test is `tests/test_energy.py::test_bond_feed_factor_disclosure`.
+
+The GMG check (PE-09) runs the operating work index formula on the guideline's published power,
+throughput and sizes; it simulates no circuit, and the second example is a rod and ball circuit the
+engine does not model.
