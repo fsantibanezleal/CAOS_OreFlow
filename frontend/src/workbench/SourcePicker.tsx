@@ -42,15 +42,21 @@ export function SourceSwitch({ lang }: { lang: Lang }) {
   );
 }
 
+/**
+ * The samples a search names (U-16): "hole 6" or "sondaje 6" in either language gives hole 6 exactly (not 60 and up),
+ * a bare number a hole, and any other text a part of the sample id.
+ */
+export function matchSamples<S extends { id: string; hole: string | number }>(samples: S[], query: string): S[] {
+  const q = query.trim().toLowerCase();
+  const named = q.match(/^(?:hole|sondaje)\s*(\S+)$/);
+  if (named) return samples.filter(s => String(s.hole).toLowerCase() === named[1]);
+  return samples.filter(s => !q || s.id.toLowerCase().includes(q) || String(s.hole).toLowerCase() === q);
+}
+
 export function SamplePicker({ record, lang }: { record: RealSamples; lang: Lang }) {
   const { sampleId, setSample } = useWorkbench();
   const [query, setQuery] = useState('');
-  const shown = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const named = q.match(/^(?:hole|sondaje)\s*(\S+)$/);
-    if (named) return record.samples.filter(s => String(s.hole).toLowerCase() === named[1]);
-    return record.samples.filter(s => !q || s.id.toLowerCase().includes(q) || String(s.hole).toLowerCase() === q);
-  }, [record, query]);
+  const shown = useMemo(() => matchSamples(record.samples, query), [record, query]);
   const current = record.samples.find(s => s.id === sampleId) ?? null;
   return (
     <div className="of-knob">

@@ -54,5 +54,5 @@ describe('the browser refuses a cut-mode state without a steady state (E-01)', (
       const refused = Object.values(baked.refused).reduce((s, n) => s + n, 0);
       expect(mine.outputs.recovery_pct.values.length, id).toBe(baked.samples - refused);
     }
-  });
+  }, 180000);   // 2 x 128 engine evaluations: about 15 s alone, more beside the other suites
 });

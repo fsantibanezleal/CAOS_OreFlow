@@ -26,7 +26,7 @@ if difference > tolerance:
   The ONNX Runtime check right after the export is what verifies the file, whatever the exporter.
 - The check runs the first 64 standardized design rows through both and fails the bake if the largest
   absolute difference exceeds `learning.onnx_tolerance` (1e-5). The committed record stores the
-  differences: 1.7e-6 for the surrogate and 1.9e-6 for the guard.
+  differences (`learning.json`, `final.exports`), of the order of 1e-6 for both networks.
 
 ## The scalers and the reference block (`models/process_surrogate.json`)
 

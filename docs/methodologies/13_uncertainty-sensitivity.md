@@ -1,5 +1,9 @@
 # 13 Uncertainty and sensitivity
 
+![A Latin hypercube fills every input's range evenly; the output distribution gives the quantiles, the Sobol indices say which input drives it.](../svg/13-uncertainty.svg)
+
+*A Latin hypercube fills every input's range evenly; the output distribution gives the quantiles, the Sobol indices say which input drives it.*
+
 A single steady state hides how much the answer depends on ore properties nobody knows exactly.
 OreFlow carries two records per operating point: how widely the results spread when the ore varies
 (uncertainty), and which ore property drives that spread (sensitivity).
@@ -84,13 +88,13 @@ the Sensitivity view says so instead of drawing indices.
 
 ## What the nominal cases show
 
-Measured on the 0.07.000 records of 2026-09-30, the first drawn with the SplitMix64 design, on two cases (the
-baked records for every case are on the Experiments page):
+Measured on the committed records (drawn with the SplitMix64 design since 0.07.000) on two cases, and held to them
+by `tests/test_docs_claims.py` (the baked records for every case are on the Experiments page):
 
 - Soft copper porphyry: recovery P05 to P95 of 90.2 to 94.5%; the mill stays within installed power
   in 82% of the samples, because a harder ore trips the power limit. Floatability drives recovery
   (total index about 0.8), liberation size drives grade (about 0.8), the work index drives grinding
-  energy (about 0.99) and head grade drives recovered metal (about 0.98).
+  energy (about 1.00) and head grade drives recovered metal (about 0.98).
 - Magnetite: the concentrate meets its 65% Fe specification in 66% of the samples, because its
   nominal grade (65.7%) sits close to the specification and liberation size moves it across.
 

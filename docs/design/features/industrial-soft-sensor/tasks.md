@@ -8,6 +8,25 @@
 - [x] T4 (IS-05, IS-06). The Benchmark tab and its claim tests; the real-sample source's iron-plant hours (RS-07). Done in `81aedea`.
 - [x] Convergence: every IS requirement with its gate's result. Below.
 
+## Convergence verdict, 0.08.000 (2026-10-04)
+
+ADR-0075 section 4: each live requirement, the gate it names and that gate's result on the 0.08.000 release: the
+release bake and its validation, the Python and frontend suites on the final tree,
+the full optimizer parity (`OF_PARITY=full`, six processes) and the browser gate's records on the served release
+build, every capture read (`docs/release-verification.md`, 0.08.000). A parametrized test passes when every one
+of its cases does.
+
+| Requirement | Result on the 0.08.000 release |
+|---|---|
+| IS-01 | met: `test_source_pinned_and_population` passed; `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
+| IS-02 | met: `test_interpolated_hours_excluded` passed |
+| IS-03 | met: `test_features_and_pairs` passed |
+| IS-04 | met: `test_forward_windows_and_embargo` passed |
+| IS-05 | met: `iron-plant-claims.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| IS-06 | met: `test_no_set_point_advice` passed; `iron-plant-claims.test.ts` passed (4 tests) |
+
+6 of 6 met.
+
 ## Convergence verdict, 0.07.000 (2026-09-30)
 
 ADR-0075 section 4: each requirement, the gate it names and that gate's result on the release (the committed

@@ -1,5 +1,9 @@
 # 03 Grinding circuit
 
+![The mill as three mixers in closed circuit with the cyclones; the underflow returns to the mill.](../svg/03-grinding.svg)
+
+*The mill as three mixers in closed circuit with the cyclones; the underflow returns to the mill.*
+
 ## Theory
 
 **Population balance.** For size class $i$ with mass $M_i$, batch grinding follows
@@ -123,9 +127,9 @@ particle-class split, in both engines.
 | $\beta_0, \beta_1, \beta_2$ | 0.4, 0.65, 4.02 | 1 | Moly-Cop documented alternative set |
 | reference work index | 12 | kWh/t | declared for the $\alpha_0$ scaling |
 | mixer fractions | 0.70, 0.15, 0.15 | 1 | Austin structure; values declared |
-| design circulating load | 250% nominal (control) | % | operating control |
+| design circulating load | 250% nominal (220% in the phosphate case) (control) | % | operating control |
 | mill discharge solids | 72 | % w/w | Moly-Cop base case |
-| installed power | 1.12 times nominal requirement (hard porphyry 1.02) | kW | authored sizing |
+| installed power | 1.12 to 1.13 times the nominal requirement (hard porphyry 1.02, oxide copper 1.20) | kW | authored sizing; every +25% hardness or throughput variant is therefore power-limited |
 
 ## Verification
 
@@ -146,11 +150,14 @@ particle-class split, in both engines.
   measured 1.1e-13 and 1.9e-13).
 - `tests/test_engine_balances.py::test_cut_mode_closure` (CM-05): every unit and the circuit close within 1e-9 in
   the 24 cut-mode variants.
-- `tests/test_oracles.py::test_molycop_base_case` (PE-08): with the Moly-Cop defaults and base-case
-  inputs (504 t/h, F80 6913 um, P80 169.4 um, 277% circulating load), the specific energy lands
-  within 20% of the reported 8.56 kWh/t. The engine gives 9.13 kWh/t with the Rosin-Rammler feed
-  slope of 0.9 used by the test, and 8.86 to 9.30 kWh/t for slopes 0.7 to 1.1; the published example
-  does not state its feed shape.
+- `tests/test_oracles.py::test_molycop_base_case` and `test_molycop_feed_is_the_published_distribution` (PE-08,
+  amended in 0.08.000): with the BallSim_Direct Data_File's own breakage parameters and every published input
+  (504 t/h, the published feed size distribution with F80 6913 um, and the P80 of 169.4 um and the 277% circulating
+  load as the solver's targets, so they are inputs, not results), the net specific energy is 7.30 kWh/t against the
+  published 7.71, 5.2% below, inside the 20% tolerance set before the first run; the gross is 8.12 against 8.56.
+  The Data_File's $\beta_2$ is read from a cell printed apart from its label (UNVERIFIED reading); 3.5 to 4.5 moves
+  the net energy from 7.12 to 7.45 kWh/t. Until 0.07.000 the check compared a net engine energy with the gross
+  published one, on a Rosin-Rammler feed of assumed slope.
 
 ## What it is not
 

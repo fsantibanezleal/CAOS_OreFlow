@@ -23,11 +23,11 @@ describe('the uncertainty and ablations tabs say what the studies record holds',
     const s = (c: string) => studies.cases[c].seed_study;
     expect(cases.every(c => s(c).seeds.length === 8 && s(c).samples === 128)).toBe(true);
     const p05 = (c: string) => s(c).spread.recovery_pct.p05, p50 = (c: string) => s(c).spread.recovery_pct.p50, joint = (c: string) => s(c).spread.all_constraints;
-    expect([argmin(cases, p05), fixed(p05(argmin(cases, p05)), 2), argmax(cases, p05), fixed(p05(argmax(cases, p05)), 2)]).toEqual(['iron_magnetite_fine', 0.17, 'copper_porphyry_hard', 0.94]);
+    expect([argmin(cases, p05), fixed(p05(argmin(cases, p05)), 2), argmax(cases, p05), fixed(p05(argmax(cases, p05)), 2)]).toEqual(['gold_free_milling', 0.19, 'copper_porphyry_hard', 0.94]);
     expect([argmax(cases, p50), fixed(p50(argmax(cases, p50)), 2)]).toEqual(['zinc_sulfide', 0.65]);
     expect([fixed(100 * joint(argmin(cases, joint)), 1), argmax(cases, joint), fixed(100 * joint(argmax(cases, joint)), 1)]).toEqual([0.8, 'copper_oxide', 8.6]);
     const text = UNCERTAINTY.paragraphs.map(p => p.en).join(' ');
-    expect(text).toMatch(/moves by 0\.17 points in the magnetite case to 0\.94 in the hard porphyry, the median by at most 0\.65 \(zinc\), and the probability of meeting every constraint by 0\.8 to 8\.6 percentage points, the most in oxide copper/);
+    expect(text).toMatch(/moves by 0\.19 points in the gold case to 0\.94 in the hard porphyry, the median by at most 0\.65 \(zinc\), and the probability of meeting every constraint by 0\.8 to 8\.6 percentage points, the most in oxide copper/);
   });
 
   it('ablations: the oxide copper entrainment detail is the record (M-18)', () => {
@@ -43,7 +43,7 @@ describe('the uncertainty and ablations tabs say what the studies record holds',
   it('ablations: what each mechanism carries, as the prose states it', () => {
     const cleaner = computed('cleaner_recirculation'), rec = (sw: string) => (c: string) => delta(c, sw, 'recovery_pct');
     expect(cleaner.every(c => rec('cleaner_recirculation')(c) < 0)).toBe(true);
-    expect([argmax(cleaner, rec('cleaner_recirculation')), fixed(rec('cleaner_recirculation')(argmax(cleaner, rec('cleaner_recirculation'))), 1)]).toEqual(['gold_free_milling', -3.1]);
+    expect([argmax(cleaner, rec('cleaner_recirculation')), fixed(rec('cleaner_recirculation')(argmax(cleaner, rec('cleaner_recirculation'))), 1)]).toEqual(['gold_free_milling', -2.7]);
     expect([argmin(cleaner, rec('cleaner_recirculation')), fixed(rec('cleaner_recirculation')(argmin(cleaner, rec('cleaner_recirculation'))), 1)]).toEqual(['zinc_sulfide', -11.2]);
     const comp = computed('composite_classes');
     expect(comp).toHaveLength(12);
@@ -59,12 +59,12 @@ describe('the uncertainty and ablations tabs say what the studies record holds',
     const energy = regrind.map(c => -delta(c, 'regrind', 'specific_energy_total_kwh_t'));
     expect([fixed(Math.min(...energy), 2), fixed(Math.max(...energy), 2)]).toEqual([0.40, 1.37]);
     expect(computed('gravity_bleed')).toEqual(['gold_free_milling']);
-    expect(fixed(-rec('gravity_bleed')('gold_free_milling'), 1)).toBe(2.3);
+    expect(fixed(-rec('gravity_bleed')('gold_free_milling'), 1)).toBe(0.6);
     const ent = computed('entrainment').map(rec('entrainment'));
     expect([fixed(Math.min(...ent), 2), fixed(Math.max(...ent), 2)]).toEqual([-0.14, 0.67]);
     expect(ent.filter(v => v > 0).length).toBeGreaterThan(ent.length / 2);
     const text = ABLATIONS.paragraphs.map(p => p.en).join(' ');
-    for (const quoted of ['from 3.1 points in the gravity gold to 11.2 in the zinc', 'by up to 8.9 points in oxide copper', 'recovery by 0.6', 'by up to 6.7 points, for 0.40 to 1.37 kWh/t less energy', '2.3 points', 'by -0.14 to +0.67 points']) {
+    for (const quoted of ['from 2.7 points in the gravity gold to 11.2 in the zinc', 'by up to 8.9 points in oxide copper', 'recovery by 0.6', 'by up to 6.7 points, for 0.40 to 1.37 kWh/t less energy', 'worth 0.6 points', 'by -0.14 to +0.67 points']) {
       expect(text).toContain(quoted);
     }
   });

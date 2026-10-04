@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { VARIANT_KINDS } from '../content/design';
+import { kpiMargin } from '../lib/format';
 
 // The Experiments page states the design, the protocols and what every variant did; each of those
 // statements is checked here against the committed artifacts, so a bake that changes a factor, a count
@@ -13,7 +14,7 @@ const read = <T>(path: string): T => JSON.parse(readFileSync(join(derived, path)
 
 type Metrics = Record<string, number | boolean | string[]>;
 const benchmark = read<{
-  cases: Array<{ case_id: string; family: string; kpis: Record<string, { within: boolean }>; variants: Record<string, Metrics> }>;
+  cases: Array<{ case_id: string; family: string; kpis: Record<string, { within: boolean; value: number; range: number[] }>; variants: Record<string, Metrics> }>;
   kinetics: Record<string, { fits: number; converged_share: number }>;
   optimization: Record<string, Record<string, { decisions: Record<string, number> | null }>>;
 }>('benchmark.json');
@@ -86,6 +87,20 @@ describe('the Experiments page says what the bake did', () => {
     }
   });
 
+  // E-12: "several within a point of a bound" and "most cases leave a range under at least one variant"
+  it('several checks sit within a point of a bound and most cases leave a range under a variant', () => {
+    const all = benchmark.cases.flatMap(c => Object.values(c.kpis));
+    expect(all.filter(k => kpiMargin(k.value, k.range).margin < 1).length).toBeGreaterThanOrEqual(3);
+    const leaving = benchmark.cases.filter(c => Object.entries(c.variants).some(([id, v]) => id !== 'nominal'
+      && (['recovery_pct', 'concentrate_grade'] as const).some(key => {
+        const kpi = c.kpis[key];
+        const x = v[key] as number;
+        return kpi && (x < kpi.range[0] || x > kpi.range[1]);
+      })));
+    expect(leaving.length).toBeGreaterThan(benchmark.cases.length / 2);
+    expect(kpiMargin(20.79, [15, 21])).toEqual({ margin: expect.closeTo(0.21, 9), floor: false });
+  });
+
   it('harder ore: installed power everywhere, coarser product, more energy, lower grade; recovery falls except in magnetite', () => {
     const p80 = changes('harder_ore', 'p80_um');
     expect(p80.every(r => r.limited)).toBe(true);
@@ -103,7 +118,9 @@ describe('the Experiments page says what the bake did', () => {
     const energy = changes('coarser_grind', 'specific_energy_total_kwh_t');
     expect(falls(energy)).toBe(12);
     expect(range(energy, 1)).toEqual([-3.4, -1.2]);
-    expect(falls(changes('coarser_grind', 'concentrate_grade'))).toBe(12);
+    // the rebuilt gravity circuit: in the gold case a coarser grind raises the grade by 0.07 points
+    expect(falls(changes('coarser_grind', 'concentrate_grade'))).toBe(11);
+    expect(ids(changes('coarser_grind', 'concentrate_grade'), 1)).toEqual(['gold_free_milling']);
     expect(ids(changes('coarser_grind', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     expect(falls(changes('coarser_grind', 'recovery_pct'))).toBe(11);
   });
@@ -142,7 +159,7 @@ describe('the Experiments page says what the bake did', () => {
       expect(rows, variant).toHaveLength(1);
       return rows[0];
     };
-    expect(Number(one('larger_bleed', 'recovery_pct').delta.toFixed(1))).toBe(0.7);
+    expect(Number(one('larger_bleed', 'recovery_pct').delta.toFixed(1))).toBe(0.1);
     expect(Number(one('finer_grind', 'concentrate_grade').delta.toFixed(1))).toBe(1.3);
     expect(Number(one('finer_grind', 'specific_energy_total_kwh_t').delta.toFixed(1))).toBe(2.3);
     expect(one('finer_grind', 'p80_um').limited).toBe(true);

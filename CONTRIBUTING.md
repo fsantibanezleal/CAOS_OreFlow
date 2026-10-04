@@ -30,6 +30,26 @@ This project uses a three-level branch flow:
 - Keep pull requests small and frequent rather than large and batched.
 - Do not disable commit hooks or force-push shared branches.
 
+## How this repository works
+
+- **Design before code** (ADR-0075). A change to the engine, a method or a page starts as requirements in
+  `docs/design/features/<slug>/requirements.md`, each stated with SHALL and naming the test or check that fails when
+  it is violated, then a design and tasks. The feature closes with a convergence verdict in its `tasks.md`.
+  `scripts/check_sdd.py` rejects a requirement whose gate does not exist.
+- **The records are part of the change.** Anything that changes what the engine computes is followed by a bake into
+  a sandbox (`data-pipeline/run.py --output DIR --models DIR`), a comparison with the committed records, and the
+  adopted records committed with the code (`docs/guides/02_bake-and-gpu.md`). A test never writes the committed
+  records.
+- **Every number a page states is a test.** The pages, the methodology docs and the manuscript quote the records,
+  and their claim tests format each quoted number from the records; a changed record fails them until the text is
+  updated.
+- **The local gate.** CI runs only the cheap checks (ADR-0074: no training, no bake, no suite). Before a pull request
+  run `scripts/smoke.ps1` (or `.sh`): every guard, ruff, the Python suite, every framework example, and the
+  frontend typecheck, tests and build. A change to the interface also runs the browser gate (`frontend/gate.mjs`)
+  and its screenshots are read.
+- **Content rules.** No em dash, no emoji, no arrow characters in interface text, and no local disk paths in tracked
+  files (`scripts/check_content_standards.py`). Interface strings are bilingual, English and neutral Spanish.
+
 ## Code conventions
 
 - Code, identifiers, comments, and commit messages are written in **English**.

@@ -6,7 +6,7 @@
 
 OreFlow computes how a grinding and separation circuit trades recovery, concentrate grade, energy
 and water, for twelve authored ore and plant scenarios. Each case is an ore, a plant and an operating
-point of twelve contract inputs. The ore lists its minerals (fraction, relative grindability,
+point of thirteen contract inputs. The ore lists its minerals (fraction, relative grindability,
 liberation size, composite content, flotation parameters), its payables with their head grades and
 carrier minerals, and its Bond ball-mill and crushing work indices; densities and compositions come
 from one shared mineral table. The plant declares its family (rougher, gravity, magnetic or
@@ -23,8 +23,8 @@ scientist asking how far a learned surrogate of a process can be trusted when th
 
 The non-goals are those of the [software design document](../design/SDD.md):
 
-- It is not a calibrated plant simulator. Parameters are authored inside published ranges and each
-  carries its source; no case is fitted to a plant.
+- It is not a calibrated plant simulator. Parameters are authored, each with its source or the label
+  authored; no case is fitted to a plant.
 - It is not an economic optimizer: the optimizer maximizes recovered metal under grade, power and
   water constraints, and there are no prices.
 - It is not a dynamic simulator: every stream is a steady-state balance, with no control-loop or
@@ -33,17 +33,19 @@ The non-goals are those of the [software design document](../design/SDD.md):
 - It does not model hydrometallurgy (leaching, pressure oxidation, smelting).
 
 The engine is checked against published examples (the Moly-Cop BallSim base case, the GMG Bond
-worked examples, the Laplante gravity example, the Zandrivierspoort magnetite tests), labelled as
-examples and never as plant data. Two lanes use measured data and stay separate from the engine: the
-HZDR particle dataset and the GeoMet locked-cycle tests. Neither calibrates the engine's controls.
+worked examples, Laplante's gravity example on the gravity-recoverable gold, the Zandrivierspoort magnetite tests),
+labelled as examples and never as plant data. Three lanes use measured data and stay separate from the engine: the
+HZDR particle dataset, the GeoMet locked-cycle tests and the hours of one iron-ore plant. None calibrates the
+engine's controls; the real samples run the GeoMet tests through an engine circuit as a comparison, not a
+calibration.
 
 ## Where the engine runs
 
 | Place | What runs | Written by |
 |---|---|---|
-| The bake (a workstation) | The Python engine over every variant of every case, the method records (kinetic fits, optimizer, uncertainty, Sobol), the learned lane (CUDA when present) and the benchmark | `data-pipeline/run.py`; see [02 The bake](02_bake-pipeline.md) |
-| The committed artifacts | Contract 1, twelve case artifacts, manifests and the index, the learning record with its ONNX networks, the benchmark, the validation record, the two measured lanes | `data/derived/`, `models/` |
-| The browser | The contract validator, the TypeScript engine in a Web Worker on every control change, sweeps on request, the ONNX surrogate and guard with onnxruntime-web, the views | `frontend/src/`; see [03](03_browser-engine.md) and [04](04_web-app.md) |
+| The bake (a workstation) | The three measured lanes first, each from its own script; then the Python engine over every variant of every case, the method records (kinetic fits, optimizer, uncertainty, Sobol), the learned lane (CUDA when present), the benchmark, the studies and the real samples | `scripts/precompute.ps1` (`.sh`), which runs the lane scripts and then `data-pipeline/run.py`; see [02 The bake](02_bake-pipeline.md) |
+| The committed artifacts | Contract 1, twelve case artifacts, manifests and the index, the learning record with its ONNX networks and the optimizer's screen, the benchmark, the studies, the real samples, the validation record, the three measured lanes' records | `data/derived/`, `models/` |
+| The browser | The contract validator, the TypeScript engine in a Web Worker on every control change, sweeps, the optimizer and the uncertainty design in workers on request, the ONNX surrogate and guard with onnxruntime-web, the screen's networks in float64, the views | `frontend/src/`; see [03](03_browser-engine.md) and [04](04_web-app.md) |
 | The service (the VPS) | The Python engine behind the same contract (`POST /api/simulate`), read-only routes for the index, each case and its manifest, the contract and the benchmark, and the built site | `app/`; see [05](05_release-and-deployment.md) |
 
 The Python engine is canonical. The TypeScript port reproduces every baked variant within 1e-6
@@ -59,14 +61,16 @@ writes artifacts; CI and deployment never train and never rewrite an artifact (A
 | The case artifact (definitions and eight variants with traces and method records), its manifest and the index | `oreflow.case/v2`, `oreflow.manifest/v2`, `oreflow.index/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
 | The learning record and the exported networks with their scalers and reference block | `oreflow.learning/v1` | [data contract 03](../data-contract/03_case-artifacts.md), [methodology 14](../methodologies/14_learned-lane.md) |
 | The benchmark and the validation record | `oreflow.benchmark/v2`, `oreflow.validation/v2` | [data contract 03](../data-contract/03_case-artifacts.md) |
-| The measured lanes | `oreflow.particle-benchmark/v1`, `oreflow.geomet-lct/v1` | [data contract 04](../data-contract/04_particle-lane.md), [05](../data-contract/05_geomet-lane.md) |
+| The measured lanes | `oreflow.particle-benchmark/v1`, `oreflow.geomet-lct/v1`, `oreflow.iron-plant-soft-sensor/v1` | [data contract 04](../data-contract/04_particle-lane.md), [05](../data-contract/05_geomet-lane.md), [06](../data-contract/06_iron-plant.md); [methodology 16](../methodologies/16_industrial-soft-sensor.md), [17](../methodologies/17_particle-lane.md), [18](../methodologies/18_geomet-lane.md) |
 
 Every engine artifact (the case artifacts, the manifests and the index, the learning record, the
-benchmark and the validation record) carries the engine version, which is the root `VERSION`, and
-the contract digest. `scripts/check_artifacts.py` recomputes the digest from the contract file,
+benchmark, the studies, the real samples and the validation record) carries the engine version, which
+is the root `VERSION`, and the contract digest; the exported networks carry neither and are bound to
+the learning record by their byte counts. `scripts/check_artifacts.py` recomputes the digest from the contract file,
 checks that the probes were built from the same contract, and rejects an index, a case artifact, a
 learning record or a benchmark from another release or another contract instead of reading it. The
-two measured lanes are not engine outputs; they carry their own schema and their source record.
+three measured lanes are not engine outputs; they carry their own schema and their source record.
+`scripts/precompute` runs them before the bake, so its validation stage checks their records.
 
 ## Nothing is computed twice in different ways
 
@@ -89,7 +93,7 @@ two measured lanes are not engine outputs; they carry their own schema and their
 | `data-pipeline/pipeline/methods/` | Optimization, uncertainty and Sobol, the learned lane, the published-example oracles |
 | `data-pipeline/pipeline/io/contract.py` | Contract 1 and its validator |
 | `data-pipeline/pipeline/cases/` | The authored case catalog |
-| `data-pipeline/run.py`, `run_geomet.py`, `run_particles.py` | The bake and the two measured lanes |
+| `data-pipeline/run.py`, `run_particles.py`, `run_geomet.py`, `run_iron_plant.py` | The bake and the three measured lanes |
 | `data/derived/`, `models/` | The committed artifacts |
 | `frontend/src/engine/` | The TypeScript port and the worker |
 | `frontend/src/workbench/`, `frontend/src/content/`, `frontend/src/pages/` | The workbench, the content modules and the pages |

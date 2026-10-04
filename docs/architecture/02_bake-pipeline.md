@@ -1,6 +1,7 @@
 # 02 The bake
 
-`data-pipeline/run.py` (or `scripts/precompute.ps1`, which also refreshes the two measured lanes)
+`data-pipeline/run.py` (or `scripts/precompute.ps1`, which first refreshes the three measured lanes, so the bake reads
+the fresh GeoMet record and its validation stage checks all three)
 turns the engine, the case catalog and the methods into the committed artifacts of
 `data/derived/` and `models/`. It never runs in CI (ADR-0074): the bake trains the learned lane, so
 it is a local job, and CI only re-validates what it produced.
@@ -35,7 +36,8 @@ order in which cases finish, and the artifacts are assembled in catalog order.
 ## What cannot ship
 
 The index and the benchmark are built from the records of the same run, never by listing files on
-disk, and every artifact carries the engine version and the contract digest. A bake that stops
+disk, and every engine record carries the engine version and the contract digest (the exported networks are bound
+to the learning record by their byte counts, and the measured lanes' records carry their own schemas). A bake that stops
 halfway leaves an index that does not match, and the artifact checks reject a learning record, a
 benchmark or a case from another version or contract. The last stage recomputes every unit balance
 from the stored streams, so an artifact whose balance does not close cannot be committed as valid,
@@ -44,14 +46,16 @@ those folders whole, so a case left over from an older catalog would otherwise s
 
 ## Observability
 
-Each stage and each finished case prints a timestamped line, and a bake still running after 45
-minutes prints the stack of every thread once, so a stall shows where it is. On the development
+Each stage and each finished case prints a timestamped line, and a bake still running after four
+hours, well past a normal run, prints the stack of every thread once, so a stall shows where it is. On the development
 machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about twenty minutes on twelve
 workers since 0.07.000, when every target-mode optimizer began to run twice (with and without the screen) and
-along the weight path, and the learning stage half an hour to over an hour, depending on what else the machine
-runs. The measurements (cases, then learning):
-- 1293 s and 4082 s for the committed 0.07.000 bake of 2026-09-30, with the studies in 129 s and the real samples in
-  3 s, while a parity run, the Python suite and browser checks shared the machine;
+along the weight path, and the learning stage about forty minutes; both run several times longer when another
+job holds the machine's cores. The measurements (cases, then learning):
+- 4445 s and 15303 s for the committed 0.08.000 bake of 2026-10-03, with the studies in 378 s and the real
+  samples in 394 s, while another job held every core of the machine;
+- 1293 s and 4082 s for the 0.07.000 bake of 2026-09-30, while a parity run, the Python suite and browser checks
+  shared the machine;
 - 375 s and 1688 s for 0.05.000, unloaded, on 2026-09-26;
 - 517 s and 3180 s for the committed 0.06.000 bake of 2026-09-28, which shared the machine with another job;
 - 605 s and 4622 s for its predecessor that day, also loaded.

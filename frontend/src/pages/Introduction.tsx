@@ -11,7 +11,7 @@ const T = {
   title: { en: 'OreFlow', es: 'OreFlow' },
   lede: {
     en: 'OreFlow computes how a grinding and separation circuit trades recovery, concentrate grade, energy and water, from a stated ore, plant and operating point. This page says what it is for, how it works, what the twelve cases cover, what its results can and cannot support, and how to read the workbench.',
-    es: 'OreFlow calcula cómo un circuito de molienda y separación intercambia recuperación, ley de concentrado, energía y agua, desde un mineral, una planta y un punto de operación declarados. Esta página dice para qué sirve, cómo funciona, qué cubren los doce casos, qué pueden sostener sus resultados y qué no, y cómo leer el laboratorio.',
+    es: 'OreFlow calcula cómo un circuito de molienda y separación intercambia recuperación, ley de concentrado, energía y agua, desde un mineral, una planta y un punto de operación declarados. Esta página dice para qué sirve, cómo funciona, qué cubren los doce casos, qué pueden sostener sus resultados y qué no, y cómo leer el simulador.',
   },
   sections: { en: 'Introduction sections', es: 'Secciones de la introducción' },
 };

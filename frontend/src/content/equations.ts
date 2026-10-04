@@ -19,35 +19,35 @@ export const CIRCUIT: Formula[] = [
     caption: { en: 'The mill as three perfect mixers in series sharing one breakage operator: e is the specific energy per pass, c2 and c3 the symmetric sums of the mixers\' volume fractions.',
       es: 'El molino como tres mezcladores perfectos en serie que comparten un operador de fractura: e es la energía específica por pasada, c2 y c3 las sumas simétricas de las fracciones de volumen.' } },
   { tex: r`\left(T^{-1}(e) - \mathrm{diag}(C)\right) p = f`,
-    caption: { en: 'Closed circuit: with the cyclone returning fraction C_i of the mill product, one lower-triangular solve gives the mill product p for new feed f; e is found so that the overflow meets the target P80 and the circulating load its design value.',
-      es: 'Circuito cerrado: con el ciclón devolviendo la fracción C_i del producto del molino, una resolución triangular inferior da el producto p para la alimentación fresca f; e se busca para que el rebose cumpla el P80 objetivo y la carga circulante su valor de diseño.' } },
+    caption: { en: 'Closed circuit: with the cyclone returning fraction $C_i$ of the mill product, one lower-triangular solve gives the mill product p for new feed f; e is found so that the overflow meets the target P80 and the circulating load its design value.',
+      es: 'Circuito cerrado: con el ciclón devolviendo la fracción $C_i$ del producto del molino, una resolución triangular inferior da el producto p para la alimentación fresca f; e se busca para que el rebose cumpla el P80 objetivo y la carga circulante su valor de diseño.' } },
   { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_h - 1}{\rho_k - 1}} \end{gathered}`,
-    caption: { en: 'Cyclone partition to underflow (Plitt, Rosin-Rammler form) with water bypass R_f, and the cut of a particle class k of density ρ_k from Plitt\'s density dependence on the host gangue density ρ_h: dense minerals return to the mill at finer sizes.',
-      es: 'Partición del ciclón a la descarga (Plitt, forma Rosin-Rammler) con cortocircuito de agua R_f, y el corte de una clase k de densidad ρ_k según la dependencia de densidad de Plitt sobre la densidad de la ganga huésped ρ_h: los minerales densos vuelven al molino a tamaños más finos.' } },
+    caption: { en: 'Cyclone partition to underflow (Plitt, Rosin-Rammler form) with water bypass $R_f$, and the cut of a particle class k of density $\\rho_k$ from Plitt\'s density dependence on the host gangue density $\\rho_h$: dense minerals return to the mill at finer sizes.',
+      es: 'Partición del ciclón a la descarga (Plitt, forma Rosin-Rammler) con cortocircuito de agua $R_f$, y el corte de una clase k de densidad $\\rho_k$ según la dependencia de densidad de Plitt sobre la densidad de la ganga huésped $\\rho_h$: los minerales densos vuelven al molino a tamaños más finos.' } },
   { tex: r`L_i = \frac{1}{1 + (d_i/x_L)^{n_L}}`,
-    caption: { en: 'Liberated fraction of a valuable mineral in size class i, with liberation size x_L and slope n_L (after King 1979); the rest is held in composites of declared mineral content.',
-      es: 'Fracción liberada de un mineral valioso en la clase i, con tamaño de liberación x_L y pendiente n_L (según King 1979); el resto queda en mixtos de contenido declarado.' } },
+    caption: { en: 'Liberated fraction of a valuable mineral in size class i, with liberation size $x_L$ and slope $n_L$ (after King 1979); the rest is held in composites of declared mineral content.',
+      es: 'Fracción liberada de un mineral valioso en la clase i, con tamaño de liberación $x_L$ y pendiente $n_L$ (según King 1979); el resto queda en mixtos de contenido declarado.' } },
   { tex: r`\begin{gathered} W = W_i\left(\frac{10}{\sqrt{P_{80}}} - \frac{10}{\sqrt{F_{80}}}\right) \\ W_{i,o} = \frac{P/T}{10/\sqrt{P_{80}} - 10/\sqrt{F_{80}}} \end{gathered}`,
-    caption: { en: 'Bond energy for a reduction (kWh/t, sizes in µm) and the operating work index recovered from the circuit\'s own specific energy P/T.',
-      es: 'Energía de Bond para una reducción (kWh/t, tamaños en µm) y el índice de trabajo operacional obtenido de la propia energía específica del circuito P/T.' } },
+    caption: { en: 'Bond energy of the standard circuit for a reduction, with one work index and no oversize-feed factor (kWh/t, sizes in µm), and the operating work index recovered from the circuit\'s own specific energy P/T.',
+      es: 'Energía de Bond del circuito estándar para una reducción, con un solo índice de trabajo y sin factor de alimentación sobredimensionada (kWh/t, tamaños en µm), y el índice de trabajo operacional obtenido de la propia energía específica del circuito P/T.' } },
 ];
 
 export const FLOTATION: Formula[] = [
   { tex: r`\begin{aligned} k_{s,i} &= 60\,P_s\,S_b\,f_d(d_i)\,f_D(D) \\ f_d(d) &= \exp\!\left(-\tfrac12\left[\ln(d/x_{opt})/w\right]^2\right) \\ f_D(D) &= u + (1-u)\frac{D}{D + K_s} \\ S_b &= \frac{6 J_g}{D_{32}} \end{aligned}`,
-    caption: { en: 'Rate constant (1/min) of particle class s in size class i: floatability P_s times the bubble surface area flux S_b (Gorain et al.), a size window f_d around x_opt (Trahar), and a collector response f_D to dose D that saturates at half-dose K_s.',
-      es: 'Constante cinética (1/min) de la clase s en el tamaño i: flotabilidad P_s por el flujo de área superficial de burbujas S_b (Gorain y colaboradores), una ventana de tamaños f_d en torno a x_opt (Trahar) y una respuesta f_D a la dosis D de colector que se satura en la semidosis K_s.' } },
+    caption: { en: 'Rate constant (1/min) of particle class s in size class i: floatability $P_s$ times the bubble surface area flux $S_b$ (Gorain et al.), a size window $f_d$ around $x_{opt}$ (Trahar), and a collector response $f_D$ to dose D that saturates at half-dose $K_s$.',
+      es: 'Constante cinética (1/min) de la clase s en el tamaño i: flotabilidad $P_s$ por el flujo de área superficial de burbujas $S_b$ (Gorain y colaboradores), una ventana de tamaños $f_d$ en torno a $x_{opt}$ (Trahar) y una respuesta $f_D$ a la dosis D de colector que se satura en la semidosis $K_s$.' } },
   { tex: r`\begin{aligned} ENT_i &= \frac{2}{e^{a_i} + e^{-a_i}},\qquad a_i = 2.292\,(d_i/\xi)^{adj} \\ adj &= 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)} \end{aligned}`,
-    caption: { en: 'Degree of entrainment of size class i (Savassi et al.): xi is the size at which ENT = 0.2 and delta the drainage parameter; entrained gangue follows the water recovered.',
-      es: 'Grado de arrastre de la clase i (Savassi y colaboradores): xi es el tamaño con ENT = 0,2 y delta el parámetro de drenaje; la ganga arrastrada sigue al agua recuperada.' } },
+    caption: { en: 'Degree of entrainment of size class i (Savassi et al.): $\\xi$ is the size at which $ENT = 0.2$ and $\\delta$ the drainage parameter; entrained gangue follows the water recovered.',
+      es: 'Grado de arrastre de la clase i (Savassi y colaboradores): $\\xi$ es el tamaño con $ENT = 0.2$ y $\\delta$ el parámetro de drenaje; la ganga arrastrada sigue al agua recuperada.' } },
   { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1-r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`,
-    caption: { en: 'Recovery per perfectly mixed cell with residence tau and water recovery r_w, and R_N over a bank of N cells; without entrainment it is the tanks-in-series result 1 - (N/(N + k tau_bank))^N.',
-      es: 'Recuperación por celda perfectamente mezclada con residencia tau y recuperación de agua r_w, y R_N en un banco de N celdas; sin arrastre es el resultado de tanques en serie 1 - (N/(N + k tau_banco))^N.' } },
+    caption: { en: 'Recovery per perfectly mixed cell with residence $\\tau$ and water recovery $r_w$, and $R_N$ over a bank of N cells; without entrainment it is the tanks-in-series result ${1 - \\left(N/(N + k\\tau_{bank})\\right)^N}$.',
+      es: 'Recuperación por celda perfectamente mezclada con residencia $\\tau$ y recuperación de agua $r_w$, y $R_N$ en un banco de N celdas; sin arrastre es el resultado de tanques en serie ${1 - \\left(N/(N + k\\tau_{banco})\\right)^N}$.' } },
 ];
 
 export const GRAVITY: Formula[] = [
-  { tex: r`E_g(d) = E_{max}\left(1 - e^{-(d/x_g)^2}\right)`,
-    caption: { en: 'Gravity-unit recovery of free gold by size on the underflow bleed, with a small fixed recovery of composites and a small mass yield of gangue; the unit\'s tail returns to the mill.',
-      es: 'Recuperación gravimétrica de oro libre por tamaño en la purga del underflow, con una recuperación fija pequeña de mixtos y un rendimiento en masa pequeño de ganga; el relave de la unidad vuelve al molino.' } },
+  { tex: r`\begin{gathered} d_{50c}^{GRG} = d_{50c}^{host}\left(\frac{\rho_{host} - 1}{\rho_{Au} - 1}\right)^{n},\quad n = 1.0 \\ R(d) = R_{max}\left(1 - e^{-(d/x_g)^2}\right) \end{gathered}`,
+    caption: { en: 'The gravity-recoverable gold (GRG): its cyclone cut, with the density exponent fitted to measured GRG partitions (Stokes would give 0.5), and the gravity unit\'s per-pass recovery of GRG by size on its bleed of the underflow; the unit\'s tail returns to the mill, and GRG ground fine leaves by the overflow.',
+      es: 'El oro recuperable por gravedad (GRG): su corte en el ciclón, con el exponente de densidad ajustado a particiones de GRG medidas (Stokes daría 0,5), y la recuperación por pasada del GRG según tamaño en la unidad gravimétrica, sobre su purga de la descarga del ciclón; el relave de la unidad vuelve al molino, y el GRG molido fino sale por el rebose.' } },
 ];
 
 export const MAGNETIC: Formula[] = [
@@ -58,8 +58,8 @@ export const MAGNETIC: Formula[] = [
 
 export const DESLIME: Formula[] = [
   { tex: r`y_{des}(d) = R_b + (1 - R_b)\left(1 - e^{-\ln 2\,(d/d_{des})^{m}}\right)`,
-    caption: { en: 'Desliming partition to underflow with the desliming cut d_des as an operating control, a declared sharpness m and water bypass R_b; the overflow leaves as slimes.',
-      es: 'Partición del deslamado a la descarga con el corte d_des como control de operación, nitidez m y cortocircuito de agua R_b declarados; el rebose sale como lamas.' } },
+    caption: { en: 'Desliming partition to underflow with the desliming cut $d_{des}$ as an operating control, a declared sharpness m and water bypass $R_b$; the overflow leaves as slimes.',
+      es: 'Partición del deslamado a la descarga con el corte $d_{des}$ como control de operación, nitidez m y cortocircuito de agua $R_b$ declarados; el rebose sale como lamas.' } },
 ];
 
 /** The equations that govern a circuit family. */

@@ -49,6 +49,12 @@ describe('the flowsheet draws the trace topology', () => {
             const overlap = (k: 0 | 1) => Math.min(Math.max(s.a[k], s.b[k]), Math.max(t.a[k], t.b[k])) - Math.max(Math.min(s.a[k], s.b[k]), Math.min(t.a[k], t.b[k]));
             const shared = (along(1) && overlap(0) > 1e-9) || (along(0) && overlap(1) > 1e-9);
             expect(shared, `${where}: ${s.stream} and ${t.stream} share a line`).toBe(false);
+            // D-09: no line crosses another (the recleaner tail's lane crossed the cleaner tail's in every
+            // recleaner case); a crossing is a horizontal and a vertical segment meeting strictly inside both
+            const cross = (h: typeof s, v: typeof s) => h.a[1] === h.b[1] && v.a[0] === v.b[0]
+              && v.a[0] > Math.min(h.a[0], h.b[0]) + 1e-9 && v.a[0] < Math.max(h.a[0], h.b[0]) - 1e-9
+              && h.a[1] > Math.min(v.a[1], v.b[1]) + 1e-9 && h.a[1] < Math.max(v.a[1], v.b[1]) - 1e-9;
+            expect(cross(s, t) || cross(t, s), `${where}: ${s.stream} crosses ${t.stream}`).toBe(false);
           }
         }
       }

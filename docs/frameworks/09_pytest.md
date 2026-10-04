@@ -1,7 +1,8 @@
 # 09 pytest and ruff
 
-pytest runs OreFlow's Python suite: 341 tests over the engine, the contract, the methods, the learned
-and measured lanes and the service, each named after the requirement it verifies. ruff lints the Python
+pytest runs OreFlow's Python suite: the tests over the engine, the contract, the methods, the learned
+and measured lanes, the service and the documents' quoted numbers, each named after the requirement it verifies.
+How many there are, and how long they took, is recorded per release in `docs/release-verification.md`. ruff lints the Python
 code. httpx is there for FastAPI's `TestClient`. By the CI budget rule (ADR-0074) the suite runs on the
 workstation before a pull request, through `scripts/smoke`, and CI runs only ruff and the
 standard-library guards.
@@ -16,7 +17,6 @@ standard-library guards.
 | Declared in | `requirements-dev.txt` (which includes the API lane) |
 | Configuration | `pyproject.toml`: `testpaths = ["tests"]`, `addopts = "-q"`, one filtered warning; ruff with `line-length = 130`, `target-version = "py311"`, `E501` ignored |
 | Where it runs | locally (`scripts/smoke.ps1`, or `python -m pytest`); CI runs `ruff check data-pipeline tests` only |
-| Time | 76 s for the whole suite on the development machine (measured 2026-09-26) |
 
 ## Read in order
 

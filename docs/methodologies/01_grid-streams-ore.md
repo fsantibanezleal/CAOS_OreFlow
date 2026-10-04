@@ -1,5 +1,9 @@
 # 01 Size grid, streams and ore
 
+![The liberated fraction falls with size around x_L; the unliberated valuable mass forms composites with the host gangue.](../svg/01-grid.svg)
+
+*The liberated fraction falls with size around $x_L$; the unliberated valuable mass forms composites with the host gangue.*
+
 ## Size grid
 
 All streams share one grid of 63 classes on a fourth-root-of-two progression. The upper bound of

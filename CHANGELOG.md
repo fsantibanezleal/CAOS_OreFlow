@@ -2,6 +2,82 @@
 
 ## [Unreleased]
 
+## [0.08.000] - 2026-10-04
+
+The fixes of the adversarial review of 0.07.000 (issue #60: seven dimensions, each verified by a second reviewer;
+the verified findings under #72) and the gravity rebuild. Every fix carries a test or a gate check that fails on
+0.07.000.
+
+### Changed
+
+- **One deployment, the VPS.** OreFlow is served from its ML VPS only, its declared deploy class (`vps-service`).
+  The template's GitHub Pages workflow, which published a second copy of the site from 0.02.001 to 0.07.000, is
+  removed with its build path (the `/CAOS_OreFlow/` base, the per-route copies of `index.html`), Pages is disabled
+  on the repository, and the template-residue guard names the workflow. The pages, the diagrams and the docs
+  describe the one host.
+- **Gravity on the published GRG model** (E-11, PE-18 restated). Gravity-recoverable gold enters liberated with a GRG
+  test's sizes, breaks at Banisi's slower rate, classifies with a density exponent fitted to measured GRG partitions,
+  and the unit may treat a share of the mill discharge, as Laplante, Woodcock and Noaparast's model does. The
+  Laplante oracle runs the published simulator example like for like and states its miss: a perfect unit leaves the
+  GRG recovery 5 to 10 points low, because GRG finer than about 37 um escapes the cyclone.
+- **The Moly-Cop oracle** runs every published input with the base case's own breakage parameters and compares net
+  energy with net (7.30 against 7.71 kWh/t, 5.2% below). The Plitt cyclone sizing is a stated failure, and the
+  `cyclone_pressure` flag is retired (E-05, E-07, E-08).
+- **The head grade is the feed's total assay** of the payable; the magnetite case's control is 29.7% total Fe (E-02).
+- **The cut mode refuses a state with no steady state** (CM-09), in Python, the service and the browser (E-01).
+- **The iron-plant lane** compares the sensors with the fitted last assay, an AR(1) baseline, with day-block bootstrap
+  intervals (M-04), and names the laboratory values carried over unchanged for three or more hours, scoring every
+  model with and without the pairs that touch them (S-16).
+- **The GeoMet comparison** is reported over 200 hole partitions and leave one hole out, with intervals widened for
+  the six model pairs; no surface names a winner (M-05).
+- **The real-sample record** states what its gap to the locked-cycle tests depends on: the assumed laboratory grind,
+  the residence, the host circuit and every authored choice (S-01 to S-09).
+- **The learned lane** records five MLP seeds, equal training rows, coverage under both protocols, and the guard's
+  acceptance by distance and by input (M-07, M-08, M-11, M-16, M-21).
+
+### Fixed
+
+- The phosphate and clay cases state what the engine computes (E-03, E-04); the KPI ranges are presented as
+  authoring constraints with their margins (E-12 to E-14); the refractory gold grade ceiling is 38.6 g/t (E-19).
+- The workbench shows only current, honest state: rejections, stale sweeps, losses never in the success colour,
+  units, flags, one precision per column and layout (U-01 to U-37, R-07, S-12 to S-15, S-20).
+- The figures are drawn from their equations and the engine (D-01 to D-32), the flowsheet places every label and
+  draws no crossing line, and content-bearing small text meets WCAG AA (D-29, shell known defect 12).
+- The pages and the docs say what the records hold, in both languages (the T and M batches, W-01 to W-57).
+- Claims checked against their primary sources on 2026-10-03: the phosphate review gives neither a desliming size
+  nor a 35% P2O5 target, so the case labels its 20 um cut authored; the collector and bank-model citations are
+  narrowed to what their sources state.
+- The release gate's captures, read whole, found what no check measured, and each now has one: a GeoMet sample's
+  Case view quoted the synthetic case's recovery while the sample computed; the re-run controls kept the live run's
+  values over the baked record; the dark architecture modal's full-size toggle was unreadable (shell known defect
+  13); the real sources' Case views left blank bands on large screens; wide figures drew 4 px labels on a phone and
+  now scroll in their own row; a content tab row cut mid-word now fades its hidden end; raw symbols in captions and
+  tables are typeset; and table numbers keep their digits and their grouping.
+
+### Added
+
+- Methodology pages 17 (the HZDR particle lane) and 18 (the GeoMet lane); data contract 06 (the iron plant), field
+  tables for the lanes, and the studies and real-sample schemas.
+- The Methodology figures as standalone theme-aware SVGs in `docs/svg/`, embedded on pages 01 to 16 and held to the
+  app's by a test.
+- Claims tests for the docs: methodology pages 02 to 04, 06, 09, 11 to 18, the data contracts, the SDD's coverage
+  matrix, guide 03's snippets and the CHANGELOG; the content guard flags private references.
+- `scripts/setup -NoGpu` (`--no-gpu`), and `scripts/precompute` runs the three measured lanes before the bake.
+- A GeoMet sample's Case view charts every sample against its locked-cycle test: the engine at the case's nominal
+  state, the GeoMet lane's out-of-fold ridge prediction, and the chosen sample at the current state, which moves
+  with the controls. On a large screen the chart spans the view under the facts and the comparison; below that it
+  has a sub-tab of its own.
+
+### Records
+
+- The release bake of 2026-10-03 (learning 15303 s, cases 4445 s on 12 workers, while another job held every core),
+  compared leaf by leaf with the development bake adopted during the release: 397,647 values equal; the differences
+  are the engine version, the contract digest (E-15 changed the cut's help text), the refractory gold grade ceiling
+  (60 to 38.6 g/t, E-19), the rewritten source notes, the benchmark's new range sources, the timings and the byte
+  counts that follow, and 186 learning scores in their last bits (below 1e-12 relative). The exported networks,
+  the scalers and the optimizer's screen are byte-identical.
+- The iron-plant record gains the held-label block (S-16); the particle and GeoMet records are unchanged.
+
 ## [0.07.000] - 2026-09-30
 
 The rest of the plan that the audit of 2026-09-27 found missing (issues #51 to #57, under #63): the optimizer the
@@ -59,8 +135,8 @@ the test or check that fails when it is broken.
 - **The uncertainty draws.** The SplitMix64 design replaces SciPy's scrambled Latin hypercube. Every uncertainty
   record therefore holds new draws of the same distributions, and the quoted spreads and probabilities move:
   the recovery spread between P05 and P95 runs from 2.9 points (free-milling gold) to 7.7 (zinc), where it ran from 3.7 to 9.1, and the chance of meeting every constraint from 52% (magnetite) to 83% (phosphate), where it ran from 53% to 82%.
-- The records of the 0.07.000 bake. Every page, guide and methodology page that quotes them was updated, and the
-  page-claim tests with them:
+- The records of the 0.07.000 bake. The pages the page-claim tests hold were updated with them; several guides and
+  architecture and methodology pages kept older counts, corrected in 0.08.000 (review of 2026-10-02, W-11 to W-24):
   - **optimization.** 94 of the 96 variants reach an optimum; the two magnetite variants that cannot are the
     same as before. 28 of the 72 target-mode variants break a constraint as run, and none of the 24 cut-mode
     variants. The gains run from -0.8% to +18.1% (+18.2% with COBYLA), 0.3% to 7.6% at the nominal states and
@@ -324,18 +400,33 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - The 0.04 one-pass engine and its operating-envelope Investigate view, superseded by the Response view and
   the constrained optimizer; the unused three.js dependency; the documentation pages of the 0.04 engine.
 
-## 0.04.000, 2026-09-24
+## [0.04.000] - 2026-09-24
 
 - Added a case-aware operating-envelope investigation: explicit feasible limits, declared perturbation stress, finite-grid Pareto classification, point inspection, baseline comparison, apply-to-circuit and reproducible JSON export.
 - Added an independent measured GeoMet locked-cycle recovery lane from pinned CC BY 4.0 source data: 52 usable tests from 29 holes, whole-hole and spatial-zone holdouts, four evaluated baselines/models, rendered observed-versus-predicted and spatial diagnostics.
 - Added local, checksummed five-assay CSV inference with a full-data checkpoint and out-of-reference-range flags. Measured inference and circuit simulation remain separate; neither is a calibrated plant set-point predictor.
 - Added feature-level software design contracts, automated artifact/numerical/browser gates and responsive EN/ES light/dark visual QA at phone, tablet and desktop viewports.
 
-## 0.03.001, 2026-09-24
+## [0.03.004] - 2026-09-24
+
+- The focus workbench labels its classifier streams "calculated", not "measured": they are the simulator's.
+
+## [0.03.003] - 2026-09-24
+
+- The circuit panel fills its space on a phone: hiding the old stage tabs in 0.03.002 had left an empty grid row
+  under the flowsheet, found on the live site at 390 px. The release version is aligned across the service and the
+  site.
+
+## [0.03.002] - 2026-09-24
+
+- The flowsheet is again the workbench's primary circuit view, with its stream values, and a focus route opens the
+  selected case outside the document shell, through the shared app shell's focus layout.
+
+## [0.03.001] - 2026-09-24
 
 - Preserve and validate process family at the live API boundary. Requests for known authored cases infer their gravity, magnetic, desliming or rougher path when the family field is omitted; explicit unsupported families are rejected.
 
-## 0.03.000, 2026-09-24
+## [0.03.000] - 2026-09-24
 
 - Rebuilt the contained workbench around selectable, mass-linked circuit operations and an explicit walkthrough with playback, stage selection and local-versus-baked state.
 - Added distinct gravity/rougher, magnetite magnetic-separation and phosphate-desliming process paths alongside generic rougher scenarios; exported applicability status for 21 method records in all 72 variants.
@@ -344,11 +435,11 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - Added an independent HZDR particle-learning lane with original-sheet train/test separation, L1 and CUDA-capable MLP models, common-row missingness handling, calibration and threshold artifacts, and on-demand browser ONNX inference. Constructed probabilities are not plant recovery.
 - Reworked research pages, assumptions, sources and mobile workbench access. Pinned CAOS App Shell v0.06.009 for a single-row mobile header and footer.
 
-## 0.02.001, 2026-09-23
+## [0.02.001] - 2026-09-23
 
 - Version and bypass browser caches for baked artifact requests, preventing old case JSON from persisting after a shell deployment.
 
-## 0.02.000, 2026-09-23
+## [0.02.000] - 2026-09-23
 
 - Rebuilt the fixed-viewport instrument: quantitative circuit, response curves, selectable grind-by-collector decision surface, method-specific plots, variant comparison and mobile control view. Added bilingual linked readouts and light/dark responsive layouts.
 - Corrected the classifier to partition size-bin masses, normalized the overflow cumulative distribution, connected classifier split to overall recovery and capped concentrate mass pull by rougher feed.
@@ -357,6 +448,6 @@ rebuilt on it. GitHub issue #35 records the defects of 0.04 that motivated it.
 - Repaired direct document-route serving on the VPS and GitHub Pages; project-site builds now carry the correct base path and a 404 fallback document.
 - Emit real GitHub Pages route files so direct document links return HTTP 200, not merely rendered fallback content with status 404.
 
-## 0.01.000, 2026-09-13
+## [0.01.000] - 2026-09-13
 
 - Initial OreFlow release with six-route visual workbench, 12 x 6 case matrix, 19 process and learned methods, HZDR source summary, reproducible pipeline, manuscript proposal, GitHub Pages workflow and ML VPS service files.

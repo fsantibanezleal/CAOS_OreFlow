@@ -18,6 +18,7 @@ import Workbench from "./workbench/Workbench";
 import { Pickaxe } from "lucide-react";
 import { APP_VERSION } from "./lib/version";
 import { DocumentLanguage } from "./lib/DocumentLanguage";
+import { NavOverflow } from "./lib/NavOverflow";
 
 // the workbench is the landing route; the focus route and the content pages load when first opened
 const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
@@ -35,7 +36,7 @@ const config: ShellConfig = {
   fixedRoutes: ["/"],
   architecture: ARCHITECTURE,
   routes: [
-    { path: "/", en: "Workbench", es: "Laboratorio" },
+    { path: "/", en: "Workbench", es: "Simulador" },
     { path: "/introduction", en: "Introduction", es: "Introducción" },
     { path: "/methodology", en: "Methodology", es: "Metodología" },
     { path: "/implementation", en: "Implementation", es: "Implementación" },
@@ -85,6 +86,7 @@ function AppRoutes() {
   if (pathname.startsWith('/focus/')) return <><DocumentLanguage /><Boundary><Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes></Boundary></>;
   return <AppShell config={config}>
         <DocumentLanguage />
+        <NavOverflow />
         <Boundary>
           <Routes>
             <Route path="/" element={<Workbench />} />
@@ -99,7 +101,7 @@ function AppRoutes() {
       </AppShell>;
 }
 createRoot(document.getElementById("root")!).render(
-  <BrowserRouter basename={import.meta.env.BASE_URL === '/CAOS_OreFlow/' ? '/CAOS_OreFlow' : undefined}>
+  <BrowserRouter>
     <Citations>
       <AppRoutes />
     </Citations>

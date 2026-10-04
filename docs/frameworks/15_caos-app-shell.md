@@ -17,7 +17,7 @@ override, and a gate checks it. lucide-react supplies the product mark in the he
 | Declared in | `frontend/package.json`: `"@fasl-work/caos-app-shell": "github:fsantibanezleal/CAOS_APP_SHELL#v0.06.011"` |
 | Configured in | `frontend/src/main.tsx` (the `ShellConfig`), `frontend/src/content/architecture.ts` (the modal) |
 | Peers it expects | React 18 or 19, react-router 6 to 8, zustand 4 or 5, KaTeX 0.16, lucide-react 0.400 or later |
-| Defect register | `conventions/shell-known-defects.md` in the management repository |
+| Defect register | kept by the shell's maintainers outside this repository; the comment beside each override here names the defect by its number and says what it fixes |
 
 ## Read in order
 

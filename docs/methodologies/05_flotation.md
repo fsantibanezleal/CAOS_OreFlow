@@ -1,5 +1,9 @@
 # 05 Flotation
 
+![The rougher bank, the optional regrind, the cleaner and the optional recleaner; the cleaner tail returns to the rougher feed and the recleaner tail to the cleaner feed.](../svg/05-flotation.svg)
+
+*The rougher bank, the optional regrind, the cleaner and the optional recleaner; the cleaner tail returns to the rougher feed and the recleaner tail to the cleaner feed.*
+
 ## Theory
 
 **Rate from bubble surface area flux.** Gorain, Franzidis and Manlapig showed in industrial cells
@@ -18,8 +22,10 @@ $$k_{s,i} = 60\,P_s\,S_b\;\exp\!\left(-\tfrac12\left[\ln(d_i/x_{opt})/w\right]^2
 with a width $w$ that differs below and above the optimum size, collector dose $D$ (g/t) and half-dose
 $K_s$. A composite floats on its exposed valuable surface, $P_{comp} = P_V c^{2/3}$. Gangue saturates
 at a higher dose than the valuable mineral, so beyond the valuable saturation dose more collector
-buys little recovery and floats gangue and poorly liberated particles, lowering grade, which is what
-plant practice reports for xanthate (critical review, PMC9572913).
+buys little recovery and floats gangue and poorly liberated particles, lowering grade. The form is authored. The
+chalcopyrite/pyrite review of Castellón et al. (2022, Materials 15(19):6536, doi:10.3390/ma15196536) supports its
+direction: collectors are not selective enough, so a significant portion adheres to pyrite and other gangue, and an
+appropriate dose gives the best performance while an excess may lower recovery, which the model does not represent.
 
 **Entrainment.** Fine free gangue reports to the concentrate with the water. Savassi et al. (1998)
 describe the degree of entrainment (Minerals Engineering 11(3):243-256,
@@ -66,7 +72,7 @@ of gangue; a cell-by-cell grade-recovery profile of the rougher; recovery by siz
 |---|---|---|---|
 | $J_g$ | 1.3 to 1.4 (control) | cm/s | gas-dispersion literature range 0.5 to 2.5 |
 | $D_{32}$ | 0.8 + 0.45 $J_g$ | mm | declared linear form of the reported increase |
-| $P$ sulphide, liberated | 1.8e-4 to 3.2e-4 | 1 | authored per case so nominal KPIs fall in literature ranges |
+| $P$ sulphide, liberated | 1.8e-4 to 3.2e-4 | 1 | authored per case so nominal KPIs fall in their plausibility ranges (cited or authored) |
 | $x_{opt}$, fine and coarse widths | 30 to 70 um, 1.1 to 1.6, 0.6 to 0.8 | um, ln units | authored within Trahar's size behaviour |
 | $K$ valuable, gangue | 12 to 60, 40 to 1500 | g/t | authored; gangue saturates later |
 | $\xi$, $\delta$ | 30 to 60 um, 1 | um, 1 | inside the Savassi and Hoang fits |
@@ -89,3 +95,5 @@ No froth model beyond the recovery factor folded into $P$, no pulp chemistry (pH
 represented only by the authored floatabilities, for example lime-depressed pyrite), no cell-by-cell
 change in residence, and no collector adsorption balance. The lumped kinetic models of page 11 are
 comparisons fitted to this engine, not alternative engines.
+
+The cleaner and recleaner volumes are fixed, so a richer feed, which sends more mass to them, shortens their residence: between each case's head-grade bounds recovery falls in nine cases (by up to 6.3 points in the zinc case), stays flat in the two gold cases and rises in the magnetite case, where the silicate's iron is a smaller share of a richer head. A nearly constant tail, which would make recovery rise with the head, is reported for sulphide copper plants by a secondary source only, so it is stated here and not tested. The direction counts are a test, `tests/test_directions.py::test_head_grade_direction`.

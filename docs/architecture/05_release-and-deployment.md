@@ -1,14 +1,15 @@
 # 05 Release and deployment
 
-OreFlow is served from two places built from the same `main` commit: the VPS service, which runs the
-Python engine behind the API as well as the site, and a GitHub Pages mirror, which serves the static
-site only. Neither ever trains, bakes or rewrites an artifact: a deployment builds and serves the
-committed evidence.
+OreFlow is served from one place, the ML VPS: its service runs the Python engine behind the API as well
+as the site, built there from the tagged `main` commit. This is the plan's deploy class (`vps-service`): the
+repository carries Python dependencies, model checkpoints and records that the service serves. It never
+trains, bakes or rewrites an artifact: a deployment builds and serves the committed evidence. From 0.02.001
+to 0.07.000 the template's GitHub Pages workflow also published a copy of the site; 0.08.000 removed it, and
+the template-residue guard (`scripts/check_template_residue.py`) names the workflow so it cannot return.
 
 | Host | URL | What it serves |
 |---|---|---|
 | The ML VPS | https://oreflow.ml.fasl-work.com/ | The site, the read-only artifact routes and `POST /api/simulate` |
-| GitHub Pages | https://fsantibanezleal.github.io/CAOS_OreFlow/ | The site; the workbench and the content pages need nothing else, since the browser runs its own engine |
 
 ## Versions
 
@@ -41,13 +42,6 @@ branch is kept (a newer push cancels the older run), and every job stops after 3
 What CI never does is enforced by `scripts/check_ci_budget.py`: it rejects a workflow that triggers on
 pull requests, on a schedule or off the trunks, lacks a concurrency group or a job timeout, installs the
 training stack, runs a bake, training or benchmark entry point, or runs the Python suite.
-
-## GitHub Pages
-
-`.github/workflows/deploy-pages.yml` runs on a push to `main` and on a manual dispatch. It builds the
-site with `VITE_BASE_PATH=/CAOS_OreFlow/`, checks that `404.html` and the per-route copies of
-`index.html` exist (Pages answers a deep link with the app only where a file exists), and publishes
-`frontend/dist` with the Pages actions. The router takes the `/CAOS_OreFlow` base on this host only.
 
 ## The VPS service
 
@@ -96,9 +90,11 @@ validator).
 - checks `/healthz` and `/api/cases` on the local port, retrying while the restarted port refuses
   connections.
 
-Its rerun path was checked against the ML host on 2026-09-26: no package was missing, the certificate
-was present, and the installed unit and virtual host were identical to the repository's. It has not yet
-been run as an update. The releases so far took only the steps an update needs:
+Since 0.06.000 every release has updated the host by running the release's copy of `setup-vps.sh` from outside
+the checkout (#61), so its own `git pull` never rewrites the running script. Its rerun path had been checked
+against the ML host on 2026-09-26: no package was missing, the certificate was present, and the installed unit and
+virtual host were identical to the repository's. The releases 0.04.000 to 0.05.001 took only the steps an update
+needs, by hand:
 1. fast-forward `main`;
 2. install the runtime requirements;
 3. build the site;
@@ -106,23 +102,21 @@ been run as an update. The releases so far took only the steps an update needs:
 5. restart `oreflow.service`;
 6. check `/healthz` and `/api/cases` on the local port.
 
-The releases from 0.04.000 to 0.05.001 were deployed this way.
 
 ## Verifying a release from outside
 
-A release is checked from outside the machine that built it, on the public names, after both hosts
-have deployed the same commit:
+A release is checked from outside the machine that built it, on the public name, once the host serves the
+tagged commit:
 
 1. `/healthz` on the VPS reports the new `VERSION`.
 2. `/api/cases` lists 12 cases and 96 variants, and `/api/benchmark` answers the benchmark of the same
    version.
 3. A representative `POST /api/simulate` answers `oreflow.live/v2` with a trace whose balance closes;
    a state outside the contract answers 422 with its code.
-4. On both hosts, the root and a direct request for `/methodology` and `/benchmark`, with and without
-   the trailing slash, answer the app with status 200 (Pages first redirects the form without the
-   slash, so both forms are probed).
-5. The browser gate runs against each public host (`OF_BASE=https://oreflow.ml.fasl-work.com` and
-   `OF_BASE=https://fsantibanezleal.github.io/CAOS_OreFlow`), and its screenshots are read.
+4. The root and a direct request for `/methodology` and `/benchmark`, with and without the trailing
+   slash, answer the app with status 200.
+5. The browser gate runs against the public host (`OF_BASE=https://oreflow.ml.fasl-work.com`), and its
+   screenshots are read.
 6. HTTPS is verified with the public host name, not with localhost or the server's default site.
 
 The commit, the workflow runs and the outcome of each check are recorded per release in
@@ -130,5 +124,5 @@ The commit, the workflow runs and the outcome of each check are recorded per rel
 
 ## Rolling back
 
-Restore the previous reviewed `main` commit through a pull request, let Pages redeploy from the push,
-take the update steps above on the host, and repeat the checks above.
+Restore the previous reviewed `main` commit through a pull request, take the update steps above on the
+host, and repeat the checks above.

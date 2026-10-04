@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="450" height="240" class="fig-svg" viewBox="0 0 450 240" role="img" aria-label="Energy laws calibrated at a reference reduction"><style>
+.fig-svg { color-scheme: light dark; }
+.dg-axis { stroke: var(--color-fg-faint, GrayText); stroke-width: 1.3; }
+.dg-axis-label { fill: var(--color-fg-subtle, GrayText); font: 12px var(--font-sans, system-ui, sans-serif); }
+.dg-tick { fill: var(--color-fg-faint, GrayText); font: 11px var(--font-mono, ui-monospace, monospace); }
+.dg-grid { stroke: var(--color-border, GrayText); stroke-width: 0.5; opacity: 0.6; }
+.dg-curve { fill: none; stroke: var(--color-accent, LinkText); stroke-width: 2.2; stroke-linejoin: round; }
+.dg-curve-2 { fill: none; stroke: var(--color-magenta, VisitedText); stroke-width: 2; }
+.dg-curve-faint { fill: none; stroke: var(--color-fg-faint, GrayText); stroke-width: 1.4; stroke-dasharray: 4 3; }
+.dg-asymptote { stroke: var(--color-bad, VisitedText); stroke-width: 1.4; stroke-dasharray: 4 4; }
+.dg-marker { stroke: var(--color-warn, GrayText); stroke-width: 1.2; stroke-dasharray: 3 3; }
+.dg-marker-label { fill: var(--color-warn, GrayText); font: 600 11px var(--font-mono, ui-monospace, monospace); }
+.dg-note { fill: var(--color-fg-faint, GrayText); font: italic 11px var(--font-sans, system-ui, sans-serif); }
+.dg-fill-accent { fill: color-mix(in oklab, var(--color-accent, LinkText) 16%, transparent); stroke: var(--color-accent, LinkText); stroke-width: 1; }
+.dg-fill-warn { fill: color-mix(in oklab, var(--color-warn, GrayText) 16%, transparent); stroke: var(--color-warn, GrayText); stroke-width: 1; }
+.dg-box { fill: var(--color-surface, Canvas); stroke: var(--color-border, GrayText); stroke-width: 1.3; }
+.dg-box.accent { stroke: var(--color-accent, LinkText); fill: var(--color-accent-soft, Canvas); }
+.dg-box.good { stroke: var(--color-good, LinkText); }
+.dg-box-title { fill: var(--color-fg, CanvasText); font: 650 12px var(--font-sans, system-ui, sans-serif); }
+.dg-box-title.accent { fill: var(--color-accent, LinkText); }
+.dg-box-sub { fill: var(--color-fg-subtle, GrayText); font: 10.5px var(--font-mono, ui-monospace, monospace); }
+.dg-node { fill: var(--color-surface, Canvas); stroke: var(--color-accent, LinkText); stroke-width: 1.4; }
+.dg-node-label { fill: var(--color-fg, CanvasText); font: 600 12px var(--font-mono, ui-monospace, monospace); }
+.dg-edge { stroke: var(--color-fg-faint, GrayText); stroke-width: 1.4; fill: none; }
+.dg-edge-label { fill: var(--color-fg-subtle, GrayText); font: 11px var(--font-mono, ui-monospace, monospace); }
+.dg-arrowhead { fill: var(--color-fg-faint, GrayText); }
+.dg-bar { fill: var(--color-accent, LinkText); }
+.dg-bar-2 { fill: var(--color-magenta, VisitedText); }
+.dg-bar-label { fill: var(--color-fg-subtle, GrayText); font: 11px var(--font-sans, system-ui, sans-serif); }
+.of-dg-frame { fill: none; stroke: var(--color-border, GrayText); stroke-width: 1.2; stroke-dasharray: 5 4; }
+.dg-box.of-dg-optional { stroke-dasharray: 5 3; }
+.of-dg-optional-edge { stroke: var(--color-fg-faint, GrayText); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
+.of-dg-small { fill: var(--color-fg, CanvasText); font: 9.5px var(--font-sans, system-ui, sans-serif); }
+.fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle, GrayText); }
+</style><line class="dg-axis" x1="50" y1="190" x2="390" y2="190"></line><line class="dg-axis" x1="50" y1="190" x2="50" y2="20"></line><path class="dg-curve" fill="none" d="M 60.0 60.2 L 70.0 62.8 L 80.0 65.3 L 90.0 67.9 L 100.0 70.4 L 110.0 73.0 L 120.0 75.6 L 130.0 78.2 L 140.0 80.8 L 150.0 83.4 L 160.0 86.0 L 170.0 88.7 L 180.0 91.3 L 190.0 94.0 L 200.0 96.7 L 210.0 99.4 L 220.0 102.2 L 230.0 104.9 L 240.0 107.7 L 250.0 110.6 L 260.0 113.4 L 270.0 116.3 L 280.0 119.2 L 290.0 122.2 L 300.0 125.2 L 310.0 128.2 L 320.0 131.3 L 330.0 134.5 L 340.0 137.7 L 350.0 141.0 L 360.0 144.4 L 370.0 147.9 L 380.0 151.4"></path><path class="dg-curve-2" fill="none" d="M 60.0 24.1 L 70.0 28.9 L 80.0 33.8 L 90.0 38.6 L 100.0 43.5 L 110.0 48.3 L 120.0 53.2 L 130.0 58.0 L 140.0 62.9 L 150.0 67.8 L 160.0 72.6 L 170.0 77.5 L 180.0 82.4 L 190.0 87.3 L 200.0 92.2 L 210.0 97.1 L 220.0 102.0 L 230.0 106.9 L 240.0 111.8 L 250.0 116.8 L 260.0 121.7 L 270.0 126.7 L 280.0 131.7 L 290.0 136.7 L 300.0 141.7 L 310.0 146.8 L 320.0 151.9 L 330.0 157.0 L 340.0 162.1 L 350.0 167.3 L 360.0 172.6 L 370.0 177.9 L 380.0 183.3"></path><path class="dg-curve-faint" fill="none" d="M 60.0 87.3 L 70.0 88.1 L 80.0 88.9 L 90.0 89.7 L 100.0 90.5 L 110.0 91.4 L 120.0 92.3 L 130.0 93.2 L 140.0 94.1 L 150.0 95.0 L 160.0 96.0 L 170.0 97.0 L 180.0 98.0 L 190.0 99.0 L 200.0 100.1 L 210.0 101.2 L 220.0 102.3 L 230.0 103.5 L 240.0 104.7 L 250.0 105.9 L 260.0 107.2 L 270.0 108.5 L 280.0 109.9 L 290.0 111.3 L 300.0 112.8 L 310.0 114.4 L 320.0 116.0 L 330.0 117.6 L 340.0 119.4 L 350.0 121.2 L 360.0 123.1 L 370.0 125.1 L 380.0 127.3"></path><line class="dg-marker" x1="220.9" y1="190" x2="220.9" y2="102.4"></line><circle cx="220.9" cy="102.4" r="4" class="dg-fill-warn"></circle><text class="dg-marker-label" x="227" y="94">reference</text><text class="dg-edge-label" x="388" y="131">Kick</text><text class="dg-edge-label" x="388" y="155">Bond</text><text class="dg-edge-label" x="388" y="187">Rittinger</text><text class="dg-axis-label" x="220" y="214" text-anchor="middle">product P80 (log scale)</text><text class="dg-axis-label" x="18" y="105" text-anchor="middle" transform="rotate(-90 18 105)">specific energy (log scale)</text></svg>

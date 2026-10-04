@@ -21,8 +21,8 @@ export function useArtifact<T>(load: () => Promise<T>): State<T> {
 }
 
 const TEXT = {
-  loading: { en: 'Loading the baked results', es: 'Cargando los resultados horneados' },
-  failed: { en: 'The baked results could not be loaded', es: 'No se pudieron cargar los resultados horneados' },
+  loading: { en: 'Loading the precomputed results', es: 'Cargando los resultados precalculados' },
+  failed: { en: 'The precomputed results could not be loaded', es: 'No se pudieron cargar los resultados precalculados' },
 };
 
 /** Renders `children` once every value has loaded, and says so while loading or when a load failed. */

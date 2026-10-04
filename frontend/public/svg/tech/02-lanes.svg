@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 582" width="880" class="arch-svg" role="img" aria-label="What runs where: offline, committed, live and the service">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 880 646" width="880" class="arch-svg" role="img" aria-label="What runs where: the measured lanes, the precompute, the committed artifacts, the browser and the service">
   <style>
     /* the page's tokens inside the app; CSS system colours where the file is shown as an image */
     .arch-svg { color-scheme: light dark; }
@@ -30,50 +30,59 @@
       <path d="M0,0 L8,4 L0,8 z" fill="var(--color-fg-faint, GrayText)"/>
     </marker>
   </defs>
-  <text class="h1 l-en" x="20" y="28">What runs where: the offline bake, the committed artifacts, the live browser and the service</text>
-  <text class="h1 l-es" x="20" y="28">Qué corre dónde: horneado fuera de línea, artefactos versionados, navegador vivo y servicio</text>
+  <text class="h1 l-en" x="20" y="28">What runs where: the offline precompute, the committed artifacts, the live browser and the service</text>
+  <text class="h1 l-es" x="20" y="28">Qué corre dónde: el precálculo fuera de línea, los artefactos versionados, el navegador en vivo y el servicio</text>
   <text class="sub l-en" x="20" y="46">the heavy records are computed once and read; every state a control reaches is recomputed live by the same engine</text>
   <text class="sub l-es" x="20" y="46">los registros pesados se calculan una vez y se leen; cada estado que alcanza un control se recalcula en vivo con el mismo motor</text>
-  <rect class="band" x="12" y="60" width="276" height="430" rx="10"/>
-  <text class="bt l-en" x="24" y="77">OFFLINE BAKE (WORKSTATION)</text>
-  <text class="bt l-es" x="24" y="77">HORNEADO (ESTACIÓN DE TRABAJO)</text>
-  <rect class="bx" x="24" y="88" width="252" height="76" rx="8"/>
-  <text class="ttl l-en" x="36" y="107">Learning stage, first</text>
-  <text class="ttl l-es" x="36" y="107">Etapa de aprendizaje, primero</text>
-  <text class="it l-en" x="36" y="123">3072 states, CUDA when present</text>
-  <text class="it l-es" x="36" y="123">3072 estados, CUDA si existe</text>
-  <text class="it l-en" x="36" y="137">5 models, guard, ONNX, the screen</text>
-  <text class="it l-es" x="36" y="137">5 modelos, guardia, ONNX, el filtro</text>
-  <text class="cd mono l-neutral" x="36" y="151">methods/learning.py · screen.py</text>
-  <rect class="bx bx-hi" x="24" y="174" width="252" height="90" rx="8"/>
-  <text class="ttl l-en" x="36" y="193">Case stage</text>
-  <text class="ttl l-es" x="36" y="193">Etapa de casos</text>
-  <text class="it l-en" x="36" y="209">12 workers, every record seeded</text>
-  <text class="it l-es" x="36" y="209">12 procesos, todo sembrado</text>
-  <text class="it l-en" x="36" y="223">traces, screened optimizer, weights</text>
-  <text class="it l-es" x="36" y="223">trazas, optimizador filtrado, pesos</text>
-  <text class="it l-en" x="36" y="237">uncertainty; Sobol at the nominal</text>
-  <text class="it l-es" x="36" y="237">incertidumbre; Sobol en el nominal</text>
-  <text class="cd mono l-neutral" x="36" y="251">stages/cases.py</text>
-  <rect class="bx" x="24" y="274" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="36" y="293">Benchmark and studies</text>
-  <text class="ttl l-es" x="36" y="293">Benchmark y estudios</text>
-  <text class="it l-en" x="36" y="309">oracles, ablations, seed study</text>
-  <text class="it l-es" x="36" y="309">oráculos, ablaciones, semillas</text>
-  <text class="cd mono l-neutral" x="36" y="323">stages/benchmark.py · studies.py</text>
-  <rect class="bx" x="24" y="346" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="36" y="365">Measured lanes and samples</text>
-  <text class="ttl l-es" x="36" y="365">Vías medidas y muestras</text>
-  <text class="it l-en" x="36" y="381">GeoMet, HZDR, the iron plant</text>
-  <text class="it l-es" x="36" y="381">GeoMet, HZDR, la planta de hierro</text>
-  <text class="cd mono l-neutral" x="36" y="395">stages/real_samples.py · run_*.py</text>
-  <rect class="bx bx-warn" x="24" y="418" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="36" y="437">Validation</text>
-  <text class="ttl l-es" x="36" y="437">Validación</text>
-  <text class="it l-en" x="36" y="453">a failing check fails the bake</text>
-  <text class="it l-es" x="36" y="453">una falla hace fallar el horneado</text>
-  <text class="cd mono l-neutral" x="36" y="467">scripts/check_artifacts.py</text>
-  <rect class="band" x="302" y="60" width="276" height="430" rx="10"/>
+  <rect class="band" x="12" y="60" width="276" height="506" rx="10"/>
+  <text class="bt l-en" x="24" y="77">OFFLINE PRECOMPUTE (WORKSTATION)</text>
+  <text class="bt l-es" x="24" y="77">PRECÁLCULO (ESTACIÓN DE TRABAJO)</text>
+  <rect class="bx bx-warn" x="24" y="88" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="107">Measured lanes, first</text>
+  <text class="ttl l-es" x="36" y="107">Vías medidas, primero</text>
+  <text class="it l-en" x="36" y="123">HZDR particles, GeoMet, the iron plant</text>
+  <text class="it l-es" x="36" y="123">partículas HZDR, GeoMet, planta de hierro</text>
+  <text class="cd mono l-neutral" x="36" y="137">data-pipeline/run_*.py</text>
+  <rect class="bx" x="24" y="164" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="183">1 Contract, 2 Learning</text>
+  <text class="ttl l-es" x="36" y="183">1 Contrato, 2 Aprendizaje</text>
+  <text class="it l-en" x="36" y="199">digest; 3072 states, CUDA; the screen</text>
+  <text class="it l-es" x="36" y="199">huella; 3072 estados, CUDA; el filtro</text>
+  <text class="cd mono l-neutral" x="36" y="213">io/contract.py · methods/learning.py</text>
+  <rect class="bx bx-hi" x="24" y="240" width="252" height="90" rx="8"/>
+  <text class="ttl l-en" x="36" y="259">3 Cases, 12 workers</text>
+  <text class="ttl l-es" x="36" y="259">3 Casos, 12 procesos</text>
+  <text class="it l-en" x="36" y="275">traces, every record seeded</text>
+  <text class="it l-es" x="36" y="275">trazas, todo sembrado</text>
+  <text class="it l-en" x="36" y="289">optimizer, screened in the target mode</text>
+  <text class="it l-es" x="36" y="289">optimizador, filtrado en modo objetivo</text>
+  <text class="it l-en" x="36" y="303">uncertainty; Sobol at the nominal</text>
+  <text class="it l-es" x="36" y="303">incertidumbre; Sobol en el nominal</text>
+  <text class="cd mono l-neutral" x="36" y="317">stages/cases.py</text>
+  <rect class="bx" x="24" y="344" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="363">4 Benchmark, 5 Studies</text>
+  <text class="ttl l-es" x="36" y="363">4 Benchmark, 5 Estudios</text>
+  <text class="it l-en" x="36" y="379">oracles, ablations, seed study</text>
+  <text class="it l-es" x="36" y="379">oráculos, ablaciones, semillas</text>
+  <text class="cd mono l-neutral" x="36" y="393">stages/benchmark.py · studies.py</text>
+  <rect class="bx" x="24" y="420" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="439">6 Real samples, 7 Manifests</text>
+  <text class="ttl l-es" x="36" y="439">6 Muestras reales, 7 Manifiestos</text>
+  <text class="it l-en" x="36" y="455">52 GeoMet tests in the engine; SHA-256</text>
+  <text class="it l-es" x="36" y="455">52 ensayos GeoMet en el motor; SHA-256</text>
+  <text class="cd mono l-neutral" x="36" y="469">stages/real_samples.py · manifests.py</text>
+  <rect class="bx bx-warn" x="24" y="496" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="36" y="515">8 Validation</text>
+  <text class="ttl l-es" x="36" y="515">8 Validación</text>
+  <text class="it l-en" x="36" y="531">every record checked, the lanes too</text>
+  <text class="it l-es" x="36" y="531">cada registro, también las vías</text>
+  <text class="cd mono l-neutral" x="36" y="545">scripts/check_artifacts.py</text>
+  <path class="flow" d="M 150 150 L 150 162" marker-end="url(#of-arch-2)"/>
+  <path class="flow" d="M 150 226 L 150 238" marker-end="url(#of-arch-2)"/>
+  <path class="flow" d="M 150 330 L 150 342" marker-end="url(#of-arch-2)"/>
+  <path class="flow" d="M 150 406 L 150 418" marker-end="url(#of-arch-2)"/>
+  <path class="flow" d="M 150 482 L 150 494" marker-end="url(#of-arch-2)"/>
+  <rect class="band" x="302" y="60" width="276" height="506" rx="10"/>
   <text class="bt l-en" x="314" y="77">COMMITTED ARTIFACTS</text>
   <text class="bt l-es" x="314" y="77">ARTEFACTOS VERSIONADOS</text>
   <rect class="bx" x="314" y="88" width="252" height="62" rx="8"/>
@@ -89,24 +98,30 @@
   <text class="it l-es" x="326" y="195">definición, 8 variantes, registros</text>
   <text class="cd mono l-neutral" x="326" y="209">cases/&lt;case&gt;.json · case/v2</text>
   <rect class="bx" x="314" y="232" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="326" y="251">Manifests and index</text>
-  <text class="ttl l-es" x="326" y="251">Manifiestos e índice</text>
-  <text class="it l-en" x="326" y="267">bytes, SHA-256, KPI checks</text>
-  <text class="it l-es" x="326" y="267">bytes, SHA-256, verificaciones</text>
-  <text class="cd mono l-neutral" x="326" y="281">manifests/index.json</text>
+  <text class="ttl l-en" x="326" y="251">Learning record, networks</text>
+  <text class="ttl l-es" x="326" y="251">Registro de aprendizaje, redes</text>
+  <text class="it l-en" x="326" y="267">scalers, reference, the screen's GP</text>
+  <text class="it l-es" x="326" y="267">escaladores, referencia, GP del filtro</text>
+  <text class="cd mono l-neutral" x="326" y="281">learning.json · models/*</text>
   <rect class="bx" x="314" y="304" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="326" y="323">Learning record, networks</text>
-  <text class="ttl l-es" x="326" y="323">Registro de aprendizaje, redes</text>
-  <text class="it l-en" x="326" y="339">scalers, reference, the screen's GP</text>
-  <text class="it l-es" x="326" y="339">escaladores, referencia, GP del filtro</text>
-  <text class="cd mono l-neutral" x="326" y="353">learning.json · models/*</text>
+  <text class="ttl l-en" x="326" y="323">Benchmark, studies, samples</text>
+  <text class="ttl l-es" x="326" y="323">Benchmark, estudios, muestras</text>
+  <text class="it l-en" x="326" y="339">oracles, ablations, 52 sample runs</text>
+  <text class="it l-es" x="326" y="339">oráculos, ablaciones, 52 muestras</text>
+  <text class="cd mono l-neutral" x="326" y="353">benchmark · studies · real_samples</text>
   <rect class="bx" x="314" y="376" width="252" height="62" rx="8"/>
-  <text class="ttl l-en" x="326" y="395">Benchmark, studies, samples</text>
-  <text class="ttl l-es" x="326" y="395">Benchmark, estudios, muestras</text>
-  <text class="it l-en" x="326" y="411">oracles, lanes, validation, timings</text>
-  <text class="it l-es" x="326" y="411">oráculos, vías, validación, tiempos</text>
-  <text class="cd mono l-neutral" x="326" y="425">benchmark · studies · real_samples</text>
-  <rect class="band" x="592" y="60" width="276" height="430" rx="10"/>
+  <text class="ttl l-en" x="326" y="395">Manifests, index, validation</text>
+  <text class="ttl l-es" x="326" y="395">Manifiestos, índice, validación</text>
+  <text class="it l-en" x="326" y="411">bytes, SHA-256, checks, timings</text>
+  <text class="it l-es" x="326" y="411">bytes, SHA-256, verificaciones, tiempos</text>
+  <text class="cd mono l-neutral" x="326" y="425">manifests/index.json · validation</text>
+  <rect class="bx bx-warn" x="314" y="448" width="252" height="62" rx="8"/>
+  <text class="ttl l-en" x="326" y="467">Measured lane records</text>
+  <text class="ttl l-es" x="326" y="467">Registros de las vías medidas</text>
+  <text class="it l-en" x="326" y="483">HZDR, GeoMet, iron-plant hours</text>
+  <text class="it l-es" x="326" y="483">HZDR, GeoMet, horas de planta</text>
+  <text class="cd mono l-neutral" x="326" y="497">source/*.json</text>
+  <rect class="band" x="592" y="60" width="276" height="506" rx="10"/>
   <text class="bt l-en" x="604" y="77">LIVE, IN THE BROWSER</text>
   <text class="bt l-es" x="604" y="77">EN VIVO, EN EL NAVEGADOR</text>
   <rect class="bx" x="604" y="88" width="252" height="62" rx="8"/>
@@ -117,7 +132,7 @@
   <text class="cd mono l-neutral" x="616" y="137">engine/contract.ts</text>
   <rect class="bx bx-good" x="604" y="160" width="252" height="76" rx="8"/>
   <text class="ttl l-en" x="616" y="179">Engine port in a worker</text>
-  <text class="ttl l-es" x="616" y="179">Motor traducido en un worker</text>
+  <text class="ttl l-es" x="616" y="179">Motor en TypeScript en un worker</text>
   <text class="it l-en" x="616" y="195">a trace per control change</text>
   <text class="it l-es" x="616" y="195">una traza por cambio de control</text>
   <text class="it l-en" x="616" y="209">within 1e-6 of Python</text>
@@ -141,15 +156,15 @@
   <text class="it l-en" x="616" y="425">a sample runs, a plant hour is shown</text>
   <text class="it l-es" x="616" y="425">una muestra corre, una hora se muestra</text>
   <text class="cd mono l-neutral" x="616" y="439">workbench/views/*.tsx</text>
-  <path class="flow" d="M 288 270 L 300 270" marker-end="url(#of-arch-2)"/>
-  <text class="lbl l-en" x="294" y="508" text-anchor="middle">writes, then validates</text>
-  <text class="lbl l-es" x="294" y="508" text-anchor="middle">escribe y luego valida</text>
-  <path class="flow" d="M 578 270 L 590 270" marker-end="url(#of-arch-2)"/>
-  <text class="lbl l-en" x="585" y="508" text-anchor="middle">copied into the site at build</text>
-  <text class="lbl l-es" x="585" y="508" text-anchor="middle">copiados al sitio al compilar</text>
-  <rect class="bx bx-hi" x="12" y="522" width="856" height="48" rx="8"/>
-  <text class="ttl l-en" x="24" y="541">Service on the VPS: the Python engine behind the same contract</text>
-  <text class="ttl l-es" x="24" y="541">Servicio en el VPS: el motor en Python tras el mismo contrato</text>
-  <text class="it l-en" x="24" y="557">POST /api/simulate validates, then returns the trace with the contract digest; serves the site; never trains or rewrites</text>
-  <text class="it l-es" x="24" y="557">POST /api/simulate valida y devuelve la traza con la huella del contrato; sirve el sitio; nunca entrena ni reescribe</text>
+  <path class="flow" d="M 288 300 L 300 300" marker-end="url(#of-arch-2)"/>
+  <text class="lbl l-en" x="299" y="292" text-anchor="start" transform="rotate(-90 299 292)">writes, then validates</text>
+  <text class="lbl l-es" x="299" y="292" text-anchor="start" transform="rotate(-90 299 292)">escribe y luego valida</text>
+  <path class="flow" d="M 578 300 L 590 300" marker-end="url(#of-arch-2)"/>
+  <text class="lbl l-en" x="589" y="292" text-anchor="start" transform="rotate(-90 589 292)">copied into the site at build</text>
+  <text class="lbl l-es" x="589" y="292" text-anchor="start" transform="rotate(-90 589 292)">copiados al sitio al compilar</text>
+  <rect class="bx bx-hi" x="12" y="584" width="856" height="48" rx="8"/>
+  <text class="ttl l-en" x="24" y="603">Service on the VPS: the Python engine behind the same contract</text>
+  <text class="ttl l-es" x="24" y="603">Servicio en el VPS: el motor en Python tras el mismo contrato</text>
+  <text class="it l-en" x="24" y="619">POST /api/simulate validates, then returns the trace with the contract digest; serves the site; never trains or rewrites</text>
+  <text class="it l-es" x="24" y="619">POST /api/simulate valida y devuelve la traza con la huella del contrato; sirve el sitio; nunca entrena ni reescribe</text>
 </svg>

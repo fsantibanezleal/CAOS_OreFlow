@@ -17,13 +17,24 @@ HEADLINE = ("recovery_pct", "concentrate_grade", "head_grade", "recovered_primar
             "mill_power_kw", "p80_um", "water_intensity_m3_t")
 
 
+def kpi_basis(source_en: str) -> str:
+    """T-02 (review of 2026-10-02): how a plausibility range is sourced. "authored" when no published range was found
+    (the source reads "Authored: ..."), "authored_bound" when a cited source carries an authored or unverified bound,
+    and "cited" when every bound is the source's."""
+    if source_en.startswith("Authored"):
+        return "authored"
+    return "authored_bound" if ("authored" in source_en.lower() or "UNVERIFIED" in source_en) else "cited"
+
+
 def _case_summary(artifact: dict[str, Any]) -> dict[str, Any]:
     nominal = next(v for v in artifact["variants"] if v["id"] == "nominal")
     metrics = nominal["trace"]["metrics"]
     kpis = {}
     for key, (low, high) in artifact["kpi_ranges"].items():
         value = metrics[key]
-        kpis[key] = {"value": value, "range": [low, high], "within": bool(low <= value <= high)}
+        source = artifact["kpi_sources"][key]
+        kpis[key] = {"value": value, "range": [low, high], "within": bool(low <= value <= high),
+                     "source": source, "basis": kpi_basis(source["en"])}
     variants = {}
     for v in artifact["variants"]:
         m = v["trace"]["metrics"]

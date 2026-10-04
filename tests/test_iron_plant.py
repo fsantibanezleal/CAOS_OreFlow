@@ -64,6 +64,41 @@ def test_features_and_pairs():
     assert protocol["pair_rows"] == 3_701
 
 
+def test_held_labels_are_named_and_scored_apart():
+    """S-16: a laboratory value repeated unchanged over three or more consecutive valid hours is a held run; the rule on
+    a synthetic frame, then the record's counts and the scores with and without the pairs that touch a run."""
+    frame = _frame(9)
+    # hours 2, 3 and 4 share one label (a held run of three); hours 6 and 7 share one (a repeat, too short to be held)
+    for h, value in ((3, None), (4, None), (7, None)):
+        frame.loc[frame["date"] == frame["date"].min() + pd.Timedelta(hours=h), lane.TARGET] = None
+    frame[lane.TARGET] = frame[lane.TARGET].ffill()
+    hours, _ = lane.prepare_hours(frame)
+    held, counts = lane.held_runs(hours)
+    assert [d.hour for d in held.index[held.to_numpy()]] == [3, 4, 5]
+    assert (counts["repeated_label_hours"], counts["held_runs"], counts["held_hours"], counts["longest_run_hours"]) == (3, 1, 3, 3)
+    assert counts["longest_run_first_hour"] == "2017-03-10 03:00:00" and counts["longest_run_silica_pct"] == pytest.approx(2.2)
+    # a gap breaks a run: the same label an hour apart in the data but two hours apart in time is not a repeat
+    gapped = frame[frame["date"] != frame["date"].min() + pd.Timedelta(hours=3)]
+    held_gapped, counts_gapped = lane.held_runs(lane.prepare_hours(gapped)[0])
+    assert not held_gapped.any() and counts_gapped["held_runs"] == 0
+
+    a = _artifact()
+    h = a["held_labels"]
+    assert (h["run_hours_min"], h["repeated_label_hours"], h["repeated_both_assays_hours"], h["held_runs"]) == (3, 446, 409, 46)
+    assert (h["longest_run_hours"], h["longest_run_first_hour"], h["longest_run_silica_pct"]) == (73, "2017-07-31 20:00:00", 2.08)
+    assert (h["pairs_touching"], h["pairs_without"]) == (461, 3_240) and h["pairs_touching"] + h["pairs_without"] == a["protocol"]["pair_rows"]
+    # every traced hour says whether it touches a held run, and some do
+    traced = [row for fold in a["folds"] for row in fold["trace"]]
+    assert all(isinstance(row["held"], bool) for row in traced) and 0 < sum(row["held"] for row in traced) < len(traced)
+    # raw persistence scores a held pair as zero error, so it loses the most without them; the ranking stays
+    with_all, without = a["pooled_scores"], h["pooled_scores_without"]
+    assert without["previous_lab"]["mae_pct_points"] > with_all["previous_lab"]["mae_pct_points"] + 0.04
+    for scores in (with_all, without):
+        assert min(scores, key=lambda m: scores[m]["mae_pct_points"]) == "previous_lab"
+        assert min(scores, key=lambda m: scores[m]["rmse_pct_points"]) == "ar1_previous_lab"
+    assert h["repeated_assay_share_without"] < 0.05 < a["repeated_assay_share"]
+
+
 def test_forward_windows_and_embargo():
     folds = _artifact()["folds"]
     assert len(folds) == 3
@@ -92,6 +127,16 @@ def test_the_fitted_last_assay_is_the_comparator():
     for fold in _artifact()["folds"]:
         assert 0.6 < fold["ar1"]["slope"] < 0.8
     assert 0.1 < _artifact()["repeated_assay_share"] < 0.2
+    # S-16: the same holds without the pairs that touch a held label, except that raw persistence is then no longer
+    # better than the fitted last assay under MAE beyond the interval: that advantage was the held labels
+    clean = {(c["a"], c["b"], c["metric"]): c for c in _artifact()["held_labels"]["comparisons_without"]}
+    assert clean[("ridge_with_previous_lab", "previous_lab", "mae")]["interval_95"][0] > 0.0
+    assert clean[("ridge_with_previous_lab", "previous_lab", "rmse")]["interval_95"][1] < 0.0
+    for metric in ("mae", "rmse"):
+        assert clean[("ridge_with_previous_lab", "ar1_previous_lab", metric)]["interval_95"][0] > 0.0, metric
+    assert diff[("ar1_previous_lab", "previous_lab", "mae")]["interval_95"][0] > 0.0
+    low, high = clean[("ar1_previous_lab", "previous_lab", "mae")]["interval_95"]
+    assert low < 0.0 < high
 
 
 def test_no_set_point_advice():

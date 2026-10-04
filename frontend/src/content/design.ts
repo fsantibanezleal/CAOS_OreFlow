@@ -9,7 +9,7 @@ import type { Bi } from './doc';
 export const VARIANT_KINDS: Array<{ id: string; label: Bi; input: string; factor: number; except?: Record<string, number> }> = [
   { id: 'harder_ore', label: { en: 'Harder ore', es: 'Mineral más duro' }, input: 'work_index_kwh_t', factor: 1.25 },
   { id: 'coarser_grind', label: { en: 'Coarser grind', es: 'Molienda más gruesa' }, input: 'target_p80_um', factor: 1.35 },
-  { id: 'higher_throughput', label: { en: 'Higher throughput', es: 'Más tonelaje' }, input: 'throughput_tph', factor: 1.25 },
+  { id: 'higher_throughput', label: { en: 'Higher throughput', es: 'Más tratamiento' }, input: 'throughput_tph', factor: 1.25 },
   { id: 'more_collector', label: { en: 'More collector', es: 'Más colector' }, input: 'collector_gpt', factor: 1.6, except: { phosphate_clay: 1.4 } },
   { id: 'more_air', label: { en: 'More air', es: 'Más aire' }, input: 'jg_cm_s', factor: 1.4 },
   { id: 'larger_bleed', label: { en: 'Larger bleed', es: 'Mayor purga' }, input: 'gravity_bleed', factor: 2.0 },

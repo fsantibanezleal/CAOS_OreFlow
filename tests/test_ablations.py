@@ -2,8 +2,10 @@
 state still closes its balances, and a case without the mechanism is not applicable rather than a zero effect."""
 from __future__ import annotations
 
+import json
 from dataclasses import replace
 from functools import lru_cache
+from pathlib import Path
 
 import pytest
 
@@ -42,6 +44,10 @@ def test_closure_with_each_switch_off(case_id):
         assert entry["balance"] <= 1e-9, (case_id, name, entry["balance"])
         assert "negative_mass" not in entry["flags"], (case_id, name)
         assert set(entry["delta"]) == set(OUTPUTS)
+    # AB-02 as amended (W-03): the committed study record names every switch for the case, and declares each one
+    study = json.loads((Path(__file__).resolve().parents[1] / "data" / "derived" / "studies.json").read_text(encoding="utf-8"))
+    assert list(study["switches"]) == list(SWITCHES)
+    assert list(study["cases"][case_id]["ablations"]) == list(SWITCHES)
 
 
 def test_not_applicable_is_not_zero():

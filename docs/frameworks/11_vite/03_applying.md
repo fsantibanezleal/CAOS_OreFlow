@@ -18,8 +18,8 @@ const benchmark = JSON.parse(readFileSync(fileURLToPath(new URL('../../../data/d
 describe('the Benchmark page', () => {
   it('states how many variants the optimizer solved', () => {
     const records = Object.values(benchmark.optimization).flatMap(variants => Object.values(variants));
-    expect(records).toHaveLength(72);
-    expect(records.filter(r => r.status === 'optimal')).toHaveLength(70);     // the page says 70 of the 72
+    expect(records).toHaveLength(96);
+    expect(records.filter(r => r.status === 'optimal')).toHaveLength(94);     // the page says 94 of the 96
   });
 });
 ```
@@ -34,16 +34,16 @@ canvas Node does not have.
 
 ## Changing where the site is served
 
-The base path is a build input, never a code change: `VITE_BASE_PATH=/some/path/ npm run build`. Then
-check three things, which break together when the base is wrong:
+OreFlow is served from the root of one host, the VPS (`base: '/'` in `vite.config.ts`). Moving it means
+changing its deploy class first (CAOS's deploy rules allow one deploy place per product), then checking
+three things, which break together when the base is wrong:
 
 1. artifact requests use `import.meta.env.BASE_URL` (`lib/artifacts.ts`), never an absolute `/data/...`;
-2. the router's `basename` matches (see `main.tsx`);
-3. the host answers deep links: GitHub Pages through the plugin's per-route `index.html`, a server
-   through a fallback like the service's `SpaStaticFiles`.
+2. the router's `basename` matches (`main.tsx` sets none, for the root);
+3. the host answers deep links, as the service's `SpaStaticFiles` does.
 
-Probe both `/route` and `/route/` on the real host: Pages redirects one to the other, and a relative URL
-that works on one breaks on the other.
+Probe both `/route` and `/route/` on the real host: a relative URL that works on one can break on the
+other.
 
 ## Traps of a static build
 

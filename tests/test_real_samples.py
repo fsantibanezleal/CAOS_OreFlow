@@ -151,3 +151,20 @@ def test_the_comparison_states_its_dependences():
     base = h["soft_720_record"]["mean_gap_pp"]
     assert max(abs(w["deposit_median_for_all"]["mean_gap_pp"] - base), abs(w["global_nearest"]["mean_gap_pp"] - base)) < 2.0
     assert min(abs(w["all_minus_shift"]["mean_gap_pp"] - base), abs(w["all_plus_shift"]["mean_gap_pp"] - base)) > 5.0
+
+
+def test_the_sample_ore_is_what_the_design_says():
+    """S-21 (review of 2026-10-02): a sample's ore keeps none of the case's own gangue but quartz; pyrite enters only
+    when the allocation gives it (the chalcopyrite-and-pyrite band), magnetite only when the allocation gives it, and
+    quartz closes the mass. The design document states this, not the case's gangue in its authored proportions."""
+    deficient = rs.allocate(5000.0, 1500.0, 30000.0)
+    rich = rs.allocate(5000.0, 9000.0, 30000.0)
+    assert deficient["band"] != "chalcopyrite_pyrite" and rich["band"] == "chalcopyrite_pyrite"
+    ids = lambda ore: [m.id for m in ore.minerals]  # noqa: E731
+    lean = rs.sample_ore(deficient, 0.5, 18.0)
+    assert "pyrite" not in ids(lean) and ids(lean)[-1] == "quartz" and "magnetite" in ids(lean)
+    full = rs.sample_ore(rich, 0.5, 18.0)
+    assert "pyrite" in ids(full) and ids(full)[-1] == "quartz"
+    design = (Path(__file__).resolve().parents[1] / "docs" / "design" / "features" / "real-samples" / "design.md").read_text(encoding="utf-8")
+    assert "in its authored proportions" not in design and "pyrite enters only when the allocation gives it" in design
+    assert "the Methods view shows the soft-sensor record" not in design

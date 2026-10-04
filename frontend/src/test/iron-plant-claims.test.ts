@@ -52,6 +52,38 @@ describe('the industrial-quality tab says what the soft-sensor artifact holds', 
     expect(text('es')).toMatch(/0,707 puntos frente a 0,767/);
   });
 
+  it('the repeated laboratory values and the scores without them (S-16)', () => {
+    const h = a.held_labels;
+    const without = (id: string, metric: 'mae_pct_points' | 'rmse_pct_points' = 'mae_pct_points') => h.pooled_scores_without[id][metric];
+    expect([h.run_hours_min, h.held_runs, h.longest_run_hours, h.pairs_touching, a.protocol.pair_rows]).toEqual([3, 46, 73, 461, 3_701]);
+    expect(h.pairs_touching + h.pairs_without).toBe(a.protocol.pair_rows);
+    // every error that uses the laboratory rises without those pairs, under both metrics
+    for (const id of ['previous_lab', 'ar1_previous_lab', 'ridge_with_previous_lab', 'boosting_with_previous_lab']) {
+      expect(without(id), id).toBeGreaterThan(mae(id));
+      expect(without(id, 'rmse_pct_points'), id).toBeGreaterThan(a.pooled_scores[id].rmse_pct_points);
+    }
+    expect([Number(mae('previous_lab').toFixed(3)), Number(without('previous_lab').toFixed(3))]).toEqual([0.464, 0.510]);
+    expect(Number((without('ridge') - without('train_mean')).toFixed(3))).toBe(0.014);
+    // each metric keeps its winner
+    const ids = Object.keys(h.pooled_scores_without);
+    expect(ids.reduce((b, id) => (without(id) < without(b) ? id : b))).toBe('previous_lab');
+    expect(ids.reduce((b, id) => (without(id, 'rmse_pct_points') < without(b, 'rmse_pct_points') ? id : b))).toBe('ar1_previous_lab');
+    // the previous assay against the fitted last assay under MAE: beyond the interval with every pair, inside it without
+    const pick = (list: typeof a.comparisons) => list.find(c => c.a === 'ar1_previous_lab' && c.b === 'previous_lab' && c.metric === 'mae')!;
+    const all = pick(a.comparisons), clean = pick(h.comparisons_without);
+    const three = (v: number) => Number(v.toFixed(3));
+    expect([three(all.difference_pct_points), three(all.interval_95[0]), three(all.interval_95[1])]).toEqual([0.023, 0.004, 0.043]);
+    expect([three(clean.difference_pct_points), three(clean.interval_95[0]), three(clean.interval_95[1])]).toEqual([0.008, -0.009, 0.025]);
+    expect(text('en')).toMatch(/in 46 runs the silica label stays unchanged for three or more consecutive hours, the longest for 73 hours, and 461 of the 3,701 pairs touch such a run/);
+    expect(text('en')).toMatch(/the previous assay's mean absolute error from 0\.464 to 0\.510 points\), ridge moves from 0\.001 points below the training mean to 0\.014 above it, and each metric keeps its winner/);
+    expect(text('en')).toMatch(/\(0\.008 points, -0\.009 to 0\.025; with every pair, 0\.023 points, 0\.004 to 0\.043\)/);
+    expect(text('es')).toMatch(/en 46 tramos la etiqueta de sílice no cambia durante tres o más horas consecutivas, el más largo por 73 horas, y 461 de los 3\.701 pares/);
+    expect(text('es')).toMatch(/de 0,464 a 0,510 puntos\), ridge pasa de 0,001 puntos bajo la media de entrenamiento a 0,014 sobre ella/);
+    expect(text('es')).toMatch(/\(0,008 puntos, -0,009 a 0,025; con todos los pares, 0,023 puntos, 0,004 a 0,043\)/);
+    // every traced hour carries the mark the views draw
+    expect(a.folds.every(f => f.trace.every(row => typeof row.held === 'boolean'))).toBe(true);
+  });
+
   it('no set-point advice, and the separation from the copper circuit (IS-06)', () => {
     for (const lang of ['en', 'es'] as const) {
       expect(text(lang).toLowerCase()).not.toMatch(/\brecommend|\bset point to|\bshould (raise|lower|increase|decrease)/);

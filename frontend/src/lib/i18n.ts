@@ -37,7 +37,7 @@ const METRICS: Record<string, T> = {
   specific_energy_grinding_kwh_t: { en: 'Grinding energy', es: 'Energía de molienda' },
   specific_energy_regrind_kwh_t: { en: 'Regrind energy', es: 'Energía de remolienda' },
   specific_energy_total_kwh_t: { en: 'Specific energy', es: 'Energía específica' },
-  bond_energy_kwh_t: { en: 'Bond energy for the reduction', es: 'Energía de Bond de la reducción' },
+  bond_energy_kwh_t: { en: 'Bond energy, standard circuit', es: 'Energía de Bond, circuito estándar' },
   operating_work_index_kwh_t: { en: 'Operating work index', es: 'Índice de trabajo operacional' },
   bond_efficiency_ratio: { en: 'Bond efficiency ratio', es: 'Razón de eficiencia de Bond' },
   energy_rittinger_kwh_t: { en: 'Rittinger (comparison)', es: 'Rittinger (comparación)' },
@@ -111,7 +111,7 @@ export const provenanceText = (value: string, lang: Lang): string => PROVENANCE[
 
 /** A flag's short name, for tables and the HUD where the full sentence does not fit. */
 const FLAG_SHORT: Record<string, T> = {
-  power_limited: { en: 'Power-limited', es: 'Limitado por potencia' },
+  power_limited: { en: 'Power-limited', es: 'Tope de potencia' },
   target_unreachable: { en: 'Target unreachable', es: 'Objetivo inalcanzable' },
   circulating_load_unreachable: { en: 'Load unreachable', es: 'Carga inalcanzable' },
   mill_water_negative: { en: 'No mill water', es: 'Sin agua en el molino' },
@@ -241,7 +241,7 @@ export const UI = {
   modified: { en: 'Modified from the variant', es: 'Modificado respecto de la variante' },
   reset: { en: 'Reset to the variant', es: 'Volver a la variante' },
   openFocus: { en: 'Open the focus view', es: 'Abrir la vista de foco' },
-  exitFocus: { en: 'Back to the workbench', es: 'Volver al laboratorio' },
+  exitFocus: { en: 'Back to the workbench', es: 'Volver al simulador' },
   computing: { en: 'Computing', es: 'Calculando' },
   rejected: { en: 'Outside the operating envelope', es: 'Fuera de la envolvente de operación' },
   sampleBase: { en: 'Sample', es: 'Muestra' },
@@ -251,7 +251,7 @@ export const UI = {
   cancel: { en: 'Cancel', es: 'Cancelar' },
   resetZoom: { en: 'Reset zoom', es: 'Restablecer zoom' },
   legend: { en: 'Series: click to hide or show', es: 'Series: clic para ocultar o mostrar' },
-  noFlags: { en: 'Within every engine check', es: 'Sin avisos del motor' },
+  noFlags: { en: 'No engine flags', es: 'Sin avisos' },
   loading: { en: 'Loading', es: 'Cargando' },
   basic: { en: 'Basic', es: 'Básico' },
   advanced: { en: 'Advanced', es: 'Avanzado' },

@@ -13,9 +13,10 @@ import type { OperatingPoint } from '../../engine/model';
 import { CASE_CONTEXT, VARIANT_NOTES } from '../../content/cases';
 import { familyFormulas } from '../../content/equations';
 import type { Benchmark, CaseArtifact, CaseIndex } from '../../lib/artifacts.types';
-import { formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
+import { formatRange, formatSignificant, formatValue, formatWithUnit, localizeTex, type Lang } from '../../lib/format';
 import { flagShort, formulaText, metricLabel, mineralName, provenanceText } from '../../lib/i18n';
 import { CompareView } from './CompareView';
+import { withMath } from '../../lib/math';
 
 const TEXT = {
   label: { en: 'Case', es: 'Caso' },
@@ -44,6 +45,7 @@ const TEXT = {
   parameter: { en: 'Parameter', es: 'Parámetro' },
   input: { en: 'Operating input', es: 'Entrada de operación' },
   nominal: { en: 'Nominal', es: 'Nominal' },
+  cutOff: { en: 'off: the cut follows the grind target', es: 'apagado: el corte sigue al objetivo de molienda' },
   bounds: { en: 'Contract bounds', es: 'Límites del contrato' },
   crusher: { en: 'Crusher feed F80', es: 'F80 alimentación del chancador' },
   mill: { en: 'Ball mill installed power', es: 'Potencia instalada del molino de bolas' },
@@ -114,13 +116,13 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
   const plantRows: Array<[string, string]> = [
     [TEXT.crusher[lang], formatWithUnit(plant.crusher.feed_f80_um, 'um', lang)],
     [TEXT.mill[lang], formatWithUnit(plant.mill.installed_power_kw, 'kW', lang)],
-    [TEXT.cyclone[lang], `${formatSignificant(plant.cyclone.diameter_cm, lang, 3)} cm`],
+    [TEXT.cyclone[lang], `${formatSignificant(plant.cyclone.diameter_cm, lang, 3)} cm`],
   ];
   if (plant.flotation) {
     const f = plant.flotation;
-    plantRows.push([TEXT.rougher[lang], `${formatSignificant(f.rougher.cell_volume_m3, lang, 3)} m³`]);
-    plantRows.push([TEXT.cleaner[lang], `${f.cleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.cleaner.cell_volume_m3, lang, 3)} m³`]);
-    if (f.recleaner) plantRows.push([TEXT.recleaner[lang], `${f.recleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.recleaner.cell_volume_m3, lang, 3)} m³`]);
+    plantRows.push([TEXT.rougher[lang], `${formatSignificant(f.rougher.cell_volume_m3, lang, 3)} m³`]);
+    plantRows.push([TEXT.cleaner[lang], `${f.cleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.cleaner.cell_volume_m3, lang, 3)} m³`]);
+    if (f.recleaner) plantRows.push([TEXT.recleaner[lang], `${f.recleaner.cells} ${TEXT.cells[lang]} ${formatSignificant(f.recleaner.cell_volume_m3, lang, 3)} m³`]);
     if (f.regrind_energy_kwh_t > 0) plantRows.push([TEXT.regrind[lang], formatWithUnit(f.regrind_energy_kwh_t, 'kWh/t', lang)]);
   }
   if (plant.gravity) plantRows.push([TEXT.gravityUnit[lang], formatWithUnit(100 * plant.gravity.max_recovery, '%', lang)]);
@@ -132,6 +134,10 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
   const shown = (name: string, value: number) => {
     const spec = declared[name];
     return spec.display_scale !== 1 ? `${formatValue(value * spec.display_scale, spec.display_unit, lang)}${spec.display_unit}` : formatWithUnit(value, unitOf(name), lang);
+  };
+  const shownRange = (name: string, low: number, high: number) => {
+    const spec = declared[name];
+    return spec.display_scale !== 1 ? `${formatRange(low * spec.display_scale, high * spec.display_scale, spec.display_unit, lang, false)}${spec.display_unit}` : formatRange(low, high, unitOf(name), lang);
   };
   const delta = (key: string, v: (typeof artifact.variants)[number]) => formatWithUnit(v.trace.metrics[key], units[key], lang);
 
@@ -159,7 +165,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
               return (
                 <Fragment key={key}>
                   <tr><th scope="row">{metricLabel(key, lang)}</th><td>{formatWithUnit(value, units[key], lang)}</td>
-                    <td>{`${formatValue(lo, units[key], lang)} – ${formatWithUnit(hi, units[key], lang)}`}</td>
+                    <td>{formatRange(lo, hi, units[key], lang)}</td>
                     <td><span className={inside ? 'of-tag ok' : 'of-tag'}>{inside ? TEXT.within[lang] : TEXT.outside[lang]}</span></td></tr>
                   {/* the range's own source: every range is taken from one, or labelled authored (#58) */}
                   {source && <tr className="of-kpi-source"><td colSpan={4}>{source}</td></tr>}
@@ -196,7 +202,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
               <tr key={x.id}><th scope="row">{mineralName(x.id, lang)}</th><td>{role(x.id)}</td>
                 <td>{x.liberation_size_um > 0 ? formatWithUnit(x.liberation_size_um, 'um', lang) : ''}</td>
                 <td>{x.liberation_size_um > 0 ? formatWithUnit(100 * x.composite_content, '%', lang) : ''}</td>
-                <td>{`${formatSignificant(mineralTable[x.id]?.density, lang, 3)} t/m³`}</td></tr>
+                <td>{`${formatSignificant(mineralTable[x.id]?.density, lang, 3)} t/m³`}</td></tr>
             ))}</tbody>
           </table>
           <p className="of-footnote">{ore.payables.map(p => `${TEXT.head[lang]} ${formulaText(p.species)} ${formatWithUnit(p.head_grade, p.unit, lang)}`).join('; ')}</p>
@@ -207,14 +213,16 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
           <table className="of-table">
             <thead><tr><th scope="col">{TEXT.input[lang]}</th><th scope="col">{TEXT.nominal[lang]}</th><th scope="col">{TEXT.bounds[lang]}</th></tr></thead>
             <tbody>{Object.keys(entry.inputs).map(name => (
-              <tr key={name}><th scope="row">{declared[name].label[lang]}</th><td>{shown(name, artifact.nominal[name as keyof OperatingPoint])}</td>
-                <td>{`${shown(name, entry.inputs[name].min)} – ${shown(name, entry.inputs[name].max)}`}</td></tr>
+              <tr key={name}><th scope="row">{declared[name].label[lang]}</th>
+                {/* U-28: a control whose nominal is its off value (the classifier cut) reads off, not 0.0 µm */}
+                <td>{entry.inputs[name].off !== undefined && artifact.nominal[name as keyof OperatingPoint] === entry.inputs[name].off ? TEXT.cutOff[lang] : shown(name, artifact.nominal[name as keyof OperatingPoint])}</td>
+                <td>{shownRange(name, entry.inputs[name].min, entry.inputs[name].max)}</td></tr>
             ))}</tbody>
           </table>
         </section>
         <section>
           <h3>{TEXT.formalization[lang]}</h3>
-          {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={localizeTex(f.tex, lang)} caption={f.caption[lang]} />)}
+          {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={localizeTex(f.tex, lang)} caption={withMath(f.caption[lang], lang)} />)}
         </section>
       </div>
     </div>
