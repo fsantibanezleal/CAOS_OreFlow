@@ -682,7 +682,20 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   }));
   const sampleView = await measure(page);
   await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
-  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && sampleCheck.chart >= 1 && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, ...sampleView });
+  // below the large layout the chart of every sample has its own sub-tab: under the facts it got a 60 px plot at
+  // 1280x800 in Spanish (0.08 gate); there it is held to the view rules like any chart
+  const sampleTabs = page.locator('.of-view-sample .subtablist [role=tab]');
+  const tabbed = await sampleTabs.count() === 2;
+  record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && (tabbed || sampleCheck.chart >= 1) && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, tabbed, ...sampleView });
+  if (tabbed) {
+    await sampleTabs.nth(1).click();
+    await settleCharts(page, 1);
+    const chartView = await measure(page);
+    const drawn = await page.evaluate(() => document.querySelectorAll('.of-view-sample .subtabpanel:not([hidden]) .of-plot canvas').length);
+    await page.screenshot({ path: join(OUT, `source-sample-chart-${tag}.png`) });
+    record(`${tag} source sample chart`, drawn >= 1 && chartView.largestViz >= 0.3 && viewOk(chartView, lang), { drawn, ...chartView });
+    await sampleTabs.nth(0).click();
+  }
   await page.locator('.of-viewbar [role=tab]').nth(VIEWS.indexOf('grinding')).click();
   await settleCharts(page, 1);
   const sampleGrinding = await measure(page);

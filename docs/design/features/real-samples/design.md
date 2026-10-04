@@ -62,7 +62,9 @@ record keeps:
 
 The Case view of a sample charts every sample against its test from the record: the engine at the case's nominal
 state and the lane's out-of-fold ridge prediction, with the chosen sample at the current state, which moves with the
-controls (0.08.000: on a large screen the view had held two short tables on an empty screen).
+controls. On a large screen the chart spans the view under the facts and the comparison; below that it has a
+sub-tab of its own, as the synthetic Case view's comparison does (0.08.000: on a large screen the view had held two
+short tables on an empty screen, and under the facts at 1280 x 800 the chart got a 60 px plot).
 
 ## Workbench
 

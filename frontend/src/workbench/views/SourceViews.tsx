@@ -5,6 +5,7 @@
  * not run in the engine (the plant's reverse cationic circuit is not an engine family), so every engine view says
  * so, and the Case view shows the hour: its sensors, its assays, and the soft sensor's forecast of the next hour.
  */
+import { SubTabs } from '@fasl-work/caos-app-shell';
 import { useEffect, useState } from 'react';
 import type uPlot from 'uplot';
 import { Chart } from '../../components/charts/Chart';
@@ -82,6 +83,9 @@ export const SOURCE_TEXT = {
   laneRidge: { en: 'GeoMet lane, ridge out of fold', es: 'Vía GeoMet, ridge fuera de la partición' },
   thisSample: { en: 'This sample, this state', es: 'Esta muestra, este estado' },
   equal: { en: 'Prediction equals the test', es: 'Predicción igual al ensayo' },
+  tabsLabel: { en: 'GeoMet sample', es: 'Muestra GeoMet' },
+  thisTab: { en: 'This sample', es: 'Esta muestra' },
+  allTab: { en: (n: number) => `All ${n} samples`, es: (n: number) => `Las ${n} muestras` },
   hourTitle: { en: 'The hour and the next one', es: 'La hora y la siguiente' },
   sensor: { en: 'Sensor (hourly median)', es: 'Sensor (mediana horaria)' },
   labNow: { en: 'Assays of this hour', es: 'Ensayes de esta hora' },
@@ -219,11 +223,12 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
   const shares = Object.entries(sample.allocation.copper_shares).filter(([, v]) => v > 0);
   const lanePredictions = sample.geomet_lane?.predictions_pct ?? {};
   // on a large screen the facts and the comparison sit side by side at their own heights and the chart spans the
-  // view below them: in the main column it left the comparison panel 28% filled at 2560 x 1440 (0.08 gate)
+  // view below them: in the main column it left the comparison panel 28% filled at 2560 x 1440. Below that the chart
+  // has a sub-tab of its own, as the synthetic Case view's comparison does: under the facts it got a 60 px plot at
+  // 1280 x 800 in Spanish (0.08 gate)
   const large = useLarge();
-  const chart = <SamplesChart record={record} sample={sample} recovery={recovery} lang={lang} onCursor={onCursor} />;
-  return (
-    <div className={large ? 'of-view of-view-sample of-view-sample-wide' : 'of-view of-view-sample'}>
+  const chart = <div className="of-sample-chart"><SamplesChart record={record} sample={sample} recovery={recovery} lang={lang} onCursor={onCursor} /></div>;
+  const facts = (
       <div className="of-split">
         <div className="of-sample-main">
           <table className="of-table">
@@ -242,7 +247,6 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
           </table>
           <p className="of-facts-title">{SOURCE_TEXT.authors[lang]}</p>
           <p className="of-sample-text">{SOURCE_TEXT.authored[lang]}</p>
-          {!large && chart}
         </div>
         <div className="of-aside">
           <table className="of-table">
@@ -261,7 +265,15 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
           <p className="of-footnote">{gapFrame(record, lang)}</p>
         </div>
       </div>
-      {large && <div className="of-sample-chart">{chart}</div>}
+  );
+  if (large) return <div className="of-view of-view-sample of-view-sample-wide">{facts}{chart}</div>;
+  const tabs = [
+    { id: 'sample', label: SOURCE_TEXT.thisTab[lang], content: facts },
+    { id: 'samples', label: SOURCE_TEXT.allTab[lang](record.samples.length), content: chart },
+  ];
+  return (
+    <div className="of-view of-view-tabbed of-view-sample">
+      <SubTabs tabs={tabs} ariaLabel={SOURCE_TEXT.tabsLabel[lang]} />
     </div>
   );
 }

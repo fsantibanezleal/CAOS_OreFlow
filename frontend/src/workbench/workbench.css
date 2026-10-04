@@ -227,8 +227,8 @@ input, select, textarea { font: inherit; }
   /* a sample: the facts and the comparison at their own heights, and the samples chart across the view below */
   .of-view-sample-wide { gap: 10px; }
   .of-view-sample-wide > .of-split { flex: none; grid-template-rows: auto; }
-  .of-view-sample-wide > .of-split > .of-sample-main { grid-template-rows: auto auto auto; align-content: start; overflow: visible; }
-  .of-view-sample-wide > .of-sample-chart { flex: 1 1 auto; min-height: 300px; display: grid; grid-template-rows: minmax(0, 1fr); }
+  .of-view-sample-wide > .of-split > .of-sample-main { overflow: visible; }
+  .of-view-sample-wide > .of-sample-chart { min-height: 300px; }
   .of-view-sample > .of-split > .of-aside, .of-view-hour > .of-split > .of-aside { flex-direction: column; flex-wrap: nowrap; max-height: none; }
   .of-view-sample > .of-split > .of-aside > .of-table, .of-view-hour > .of-split > .of-aside > .of-table { width: 100%; }
 }
@@ -419,8 +419,10 @@ input, select, textarea { font: inherit; }
 .of-footnote { margin: 0; font-size: 0.7rem; line-height: 1.4; color: var(--color-fg-subtle); }
 /* RS-09: the sample's Case view reads as a document: its tables and text in order, the tables' prose wrapping so a
  * phone never scrolls sideways */
-/* the sample's facts, then the chart of every sample against its test in the height that is left */
-.of-sample-main { display: grid; grid-template-rows: auto auto auto minmax(240px, 1fr); gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+.of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
+/* every sample against its test: its own sub-tab, or across the view under the facts on a large screen */
+.of-sample-chart { flex: 1 1 auto; display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; }
+.of-view-sample .subtabpanel > .of-split { flex: 1 1 auto; }
 /* RS-07: an hour's main column is the window's chart over the forecasts and their note. A two-row stack gave the note
  * an implicit third row that ran 60 px past the frame at 1280x800; the chart now takes what the rows leave, at least
  * 220 px, and the column scrolls where the frame is shorter than its content */
@@ -529,7 +531,7 @@ input, select, textarea { font: inherit; }
   .of-compare-charts { grid-auto-rows: 260px; }
   .of-hour-main, .of-sample-main, .of-split > .of-aside, .of-panel, .of-side { overflow: visible; }
   .of-hour-main { grid-template-rows: 260px auto auto; }
-  .of-sample-main { grid-template-rows: auto auto auto 280px; }
+  .of-sample-chart { grid-template-rows: 320px; }
   .of-table-scroll { overflow-x: auto; overflow-y: visible; }
   .of-table-scroll thead th { position: static; }
   .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }
