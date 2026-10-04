@@ -2,6 +2,32 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.08.001, 2026-10-04
+
+A patch of 0.08.000: the service answers a direct request for a page again.
+
+### Local gate
+
+- The release bake of 2026-10-04 into a sandbox seeded with the committed measured-lane records and models, on an
+  otherwise idle machine: learning 2646 s on CUDA (RTX 4070 Laptop GPU), cases 905 s on 12 workers, studies 68 s,
+  real samples 64 s, every other stage under 1 s. `validation.json` records `passed: true`. Compared leaf by leaf with
+  0.08.000's records: 397,879 values equal; the differences are the version stamps and the manifest hashes that
+  follow, the timings, and 183 random-forest scores in their last bits (at most 4.4e-14 relative). The exported
+  networks, the scalers and the screen are byte-identical. It was adopted whole.
+- `scripts/check_artifacts.py` and the guards pass on the adopted records.
+- The suites on the final tree: Python 541 of 541 (307 s); frontend 439 of 439 (218 s). The route test runs the service's fallback with and without
+  a `404.html`; its first case fails on 0.08.000.
+- The browser gate ran against the service itself (`uvicorn app.main:app`, as the VPS serves the site), not the Vite
+  preview, whose own fallback had hidden the defect. Its first run there stopped at the learned lane: Starlette took
+  the ONNX runtime module's type from Windows' table, `text/plain`, and the browser refused it (the VPS, on Linux,
+  serves it as JavaScript). The service now declares `.mjs`, `.js` and `.wasm` itself, with a test. The rerun:
+  1,332 of 1,332 checks on the release build (`index-CzFFuYb_.js`): the full matrix in 16 combinations, the review
+  pass and the phone and tablet pass, with every content page reached by its direct route.
+
+### Remote gate
+
+Recorded after the deploy.
+
 ## 0.08.000, 2026-10-04
 
 ### Local gate
