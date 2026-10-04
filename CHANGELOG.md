@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [0.08.001] - 2026-10-04
+
+A patch of 0.08.000: the service answers a direct request for a page again.
+
+### Fixed
+
+- A direct request for a content page (`/methodology`, `/benchmark`, a focus route) answered 404 on the VPS. The
+  service's fallback to the app read a 404 response, but Starlette's static files answer a miss with a 404
+  response only when the build holds a `404.html`, and raise otherwise; only the GitHub Pages build path, removed
+  in 0.08.000, wrote one. The fallback now takes both forms of the miss, a test runs it with and without
+  `404.html` (it fails on 0.08.000), and the release's browser gate runs against the service itself instead of
+  the Vite preview, whose own fallback had hidden the defect. Found by the 0.08.000 deployment's external checks.
+- The service declares the types of the files it serves that the browser checks: the ONNX runtime's `.mjs` module
+  as JavaScript, and `.wasm`. It took them from the host's table, which maps `.mjs` to `text/plain` on Windows, so
+  the learned lane never loaded when the service ran there (found by this release's gate against the service; the
+  VPS, on Linux, served it right). A test serves both through the service with a wrong host table.
+
+### Records
+
+- The release bake, compared with 0.08.000's leaf by leaf: 397,879 values equal; the version stamps and the hashes
+  that follow change, with the timings and 183 random-forest scores in their last bits (at most 4.4e-14 relative).
+  The networks, scalers and screen are byte-identical.
+
 ## [0.08.000] - 2026-10-04
 
 The fixes of the adversarial review of 0.07.000 (issue #60: seven dimensions, each verified by a second reviewer;
