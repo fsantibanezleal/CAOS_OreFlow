@@ -18,6 +18,10 @@ PATHS = ("data/derived/EX01_", "data/derived/EX02_", "data/derived/EX03_", "data
          ".github/workflows/deploy-pages.yml")
 # nor may a page or a doc send readers to that copy; the release history records it as it was
 DEPLOY_COPY = "fsantibanezleal.github.io/CAOS_OreFlow"
+# and no page, diagram or doc describes two deployments: the 0.08 sweep missed "the two deployments" in the modal
+# and "the two builds" in a caption, which a search for the URL alone cannot find
+TWO_HOSTS = ("two deployments", "dos despliegues", "two public hosts", "dos hosts públicos", "two builds", "dos compilaciones",
+             "both hosts", "ambos hosts", "built twice", "compila dos veces", "Pages mirror")
 HISTORY = {"CHANGELOG.md", "docs/release-verification.md"}
 
 
@@ -38,6 +42,9 @@ def main() -> int:
                 hits.append(f"content: {rel} contains {token}")
         if rel not in HISTORY and DEPLOY_COPY in content:
             hits.append(f"content: {rel} points to the removed Pages copy ({DEPLOY_COPY})")
+        if rel not in HISTORY and not rel.endswith("/tasks.md"):
+            lowered = content.lower()
+            hits.extend(f"content: {rel} describes two deployments ({p})" for p in TWO_HOSTS if p.lower() in lowered)
     if hits:
         print("template residue found:")
         print("\n".join(f"  {h}" for h in hits))

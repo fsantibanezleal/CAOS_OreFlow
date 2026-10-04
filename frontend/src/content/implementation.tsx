@@ -464,7 +464,7 @@ const RELEASE: Topic = {
     { en: 'The Python suite and the browser gate run locally, not in CI, because they solve and train; a release record states that they passed.', es: 'La batería en Python y el control en navegador corren localmente, no en CI, porque resuelven y entrenan; el registro de cada versión dice que pasaron.' },
     { en: 'The gates prove that the code does what the design says; the design\'s scope, authored cases, still bounds what the results mean.', es: 'Los controles prueban que el código hace lo que dice el diseño; el alcance del diseño, casos de autor, sigue acotando lo que significan los resultados.' },
   ],
-  figure: { caption: { en: 'Local gates first, then the task branch, develop and main, then the two builds, each checked from outside.', es: 'Primero los controles locales, luego la rama de tarea, develop y main, luego las dos compilaciones, cada una verificada desde fuera.' }, render: lang => <ReleaseFigure lang={lang} /> },
+  figure: { caption: { en: 'Local gates first, then the task branch, develop and main, then the service on the VPS, checked from outside.', es: 'Primero los controles locales, luego la rama de tarea, develop y main, luego el servicio en el VPS, verificado desde fuera.' }, render: lang => <ReleaseFigure lang={lang} /> },
   refs: ['ears2009'],
 };
 

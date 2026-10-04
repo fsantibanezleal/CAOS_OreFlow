@@ -38,9 +38,15 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
     release (`OF_PARITY_TIMEOUT`). On the final tree, after the capture fixes below, 439 of 439 passed (211 s);
   - `OF_CORNERS=full`: the cut-mode envelope's corners in all 12 cases, 12 of 12 passed (182 s);
   - `OF_PARITY=full`: 96 of 96 variants passed, in six processes of two cases each.
-- The guards: content standards, template residue (520 tracked files), the SDD (103 live requirements with real
+- The guards: content standards, template residue (519 tracked files), the SDD (103 live requirements with real
   gates), the CI budget, the bilingual architecture diagrams, units and interface formulas; the use-case page check
   (13 pages match the records); the production build.
+- One deployment. The plan's deploy class is `vps-service` on the ML VPS, yet the template's GitHub Pages workflow
+  had published a second copy of the site since 0.02.001, and the releases had checked it as a mirror. This release
+  deletes the workflow and its build path (the `/CAOS_OreFlow/` base, the per-route copies of `index.html`; the
+  service answers every page route itself), disables Pages on the repository, and rewrites the pages, diagrams and
+  docs that described two hosts. The template-residue guard fails on the workflow or on any page or doc pointing to
+  the copy: on the 0.07 tree it names the workflow and three files.
 - The convergence verdicts (W-09): every feature's `tasks.md` gives each live requirement's gate and its result in
   this release's runs, the process engine's 43 rows included: 103 of 103 live requirements met, across the eight
   features (the GeoMet lane's seven with the process engine's, where its earlier verdicts are).
