@@ -30,10 +30,10 @@ of its cases does.
 | RS-04 | met: `test_work_index_assignment` passed |
 | RS-05 | met: `test_record_fields` passed; `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
 | RS-06 | met: `real-samples-parity.test.ts` passed (53 tests) |
-| RS-07 | met: `real-samples-claims.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
-| RS-08 | met: `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| RS-07 | met: `real-samples-claims.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| RS-08 | met: `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | RS-09 | met: `real-samples-claims.test.ts` passed (4 tests) |
-| RS-10 | met: `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| RS-10 | met: `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 
 11 of 11 met.
 

@@ -27,7 +27,7 @@ of its cases does.
 | CM-04 | met: `test_modes_agree_at_the_same_state` passed (12 cases) |
 | CM-05 | met: `test_cut_mode_closure` passed (24 cases); `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
 | CM-06 | met: `parity.test.ts` passed (96 tests) |
-| CM-07 | met: `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| CM-07 | met: `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | CM-08 | met: `methodology-claims.test.ts` passed (5 tests) |
 | CM-09 | met: `test_cut_mode_refuses_a_state_without_a_steady_state` passed (3 cases); `test_cut_mode_never_serves_an_impossible_state` passed (3 cases); `test_engine_refusal_is_a_rejection` passed; `refusal.test.ts` passed (5 tests) |
 

@@ -36,7 +36,7 @@ of its cases does.
 | OP-06 | met: `test_record_fields` passed; `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
 | OP-07 | met: `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
 | OP-08 | met: `optimizer-parity.test.ts` passed (96 tests with OF_PARITY=full) |
-| OP-09 | met: `worker-optimize.test.ts` passed (2 tests); `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| OP-09 | met: `worker-optimize.test.ts` passed (2 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | OP-10 | met: `test_weights_declared` passed; `contract.test.ts` passed (3 tests) |
 | OP-11 | met: `benchmark-claims.test.ts` passed (13 tests); `methodology-claims.test.ts` passed (5 tests); `implementation-claims.test.ts` passed (6 tests) |
 

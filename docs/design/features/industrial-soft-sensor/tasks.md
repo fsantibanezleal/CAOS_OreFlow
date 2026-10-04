@@ -22,7 +22,7 @@ of its cases does.
 | IS-02 | met: `test_interpolated_hours_excluded` passed |
 | IS-03 | met: `test_features_and_pairs` passed |
 | IS-04 | met: `test_forward_windows_and_embargo` passed |
-| IS-05 | met: `iron-plant-claims.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| IS-05 | met: `iron-plant-claims.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | IS-06 | met: `test_no_set_point_advice` passed; `iron-plant-claims.test.ts` passed (4 tests) |
 
 6 of 6 met.

@@ -25,7 +25,7 @@ of its cases does.
 | UQ-03 | met: `test_lhs_strata` passed; `lhs.test.ts` passed (2 tests) |
 | UQ-04 | met: `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
 | UQ-05 | met: `uncertainty-parity.test.ts` passed (12 tests) |
-| UQ-06 | met: `worker-uncertainty.test.ts` passed (2 tests); `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| UQ-06 | met: `worker-uncertainty.test.ts` passed (2 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | UQ-07 | met: `test_uncertainty_controls_declared` passed; `contract.test.ts` passed (3 tests) |
 | UQ-08 | met: `benchmark-claims.test.ts` passed (13 tests) |
 

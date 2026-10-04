@@ -32,10 +32,10 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
   passes on them; it had flagged the development bake's source notes.
 - The suites on the adopted records:
   - Python: 538 tests passed (1534 s, beside the frontend suite and the other job), and 538 of 538 again on the
-    final tree (399 s);
+    final tree (685 s);
   - frontend: the first run passed 435 of 436 (514 s); the one that failed was the optimizer parity's
     `copper_oxide/nominal`, which ran out of its 300 s on the loaded machine, and the limit is now raised for a
-    release (`OF_PARITY_TIMEOUT`). On the final tree, after the capture fixes below, 439 of 439 passed (211 s);
+    release (`OF_PARITY_TIMEOUT`). On the final tree, after the capture fixes and the one-deployment change below, 439 of 439 passed (187 s);
   - `OF_CORNERS=full`: the cut-mode envelope's corners in all 12 cases, 12 of 12 passed (182 s);
   - `OF_PARITY=full`: 96 of 96 variants passed, in six processes of two cases each.
 - The guards: content standards, template residue (519 tracked files), the SDD (103 live requirements with real
@@ -50,7 +50,7 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 - The convergence verdicts (W-09): every feature's `tasks.md` gives each live requirement's gate and its result in
   this release's runs, the process engine's 43 rows included: 103 of 103 live requirements met, across the eight
   features (the GeoMet lane's seven with the process engine's, where its earlier verdicts are).
-- The browser gate on the served build of the release (bundle `index-CnSiM6Dh.js`):
+- The browser gate on the served build of the release (bundle `index-NqgWRgWC.js`):
   - the full matrix (1280x800, 1600x900, 1920x1080 and 2560x1440; dark and light; English and Spanish), the
     review pass and the phone and tablet pass: 1,332 of 1,332 checks (1,240 in the matrix's 16 combinations, 12 in
     the review pass, 80 at 390x844 and 768x1024), and every capture read;
@@ -78,7 +78,9 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
     sub-tab to the view rules. A full matrix on that build passed 1,332 of 1,332; its captures showed the facts'
     column half empty beside a crowded comparison panel at 1600 x 900, so the comparison's two notes moved under
     the facts, and the first run after it caught "150 / µm" broken over two lines in the gap sentence, whose
-    numbers now keep their units on their line.
+    numbers now keep their units on their line. That build passed 1,332 of 1,332 again; the one-deployment
+    change then rewrote the Implementation page's deployment topic, its release figure and the modal's text, and
+    the final build passed 1,332 of 1,332, its captures of those views read.
 - The documentation (review of 0.07.000, W-01 to W-57): every methodology page from 02 to 18 that quotes a record,
   the data contracts, guide 03 and the manuscript are read by claims tests; methodology pages 03, 12 and 13 had kept
   0.07 numbers and are current. Claims were checked against their primary sources on 2026-10-03: the phosphate

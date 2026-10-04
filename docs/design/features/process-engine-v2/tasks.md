@@ -140,7 +140,7 @@ of its cases does.
 | GM-02 | met: `test_contract_and_missingness` passed |
 | GM-03 | met: `test_group_splits` passed |
 | GM-04 | met: `test_benchmark_matrix` passed |
-| GM-05 | met: `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| GM-05 | met: `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | GM-06 | met: `test_evidence_boundary` passed |
 | GM-07 | met: `test_assay_input_contract` passed; local batch smoke: `run_geomet.py --predict data/examples/geomet-assays.csv` fitted the local checkpoint and wrote the three models' predictions (85.7 to 86.3%) with the missing-assay count and the range flag for its one row, inside the reference range |
 

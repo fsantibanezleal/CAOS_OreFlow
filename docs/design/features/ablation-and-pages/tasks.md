@@ -23,10 +23,10 @@ of its cases does.
 | AB-02 | met: `test_closure_with_each_switch_off` passed (12 cases) |
 | AB-03 | met: `test_not_applicable_is_not_zero` passed; `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
 | AB-04 | met: `ablation-parity.test.ts` passed (12 tests) |
-| PG-01 | met: `pages.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
-| PG-02 | met: `pages.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| PG-01 | met: `pages.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| PG-02 | met: `pages.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 | PG-03 | met: `experiments-claims.test.ts` passed (9 tests); `implementation-claims.test.ts` passed (6 tests) |
-| PG-04 | met: `gate.mjs` on the served release build (`index-CnSiM6Dh.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
+| PG-04 | met: `gate.mjs` on the served release build (`index-NqgWRgWC.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, every capture read |
 
 8 of 8 met.
 
