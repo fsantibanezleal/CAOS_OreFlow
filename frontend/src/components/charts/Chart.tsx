@@ -43,6 +43,8 @@ export interface Series {
   label: string;
   colour?: Colour;
   points?: boolean;
+  /** The point diameter in pixels (7 by default): a highlighted point among many is drawn larger. */
+  pointSize?: number;
   dash?: number[];
   width?: number;
   /** Index (1-based, in `data`) of the series this one is filled down to, for a band. */
@@ -404,7 +406,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
             label: s.label, stroke, width: s.width ?? 2, dash: s.dash, show: !hiddenRef.current.has(s.label),
             ...(s.fillTo !== undefined ? { fill: `${stroke}22` } : {}),
             ...(s.bars ? { paths: bars, fill: `${stroke}99`, points: { show: false } }
-              : s.points ? { paths: () => null, points: { show: true, size: 7, stroke, fill: stroke } } : { points: { show: false } }),
+              : s.points ? { paths: () => null, points: { show: true, size: s.pointSize ?? 7, stroke, fill: stroke } } : { points: { show: false } }),
           };
         }),
       ],

@@ -190,7 +190,7 @@ function SamplesChart({ record, sample, recovery, lang, onCursor }: {
     <Chart data={data} title={SOURCE_TEXT.samplesTitle[lang]} summary={SOURCE_TEXT.samplesSummary[lang]}
       xLabel={SOURCE_TEXT.samplesX[lang]} yLabel={SOURCE_TEXT.samplesY[lang]}
       series={[{ label: SOURCE_TEXT.engineAll[lang], colour: 'accent', points: true }, { label: SOURCE_TEXT.laneRidge[lang], colour: 'good', points: true },
-        { label: SOURCE_TEXT.thisSample[lang], colour: 'magenta', points: true, width: 3 }, { label: SOURCE_TEXT.equal[lang], colour: 'subtle', dash: [4, 4] }]}
+        { label: SOURCE_TEXT.thisSample[lang], colour: 'magenta', points: true, pointSize: 14 }, { label: SOURCE_TEXT.equal[lang], colour: 'subtle', dash: [4, 4] }]}
       format={(v, axis) => (v === null ? '-' : axis === 'x' ? formatFixed(v, lang, 0) : `${formatFixed(v, lang, 0)}%`)}
       onCursor={c => {
         const s = c ? rows[c.index] : null;
