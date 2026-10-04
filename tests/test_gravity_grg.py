@@ -61,7 +61,9 @@ def test_grg_classifies_with_the_fitted_exponent():
     rho = {m: s for m, s in [("quartz", 2.65), ("electrum", 15.7)]}
     cut = corrected_cut(gr.cut_um, rho["quartz"], rho["electrum"], n)
     want = gr.bypass + (1.0 - gr.bypass) * reduced_partition(cut, GOLD.plant.cyclone.sharpness)
-    assert np.asarray(gr.partition["electrum"]) == pytest.approx(want, rel=1e-12)
+    # electrum is liberated grains only, so its applied partition is the GRG curve wherever the class holds electrum
+    pairs = [(a, w) for a, w in zip(gr.partition["electrum"], want) if a is not None]
+    assert len(pairs) > 20 and all(a == pytest.approx(w, rel=1e-12) for a, w in pairs)
     assert cut == pytest.approx(gr.cut_um * (1.65 / 14.7) ** n, rel=1e-9)
 
 

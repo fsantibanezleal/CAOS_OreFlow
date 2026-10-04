@@ -380,6 +380,16 @@
       "unit": "1",
       "source": "Numerics: geometric step of the cut-size bracket search."
     },
+    "numerics.load_log_floor": {
+      "value": 1e-300,
+      "unit": "1 (circulating load, fraction of new feed)",
+      "source": "Numerics: added to the circulating load before its logarithm in the cut search, so a zero load reads as a finite value on the low-load side instead of an infinity the root finder would read as the high side (K-11); it changes no positive load in double precision."
+    },
+    "numerics.power_limit_tolerance": {
+      "value": 1e-12,
+      "unit": "1 (relative change of the energy per pass)",
+      "source": "Numerics: convergence of the power limit's fixed point, e = P_inst over the mill feed of the pass at e; the mill feed moves with e only through the gravity unit's take (C-03)."
+    },
     "numerics.energy_guess_floor_kwh_t": {
       "value": 0.1,
       "unit": "kWh/t",

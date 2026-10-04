@@ -96,6 +96,7 @@ const FLAGS: Record<string, T> = {
   negative_mass: { en: 'A class mass is negative beyond round-off.', es: 'Una masa de clase es negativa más allá del redondeo.' },
   circulating_load_out_of_range: { en: 'The cut sets a circulating load outside the range the target mode accepts.', es: 'El corte fija una carga circulante fuera del rango que acepta el modo objetivo.' },
   cut_mode_load_not_converged: { en: 'The cut mode did not settle on a circulating load; the last iterate is shown.', es: 'El modo de corte no se estabilizó en una carga circulante; se muestra la última iteración.' },
+  power_limit_not_converged: { en: 'The energy at installed power did not settle; the last iterate is shown.', es: 'La energía a potencia instalada no se estabilizó; se muestra la última iteración.' },
   non_finite_output: { en: 'A non-finite number was replaced by null.', es: 'Un número no finito se reemplazó por nulo.' },
 };
 
@@ -121,6 +122,7 @@ const FLAG_SHORT: Record<string, T> = {
   negative_mass: { en: 'Negative mass', es: 'Masa negativa' },
   circulating_load_out_of_range: { en: 'Load out of range', es: 'Carga fuera de rango' },
   cut_mode_load_not_converged: { en: 'Load not converged', es: 'Carga sin converger' },
+  power_limit_not_converged: { en: 'Power limit not converged', es: 'Límite de potencia sin converger' },
   non_finite_output: { en: 'Non-finite output', es: 'Salida no finita' },
 };
 

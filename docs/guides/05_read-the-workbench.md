@@ -59,6 +59,7 @@ Escape or the reset button to restore, and the arrow keys to step through sample
 | Flag | Meaning |
 |---|---|
 | `power_limited` | the mill runs at its installed power; the product is coarser than the target |
+| `power_limit_not_converged` | the energy at installed power did not settle; the last pass is reported |
 | `target_unreachable` | the target P80 cannot be reached within the energy search range |
 | `circulating_load_unreachable` | the design circulating load cannot be held at this energy |
 | `circulating_load_out_of_range` | in the cut mode, the cut sets a circulating load outside the range the target mode accepts |

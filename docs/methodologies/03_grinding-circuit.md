@@ -36,19 +36,25 @@ operator, so they commute and the mill transfer is
 
 $$T^{-1}(e) = I + e\,D + c_2 e^2 D^2 + c_3 e^3 D^3,\qquad c_2 = \sum_{j<k} f_j f_k,\quad c_3 = f_1 f_2 f_3.$$
 
-**Closed circuit.** With the cyclone sending fraction $C_i$ of the mill product to the underflow and
-the underflow returning to the mill, the mill feed is $m = f + C p$ and $T^{-1} p = m$, so
+**Closed circuit.** With the cyclone sending fraction $r_i$ of the mill product to the underflow and
+the underflow returning to the mill, the mill feed is $m = f + r p$ and $T^{-1} p = m$, so
 
-$$\left(T^{-1}(e) - \mathrm{diag}(C)\right) p = f.$$
+$$\left(T^{-1}(e) - \mathrm{diag}(r)\right) p = f,\qquad r_i = R_f + (1 - R_f)\,y_i,$$
 
-This is one lower-triangular solve per evaluation. At steady state the overflow carries exactly the
-new feed of every mineral.
+less the share a gravity unit on the underflow takes (page 06). This is one lower-triangular solve per evaluation.
+At steady state the overflow carries exactly the new feed of every mineral, less what a gravity unit recovers.
 
 ## Implementation
 
 `grinding.GrindingCircuit` builds $D$, $D^2$ and $D^3$ once per mineral, with selection
 $(S^E_i/\bar g)(L_i g_V + (1 - L_i)\bar g)$ for a valuable mineral (liberated grains break at their own
-relative grindability $g_V$, composites at the ore rate) and $(S^E_i/\bar g)\,g_G$ for gangue. The ore work
+relative grindability $g_V$, the valuable part of composites at the ore rate) and $(S^E_i/\bar g)\,g_G$ for gangue.
+Breakage is tracked by mineral, so the host gangue locked in those composites breaks at the host's own
+grindability: the two parts of one composite particle break at rates 0.82 to 1.08 of each other across the cases. A
+particle-consistent rate needs the mill to carry composites as particles, whose locked share depends on the state;
+the mineral-by-mineral breakage is a declared simplification (review of 2026-10-04, C-05). Gravity-recoverable gold
+(page 06) enters the mill with its own sizes, having passed the crusher unchanged, and breaks at the ore's selection
+divided by Banisi's slowdown, 6 at 75 um and 20 at 707 um. The ore work
 index scales $\alpha_0$ by $W_{i,ref}/W_i$, and $\bar g = 1/\sum_k x_k/g_k$ is the ore's mass-weighted
 harmonic mean grindability ($x_k$ the mass fraction of mineral $k$). A mineral's energy for a given
 reduction goes as $1/g_k$ and the ore's specific energy, which the work index measures, is the
@@ -78,10 +84,27 @@ The solver meets two conditions:
    $\ln d_{50c}$) so that the circulating load $U/F$ equals the design value.
 2. The energy $e$ is found (Illinois on $\ln e$) so that the overflow P80 equals the target.
 
-The specific energy per tonne of new feed is $E = e(1 + CL)$ and the mill power is $E\,F$. If that
-exceeds the installed power, the circuit runs at installed power ($E = P_{inst}/F$), the cut is solved
-again for the design circulating load, and the coarser achieved P80 is reported with
-`power_limited`. This is how a harder ore or a higher feed rate coarsens a real, power-limited circuit.
+The mill draws its energy per pass on its own feed, the new feed plus what returns to it: $P = e\,m$, with
+$m = F(1 + CL)$ without a gravity unit or with the unit on the mill discharge (the whole underflow returns), and
+$m = F(1 + CL) - G$ with the unit on the underflow, $G$ its concentrate, which leaves the loop. The specific energy
+per tonne of new feed is $E = P/F$. If the required power exceeds the installed power, the circuit runs at installed
+power: $e = P_{inst}/m(e)$, a fixed point because the gravity unit's take moves with $e$ (without a gravity unit one
+pass settles it), with the cut solved again for the design circulating load at each $e$, and the coarser achieved P80
+is reported with `power_limited`. This is how a harder ore or a higher feed rate coarsens a real, power-limited
+circuit. Until 0.09.000 the power was $e(1 + CL)F$ in every circuit, which counted the gravity concentrate as mill
+feed: 7.2e-5 too much power on the gold case's nominal and 4.3e-4 at a bleed of 0.6 (review of 2026-10-04, C-03).
+
+$P$ is a net (charge) power, as Herbst and Fuerstenau's selection is normalised by net power, and the installed power
+a case declares is the power available to the charge, not a motor rating. Page 09 states what that means for the
+operating work index.
+
+**When a search fails.** The root search raises at its iteration cap, never returning an unconverged iterate as a
+root. When the design load cannot be held, the cut stays at the bracket end on the side where the root lies (the
+finest cut when the load stays below the design, the coarsest when it stays above), and when the target P80 cannot be
+met the energy stays at the end nearest it. A zero load enters the cut search as a finite value on the low-load
+side. The fixed points inside a search (host-limited composites, the cut mode's load) are flagged only when the pass
+the trace reports did not settle, never at a trial point of the search. (Review of 2026-10-04, K-11 and C-10; none of
+these paths is reached inside the contract.)
 
 **Water.** Overflow water is $F w$ ($w$ in m3/t), underflow water $U(1 - s_u)/s_u$, and the cyclone
 bypass is the underflow water split $R_f = W_u/(W_u + W_o)$. The mill discharge density fixes the
@@ -97,10 +120,15 @@ study asks. The cut mode is the plant's direction (CM-01 to CM-07; `docs/design/
   the target mode solves at the nominal state. 0, every case's nominal, is the target mode itself. With a cut
   set, the engine ignores the grind target and the circulating load and reports them as results.
 - **The power condition.** At the installed power $P_{inst}$ the energy per pass $e$ is the root of
-  $$e\,\big(1 + C(e, d_{50c})\big)\,F = P_{inst},$$
-  solved by Illinois on $\ln e$. The power rises monotonically with $e$ at every state the design measured (60
-  series over the 12 nominal states, cut factors 0.6 to 1.6, energies a quarter to four times nominal), so the
-  root is unique where it exists; outside the energy bracket the state is flagged `power_unreachable_at_cut`.
+  $$e\,m(e, d_{50c}) = P_{inst},$$
+  with $m$ the mill feed of the pass, solved by Illinois on $\ln e$. The power rises monotonically with $e$ at every
+  state the design measured (60 series over the 12 nominal states, cut factors 0.6 to 1.6, energies a quarter to
+  four times nominal), so the root is unique where it exists. Where it does not, the mill cannot draw its installed
+  power at that cut and the state is refused (E-01) as `power_unreachable_at_cut`; a state whose achieved load
+  exceeds 600% is refused as `circulating_load_above_bound`. A refusal is no trace: the service answers 422 and the
+  browser shows the reason. Of 368 accepted cut-mode states drawn uniformly over the contract, 90 (24.5%) are
+  refused, every one genuinely: the drawn power stays 1.08 to 56 times the installed power over the whole energy
+  bracket (review of 2026-10-04, K-05). No target-mode state is refused.
 - **The water follows the load.** In the target mode the underflow water, and with it the bypass $R_f$, comes from
   the design load. In the cut mode the load is a result, so each energy is a fixed point on $C$:
   $$W_u = C\,F\,\frac{1 - s_u}{s_u},\qquad R_f = \frac{W_u}{W_u + W_o},\qquad C \leftarrow \frac{U(e, d_{50c}, R_f)}{F},$$
@@ -137,6 +165,12 @@ particle-class split, in both engines.
   within 0.5% on every nominal case.
 - `tests/test_grinding.py::test_overflow_equals_new_feed_by_mineral` (PE-06).
 - `tests/test_grinding.py::test_power_limited_mode` (PE-07).
+- `tests/test_grinding.py::test_power_is_energy_times_mill_feed`, `test_power_limit_holds_installed_power_on_the_mill_feed`
+  and `test_cut_mode_draws_installed_power_on_the_mill_feed` (C-03): the power is the energy per pass times the mill
+  feed in the target mode, at the power limit and in the cut mode, gravity unit included; the browser repeats it
+  (`frontend/src/test/grinding-power.test.ts`).
+- `tests/test_grinding.py::test_reported_partition_is_the_applied_one` (P-02, page 04).
+- `tests/test_roots.py` and `tests/test_grinding.py::test_solver_flags_come_from_the_reported_pass_only` (K-11).
 - `tests/test_grinding.py::test_host_limited_composites`: a 39.75% Fe magnetite feed at a 120 um
   target limits the composites of the coarse classes, keeps every class mass non-negative beyond
   round-off, and keeps the particle-class split consistent within 1e-12; the nominal case has
