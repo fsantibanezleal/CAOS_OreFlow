@@ -157,23 +157,25 @@ export function SourceStatement({ kind, lang }: { kind: 'hour' | 'sample-methods
 
 /** U-07, S-01, S-03: the record's mean gap with what it depends on, every number from the record. */
 function gapFrame(record: RealSamples, lang: Lang): string {
+  // a number keeps its unit on its line (a narrow no-break space): "150 / µm" broke in the facts' column at 1280 px
+  const bind = (text: string) => text.replace(/(\d) (µm|t\/h)/g, '$1\u202F$2');
   const n = record.summary.samples;
   const p80s = record.samples.map(s => s.metrics.p80_um);
   const head = lang === 'es'
     ? `${n} muestras en el estado nominal del caso (720 t/h): ${record.summary.power_limited} de ${n} operan el molino a potencia instalada (P80 de ${formatFixed(Math.min(...p80s), lang, 0)} a ${formatFixed(Math.max(...p80s), lang, 0)} µm), y la recuperación del motor menos la medida promedia ${formatFixed(record.summary.engine_minus_measured_pp.mean, lang, 1)} puntos.`
     : `${n} samples at the case's nominal state (720 t/h): ${record.summary.power_limited} of ${n} run the mill at installed power (P80 ${formatFixed(Math.min(...p80s), lang, 0)} to ${formatFixed(Math.max(...p80s), lang, 0)} µm), and the engine's recovery minus the measured averages ${formatFixed(record.summary.engine_minus_measured_pp.mean, lang, 1)} points.`;
   const curve = record.sensitivity?.gap_by_assumed_p80;
-  if (!curve) return head;
+  if (!curve) return bind(head);
   const at = (p: number) => curve.find(r => r.p80_um === p);
   const [a, b, c] = [at(75), at(150), at(300)];
-  if (!a || !b || !c) return head;
+  if (!a || !b || !c) return bind(head);
   const signed = (v: number) => `${v >= 0 ? '+' : ''}${formatFixed(v, lang, 1)}`;
   // S-02: at every assumed grind the engine's recovery is uncorrelated with the measured one
   const r = curve.map(x => x.pearson);
   const [rLow, rHigh] = [formatFixed(Math.min(...r), lang, 2), formatFixed(Math.max(...r), lang, 2)];
-  return lang === 'es'
+  return bind(lang === 'es'
     ? `${head} El déficit es sobre todo el tamaño del circuito anfitrión: con un molino dimensionado para la molienda, la diferencia media es ${signed(a.mean_gap_pp)} puntos con un P80 de laboratorio supuesto de 75 µm, ${signed(b.mean_gap_pp)} con 150 µm y ${signed(c.mean_gap_pp)} con 300 µm; la molienda del laboratorio no está en los datos abiertos. Con cualquier molienda supuesta la recuperación del motor no sigue el orden de las muestras (r de Pearson entre ${rLow} y ${rHigh}).`
-    : `${head} The deficit is mostly the host circuit's size: with a mill sized for the grind, the mean difference is ${signed(a.mean_gap_pp)} points at an assumed laboratory P80 of 75 µm, ${signed(b.mean_gap_pp)} at 150 µm and ${signed(c.mean_gap_pp)} at 300 µm; the laboratory grind is not in the open data. At any assumed grind the engine's recovery does not follow the samples' order (Pearson r between ${rLow} and ${rHigh}).`;
+    : `${head} The deficit is mostly the host circuit's size: with a mill sized for the grind, the mean difference is ${signed(a.mean_gap_pp)} points at an assumed laboratory P80 of 75 µm, ${signed(b.mean_gap_pp)} at 150 µm and ${signed(c.mean_gap_pp)} at 300 µm; the laboratory grind is not in the open data. At any assumed grind the engine's recovery does not follow the samples' order (Pearson r between ${rLow} and ${rHigh}).`);
 }
 
 /**
