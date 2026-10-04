@@ -224,6 +224,11 @@ input, select, textarea { font: inherit; }
  * four of nine rows over a 21-row assay column with a blank band beside it, at 1920x1080 and 2560x1440 (0.08 gate) */
 @media (min-width: 1800px) and (min-height: 1000px) {
   .of-view-sample > .of-split, .of-view-hour > .of-split { grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); }
+  /* a sample: the facts and the comparison at their own heights, and the samples chart across the view below */
+  .of-view-sample-wide { gap: 10px; }
+  .of-view-sample-wide > .of-split { flex: none; grid-template-rows: auto; }
+  .of-view-sample-wide > .of-split > .of-sample-main { grid-template-rows: auto auto auto; overflow: visible; }
+  .of-view-sample-wide > .of-sample-chart { flex: 1 1 auto; min-height: 300px; display: grid; grid-template-rows: minmax(0, 1fr); }
   .of-view-sample > .of-split > .of-aside, .of-view-hour > .of-split > .of-aside { flex-direction: column; flex-wrap: nowrap; max-height: none; }
   .of-view-sample > .of-split > .of-aside > .of-table, .of-view-hour > .of-split > .of-aside > .of-table { width: 100%; }
 }

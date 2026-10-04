@@ -5,6 +5,7 @@
  * not run in the engine (the plant's reverse cationic circuit is not an engine family), so every engine view says
  * so, and the Case view shows the hour: its sensors, its assays, and the soft sensor's forecast of the next hour.
  */
+import { useEffect, useState } from 'react';
 import type uPlot from 'uplot';
 import { Chart } from '../../components/charts/Chart';
 import { IRON_MODELS, IRON_NAME } from '../../content/industrial';
@@ -198,14 +199,31 @@ function SamplesChart({ record, sample, recovery, lang, onCursor }: {
   );
 }
 
+/** The large-screen query of the workbench's layout rules (workbench.css): wide and tall enough for a full-width chart. */
+const LARGE = '(min-width: 1800px) and (min-height: 1000px)';
+function useLarge(): boolean {
+  const [large, setLarge] = useState(() => typeof window !== 'undefined' && window.matchMedia(LARGE).matches);
+  useEffect(() => {
+    const query = window.matchMedia(LARGE);
+    const update = () => setLarge(query.matches);
+    query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  return large;
+}
+
 export function SampleView({ record, sample, recovery, p80, powerLimited, lang, onCursor }: {
   record: RealSamples; sample: RealSample; recovery: number | null; p80: number | null; powerLimited: boolean; lang: Lang;
   onCursor: (text: string | null) => void;
 }) {
   const shares = Object.entries(sample.allocation.copper_shares).filter(([, v]) => v > 0);
   const lanePredictions = sample.geomet_lane?.predictions_pct ?? {};
+  // on a large screen the facts and the comparison sit side by side at their own heights and the chart spans the
+  // view below them: in the main column it left the comparison panel 28% filled at 2560 x 1440 (0.08 gate)
+  const large = useLarge();
+  const chart = <SamplesChart record={record} sample={sample} recovery={recovery} lang={lang} onCursor={onCursor} />;
   return (
-    <div className="of-view of-view-sample">
+    <div className={large ? 'of-view of-view-sample of-view-sample-wide' : 'of-view of-view-sample'}>
       <div className="of-split">
         <div className="of-sample-main">
           <table className="of-table">
@@ -224,7 +242,7 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
           </table>
           <p className="of-facts-title">{SOURCE_TEXT.authors[lang]}</p>
           <p className="of-sample-text">{SOURCE_TEXT.authored[lang]}</p>
-          <SamplesChart record={record} sample={sample} recovery={recovery} lang={lang} onCursor={onCursor} />
+          {!large && chart}
         </div>
         <div className="of-aside">
           <table className="of-table">
@@ -243,6 +261,7 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
           <p className="of-footnote">{gapFrame(record, lang)}</p>
         </div>
       </div>
+      {large && <div className="of-sample-chart">{chart}</div>}
     </div>
   );
 }
