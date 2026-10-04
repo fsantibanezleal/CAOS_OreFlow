@@ -52,8 +52,10 @@ machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about twent
 workers since 0.07.000, when every target-mode optimizer began to run twice (with and without the screen) and
 along the weight path, and the learning stage about forty minutes; both run several times longer when another
 job holds the machine's cores. The measurements (cases, then learning):
-- 4445 s and 15303 s for the committed 0.08.000 bake of 2026-10-03, with the studies in 378 s and the real
-  samples in 394 s, while another job held every core of the machine;
+- 905 s and 2646 s for the committed 0.08.001 bake of 2026-10-04, with the studies in 68 s and the real
+  samples in 64 s, on an otherwise idle machine;
+- 4445 s and 15303 s for the 0.08.000 bake of 2026-10-03, with the studies in 378 s and the real samples in
+  394 s, while another job held every core of the machine;
 - 1293 s and 4082 s for the 0.07.000 bake of 2026-09-30, while a parity run, the Python suite and browser checks
   shared the machine;
 - 375 s and 1688 s for 0.05.000, unloaded, on 2026-09-26;

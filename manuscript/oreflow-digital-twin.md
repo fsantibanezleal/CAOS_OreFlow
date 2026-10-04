@@ -370,8 +370,8 @@ surrogate preserves the ranking of operating decisions.
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
 the browser port, the service and the documentation are versioned together; this draft describes 0.08.001.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
-workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed precompute took 4445 s for the cases on 12
-workers and 15303 s for the learned lane, while other jobs shared the machine; the measured lanes follow it.
+workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed precompute took 905 s for the cases on 12
+workers and 2646 s for the learned lane, on an otherwise idle machine; the measured lanes follow it.
 `./scripts/smoke.ps1` runs the checks: the guards, the Python and frontend suites and the build, with the counts
 of each release in `docs/release-verification.md`. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.
