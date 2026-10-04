@@ -17,7 +17,9 @@ A patch of 0.08.000: the service answers a direct request for a page again.
 
 ### Records
 
-- The release bake, compared with 0.08.000's: the version stamps change, and nothing else beyond timings.
+- The release bake, compared with 0.08.000's leaf by leaf: 397,879 values equal; the version stamps and the hashes
+  that follow change, with the timings and 183 random-forest scores in their last bits (at most 4.4e-14 relative).
+  The networks, scalers and screen are byte-identical.
 
 ## [0.08.000] - 2026-10-04
 
