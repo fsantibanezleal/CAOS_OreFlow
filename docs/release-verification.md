@@ -31,7 +31,23 @@ A patch of 0.08.000: the service answers a direct request for a page again.
 
 ### Remote gate
 
-Recorded after the deploy.
+- Release PRs #77 and #78 merged into develop; the first develop CI run (37229516957) failed on the two steps the
+  local run had skipped, and the second (37230505715) passed. Promotion PR #79 merged into main at `483fe69`, where CI
+  `37230807034` passed and no Pages run started; tag `v0.08.001` and its GitHub release.
+- The VPS updated through `deploy/setup-vps.sh` (unchanged since 0.08.000), the release's copy run from outside the
+  checkout: it fast-forwarded `09efdc4` to `483fe69`, rebuilt with the local release build's bundle hash
+  (`index-CzFFuYb_.js`), passed the nginx config test, restarted the service and passed its local checks. The
+  checkout and its build are owned by the service user.
+- External checks, on the public name: `/healthz` reported 0.08.001; 12 cases and 96 variants with contract digest
+  `2b35e7d0fd6b`, and the benchmark byte-equal to the tag's; `POST /api/simulate` for the soft porphyry's nominal and
+  cut-mode states, the magnetite and the free-milling gold nominal states matched the records within 3e-15 relative,
+  with unit balances within 1e-13; a throughput of 50,000 t/h answered 422 `out_of_range`; the root, every content
+  page with and without its trailing slash, and a focus route answered the app with 200; the ONNX runtime module is
+  served as JavaScript; the certificate is Let's Encrypt YE1 for the host, valid to 2026-12-12. The removed GitHub
+  Pages copy answers 404.
+- The browser gate against the public host (`OF_BASE=https://oreflow.ml.fasl-work.com`): 248 of 248 checks (the smoke
+  pair with the architecture modal, the five content pages and every tab, and the phone and tablet pass), its
+  captures read.
 
 ## 0.08.000, 2026-10-04
 
@@ -122,7 +138,18 @@ Recorded after the deploy.
 
 ### Remote gate
 
-Recorded after the deploy.
+- Release PR #75 merged into develop, where CI `37214660465` passed. Promotion PR #76 merged into main at `09efdc4`,
+  where CI `37217238017` passed and no Pages run started; tag `v0.08.000` and its GitHub release. Main had held the
+  2026-10-02 integration merge (`9ae0446`), whose CI failed on the stale records while the Pages workflow still
+  published it; Pages was disabled on the repository and its environment deleted before this promotion.
+- The VPS updated through `deploy/setup-vps.sh`, the release's copy run from outside the checkout: `1a9fac9` to
+  `09efdc4`, the local release build's bundle hash (`index-NqgWRgWC.js`), the nginx config test, the restart and the
+  local checks passed.
+- External checks: `/healthz` reported 0.08.000; the catalog, the benchmark (byte-equal to the tag's), four
+  simulations against the records, the 422 rejection and the certificate passed. **A direct request for a content
+  page or a focus route answered 404**: the service's fallback to the app relied on a `404.html` that only the
+  removed Pages build path wrote, and the local gate had run against the Vite preview, whose own fallback answers
+  every route. 0.08.001 fixes it and runs the gate against the service.
 
 ## 0.07.000, 2026-09-30
 
