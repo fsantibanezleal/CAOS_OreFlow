@@ -124,6 +124,6 @@ first paint.
 
 They read the committed files directly (`node:fs` and JSON imports), so the suite needs no server and
 no browser. The whole run takes about three minutes on the idle development machine, most of it the parity suites
-(257 s for the 0.08.000 release candidate, beside another job on the machine);
+(211 s for the 0.08.000 release candidate);
 `OF_PARITY=full` adds the optimizer over all 96 variants, about two hours in one process, or about forty minutes
 in six processes of two cases each (`-t "(case_a|case_b)/"`).

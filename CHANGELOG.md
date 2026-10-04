@@ -58,6 +58,9 @@ the verified findings under #72) and the gravity rebuild. Every fix carries a te
 - Claims tests for the docs: methodology pages 02 to 04, 06, 09, 11 to 18, the data contracts, the SDD's coverage
   matrix, guide 03's snippets and the CHANGELOG; the content guard flags private references.
 - `scripts/setup -NoGpu` (`--no-gpu`), and `scripts/precompute` runs the three measured lanes before the bake.
+- A GeoMet sample's Case view charts every sample against its locked-cycle test: the engine at the case's nominal
+  state, the GeoMet lane's out-of-fold ridge prediction, and the chosen sample at the current state, which moves
+  with the controls. On a large screen the chart spans the view under the facts and the comparison.
 
 ### Records
 
