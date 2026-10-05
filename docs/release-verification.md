@@ -49,7 +49,26 @@ each fix with a test that fails on 0.08.001.
 
 ### Remote gate
 
-- Recorded after the deployment.
+- Release PR #83 merged into develop at `79327a3`, where CI `37380742954` passed. Promotion PR #84 merged into main at
+  `915db64`, where CI `37381976916` passed; tag `v0.09.000` and its GitHub release.
+- The VPS updated through `deploy/setup-vps.sh` (unchanged since 0.08.000), the release's copy run from `/root/` and
+  removed after: it fast-forwarded `483fe69` to `915db64`, rebuilt with the local release build's bundle hash
+  (`index-DH8Uoys2.js`), passed the nginx config test, restarted the service and passed its local checks (the service
+  answered after its restart's brief connection-refused retries). The checkout and its build are owned by the service
+  user.
+- External checks on the public name, 24 of 24: `/healthz` reported 0.09.000; 12 cases and 96 variants with contract
+  digest `1cfa2df0d46d`, and the benchmark equal to the release's; `POST /api/simulate` for the soft porphyry's nominal
+  and cut-mode states, the magnetite and the free-milling gold nominal states matched the records within 4.9e-15
+  relative on every physical metric, with unit balances within 1.5e-13. The first run compared the round-off
+  diagnostics (`balance_max_relative_error`, `species_consistency_error`) relatively as well and reported them as
+  differences of up to 2.3e-4 relative: values near 1e-13 whose last digits differ between Linux and Windows; they are
+  held absolutely, below 1e-9, as the trace's own checks do. A throughput of 50,000 t/h answered 422 `out_of_range`; the
+  root, every content page with and without its trailing slash and a focus route answered the app with 200; the ONNX
+  runtime module is served as JavaScript and its wasm as `application/wasm`; the certificate is Let's Encrypt YE1 for
+  the host, valid to 2026-12-12. The removed GitHub Pages copy answers 404.
+- The browser gate against the public host (`OF_BASE=https://oreflow.ml.fasl-work.com`): 248 of 248 checks (the smoke
+  pair with the architecture modal, the five content pages and every tab, and the phone and tablet pass), its
+  captures read.
 
 ## 0.08.001, 2026-10-04
 
