@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { VARIANT_KINDS } from '../content/design';
 import { EXPERIMENTS } from '../content/experiments';
+import { STAGE_TEXT } from '../content/implementation';
 import { kpiMargin } from '../lib/format';
 
 // The Experiments page states the design, the protocols and what every variant did; each of those
@@ -79,6 +80,19 @@ describe('the Experiments page says what the bake did', () => {
     expect(learning.leave_one_case_out).toHaveLength(12);
     for (const fold of learning.leave_one_case_out) expect([fold.train_rows, fold.test_rows]).toEqual([2816, 256]);
     expect([learning.guard.in_envelope_rows, learning.guard.probe_rows]).toEqual([612, 11016]);
+  });
+
+  // L-01 (review of 2026-10-04): the Splits topic and the precompute's stage table name the third protocol
+  it('the splits name three protocols, one ore group out among them, with the record\'s groups and fold sizes', () => {
+    const splits = EXPERIMENTS.flatMap(tab => tab.topics).find(t => t.id === 'splits')!;
+    const text = [...splits.paragraphs, ...(splits.limits ?? [])].map(p => p.en).join(' ');
+    const record = read<{ transfer_groups: Record<string, string>; leave_one_group_out: Array<{ cases: string[]; train_rows: number; test_rows: number }> }>('learning.json');
+    expect(new Set(Object.values(record.transfer_groups)).size).toBe(7);
+    expect([record.leave_one_group_out[0].cases.length, record.leave_one_group_out[0].train_rows, record.leave_one_group_out[0].test_rows]).toEqual([5, 1792, 1280]);
+    expect(text).toMatch(/The learned lane has three protocols/);
+    expect(text).toMatch(/Leave one ore group out holds out together every case that shares a payable and its dominant carrier mineral \(the five chalcopyrite plants, the two gold plants, and each other plant alone, seven groups\)/);
+    expect(text).toMatch(/One ore group out measures transfer to a thirteenth authored plant on an ore none of the twelve shares/);
+    expect(STAGE_TEXT.learning.what.en).toMatch(/three protocols/);
   });
 
   it('no nominal state is power-limited and every plausibility check holds', () => {

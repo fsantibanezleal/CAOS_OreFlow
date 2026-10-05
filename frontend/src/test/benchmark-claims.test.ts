@@ -422,6 +422,14 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
     expect(text).toMatch(/the Gaussian process \(R² -16\.7\) and the MLP \(R² -699 at the record's seed\) fail/);
   });
 
+  // L-01: the figure and the equation name the protocols they show; until 0.09.000 they called one case out the transfer
+  it('L-01: the learned figure and equation captions name the protocols', () => {
+    const learned = ENGINE_BENCHMARK.LEARNED as { figure?: { caption: { en: string } }; equations?: Array<{ caption: { en: string } }> };
+    expect(learned.figure!.caption.en).toMatch(/against the median one-ore-group-out R²/);
+    expect(learned.equations!.map(e => e.caption.en).join(' ')).toMatch(/the seven ore groups with one group out, the transfer score/);
+    expect(learned.equations!.map(e => e.caption.en).join(' ')).not.toMatch(/The transfer score: the median over the twelve folds/);
+  });
+
   it('L-01: one ore group out, the transfer the page quotes', () => {
     const s = learning.summary, models = Object.keys(s);
     // seven groups by (payable, dominant carrier): the five chalcopyrite plants and the two gold plants are held out together

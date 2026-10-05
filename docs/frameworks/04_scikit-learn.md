@@ -25,7 +25,7 @@ stores the GeoMet checkpoint that `scripts/predict-geomet` scores new assays wit
 ## Read in order
 
 1. [Installation](04_scikit-learn/01_installation.md): the pins and the threading note.
-2. [Usage in OreFlow](04_scikit-learn/02_usage.md): the four surrogates and their two protocols, the
+2. [Usage in OreFlow](04_scikit-learn/02_usage.md): the four surrogates and their three protocols, the
    Gaussian process's intervals and switched-off features, the particle and GeoMet models.
 3. [Applying it](04_scikit-learn/03_applying.md): scoring a surrogate of your own simulator honestly,
    and running the GeoMet model on your own assays.
