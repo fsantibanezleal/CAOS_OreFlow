@@ -27,6 +27,10 @@ export type UncertaintyRecord = {
   design: string;
   inputs: Record<string, { half_width: number }>;
   factors: number[][];
+  /** The design rows the output values belong to, the draws with a steady state (M-01); absent before 0.09.000. */
+  solved?: number[];
+  /** Draws with no steady state, by refusal code. */
+  refused?: Record<string, number>;
   outputs: Record<string, OutputDistribution>;
   probabilities: Record<string, number>;
   base_checks: Record<string, boolean>;
@@ -34,7 +38,9 @@ export type UncertaintyRecord = {
   max_balance_error: number;
 };
 export type SobolIndices = { S1: Record<string, number>; S1_conf: Record<string, number>; ST: Record<string, number>; ST_conf: Record<string, number> } | { constant: true };
-export type SensitivityRecord = { status: string; base_samples: number; evaluations: number; seed: number; inputs: Record<string, { half_width: number }>; indices: Record<string, SobolIndices> };
+export type SensitivityRecord = { status: string; base_samples: number; evaluations: number; seed: number; inputs: Record<string, { half_width: number }>; indices: Record<string, SobolIndices>;
+  /** Draws with no steady state, by refusal code, when status is refused_draws (M-08). */
+  refused?: Record<string, number> };
 
 export type VariantArtifact = {
   id: string;
@@ -83,7 +89,9 @@ export type CaseManifest = {
   kpis: Record<string, { value: number; range: [number, number]; within: boolean }>;
 };
 
-export type LearningSummary = Record<string, Record<string, { interpolation_rmse: number; interpolation_r2: number; loco_rmse_mean: number; loco_rmse_max: number; loco_r2_median: number }>>;
+export type LearningSummary = Record<string, Record<string, { interpolation_rmse: number; interpolation_r2: number; loco_rmse_mean: number; loco_rmse_max: number; loco_r2_median: number;
+  /** Since 0.09.000: R2 against each case's own mean, the case-mean predictor's R2 (L-03), and one ore group out (L-01). */
+  interpolation_r2_within_case?: number; case_mean_r2?: number; transfer_rmse_mean?: number; transfer_rmse_max?: number; transfer_r2_median?: number }>>;
 export type LearningRecord = {
   schema: 'oreflow.learning/v1';
   features: string[];
@@ -99,6 +107,9 @@ export type LearningRecord = {
   };
   guard: { threshold: number; false_alarm_rate: number; false_accept_rate: number; false_accept_by_feature: Record<string, number>; in_envelope_rows: number; probe_rows: number };
   leave_one_case_out: Array<{ held_out: string; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
+  /** Since 0.09.000 (L-01): each case's ore group, and the folds that hold a group of more than one case out. */
+  transfer_groups?: Record<string, string>;
+  leave_one_group_out?: Array<{ held_out_group: string; cases: string[]; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
   summary: LearningSummary;
   final: { mlp_training: Record<string, unknown>; guard_threshold: number; exports: Record<string, { path: string; bytes: number; max_abs_difference: number; opset: number; gp_rows?: number; gp_max_abs_difference?: number }> };
   settings: Record<string, unknown>;

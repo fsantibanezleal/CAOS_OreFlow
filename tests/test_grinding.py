@@ -209,3 +209,88 @@ def test_cut_mode_never_serves_an_impossible_state(case_id):
         assert g.power_kw <= case.plant.mill.installed_power_kw * (1.0 + 1e-9), (state, g.power_kw)
         assert g.circulating_load <= cap * (1.0 + 1e-12), (state, g.circulating_load)
     assert served > 0
+
+
+@pytest.mark.parametrize("bleed", [None, 0.1, 0.6])
+def test_power_is_energy_times_mill_feed(bleed):
+    """C-03, P-05, K-07: the energy per pass acts on the mill feed; with the gravity unit on the underflow the mill is fed
+    the new feed plus the underflow less the gravity concentrate (0.08.001 counted the concentrate: 4.3e-4 at 0.6)."""
+    case = CASE_BY_ID["gold_free_milling"]
+    point = case.nominal if bleed is None else case.nominal.with_values(gravity_bleed=bleed)
+    g = run_point(case.id, point).grinding
+    mill_feed = g.streams["mill_feed"].tph()
+    assert g.power_kw == pytest.approx(g.energy_per_pass_kwh_t * mill_feed, rel=1e-12)
+    assert g.specific_energy_kwh_t == pytest.approx(g.energy_per_pass_kwh_t * mill_feed / g.streams["new_feed"].tph(), rel=1e-12)
+
+
+def test_power_limit_holds_installed_power_on_the_mill_feed():
+    """C-03: at installed power the drawn power is the installed one on the true mill feed, gravity included."""
+    case = CASE_BY_ID["gold_free_milling"]
+    point = case.nominal.with_values(gravity_bleed=0.6)
+    required = run_point(case.id, point).metrics["required_mill_power_kw"]
+    plant = replace(case.plant, mill=replace(case.plant.mill, installed_power_kw=0.8 * required))
+    g = simulate(case.ore, plant, point).grinding
+    assert g.power_limited
+    assert g.power_kw == pytest.approx(0.8 * required, rel=1e-10)
+
+
+def test_cut_mode_draws_installed_power_on_the_mill_feed():
+    """C-03: the cut mode's root holds e times the mill feed at the installed power."""
+    case = CASE_BY_ID["gold_free_milling"]
+    variant = next(v for v in case.variants if v["id"] == "cut_nominal")
+    point = run_variant(case.id, "cut_nominal")
+    g = point.grinding
+    assert g.cut_mode
+    assert g.energy_per_pass_kwh_t * g.streams["mill_feed"].tph() == pytest.approx(case.plant.mill.installed_power_kw, rel=1e-9)
+    assert variant["id"] == "cut_nominal"
+
+
+@pytest.mark.parametrize("case_id", [c.id for c in CASES])
+def test_reported_partition_is_the_applied_one(case_id):
+    """P-02: the partition curve of every mineral is the share of each class of the cyclone feed that reports to the
+    underflow, liberated grains and composites together (0.08.001 drew the liberated grains' curve, 0.080 apart)."""
+    result = run_variant(case_id, "nominal")
+    g = result.grinding
+    feed = g.streams["sump_feed" if "sump_feed" in g.streams else "cyclone_feed"]
+    under = g.streams["cyclone_underflow"]
+    for key, curve in g.partition.items():
+        mineral = result.ore.host if key == "host" else key
+        for share, u, f in zip(curve, under.solids[mineral], feed.solids[mineral]):
+            if share is not None:
+                assert share == pytest.approx(u / f, rel=1e-12)
+        assert sum(v is not None for v in curve) > 0
+
+
+def test_solver_flags_come_from_the_reported_pass_only(monkeypatch):
+    """K-11: a fixed point that does not settle at a trial point of a root search is no flag of the reported state; a
+    pass records it and the report flags it only for the pass it reports."""
+    import pipeline.engine.grinding as grinding
+    from pipeline.engine.model import Flags
+    from pipeline.engine.ore import resolve
+    from pipeline.engine.grid import grid
+
+    # a valuable-rich magnetite feed at a coarse cut, where the host limits the composites (test_host_limited_composites)
+    case = CASE_BY_ID["iron_magnetite_fine"]
+    point = case.nominal.with_values(head_grade=1.5 * case.nominal.head_grade)
+    real = grinding.constant
+    monkeypatch.setattr(grinding, "constant", lambda key: 1 if key == "numerics.composite_scale_max_iterations" else real(key))
+    flags = Flags()
+    r = resolve(case.ore, point)
+    shape = grid().rosin_rammler(case.plant.crusher.feed_f80_um, case.plant.crusher.feed_slope)
+    feed = {m: point.throughput_tph * r.fraction[m] * shape for m in r.ids}
+    circuit = grinding.GrindingCircuit(r, case.plant, point, feed, flags)
+    result = circuit.run(2.0, 400.0)
+    assert not result.composite_converged
+    assert flags.items == []
+
+
+K13_STATE = {"throughput_tph": 460.0, "water_m3_t": 4.0, "crusher_css_mm": 4.0, "work_index_kwh_t": 9.45,
+             "head_grade": 44.55, "d50c_um": 130.651135861}
+
+
+def test_a_trial_point_flag_does_not_reach_the_reported_state():
+    """K-13: at this admitted iron cut-mode corner 0.08.001 reported composite_scale_not_converged from a trial energy of
+    97.9 kWh/t the search rejected, while the reported pass (39.0 kWh/t) converged; the browser did not."""
+    case = CASE_BY_ID["iron_magnetite_fine"]
+    result = simulate(case.ore, case.plant, case.nominal.with_values(**K13_STATE))
+    assert "composite_scale_not_converged" not in [f["code"] for f in result.flags]

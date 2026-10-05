@@ -59,7 +59,7 @@ const TEXT = {
   water: { en: 'Process-water capacity', es: 'Capacidad de agua de proceso' },
   gravityUnit: { en: 'Gravity unit, maximum recovery of free gold', es: 'Unidad gravimétrica, recuperación máxima de oro libre' },
   magneticUnit: { en: 'LIMS maximum capture', es: 'Captura máxima LIMS' },
-  deslimeUnit: { en: 'Desliming sharpness and water bypass', es: 'Nitidez y cortocircuito de agua del deslamado' },
+  deslimeUnit: { en: 'Desliming sharpness and underflow solids (w/w)', es: 'Nitidez y sólidos de la descarga del deslamado (p/p)' },
   head: { en: 'Head grade', es: 'Ley de cabeza' },
   kpi: { en: 'Plausibility gates at the nominal state (practice ranges from their sources, not predictions)', es: 'Controles de plausibilidad en el estado nominal (rangos de práctica según sus fuentes, no predicciones)' },
   within: { en: 'within', es: 'dentro' },
@@ -127,7 +127,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
   }
   if (plant.gravity) plantRows.push([TEXT.gravityUnit[lang], formatWithUnit(100 * plant.gravity.max_recovery, '%', lang)]);
   if (plant.magnetic) plantRows.push([TEXT.magneticUnit[lang], formatWithUnit(100 * plant.magnetic.max_capture, '%', lang)]);
-  if (plant.deslime) plantRows.push([TEXT.deslimeUnit[lang], `${formatSignificant(plant.deslime.sharpness, lang, 2)} · ${formatWithUnit(100 * plant.deslime.bypass, '%', lang)}`]);
+  if (plant.deslime) plantRows.push([TEXT.deslimeUnit[lang], `${formatSignificant(plant.deslime.sharpness, lang, 2)} · ${formatWithUnit(100 * plant.deslime.underflow_solids, '%', lang)}`]);
   if (plant.grade_spec) plantRows.push([TEXT.gradeSpec[lang], `${formulaText(plant.grade_spec.species)} ≥ ${formatWithUnit(plant.grade_spec.minimum, entry.primary.unit, lang)}`]);
   if (plant.water_limit_m3_t > 0) plantRows.push([TEXT.water[lang], formatWithUnit(plant.water_limit_m3_t, 'm3/t', lang)]);
 

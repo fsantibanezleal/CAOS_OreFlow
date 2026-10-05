@@ -2,8 +2,9 @@
  * The Sobol record (PE-28), computed at the case's nominal state: Saltelli sampling and SALib's
  * estimator over the same uncertain factors as the uncertainty record. S1 is the share of an output's
  * variance a factor explains alone, ST the share it takes part in, interactions included; ST minus S1
- * is what it explains only together with the others. The bars are the baked estimates and the table
- * carries their bootstrap confidence half widths.
+ * is what it explains only together with the others. The bars are the baked estimates and the table carries their
+ * bootstrap half widths, which resample the rows of a quasi-random design as independent draws and so overstate the
+ * estimator's error (M-07); an interaction within them is shown as such, never as a negative share (M-06).
  */
 import { useState } from 'react';
 import type uPlot from 'uplot';
@@ -24,7 +25,9 @@ const TEXT = {
   constant: { en: 'This output does not vary over the uncertain factors at this state.', es: 'Esta salida no varía con los factores inciertos en este estado.' },
   nominalOnly: { en: 'Computed at the nominal state of the case; the other variants carry the uncertainty record only.', es: 'Calculado en el estado nominal del caso; las demás variantes solo llevan el registro de incertidumbre.' },
   summary: { en: 'First-order and total Sobol indices of the chosen output for each uncertain factor.', es: 'Índices de Sobol de primer orden y totales de la salida elegida para cada factor incierto.' },
-  footnote: { en: 'Saltelli sampling, SALib; confidence half widths from bootstrap resampling.', es: 'Muestreo de Saltelli, SALib; semianchos de confianza por remuestreo bootstrap.' },
+  footnote: { en: 'Saltelli sampling, SALib; half widths from a bootstrap that resamples the design\'s rows as independent draws, conservative for a Sobol design and not 95% intervals. Estimates can fall below 0, above 1 and ST below S1 within that error.', es: 'Muestreo de Saltelli, SALib; semianchos de un bootstrap que remuestrea las filas del diseño como extracciones independientes, conservador para un diseño de Sobol y no intervalos del 95%. Las estimaciones pueden caer bajo 0, sobre 1 y ST bajo S1 dentro de ese error.' },
+  withinError: { en: 'within error', es: 'dentro del error' },
+  refused: { en: 'Some draws of the design have no steady state at this state, and a Saltelli design cannot drop rows: no indices.', es: 'Algunas muestras del diseño no tienen estado estacionario en este estado, y un diseño de Saltelli no puede descartar filas: sin índices.' },
   evaluations: { en: 'engine evaluations', es: 'evaluaciones del motor' },
   base: { en: 'base samples', es: 'muestras base' },
 };
@@ -32,9 +35,10 @@ const TEXT = {
 export function Sensitivity({ record, atNominal, lang, onCursor }: {
   record: SensitivityRecord; atNominal: boolean; lang: Lang; onCursor: (text: string | null) => void;
 }) {
-  const outputs = Object.keys(record.indices);
+  const outputs = Object.keys(record.indices ?? {});
   const factors = Object.keys(record.inputs);
   const [output, setOutput] = useState(outputs[0]);
+  if (record.status === 'refused_draws' || outputs.length === 0) return <p className="of-hint">{TEXT.refused[lang]}</p>;
   const indices = record.indices[output];
   const names = factors.map(f => FACTOR_LABEL[f][lang]);
   // U-30: an index to its interval's decimal place ("0.00 ± 0.01", not "0.0022 ± 0.01")
@@ -75,7 +79,9 @@ export function Sensitivity({ record, atNominal, lang, onCursor }: {
             <tbody>{factors.map((f, i) => (
               <tr key={f}><th scope="row">{names[i]} <span className="of-muted">{`±${formatFraction(record.inputs[f].half_width, lang, 0)}`}</span></th>
                 <td>{pm(indices.S1[f], indices.S1_conf[f])}</td><td>{pm(indices.ST[f], indices.ST_conf[f])}</td>
-                <td>{formatFixed(indices.ST[f] - indices.S1[f], lang, Math.max(intervalDecimals(indices.S1_conf[f]), intervalDecimals(indices.ST_conf[f])))}</td></tr>
+                <td className="of-wrap">{Math.abs(indices.ST[f] - indices.S1[f]) <= indices.S1_conf[f] + indices.ST_conf[f]
+                  ? <span className="of-muted">{TEXT.withinError[lang]}</span>
+                  : formatFixed(indices.ST[f] - indices.S1[f], lang, Math.max(intervalDecimals(indices.S1_conf[f]), intervalDecimals(indices.ST_conf[f])))}</td></tr>
             ))}</tbody>
           </table>
         )}

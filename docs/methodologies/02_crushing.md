@@ -35,7 +35,10 @@ chapter 6.
 $B$ has no diagonal) and returns $p = (I - C)\,y$. $B$ comes from the cumulative Austin breakage
 function of page 03 with crusher parameters. The crusher runs in open circuit on the bulk ore; every
 mineral shares the bulk distribution in the crusher feed, a Rosin-Rammler curve with the case
-crusher-feed F80.
+crusher-feed F80, except declared gravity-recoverable grains: they enter with their own measured sizes and pass the
+crusher unchanged, being far finer than its setting (page 06; review of 2026-10-04, C-06). The Rosin-Rammler feed has
+an open tail above the grid's 150 mm top, 2.5% of the 60 mm feed, which the grid lumps into its top class; it changes
+the crusher product's cumulative passing by at most 2.8e-5 (C-09, page 01).
 
 ## Parameters
 
@@ -48,7 +51,8 @@ crusher-feed F80.
 | crusher feed F80, slope | 60,000 (60 mm), 0.9 | um, 1 | authored secondary-crusher feed |
 | CSS | 8 mm (control) | mm | operating control, bounds in Contract 1 |
 
-Crushing energy is reported with Bond's equation and the case crushing work index (page 09).
+Crushing energy is reported with Bond's equation and the crushing work index, the case's scaled with the operating
+ball-mill work index (page 09).
 
 ## Verification
 

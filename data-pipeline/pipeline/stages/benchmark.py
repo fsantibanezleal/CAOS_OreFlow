@@ -17,6 +17,11 @@ HEADLINE = ("recovery_pct", "concentrate_grade", "head_grade", "recovered_primar
             "mill_power_kw", "p80_um", "water_intensity_m3_t")
 
 
+def _variants_per_case(artifacts: list[dict[str, Any]]) -> str:
+    counts = sorted({len(a["variants"]) for a in artifacts})
+    return str(counts[0]) if len(counts) == 1 else f"{counts[0]} to {counts[-1]}"
+
+
 def kpi_basis(source_en: str) -> str:
     """T-02 (review of 2026-10-02): how a plausibility range is sourced. "authored" when no published range was found
     (the source reads "Authored: ..."), "authored_bound" when a cited source carries an authored or unverified bound,
@@ -126,9 +131,11 @@ def build(artifacts: list[dict[str, Any]], oracles: dict[str, Any], learning: di
         "schema": SCHEMA,
         "engine_version": version,
         "contract_digest": digest,
-        "protocol": ("Twelve authored cases with six single-factor variants each, simulated by the steady-state engine; "
-                     "oracles are published examples, not plant data; the learned lane is scored by interpolation and "
-                     "leave-one-case-out on engine states."),
+        # built from the counts, so it cannot drift from them (L-08: it said six variants per case where there are eight)
+        "protocol": (f"{len(artifacts)} authored cases with {_variants_per_case(artifacts)} variants each (the nominal "
+                     "state, single-factor changes and the cut mode), simulated by the steady-state engine; oracles are "
+                     "published examples, not plant data; the learned lane is scored by interpolation, one case out and "
+                     "one ore group out on engine states."),
         "case_count": len(artifacts),
         "variant_count": sum(len(a["variants"]) for a in artifacts),
         "cases": [_case_summary(a) for a in artifacts],

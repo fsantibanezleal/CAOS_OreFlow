@@ -1,5 +1,5 @@
-"""scikit-learn in OreFlow: the learned lane's two protocols, interpolation inside the cases and leave one
-case out, first read from the committed record and re-derived from its folds, then run afresh on a small
+"""scikit-learn in OreFlow: two of the learned lane's three protocols, interpolation inside the cases and leave
+one case out, first read from the committed record and re-derived from its folds, then run afresh on a small
 design so the gap between them can be watched forming.
 
 Run from the repository root with the repository's environment:

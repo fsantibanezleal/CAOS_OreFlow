@@ -19,7 +19,7 @@
     "chrysocolla": {"name": ["Chrysocolla", "Crisocola"], "composition": {"Cu": 0.33, "Si": 0.17, "O": 0.46, "H": 0.02, "Al": 0.02}, "density": 2.2, "source": "mindat.org chrysocolla, variable (Cu,Al)2H2Si2O5(OH)4.nH2O, 1.93 to 2.4 t/m3; 33% Cu declared."},
     "electrum": {"name": ["Native gold (electrum)", "Oro nativo (electrum)"], "composition": {"Au": 0.73, "Ag": 0.27}, "density": 15.7, "source": "Electrum at 73% Au as measured by MLA in Laplante and Staunton (AMIRA P420B); density from the Au and Ag end members."},
     "lizardite": {"name": ["Serpentine (lizardite)", "Serpentina (lizardita)"], "formula": "Mg3Si2O5(OH)4", "density": 2.55, "source": "mindat.org lizardite, 2.55 to 2.58 t/m3."},
-    "kaolinite": {"name": ["Clay (kaolinite)", "Arcilla (caolinita)"], "formula": "Al2Si2O5(OH)4", "density": 2.6, "source": "mindat.org kaolinite, 2.61 to 2.68 t/m3."},
+    "kaolinite": {"name": ["Clay (kaolinite)", "Arcilla (caolinita)"], "formula": "Al2Si2O5(OH)4", "density": 2.63, "source": "Handbook of Mineralogy (Anthony, Bideaux, Bladh and Nichols, Mineral Data Publishing, 2001), kaolinite: D(meas.) 2.61 to 2.68, D(calc.) 2.63 t/m3; the calculated value. Until 0.09.000 the table held 2.6, outside the measured range (review of 2026-10-04, F-06)."},
     "calcite": {"name": ["Calcite", "Calcita"], "formula": "CaCO3", "density": 2.71, "source": "mindat.org calcite, 2.71 t/m3."}
   }
 }

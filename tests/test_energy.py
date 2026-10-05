@@ -52,3 +52,11 @@ def test_laws_calibrated_and_not_summed():
     total = m["specific_energy_crushing_kwh_t"] + m["specific_energy_grinding_kwh_t"] + m["specific_energy_regrind_kwh_t"]
     assert m["specific_energy_total_kwh_t"] == pytest.approx(total, rel=1e-12)
     assert m["specific_energy_total_kwh_t"] < total + 0.5 * m["energy_rittinger_kwh_t"]
+
+
+def test_bond_efficiency_is_qualified_below_70_um():
+    """C-02: GMG01-MP-2021 qualifies the Bond efficiency below about 70 um; the magnetite nominal (60 um) carries the flag,
+    a coarser one does not."""
+    codes = [f["code"] for f in run_variant("iron_magnetite_fine", "nominal").flags]
+    assert "bond_efficiency_fine_product" in codes
+    assert "bond_efficiency_fine_product" not in [f["code"] for f in run_variant("copper_porphyry_soft", "nominal").flags]

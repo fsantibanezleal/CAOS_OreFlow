@@ -15,12 +15,17 @@ def test_partition_bypass_and_density_correction():
     g = result.grinding
     water = g.water
     assert g.bypass == pytest.approx(water["underflow_tph"] / (water["underflow_tph"] + water["overflow_tph"]), rel=1e-12)
-    host = np.array(result.curves["partition"]["host"])
+    # the applied partition (underflow over cyclone feed) is null where the feed carries no mass of the class: the
+    # twelve coarsest classes, which the cyclone feed does not reach (review of 2026-10-04)
+    raw = result.curves["partition"]["host"]
+    empty = [i for i, v in enumerate(raw) if v is None]
+    assert empty == list(range(12)) and [i for i, v in enumerate(result.curves["partition"]["chalcopyrite"]) if v is None] == empty
+    host = np.array(raw[len(empty):], dtype=float)
     assert host[-1] == pytest.approx(g.bypass, abs=1e-3)
     assert host[-1] >= g.bypass
     assert host[0] == pytest.approx(1.0, abs=1e-9)
     assert np.all(np.diff(host) <= 1e-12)
-    dense = np.array(result.curves["partition"]["chalcopyrite"])
+    dense = np.array(result.curves["partition"]["chalcopyrite"][len(empty):], dtype=float)
     assert np.all(dense >= host - 1e-12)
     assert corrected_cut(100.0, 2.65, 5.0) < 100.0 < corrected_cut(100.0, 2.65, 2.2)
     y = reduced_partition(50.0, 2.0)

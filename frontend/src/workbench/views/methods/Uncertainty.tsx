@@ -50,6 +50,10 @@ const TEXT = {
   flags: { en: 'Engine flags among the samples', es: 'Avisos del motor en las muestras' },
   none: { en: 'none', es: 'ninguno' },
   seed: { en: 'seed', es: 'semilla' },
+  refused: {
+    en: (n: number) => `${n} draws have no steady state and are left out of the quantiles; each counts as failing every constraint in the probabilities:`,
+    es: (n: number) => `${n} muestras no tienen estado estacionario y quedan fuera de los cuantiles; cada una cuenta como incumplida en todas las probabilidades:`,
+  },
   baked: { en: 'Precomputed for the variant state; the controls have changed since.', es: 'Calculado para el estado de la variante; los controles cambiaron desde entonces.' },
   rerun: { en: 'Re-run the design', es: 'Volver a correr el diseño' },
   run: { en: 'Run', es: 'Correr' },
@@ -102,12 +106,20 @@ export function Uncertainty({ record: baked, contract, ore, plant, point, gradeU
 
   const histogram = useMemo(() => binned(dist.values, BINS), [dist]);
 
+  // each value with its own design row: the values are the solved draws only (M-01; 0.08.001 paired row i with value i,
+  // which after a refused draw joined one ore with another's result)
+  const solved = record.solved ?? record.factors.map((_, i) => i);
   const scatter = useMemo(() => {
     const k = factors.indexOf(factor);
-    const pairs = record.factors.map((row, i) => [row[k], dist.values[i]] as const).sort((a, b) => a[0] - b[0]);
+    const pairs = solved.map((row, j) => [record.factors[row][k], dist.values[j]] as const).sort((a, b) => a[0] - b[0]);
     return [pairs.map(p => p[0]), pairs.map(p => p[1])] as uPlot.AlignedData;
-  }, [record, factor, factors, dist]);
+  }, [record, factor, factors, dist, solved]);
 
+  // the quantiles are over the solved draws, the probabilities over every draw (M-02)
+  const refusedCount = Object.values(record.refused ?? {}).reduce((a, b) => a + b, 0);
+  const drawsText = refusedCount > 0
+    ? `${dist.values.length} ${lang === 'es' ? 'de' : 'of'} ${record.samples} ${lang === 'es' ? 'muestras con estado estacionario' : 'samples with a steady state'}`
+    : `${record.samples} ${lang === 'es' ? 'muestras' : 'samples'}`;
   const marks = [{ x: dist.p05, label: 'P05' }, { x: dist.p50, label: 'P50' }, { x: dist.p95, label: 'P95' }, { x: dist.base, label: TEXT.base[lang] }];
   const outputLabel = `${metricLabel(output, lang)} (${unitLabel(unit)})`;
   const checks = Object.keys(record.probabilities);
@@ -116,9 +128,9 @@ export function Uncertainty({ record: baked, contract, ore, plant, point, gradeU
   return (
     <div className="of-split">
       <div className="of-stack">
-        <Chart data={[histogram.centres, histogram.counts] as uPlot.AlignedData} xLabel={outputLabel} yLabel={TEXT.count[lang]} title={`${metricLabel(output, lang)}: ${record.samples} ${lang === 'es' ? 'muestras' : 'samples'}`}
+        <Chart data={[histogram.centres, histogram.counts] as uPlot.AlignedData} xLabel={outputLabel} yLabel={TEXT.count[lang]} title={`${metricLabel(output, lang)}: ${drawsText}`}
           series={[{ label: TEXT.histogram[lang], colour: 'accent', bars: true }]} marks={marks}
-          summary={`${metricLabel(output, lang)}: ${record.samples} ${lang === 'es' ? 'muestras' : 'samples'}, P05 ${formatWithUnit(dist.p05, unit, lang)}, P50 ${formatWithUnit(dist.p50, unit, lang)}, P95 ${formatWithUnit(dist.p95, unit, lang)}.`}
+          summary={`${metricLabel(output, lang)}: ${drawsText}, P05 ${formatWithUnit(dist.p05, unit, lang)}, P50 ${formatWithUnit(dist.p50, unit, lang)}, P95 ${formatWithUnit(dist.p95, unit, lang)}.`}
           format={(v, axis) => (axis === 'x' ? formatValue(v, unit, lang) : String(v))}
           onCursor={reading => onCursor(reading ? `${formatWithUnit(reading.x - histogram.width / 2, unit, lang)} – ${formatWithUnit(reading.x + histogram.width / 2, unit, lang)}: ${reading.values[0]} ${lang === 'es' ? 'muestras' : 'samples'}` : null)} />
         <Chart data={scatter} xLabel={FACTOR_LABEL[factor][lang]} yLabel={outputLabel}
@@ -180,6 +192,7 @@ export function Uncertainty({ record: baked, contract, ore, plant, point, gradeU
         </table>
         <p className="of-footnote">
           {`${record.samples} ${lang === 'es' ? 'muestras' : 'samples'}, ${TEXT.design[lang]}, ${TEXT.seed[lang]} ${record.seed}; `}
+          {refusedCount > 0 ? `${TEXT.refused[lang](refusedCount)} ${Object.entries(record.refused ?? {}).map(([code, n]) => `${code} (${n})`).join(', ')}; ` : ''}
           {factors.map(f => `${FACTOR_LABEL[f][lang]} ±${formatFraction(record.inputs[f].half_width, lang, 0)}`).join(', ')}
           {`. ${TEXT.flags[lang]}: ${flags.length ? flags.map(([code, n]) => `${flagShort(code, lang)} (${n})`).join('; ') : TEXT.none[lang]}.`}
         </p>

@@ -44,7 +44,7 @@ const benchmark = read<{
   uncertainty: Record<string, { recovery_pct: Record<string, number>; probabilities: Record<string, number>; dominant_input: Record<string, string> }>;
 }>('benchmark.json');
 const learning = read<{
-  summary: Record<string, Record<string, { interpolation_r2: number; loco_r2_median: number; loco_rmse_mean: number }>>;
+  summary: Record<string, Record<string, { interpolation_r2: number; loco_r2_median: number; loco_rmse_mean: number; transfer_r2_median: number; transfer_rmse_mean: number }>>;
   interpolation: { models: { gaussian_process: Record<string, { coverage_95: number }> } };
   guard: { false_alarm_rate: number; false_accept_rate: number; false_accept_by_feature: Record<string, number> };
   leave_one_case_out: Array<{ held_out: string; held_out_flag_rate: number; models: Record<string, Record<string, { rmse: number; r2: number }>> }>;
@@ -105,16 +105,20 @@ describe('the Benchmark page says what the records hold', () => {
     const k = benchmark.kinetics;
     for (const record of Object.values(k)) expect([record.fits, record.converged_share]).toEqual([88, 1]);
     const mean = (id: string) => round(k[id].mean_abs_lumping_error_pct, 1), worst = (id: string) => round(k[id].worst_abs_lumping_error_pct, 1);
-    expect([mean('first_order'), worst('first_order')]).toEqual([4.9, 8.2]);
-    expect([round(k.gamma.mean_abs_lumping_error_pct, 2), round(k.kelsall.mean_abs_lumping_error_pct, 2)]).toEqual([0.73, 0.79]);
-    expect([worst('gamma'), worst('kelsall')]).toEqual([1.9, 1.9]);
-    expect([mean('klimpel'), mean('stretched_exponential')]).toEqual([1.9, 2.8]);
+    expect([mean('first_order'), worst('first_order')]).toEqual([6.0, 9.3]);
+    expect([round(k.gamma.mean_abs_lumping_error_pct, 2), round(k.kelsall.mean_abs_lumping_error_pct, 2)]).toEqual([0.89, 1.07]);
+    expect([worst('gamma'), worst('kelsall')]).toEqual([2.4, 2.5]);
+    expect([mean('klimpel'), mean('stretched_exponential')]).toEqual([2.1, 3.5]);
     // the first-order model's bank: residence past the 16-minute test, and an underestimate at every nominal state
     const index = read<{ cases: Array<{ case_id: string }> }>('manifests/index.json');
     const nominal = index.cases.map(c => read<{ variants: Array<{ trace: { metrics: Record<string, number>; methods: { kinetics: { status?: string; models?: Array<{ id: string; lumping_error_pct: number }> } } } }> }>(`cases/${c.case_id}.json`).variants[0].trace)
       .filter(tr => tr.methods.kinetics.status !== 'not_applicable');
     const residence = nominal.map(tr => tr.metrics.rougher_residence_min);
-    expect([Math.round(Math.min(...residence)), Math.round(Math.max(...residence))]).toEqual([20, 30]);
+    expect([Math.round(Math.min(...residence)), Math.round(Math.max(...residence))]).toEqual([21, 34]);
+    const text = ENGINE_BENCHMARK.KINETICS.paragraphs.map(p => p.en).join(' ');
+    expect(text).toMatch(/6\.0 points of recovery on average and 9\.3 at worst/);
+    expect(text).toMatch(/about 21 to 34 minutes at the nominal states/);
+    expect(text).toMatch(/lose 0\.89 and 1\.07 points on average and 2\.4 and 2\.5 at worst; the Klimpel form loses 2\.1 points on average and the stretched exponential 3\.5/);
     expect(Math.min(...residence)).toBeGreaterThan(16);
     expect(nominal.every(tr => tr.methods.kinetics.models!.find(m => m.id === 'first_order')!.lumping_error_pct < 0)).toBe(true);
     const order = Object.keys(k).sort((a, b) => k[a].mean_abs_lumping_error_pct - k[b].mean_abs_lumping_error_pct);
@@ -132,22 +136,27 @@ describe('the Benchmark page says what the records hold', () => {
     expect([cut.length, cut.filter(x => !x.r.base_feasible).length, cut.filter(x => x.r.status === 'optimal').length]).toEqual([24, 0, 24]);
     const gains = records.filter(x => x.r.gain_pct !== null).sort((a, b) => (a.r.gain_pct as number) - (b.r.gain_pct as number));
     expect([gains[0].id, gains[0].v, round(gains[0].r.gain_pct as number, 1)]).toEqual(['iron_magnetite_fine', 'coarser_grind', -0.8]);
-    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 18.1]);
+    expect([gains.at(-1)!.id, gains.at(-1)!.v, round(gains.at(-1)!.r.gain_pct as number, 1)]).toEqual(['copper_oxide', 'coarser_grind', 19.5]);
+    // both ends of the range are measured from a state that broke a constraint, as the page says
+    expect([gains[0].r.base_feasible, gains.at(-1)!.r.base_feasible]).toEqual([false, false]);
     const losses = gains.filter(x => (x.r.gain_pct as number) < 0);
     expect(losses).toHaveLength(1);
     expect(losses.every(x => !x.r.base_feasible)).toBe(true);
     const count = (name: string, set = records) => set.filter(x => x.r.active.includes(name)).length;
-    expect([count('power'), count('grade'), count('water')]).toEqual([81, 23, 10]);
+    expect([count('power'), count('grade'), count('water')]).toEqual([78, 29, 14]);
     expect(count('power', cut)).toBe(24);
     const nominal = Object.entries(benchmark.optimization).map(([id, v]) => ({ id, gain: v.nominal.gain_pct as number })).sort((a, b) => a.gain - b.gain);
     expect([nominal[0].id, round(nominal[0].gain, 1)]).toEqual(['iron_magnetite_fine', 0.3]);
-    expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 7.6]);
+    expect([nominal.at(-1)!.id, round(nominal.at(-1)!.gain, 1)]).toEqual(['copper_oxide', 8.4]);
     const cutGains = cut.map(x => ({ id: x.id, gain: x.r.gain_pct as number })).sort((a, b) => a.gain - b.gain);
-    expect([cutGains[0].id, round(cutGains[0].gain, 1), cutGains.at(-1)!.id, round(cutGains.at(-1)!.gain, 1)]).toEqual(['iron_magnetite_fine', 0.3, 'zinc_sulfide', 5.1]);
+    expect([cutGains[0].id, round(cutGains[0].gain, 1), cutGains.at(-1)!.id, round(cutGains.at(-1)!.gain, 1)]).toEqual(['iron_magnetite_fine', 0.3, 'mixed_ore_high_clay', 5.1]);
     const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
     expect(text).toMatch(/94 of the 96 variants/);
     expect(text).toMatch(/Twenty-eight of the 72 target-mode variants/);
-    expect(text).toMatch(/active at 81 of the 94 optima and at all 24 in the cut mode, then the grade specification at 23 and the water capacity at 10/);
+    expect(text).toMatch(/from -0\.8% \(the magnetite case with a coarser grind\) to \+19\.5% \(oxide copper with a coarser grind\)/);
+    expect(text).toMatch(/At the nominal states the gains run from 0\.3% \(magnetite\) to 8\.4% \(oxide copper\)/);
+    expect(text).toMatch(/their optima gain 0\.3% \(magnetite\) to 5\.1% \(copper ore with clay\)/);
+    expect(text).toMatch(/active at 78 of the 94 optima and at all 24 in the cut mode, then the grade specification at 29 and the water capacity at 14/);
   });
 
   it('optimization: what the screen cost, the surrogate\'s error, the unscreened optima and the weight path (OP-07, OP-11)', () => {
@@ -157,10 +166,10 @@ describe('the Benchmark page says what the records hold', () => {
     expect(screened.map(x => `${x.id}:${x.v}`).sort()).toEqual(records.filter(x => !x.v.startsWith('cut_')).map(x => `${x.id}:${x.v}`).sort());
     const sum = (f: (r: Opt) => number) => screened.reduce((a, x) => a + f(x.r), 0);
     const withScreen = sum(r => r.evaluations), without = sum(r => r.evaluations_without_screen!);
-    expect([withScreen, without, round(100 * (withScreen / without - 1), 1)]).toEqual([24758, 21692, 14.1]);
+    expect([withScreen, without, round(100 * (withScreen / without - 1), 1)]).toEqual([24880, 21600, 15.2]);
     const change = screened.map(x => x.r.evaluations - x.r.evaluations_without_screen!);
-    expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([1, 64, 7]);
-    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5142, 74327, 829]);
+    expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([5, 61, 6]);
+    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5304, 74690, 854]);
     // the rejections by reason are in the case records' per-start screen counts
     const rejected = { guard: 0, interval: 0 };
     for (const x of screened) {
@@ -168,20 +177,25 @@ describe('the Benchmark page says what the records hold', () => {
         .variants.find(v => v.id === x.v)!.methods.optimization.starts;
       for (const s of starts) { rejected.guard += s.screen.rejected.guard; rejected.interval += s.screen.rejected.interval; }
     }
-    expect([rejected.guard, rejected.interval]).toEqual([5023, 42306]);
+    expect([rejected.guard, rejected.interval]).toEqual([5104, 41888]);
     const errors = screened.map(x => x.r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
-    expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.63);
+    expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.62);
     const differ = screened.filter(x => !x.r.same_optimum_without_screen);
-    expect([screened.length - differ.length, differ.length]).toEqual([65, 7]);
-    // the seven that differ: within 0.02% of the unscreened metal and at most five finest mesh steps in any decision
+    expect([screened.length - differ.length, differ.length]).toEqual([70, 2]);
+    // the two that differ, both low-grade copper: the unscreened search recovers more metal in each, within 0.02% and
+    // one or two finest mesh steps away in any decision
     const artifact = (id: string) => read<{ variants: Array<{ id: string; methods: { optimization: OptimizationRecord } }> }>(`cases/${id}.json`);
     const meshMinimum = 2 ** -10;
-    for (const x of differ) {
+    const gaps = differ.map(x => {
       const rec = artifact(x.id).variants.find(v => v.id === x.v)!.methods.optimization;
       const plain = rec.without_screen!;
-      expect(Math.abs(rec.optimum!.recovered_tph / plain.recovered_tph! - 1)).toBeLessThan(2e-4);
-      for (const n of rec.decisions) expect(Math.abs(rec.optimum!.decisions[n] - plain.decisions![n]) / ((rec.bounds[n][1] - rec.bounds[n][0]) * meshMinimum)).toBeLessThanOrEqual(5);
-    }
+      const steps = Math.max(...rec.decisions.map(n => Math.abs(rec.optimum!.decisions[n] - plain.decisions![n]) / ((rec.bounds[n][1] - rec.bounds[n][0]) * meshMinimum)));
+      return { key: `${x.id}:${x.v}`, short: 1 - rec.optimum!.recovered_tph / plain.recovered_tph!, steps: Math.round(steps) };
+    });
+    expect(gaps.every(g => g.short > 0)).toBe(true);
+    const near = gaps.filter(g => g.short < 2e-4), far = gaps.filter(g => g.short >= 2e-4);
+    expect([near.length, near.every(g => g.steps >= 1 && g.steps <= 2), far.length]).toEqual([2, true, 0]);
+    expect(gaps.map(g => g.key).sort()).toEqual(['low_grade_copper:harder_ore', 'low_grade_copper:higher_throughput']);
     // OP-07: at a quarter of the weight on metal the nominal optima trade metal for energy, except magnetite's
     const trade = Object.keys(benchmark.optimization).map(id => {
       const opt = artifact(id).variants[0].methods.optimization.optimum!, last = benchmark.optimization[id].nominal.path.at(-1)!;
@@ -189,8 +203,8 @@ describe('the Benchmark page says what the records hold', () => {
       return { id, energy: 100 * (1 - last.energy_kwh_t! / opt.values.energy_kwh_t), metal: 100 * (1 - last.recovered_tph / opt.recovered_tph) };
     });
     const moved = trade.filter(x => x.id !== 'iron_magnetite_fine');
-    expect([Math.round(Math.min(...moved.map(x => x.energy))), Math.round(Math.max(...moved.map(x => x.energy)))]).toEqual([31, 46]);
-    expect([Math.round(Math.min(...moved.map(x => x.metal))), Math.round(Math.max(...moved.map(x => x.metal)))]).toEqual([7, 35]);
+    expect([Math.round(Math.min(...moved.map(x => x.energy))), Math.round(Math.max(...moved.map(x => x.energy)))]).toEqual([31, 47]);
+    expect([Math.round(Math.min(...moved.map(x => x.metal))), Math.round(Math.max(...moved.map(x => x.metal)))]).toEqual([8, 37]);
     const magnetite = trade.find(x => x.id === 'iron_magnetite_fine')!;
     expect([Math.abs(magnetite.energy) < 1e-9, Math.abs(magnetite.metal) < 1e-9]).toEqual([true, true]);
     expect(benchmark.optimization.iron_magnetite_fine.nominal.active).toContain('grade');
@@ -201,25 +215,29 @@ describe('the Benchmark page says what the records hold', () => {
       const energy = [opt.values.energy_kwh_t, ...x.r.path.map(s => s.energy_kwh_t!)], metal = [opt.recovered_tph, ...x.r.path.map(s => s.recovered_tph)];
       for (const series of [energy, metal]) for (let k = 1; k < series.length; k += 1) worst = Math.max(worst, series[k] / series[k - 1] - 1);
     }
-    expect(worst).toBeLessThan(4e-5);
+    expect(worst).toBeLessThan(1e-4);
     const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
-    expect(text).toMatch(/24,758 engine evaluations, against 21,692/);
-    expect(text).toMatch(/Of the 74,327 candidates it screened, the guard rejected 5,023 and the interval 42,306; the engine evaluated the best passing candidate 5,142 times, and 829 of those improved/);
-    expect(text).toMatch(/0\.63 points from the engine/);
-    expect(text).toMatch(/same optimum in 65 of the 72 variants, and the other seven/);
+    expect(text).toMatch(/24,880 engine evaluations, against 21,600 for the same starts and weight without the screen: 15\.2% more, with fewer evaluations in 5 variants, more in 61 and the same in 6/);
+    expect(text).toMatch(/Of the 74,690 candidates it screened, the guard rejected 5,104 and the interval 41,888; the engine evaluated the best passing candidate 5,304 times, and 854 of those improved/);
+    expect(text).toMatch(/0\.62 points from the engine/);
+    expect(text).toMatch(/same optimum in 70 of the 72 variants\. In the other two, the low-grade copper with harder ore and with more throughput, the unscreened search ends with a little more metal, within 0\.02% and one or two of the finest mesh steps away/);
+    expect(text).toMatch(/spends 31 to 47% less energy per tonne and recovers 8 to 37% less metal/);
+    expect(text).toMatch(/beyond 0\.01%, the mesh's resolution/);
   });
 
   it('uncertainty: the spreads, the joint probabilities and the dominant inputs as quoted', () => {
     const u = benchmark.uncertainty;
     const width = Object.entries(u).map(([id, r]) => ({ id, w: r.recovery_pct.p95 - r.recovery_pct.p05 })).sort((a, b) => a.w - b.w);
-    expect([width[0].id, round(width[0].w, 1)]).toEqual(['gold_free_milling', 1.9]);
-    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['zinc_sulfide', 7.7]);
+    expect([width[0].id, round(width[0].w, 1)]).toEqual(['gold_free_milling', 2.2]);
+    expect([width.at(-1)!.id, round(width.at(-1)!.w, 1)]).toEqual(['nickel_sulphide', 8.4]);
     const joint = Object.entries(u).map(([id, r]) => ({ id, p: r.probabilities.all_constraints })).sort((a, b) => a.p - b.p);
     expect([joint[0].id, Math.round(100 * joint[0].p)]).toEqual(['iron_magnetite_fine', 52]);
     const m = u.iron_magnetite_fine.probabilities;
     expect([Math.round(100 * m.grade_meets_spec), Math.round(100 * m.power_within_installed)]).toEqual([66, 79]);
     const top = joint.filter(x => x.p === joint.at(-1)!.p).map(x => x.id).sort();
-    expect([top, Math.round(100 * joint.at(-1)!.p)]).toEqual([['phosphate_clay'], 83]);
+    expect([top, Math.round(100 * joint.at(-1)!.p)]).toEqual([['phosphate_clay'], 84]);
+    // the record's phosphate case is two draws of 128 above the soft porphyry
+    expect([Math.round(100 * u.copper_porphyry_soft.probabilities.all_constraints), Math.round(128 * (u.phosphate_clay.probabilities.all_constraints - u.copper_porphyry_soft.probabilities.all_constraints))]).toEqual([82, 2]);
     const not = (key: string, value: string) => Object.entries(u).filter(([, r]) => r.dominant_input[key] !== value).map(([id]) => id).sort();
     expect(not('recovery_pct', 'floatability')).toEqual(['copper_porphyry_hard', 'iron_magnetite_fine']);
     expect(u.copper_porphyry_hard.dominant_input.recovery_pct).toBe('work_index');
@@ -235,18 +253,20 @@ describe('the Benchmark page says what the records hold', () => {
 
   it('learned lane: interpolation and transfer rank the models as quoted, and the guard behaves as described', () => {
     const s = learning.summary, models = Object.keys(s);
-    expect(round(s.mlp.recovery_pct.interpolation_r2, 3)).toBe(0.947);
+    expect(round(s.mlp.recovery_pct.interpolation_r2, 3)).toBe(0.946);
     expect(models.every(m => s[m].recovery_pct.interpolation_r2 <= s.mlp.recovery_pct.interpolation_r2)).toBe(true);
-    expect([round(s.mlp.recovery_pct.loco_r2_median, 3), round(s.mlp.recovery_pct.loco_rmse_mean, 1)]).toEqual([0.66, 65.4]);
+    expect([round(s.mlp.recovery_pct.loco_r2_median, 3), round(s.mlp.recovery_pct.loco_rmse_mean, 1)]).toEqual([0.694, 60.1]);
     expect(models.every(m => s[m].recovery_pct.loco_rmse_mean <= s.mlp.recovery_pct.loco_rmse_mean)).toBe(true);
     const gb = s.hist_gradient_boosting.recovery_pct, rf = s.random_forest.recovery_pct;
-    expect([round(gb.loco_r2_median, 3), round(gb.loco_rmse_mean, 1), round(rf.loco_rmse_mean, 1)]).toEqual([0.668, 13.7, 13.5]);
-    expect(models.every(m => s[m].recovery_pct.loco_r2_median <= gb.loco_r2_median)).toBe(true);
+    expect([round(gb.loco_r2_median, 3), round(gb.loco_rmse_mean, 1), round(rf.loco_rmse_mean, 1)]).toEqual([0.581, 13.9, 13.6]);
+    // the MLP has the best median one-case-out R² on recovery, gradient boosting next
+    const byMedian = [...models].sort((a, b) => s[b].recovery_pct.loco_r2_median - s[a].recovery_pct.loco_r2_median);
+    expect(byMedian.slice(0, 2)).toEqual(['mlp', 'hist_gradient_boosting']);
     expect(models.every(m => s[m].recovery_pct.loco_rmse_mean >= rf.loco_rmse_mean)).toBe(true);
     const folds = learning.leave_one_case_out, fold = (id: string) => folds.find(f => f.held_out === id)!;
     const magnetite = fold('iron_magnetite_fine'), phosphate = fold('phosphate_clay');
     const worstFold = folds.reduce((a, b) => (b.models.mlp.recovery_pct.rmse > a.models.mlp.recovery_pct.rmse ? b : a));
-    expect([worstFold.held_out, Math.round(phosphate.models.mlp.recovery_pct.rmse), Math.round(magnetite.models.mlp.recovery_pct.rmse)]).toEqual(['phosphate_clay', 500, 209]);
+    expect([worstFold.held_out, Math.round(phosphate.models.mlp.recovery_pct.rmse), Math.round(magnetite.models.mlp.recovery_pct.rmse)]).toEqual(['phosphate_clay', 472, 172]);
     expect(magnetite.models.mlp.recovery_pct.rmse).toBeGreaterThan(100); // only predictions outside 0 to 100% can give this
     const copper = ['copper_porphyry_soft', 'copper_porphyry_hard', 'copper_molybdenum', 'mixed_ore_high_clay', 'low_grade_copper'];
     for (const id of copper) {
@@ -254,11 +274,11 @@ describe('the Benchmark page says what the records hold', () => {
       expect(Object.keys(m).every(k => m[k].recovery_pct.rmse >= m.mlp.recovery_pct.rmse)).toBe(true);
     }
     const energy = models.filter(m => m !== 'ridge').map(m => s[m].specific_energy_total_kwh_t.loco_r2_median);
-    expect([round(Math.min(...energy), 3), round(Math.max(...energy), 3)]).toEqual([0.927, 0.969]);
+    expect([round(Math.min(...energy), 3), round(Math.max(...energy), 3)]).toEqual([0.923, 0.968]);
     expect(models.every(m => s[m].log_upgrade.loco_r2_median < 0)).toBe(true);
     const gp = learning.interpolation.models.gaussian_process;
     const coverage = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'].map(t => 100 * gp[t].coverage_95);
-    expect(coverage.map(c => round(c, 1))).toEqual([84.2, 88.9, 91.7]);
+    expect(coverage.map(c => round(c, 1))).toEqual([86.1, 89.7, 91.3]);
     expect(coverage.every(c => c < 95)).toBe(true);
     expect(round(100 * learning.guard.false_alarm_rate, 1)).toBe(2.3);
     expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(17.7);
@@ -331,14 +351,16 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
     const extreme = (f: (c: string) => number[], pick: (a: number, b: number) => boolean) =>
       Array.from({ length: seeds }, (_, i) => cases.reduce((a, b) => (pick(f(b)[i], f(a)[i]) ? b : a)));
     expect(new Set(extreme(widths, (a, b) => a < b))).toEqual(new Set(['gold_free_milling']));
-    expect(new Set(extreme(widths, (a, b) => a > b))).toEqual(new Set(['zinc_sulfide']));
+    expect(new Set(extreme(widths, (a, b) => a > b))).toEqual(new Set(['nickel_sulphide']));
     expect(extreme(joint, (a, b) => a < b).filter(c => c === 'iron_magnetite_fine')).toHaveLength(7);
-    const g = widths('gold_free_milling'), z = widths('zinc_sulfide'), m = joint('iron_magnetite_fine');
+    const g = widths('gold_free_milling'), z = widths('nickel_sulphide'), m = joint('iron_magnetite_fine');
     const mean = (v: number[]) => v.reduce((a, b) => a + b, 0) / v.length;
-    expect([round(mean(g), 1), round(Math.min(...g), 1), round(Math.max(...g), 1), round(mean(z), 1), round(Math.min(...z), 1), round(Math.max(...z), 1)]).toEqual([2.0, 1.9, 2.1, 8.7, 8.3, 9.4]);
+    expect([round(mean(g), 1), round(Math.min(...g), 1), round(Math.max(...g), 1), round(mean(z), 1), round(Math.min(...z), 1), round(Math.max(...z), 1)]).toEqual([2.4, 2.2, 2.5, 8.9, 8.5, 9.3]);
     expect([Math.round(100 * mean(m)), Math.round(100 * Math.min(...m)), Math.round(100 * Math.max(...m))]).toEqual([52, 50, 56]);
+    expect(['copper_porphyry_soft', 'phosphate_clay', 'gold_free_milling'].map(c => Math.round(100 * mean(joint(c))))).toEqual([82, 82, 81]);
     const text = en(ENGINE_BENCHMARK.UNCERTAINTY);
-    expect(text).toMatch(/by about 2\.0 points in the free-milling gold \(1\.9 to 2\.1 over the eight seeds of the seed study\) and up to about 8\.7 points in the zinc case \(8\.3 to 9\.4\)/);
+    expect(text).toMatch(/by about 2\.4 points in the free-milling gold \(2\.2 to 2\.5 over the eight seeds of the seed study\) and up to about 8\.9 points in the nickel case \(8\.5 to 9\.3\); the precomputed records, one seed each, read 2\.2 and 8\.4/);
+    expect(text).toMatch(/highest at about 82% in the soft porphyry and the phosphate case \(81% in the gold case\)/);
     expect(text).toMatch(/about 52% \(50 to 56% over the seeds/);
     expect(text).toMatch(/lowest in seven of the eight seeds/);
   });
@@ -352,51 +374,86 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
       for (const s of o.starts) for (const row of s.screen?.proposals ?? []) if (row[c.indexOf('engine_recovery_pct')] !== null) errs.push(row[c.indexOf('surrogate_recovery_pct')] - row[c.indexOf('engine_recovery_pct')]);
     }
     const abs = errs.map(Math.abs);
-    expect([errs.length, round(abs.reduce((a, b) => a + b, 0) / abs.length, 2), round(median(abs), 2), round(Math.max(...abs), 1)]).toEqual([5142, 0.7, 0.6, 46.8]);
-    expect(Math.round(3 * errs.filter(e => e < 0).length / errs.length)).toBe(2);
+    expect([errs.length, round(abs.reduce((a, b) => a + b, 0) / abs.length, 2), round(median(abs), 2), round(Math.max(...abs), 1)]).toEqual([5304, 0.6, 0.47, 44.8]);
+    expect(Math.round(4 * errs.filter(e => e < 0).length / errs.length)).toBe(3);
     const feasible = recs.filter(x => !x.v.startsWith('cut_') && x.r.base_feasible && x.r.gain_pct !== null).sort((a, b) => a.r.gain_pct - b.r.gain_pct);
     expect([feasible.length, feasible[0].id, feasible[0].v, round(feasible[0].r.gain_pct, 1), feasible.at(-1)!.id, feasible.at(-1)!.v, round(feasible.at(-1)!.r.gain_pct, 1)])
-      .toEqual([44, 'iron_magnetite_fine', 'finer_crusher', 0.3, 'low_grade_copper', 'coarser_grind', 15.4]);
+      .toEqual([44, 'iron_magnetite_fine', 'finer_crusher', 0.3, 'low_grade_copper', 'coarser_grind', 16.2]);
     const text = en(ENGINE_BENCHMARK.OPTIMIZATION);
-    expect(text).toMatch(/over the 5,142 proposals the mean is 0\.70 points, the median 0\.60 and the largest 46\.8/);
-    expect(text).toMatch(/Over the 44 target-mode variants whose own state met every constraint the gains run from 0\.3% .* to 15\.4%/);
+    expect(text).toMatch(/over the 5,304 proposals the mean is 0\.60 points, the median 0\.47 and the largest 44\.8, and the surrogate sits below the engine in three of every four/);
+    expect(text).toMatch(/Over the 44 target-mode variants whose own state met every constraint the gains run from 0\.3% .* to 16\.2%/);
   });
 
   it('M-11, M-21, M-23: the seeds, the equal training rows and the forest against boosting', () => {
     const ms = learning.mlp_seeds.summary.recovery_pct;
     const range = (v: number[], d: number) => [round(Math.min(...v), d), round(Math.max(...v), d)];
-    expect(range(ms.interpolation_rmse, 1)).toEqual([2.7, 4.0]);
-    expect(range(copper.flatMap(c => ms.loco_rmse_by_case[c]), 1)).toEqual([1.6, 3.6]);
-    expect(range(ms.loco_rmse_by_case.iron_magnetite_fine, 0)).toEqual([179, 242]);
-    expect(range(ms.loco_rmse_by_case.phosphate_clay, 0)).toEqual([28, 500]);
-    expect(range(ms.loco_rmse_mean, 1)).toEqual([27.0, 65.4]);
-    const rfBetter = folds.filter(f => f.models.random_forest.recovery_pct.rmse < f.models.hist_gradient_boosting.recovery_pct.rmse).length;
-    expect(rfBetter).toBe(3);
+    expect(range(ms.interpolation_rmse, 1)).toEqual([2.7, 4.2]);
+    expect(range(copper.flatMap(c => ms.loco_rmse_by_case[c]), 1)).toEqual([1.7, 3.5]);
+    expect(range(ms.loco_rmse_by_case.iron_magnetite_fine, 0)).toEqual([172, 223]);
+    expect(range(ms.loco_rmse_by_case.phosphate_clay, 0)).toEqual([20, 472]);
+    expect(range(ms.loco_rmse_mean, 1)).toEqual([26.7, 60.1]);
+    const rfBetter = folds.filter(f => f.models.random_forest.recovery_pct.rmse < f.models.hist_gradient_boosting.recovery_pct.rmse).map(f => f.held_out).sort();
+    expect(rfBetter).toEqual(['copper_oxide', 'iron_magnetite_fine', 'nickel_sulphide', 'phosphate_clay']);
     const eq = learning.equal_rows;
     expect([eq.random_forest.recovery_pct.rows, round(eq.random_forest.recovery_pct.r2, 3), round(eq.hist_gradient_boosting.recovery_pct.r2, 3),
       round(learning.interpolation.models.gaussian_process.recovery_pct.r2, 3), learning.interpolation.models.gaussian_process.recovery_pct.training_rows, learning.interpolation.train_rows])
-      .toEqual([612, 0.706, 0.824, 0.814, 500, 2460]);
+      .toEqual([612, 0.7, 0.82, 0.838, 500, 2460]);
     const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/its RMSE is 2\.7 to 4\.0 points over five training seeds/);
-    expect(text).toMatch(/\(1\.6 to 3\.6 points over the five seeds\)/);
-    expect(text).toMatch(/179 to 242 points on the magnetite plant and 28 to 500 on the phosphate plant/);
-    expect(text).toMatch(/27\.0 to 65\.4 points over the five seeds/);
-    expect(text).toMatch(/better in only 3 of the 12 folds/);
-    expect(text).toMatch(/a subsample of 500 of the 2,460 training states; on the same 500 states .* 0\.706 and 0\.824, against the Gaussian process's 0\.814/);
+    expect(text).toMatch(/\(R² 0\.946 at the record's seed; its RMSE is 2\.7 to 4\.2 points over five training seeds\)/);
+    expect(text).toMatch(/\(1\.7 to 3\.5 points over the five seeds\)/);
+    expect(text).toMatch(/172 to 223 points on the magnetite plant and 20 to 472 on the phosphate plant/);
+    expect(text).toMatch(/26\.7 to 60\.1 points over the five seeds, 60\.1 at the record's/);
+    expect(text).toMatch(/the best median one-case-out R² on recovery \(0\.694, gradient boosting next at 0\.581\)/);
+    expect(text).toMatch(/\(13\.9 and 13\.6 points\): the forest is better in only 4 of the 12 folds, the magnetite, nickel, phosphate and oxide copper plants/);
+    expect(text).toMatch(/a subsample of 500 of the 2,460 training states; on the same 500 states .* 0\.700 and 0\.820, against the Gaussian process's 0\.838/);
   });
 
   it('M-07, M-08, M-12: the upgrade among the copper plants, the coverage under both protocols, the energy failures', () => {
     const med = (m: string) => round(median(copper.map(c => fold(c).models[m].log_upgrade.r2)), 2);
-    expect([med('gaussian_process'), med('mlp'), med('hist_gradient_boosting'), med('random_forest'), med('ridge')]).toEqual([0.92, 0.93, 0.92, 0.72, -0.4]);
+    expect([med('gaussian_process'), med('mlp'), med('hist_gradient_boosting'), med('random_forest'), med('ridge')]).toEqual([0.91, 0.95, 0.94, 0.65, -0.38]);
     const gp = learning.summary.gaussian_process, targets = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'];
-    expect(targets.map(t => round(100 * gp[t].loco_coverage_pooled, 1))).toEqual([75.8, 63.9, 94.2]);
-    expect(targets.map(t => round(100 * gp[t].loco_coverage_worst, 1))).toEqual([2.0, 0.4, 72.7]);
+    expect(targets.map(t => round(100 * gp[t].loco_coverage_pooled, 1))).toEqual([76.6, 64.2, 94.3]);
+    expect(targets.map(t => round(100 * gp[t].loco_coverage_worst, 1))).toEqual([2.0, 0.4, 70.3]);
     const phosphate = fold('phosphate_clay').models;
-    expect([round(phosphate.gaussian_process.specific_energy_total_kwh_t.r2, 1), Math.round(phosphate.mlp.specific_energy_total_kwh_t.r2)]).toEqual([-16.5, -1061]);
+    expect([round(phosphate.gaussian_process.specific_energy_total_kwh_t.r2, 1), Math.round(phosphate.mlp.specific_energy_total_kwh_t.r2)]).toEqual([-16.7, -699]);
     const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/median R² of 0\.92 to 0\.93 for the Gaussian process, the MLP and gradient boosting \(0\.72 for the random forest, -0\.40 for ridge\)/);
-    expect(text).toMatch(/and 75\.8, 63\.9 and 94\.2% under leave one case out \(2%, 0\.4% and 73% in the worst fold\)/);
-    expect(text).toMatch(/the Gaussian process \(R² -16\.5\) and the MLP \(R² -1,061 at the record's seed\) fail/);
+    expect(text).toMatch(/median R² of 0\.91 to 0\.95 for the Gaussian process, the MLP and gradient boosting \(0\.65 for the random forest, -0\.38 for ridge\)/);
+    expect(text).toMatch(/cover 86\.1, 89\.7 and 91\.3% of the held-out states under interpolation, and 76\.6, 64\.2 and 94\.3% under one case out \(2%, 0\.4% and 70% in the worst fold\)/);
+    expect(text).toMatch(/the Gaussian process \(R² -16\.7\) and the MLP \(R² -699 at the record's seed\) fail/);
+  });
+
+  // L-01: the figure and the equation name the protocols they show; until 0.09.000 they called one case out the transfer
+  it('L-01: the learned figure and equation captions name the protocols', () => {
+    const learned = ENGINE_BENCHMARK.LEARNED as { figure?: { caption: { en: string } }; equations?: Array<{ caption: { en: string } }> };
+    expect(learned.figure!.caption.en).toMatch(/against the median one-ore-group-out R²/);
+    expect(learned.equations!.map(e => e.caption.en).join(' ')).toMatch(/the seven ore groups with one group out, the transfer score/);
+    expect(learned.equations!.map(e => e.caption.en).join(' ')).not.toMatch(/The transfer score: the median over the twelve folds/);
+  });
+
+  it('L-01: one ore group out, the transfer the page quotes', () => {
+    const s = learning.summary, models = Object.keys(s);
+    // seven groups by (payable, dominant carrier): the five chalcopyrite plants and the two gold plants are held out together
+    expect(new Set(Object.values(learning.transfer_groups)).size).toBe(7);
+    const groups = learning.leave_one_group_out as any[], group = (id: string) => groups.find(g => g.held_out_group === id);
+    expect(group('Cu:chalcopyrite').cases).toEqual(copper);
+    // no model keeps a positive median recovery R² over the groups; the random forest comes closest
+    expect(models.every(m => s[m].recovery_pct.transfer_r2_median < 0)).toBe(true);
+    const closest = [...models].sort((a, b) => s[b].recovery_pct.transfer_r2_median - s[a].recovery_pct.transfer_r2_median)[0];
+    expect([closest, round(s[closest].recovery_pct.transfer_r2_median, 3), round(s[closest].recovery_pct.transfer_rmse_mean, 1)]).toEqual(['random_forest', -0.004, 17.7]);
+    const cu = group('Cu:chalcopyrite').models;
+    expect([round(cu.gaussian_process.recovery_pct.r2, 3), round(cu.mlp.recovery_pct.r2, 3)]).toEqual([0.665, 0.572]);
+    const alone = copper.map(c => fold(c).models.mlp.recovery_pct.r2);
+    expect([round(Math.min(...alone), 2), round(Math.max(...alone), 2)]).toEqual([0.96, 0.99]);
+    // the upgrade does not transfer to the copper plants held out together: -0.15 for the MLP to -20 for ridge
+    const upgrade = models.map(m => cu[m].log_upgrade.r2);
+    expect([round(cu.mlp.log_upgrade.r2, 2), Math.round(cu.ridge.log_upgrade.r2), Math.max(...upgrade) === cu.mlp.log_upgrade.r2, Math.min(...upgrade) === cu.ridge.log_upgrade.r2]).toEqual([-0.15, -20, true, true]);
+    const energy = models.filter(m => m !== 'ridge').map(m => s[m].specific_energy_total_kwh_t.transfer_r2_median);
+    expect([round(Math.min(...energy), 2), round(Math.max(...energy), 2)]).toEqual([0.85, 0.93]);
+    const text = en(ENGINE_BENCHMARK.LEARNED);
+    expect(text).toMatch(/no model keeps a positive median recovery R² over the seven groups \(the random forest comes closest, -0\.004 with 17\.7 points of mean error\)/);
+    expect(text).toMatch(/score 0\.665 for the Gaussian process and 0\.572 for the MLP, where the MLP scored 0\.96 to 0\.99 on each of them alone/);
+    expect(text).toMatch(/and 0\.85 to 0\.93 with a whole ore group out/);
+    expect(text).toMatch(/held out together it does not \(R² -0\.15 for the MLP to -20 for ridge\)/);
   });
 
   it('M-16, M-17: the guard over its probe distances, and its flags against the errors', () => {
@@ -405,10 +462,10 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
     expect([round(100 * at(0.5).upward, 1), round(100 * at(0.5).downward, 1), Math.round(100 * at(0.1).upward), Math.round(100 * at(0.1).downward), Math.round(100 * at(1.0).upward)]).toEqual([17.7, 20.4, 45, 60, 14]);
     expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(round(100 * at(0.5).upward, 1));
     const soft = fold('copper_porphyry_soft'), refractory = fold('refractory_gold');
-    expect([Math.round(100 * soft.held_out_flag_rate), round(soft.models.hist_gradient_boosting.log_upgrade.r2, 2), Math.round(100 * refractory.held_out_flag_rate), round(refractory.models.hist_gradient_boosting.recovery_pct.r2, 2)]).toEqual([4, -1.83, 100, 0.65]);
+    expect([Math.round(100 * soft.held_out_flag_rate), round(soft.models.hist_gradient_boosting.log_upgrade.r2, 2), Math.round(100 * refractory.held_out_flag_rate), round(refractory.models.hist_gradient_boosting.recovery_pct.r2, 2)]).toEqual([4, -2.05, 100, 0.54]);
     const text = en(ENGINE_BENCHMARK.LEARNED);
     expect(text).toMatch(/it accepts 17\.7% of the probes \(20\.4% below the minimum\), at a tenth of the range 45% \(60% below\), and at the full range 14%/);
-    expect(text).toMatch(/the soft porphyry is flagged in 4% of its states while gradient boosting's upgrade R² there is -1\.83, and the refractory gold plant in every state while gradient boosting's recovery R² there is 0\.65/);
+    expect(text).toMatch(/the soft porphyry is flagged in 4% of its states while gradient boosting's upgrade R² there is -2\.05, and the refractory gold plant in every state while gradient boosting's recovery R² there is 0\.54/);
   });
 
   it('E-10: the Zandrivierspoort levels, silica and rougher beside the step', () => {

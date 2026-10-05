@@ -26,7 +26,7 @@ requirement's gate to name a test that exists. The counts are those of 0.08.001 
 | `test_uncertainty.py` | 7 | PE-28: the uncertainty and Sobol records; UQ-01 to UQ-03: SplitMix64, its uniforms and the Latin hypercube, with the digests the browser holds |
 | `test_learning.py` | 6 | PE-29: the learned lane's protocols, the records the pages quote, and a reused learning record that cannot ship |
 | `test_learning_findings.py` | 5 | every number methodology page 14 quotes |
-| `test_contract.py` | 19 | PE-30 one contract, identical verdicts; PE-30b every accepted state solves with closed balances; OP-10, UQ-07 and CM-01: the weight, the uncertainty controls and the classifier cut declared |
+| `test_contract.py` | 19 | PE-30 one contract, identical verdicts; PE-30b every accepted state solves with closed balances or, in the cut mode, is refused with its code; OP-10, UQ-07 and CM-01: the weight, the uncertainty controls and the classifier cut declared |
 | `test_live_api.py` | 17 | PE-30 through the API: probe verdicts, the live trace equals the engine's |
 | `test_cases.py` | 51 | PE-32 single-factor variants; PE-34 units and sources; the nominal KPI plausibility gate |
 | `test_case_rules.py` | 3 | the authoring rules every case keeps (#58): each plausibility range has a source note, the nominal state sits inside its ranges and meets its own grade, and the water capacity is 5% above the nominal need |

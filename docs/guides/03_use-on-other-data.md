@@ -44,7 +44,7 @@ if not verdict["accepted"]:
     raise SystemExit(verdict["errors"])
 point = operating_from_dict(verdict["point"])
 result = simulate(case.ore, case.plant, point)
-print(result.metrics["recovery_pct"], [f["code"] for f in result.flags])     # 96.07 ['power_limited']
+print(result.metrics["recovery_pct"], [f["code"] for f in result.flags])     # 95.55 ['power_limited']
 ```
 
 To describe a different ore or plant, change the case's own definitions with `dataclasses.replace`;
@@ -54,7 +54,7 @@ every field has its unit in `pipeline/engine/model.py`:
 minerals = tuple(replace(m, liberation_size_um=140.0) if m.id == "chalcopyrite" else m for m in case.ore.minerals)
 ore = replace(case.ore, minerals=minerals)
 plant = replace(case.plant, mill=replace(case.plant.mill, installed_power_kw=case.plant.mill.installed_power_kw * 1.1))
-result = simulate(ore, plant, point)                     # 96.82% recovery; every balance still closes
+result = simulate(ore, plant, point)                     # 96.43% recovery; every balance still closes
 ```
 
 The contract validates operating points against a case's declared envelope; it does not know about an

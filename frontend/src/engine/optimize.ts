@@ -45,6 +45,8 @@ class Problem {
   readonly scale: number;
   readonly energyScale: number;
   readonly recoveryScale: number;
+  /** The codes for which the engine refuses the base state; a refused base has no scales (M-05). */
+  readonly baseRefused: string[];
 
   constructor(readonly caseId: string, readonly ore: Ore, readonly plant: Plant, readonly base: OperatingPoint, readonly contract: OperatingContract,
               readonly screen: PointScreen | null) {
@@ -52,6 +54,7 @@ class Problem {
     const inputs = contract.cases[caseId].inputs;
     this.bounds = this.names.map(n => [Number(inputs[n].min), Number(inputs[n].max)]);
     const b = this.evaluatePoint(base);
+    this.baseRefused = b.valid ? [] : Object.keys(b.relative).sort();
     this.scale = b.recovered_tph > 0 ? b.recovered_tph : 1;
     this.energyScale = b.values.energy_kwh_t || 1;
     this.recoveryScale = b.recovery_pct || 1;
@@ -102,7 +105,8 @@ class Problem {
   scored(weight: number, tolerance: number) {
     return (x: Point): [number, number] => {
       const e = this.evaluate(x);
-      if (!e.valid) return [Infinity, Infinity];
+      // a non-finite slack is no evidence of feasibility (M-10)
+      if (!e.valid || !Object.values(e.relative).every(v => Number.isFinite(v))) return [Infinity, Infinity];
       let h = 0;
       for (const v of Object.values(e.relative)) { const d = Math.max(0, -v - tolerance); h += d * d; }
       return [-this.objective(e, weight), h];
@@ -269,6 +273,16 @@ export function optimize(caseId: string, ore: Ore, plant: Plant, base: Operating
     done += 1;
     if (options.progress && !options.progress(done, total)) throw new Cancelled();
   };
+  if (problem.baseRefused.length > 0) {
+    // nothing to optimize from: the engine refuses the base state, so no objective is defined (M-05)
+    const refusedSpec = plant.grade_spec as { minimum: number; species: string };
+    return { method: METHOD, weights: { recovered_metal: w, energy: 1 - w }, decisions: [...problem.names],
+      bounds: Object.fromEntries(problem.names.map((n, k) => [n, problem.bounds[k]])),
+      constraints: { grade: { minimum: refusedSpec.minimum, species: refusedSpec.species }, power: { maximum_kw: plant.mill.installed_power_kw },
+        ...(plant.water_limit_m3_t > 0 ? { water: { maximum_m3_t: plant.water_limit_m3_t } } : {}) },
+      screened: false, base: summary(problem, problem.evaluatePoint(base)), starts: [], evaluations: problem.cache.size, status: 'base_refused',
+      refused: problem.baseRefused, optimum: null };
+  }
   const runs = multistart(problem, w, tolerance, tick);
   const baseSummary = summary(problem, problem.evaluatePoint(base));
   const spec = plant.grade_spec as { minimum: number; species: string };
@@ -293,6 +307,8 @@ export function optimize(caseId: string, ore: Ore, plant: Plant, base: Operating
     if (optimum.feasible) {
       record.status = 'optimal';
       record.optimum = optimum;
+      // a best start that stopped on its evaluation budget did not meet the mesh criterion (M-09)
+      record.converged = best.stop === 'mesh';
       record.gain_tph = optimum.recovered_tph - baseSummary.recovered_tph;
       record.gain_pct = baseSummary.recovered_tph > 0 ? 100 * record.gain_tph / baseSummary.recovered_tph : null;
     }
@@ -322,7 +338,7 @@ function weightPath(problem: Problem, startDecisions: Record<string, number> | n
     const { end, run } = search(problem, current, weight, tolerance);
     const s = summary(problem, end);
     const step: PathStep = { weight, status: s.feasible ? 'optimal' : 'infeasible', decisions: s.decisions, recovered_tph: s.recovered_tph,
-      energy_kwh_t: s.values.energy_kwh_t, evaluations: run.evaluations, stop: run.stop };
+      energy_kwh_t: s.values.energy_kwh_t, evaluations: run.evaluations, stop: run.stop, converged: run.stop === 'mesh' };
     if (run.screen) { const { proposals: _p, ...counts } = run.screen; step.screen = counts; }
     steps.push(step);
     if (s.feasible) current = problem.toUnit({ ...problem.base, ...s.decisions });

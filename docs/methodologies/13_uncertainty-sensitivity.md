@@ -14,8 +14,12 @@ OreFlow carries two records per operating point: how widely the results spread w
 |---|---|---|
 | work index | the Bond work index of the operating point (and, in proportion, the crushing work index) | 20% |
 | head grade | the head grade of the primary payable | 20% |
-| liberation size | the 50% liberation size $x_L$ of every valuable mineral | 25% |
-| floatability | the floatability $P$ of every valuable mineral (flotation circuits only) | 25% |
+| liberation size | the 50% liberation size $x_L$ of every valuable mineral with a declared liberation size | 25% |
+| floatability | the floatability $P$ of every valuable mineral that floats, electrum and chrysocolla included (flotation circuits only) | 25% |
+
+Until 0.09.000 the floatability factor took the liberation-size rule too, which left electrum (45% of the gold case's
+gold) and chrysocolla (10% of the oxide copper) out of it; the gold recovery interval was 18% narrower (review of
+2026-10-04, M-03).
 
 Each factor is uniform on $[1 - h, 1 + h]$ times the value at the operating point. The half-widths
 are authored for these records, not fitted to a deposit: they express a plausible spread for a
@@ -42,6 +46,17 @@ drawn from the record itself. It also gives the probability of meeting each cons
 optimizer (grade specification, installed power, process-water capacity) and of meeting all of them,
 the count of engine flags over the samples, and the worst balance error over the samples.
 
+**Draws without a steady state.** In the cut mode some draws of a hard ore have no steady state and the engine
+refuses them (page 03). They are left out of the quantiles, moments and values, which are therefore over the solved
+draws only, and each counts as failing every constraint in the probabilities, which are over every draw. The record
+lists the refusals by code and the design rows the values belong to (`solved`), and the view states the solved count
+beside the design size and pairs each value with its own draw. The refused draws are the hard ores (in the hard
+porphyry's finer-cut variant, 40 of 128, every one refused as `circulating_load_above_bound` with a work-index factor
+of 1.077 or more), so the quantiles there
+describe the ores that have a steady state, not the whole design. Until 0.09.000 neither the page nor the view said
+so, the view titled the histogram "128 samples" over 88 values, and its scatter paired design row $i$ with value $i$,
+which after the first refusal joined one ore with another's result (review of 2026-10-04, M-01 and M-02).
+
 A Latin hypercube spreads 128 samples across every input's range more evenly than independent
 draws, so the quantiles settle with fewer samples; the seed makes every record reproducible.
 
@@ -62,7 +77,10 @@ $X_i$:
 
 $$S_i = \frac{V\left[E(Y \mid X_i)\right]}{V(Y)}, \qquad S_{T_i} = \frac{E\left[V(Y \mid X_{\sim i})\right]}{V(Y)}.$$
 
-$S_{T_i} \ge S_i$, and $S_{T_i} - S_i$ is the interaction share. The indices are estimated with the
+In exact arithmetic $S_{T_i} \ge S_i$, and $S_{T_i} - S_i$ is the interaction share. The estimates below carry
+sampling error: in the baked records at $N = 256$, $S_T$ falls below $S_1$ in 78 of 188 entries (by at most 0.0073), one
+total index exceeds 1 (1.0004) and 14 first-order indices are slightly negative (to -0.0002). The view shows an interaction
+within the estimates' half widths as "within error", never as a negative share (M-06). The indices are estimated with the
 Saltelli design: two independent base matrices $A$ and $B$ of $N$ rows and, for each input, a matrix
 $A_B^{(i)}$ that is $A$ with column $i$ taken from $B$, which costs $N(D + 2)$ evaluations; the
 estimators are those recommended by Saltelli et al. (2010, doi:10.1016/j.cpc.2009.09.018),
@@ -71,8 +89,15 @@ $$V_i \approx \frac{1}{N}\sum_j f(B)_j \left(f(A_B^{(i)})_j - f(A)_j\right), \qq
 V_{T_i} \approx \frac{1}{2N}\sum_j \left(f(A)_j - f(A_B^{(i)})_j\right)^2,$$
 
 divided by the output variance. SALib (Herman and Usher 2017, doi:10.21105/joss.00097) provides the
-scrambled Sobol-sequence design and the estimators, with bootstrap 95% confidence intervals (200
-resamples). The baked records use $N = 256$ for the nominal variants.
+scrambled Sobol-sequence design and the estimators, with bootstrap half widths (200 resamples at a 0.95 level). The
+bootstrap resamples the design's rows as if they were independent draws, which ignores the low discrepancy of a Sobol
+design, so the half widths overstate the estimator's error: over 60 seeds they covered the true index about 100% of
+the time, 1.4 to 2.8 times too wide on the Ishigami function and 10 to 21 times on additive models. They are bounds on
+the error, not 95% intervals; until 0.09.000 this page called them 95% intervals (M-07). SALib seeds its bootstrap only
+for a non-zero seed; at seed 0 the call runs under a seeded and restored global generator, so every admitted seed
+reproduces its record (M-13). A Saltelli design cannot drop a row, so where any draw has no steady state the record
+says `refused_draws` with the codes and carries no indices (M-08). The baked records use $N = 256$ for the nominal
+variants.
 
 A structural check comes free with the method: an input the output does not depend on gives
 $f(A_B^{(i)}) = f(A)$ row by row, so both indices are exactly zero. Grinding energy does not depend
@@ -91,7 +116,7 @@ the Sensitivity view says so instead of drawing indices.
 Measured on the committed records (drawn with the SplitMix64 design since 0.07.000) on two cases, and held to them
 by `tests/test_docs_claims.py` (the baked records for every case are on the Experiments page):
 
-- Soft copper porphyry: recovery P05 to P95 of 90.2 to 94.5%; the mill stays within installed power
+- Soft copper porphyry: recovery P05 to P95 of 89.4 to 93.8%; the mill stays within installed power
   in 82% of the samples, because a harder ore trips the power limit. Floatability drives recovery
   (total index about 0.8), liberation size drives grade (about 0.8), the work index drives grinding
   energy (about 1.00) and head grade drives recovered metal (about 0.98).

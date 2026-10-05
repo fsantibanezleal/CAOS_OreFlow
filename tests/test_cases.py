@@ -81,3 +81,11 @@ def test_every_plausibility_range_has_a_classified_source():
         for key, (en, es) in case.kpi_sources.items():
             assert en and es, (case.id, key)
             assert kpi_basis(en) in {"cited", "authored_bound", "authored"}
+
+
+def test_the_benchmark_protocol_states_its_own_counts():
+    """L-08: the protocol sentence is built from the counts (0.08.001 said six variants per case, against eight)."""
+    from pipeline.stages.benchmark import _variants_per_case
+
+    artifacts = [{"variants": [0] * 8}, {"variants": [0] * 8}]
+    assert _variants_per_case(artifacts) == "8"

@@ -206,13 +206,54 @@ def leave_one_case_out(case_of: np.ndarray) -> list[tuple[str, np.ndarray, np.nd
             for case_id in dict.fromkeys(case_of.tolist())]
 
 
+def transfer_groups(cases: tuple[CaseDef, ...] = CASES) -> dict[str, str]:
+    """Each case's ore group: its primary payable and the carrier that holds most of it. Cases that share both share
+    the mineral the learned features describe, so holding one of them out while its siblings stay in training is a
+    near-neighbour test, not a transfer test: the five chalcopyrite cases carry the same mineral, four of them with the
+    same liberation and composite content (review of 2026-10-04, L-01)."""
+    out = {}
+    for case in cases:
+        payable = case.ore.payables[0]
+        dominant = max(payable.carriers, key=lambda c: c.share)
+        out[case.id] = f"{payable.species}:{dominant.mineral}"
+    return out
+
+
+def leave_one_group_out(case_of: np.ndarray, groups: dict[str, str]) -> list[tuple[str, np.ndarray, np.ndarray]]:
+    """The folds that hold out a whole ore group of more than one case; a group of one is its leave-one-case-out fold."""
+    group_of = np.array([groups[c] for c in case_of.tolist()])
+    out = []
+    for key in dict.fromkeys(group_of.tolist()):
+        members = {c for c, g in groups.items() if g == key}
+        if len(members) > 1:
+            out.append((key, np.flatnonzero(group_of != key), np.flatnonzero(group_of == key)))
+    return out
+
+
 # ---- models ----
 
-def _scores(y: np.ndarray, pred: np.ndarray) -> dict[str, float]:
+def _scores(y: np.ndarray, pred: np.ndarray, cases: np.ndarray | None = None) -> dict[str, float]:
+    """RMSE, MAE and R2 against the test rows' pooled mean; with the rows' cases, also R2 against each case's own mean,
+    which subtracts what knowing the case alone explains (L-03)."""
     err = pred - y
     ss = float(np.sum((y - np.mean(y)) ** 2))
-    return {"rmse": float(np.sqrt(np.mean(err ** 2))), "mae": float(np.mean(np.abs(err))),
-            "r2": 1.0 - float(np.sum(err ** 2)) / ss if ss > 0.0 else 0.0, "rows": int(len(y))}
+    out = {"rmse": float(np.sqrt(np.mean(err ** 2))), "mae": float(np.mean(np.abs(err))),
+           "r2": 1.0 - float(np.sum(err ** 2)) / ss if ss > 0.0 else 0.0, "rows": int(len(y))}
+    if cases is not None:
+        within = sum(float(np.sum((y[cases == c] - np.mean(y[cases == c])) ** 2)) for c in dict.fromkeys(cases.tolist()))
+        out["r2_within_case"] = 1.0 - float(np.sum(err ** 2)) / within if within > 0.0 else 0.0
+    return out
+
+
+def case_mean_baseline(y: np.ndarray, train: np.ndarray, test: np.ndarray, case_of: np.ndarray) -> dict[str, dict[str, float]]:
+    """The predictor that knows only the case: each test row gets its case's training mean (L-03). An interpolation
+    score is skill only where it beats this."""
+    out = {}
+    for j, target in enumerate(TARGETS):
+        means = {c: float(np.mean(y[train[case_of[train] == c], j])) for c in dict.fromkeys(case_of[test].tolist())}
+        pred = np.array([means[c] for c in case_of[test]])
+        out[target] = _scores(y[test, j], pred, case_of[test])
+    return out
 
 
 def _torch_device(requested: str):
@@ -293,8 +334,10 @@ class Standardizer:
         return data * self.scale + self.mean
 
 
-def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int) -> dict[str, Any]:
-    """Train every model on ``train`` rows and score it on ``test`` rows, for every target."""
+def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int,
+                  cases: np.ndarray | None = None) -> dict[str, Any]:
+    """Train every model on ``train`` rows and score it on ``test`` rows, for every target; with ``cases`` (each test
+    row's case), every score also carries its within-case R2."""
     from sklearn.base import clone
     from sklearn.ensemble import HistGradientBoostingRegressor, RandomForestRegressor
     from sklearn.exceptions import ConvergenceWarning
@@ -321,7 +364,7 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         for name, est in estimators.items():
             est.fit(xs_tr, yt)
             out["identity"][name] = f"{type(est).__module__}.{type(est).__name__}"
-            out["models"].setdefault(name, {})[target] = _scores(ye, est.predict(xs_te))
+            out["models"].setdefault(name, {})[target] = _scores(ye, est.predict(xs_te), cases)
             if name == "hist_gradient_boosting":
                 out.setdefault("_hgb", {})[target] = est
         low, high = (float(v) for v in s["gp_length_scale_bounds"])
@@ -339,7 +382,7 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         inside = np.abs(ye - mean) <= z * std
         out["identity"]["gaussian_process"] = f"{type(gp).__module__}.{type(gp).__name__}"
         out["models"].setdefault("gaussian_process", {})[target] = {
-            **_scores(ye, mean), "coverage_95": float(np.mean(inside)), "mean_half_width": float(np.mean(z * std)),
+            **_scores(ye, mean, cases), "coverage_95": float(np.mean(inside)), "mean_half_width": float(np.mean(z * std)),
             "training_rows": int(len(gp_rows)), "kernel": str(gp.kernel_),
             "length_scales": {name: float(v) for name, v in zip(FEATURES, scales)},
             "switched_off": [name for name, v in zip(FEATURES, scales) if v >= high * float(s["gp_bound_margin"])],
@@ -354,7 +397,7 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
     pred = fy.inverse(_predict_network(model, xs_te))
     out["identity"]["mlp"] = f"torch.nn.Sequential ({info['device']})"
     for j, target in enumerate(TARGETS):
-        out["models"].setdefault("mlp", {})[target] = _scores(y[test, j], pred[:, j])
+        out["models"].setdefault("mlp", {})[target] = _scores(y[test, j], pred[:, j], cases)
     out["mlp_training"] = info
     return out
 
@@ -428,14 +471,34 @@ def guard(x: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any],
 
 
 def importance(hgb: dict[str, Any], x: np.ndarray, y: np.ndarray, test: np.ndarray, fx: Standardizer, s: dict[str, Any],
-               seed: int) -> dict[str, dict[str, float]]:
-    from sklearn.inspection import permutation_importance
+               seed: int, case_of: np.ndarray) -> dict[str, dict[str, float]]:
+    """Permutation importance (the RMSE increase when a feature's values are shuffled), shuffled within each case. A
+    feature that takes one value per case (the payable carrier's composite content or density) is then exactly 0: the
+    surrogate never saw the engine respond to it, and shuffling it across cases measured case identification. Until
+    0.09.000 the shuffle ran across the twelve cases and gave composite content 2.82 points (review of 2026-10-04,
+    L-04)."""
+    rng = np.random.default_rng(seed)
+    repeats = int(s["permutation_repeats"])
+    rows = x[test]
+    within = [np.flatnonzero(case_of[test] == c) for c in dict.fromkeys(case_of[test].tolist())]
+
+    def rmse(target: int, data: np.ndarray, model: Any) -> float:
+        return float(np.sqrt(np.mean((model.predict(fx(data)) - y[test, target]) ** 2)))
 
     out = {}
     for j, target in enumerate(TARGETS):
-        result = permutation_importance(hgb[target], fx(x[test]), y[test, j], n_repeats=int(s["permutation_repeats"]),
-                                        random_state=seed, scoring="neg_root_mean_squared_error")
-        out[target] = {name: float(v) for name, v in zip(FEATURES, result.importances_mean)}
+        model = hgb[target]
+        base = rmse(j, rows, model)
+        scores = {}
+        for f, name in enumerate(FEATURES):
+            increases = []
+            for _ in range(repeats):
+                shuffled = rows.copy()
+                for members in within:
+                    shuffled[members, f] = rows[rng.permutation(members), f]
+                increases.append(rmse(j, shuffled, model) - base)
+            scores[name] = float(np.mean(increases))
+        out[target] = scores
     return out
 
 
@@ -473,10 +536,11 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
     design = build_design(contract, cases, int(s["design_points_per_case"]), seed)
     x, y, case_of = design["x"], design["y"], design["case"]
     train, test = interpolation_split(case_of, float(s["test_fraction"]), seed)
-    interpolation = fit_and_score(x, y, train, test, s, seed)
+    interpolation = fit_and_score(x, y, train, test, s, seed, case_of[test])
     hgb = interpolation.pop("_hgb")
     fx = Standardizer(x[train])
-    interpolation["permutation_importance"] = importance(hgb, x, y, test, fx, s, seed)
+    interpolation["permutation_importance"] = importance(hgb, x, y, test, fx, s, seed, case_of)
+    interpolation["case_mean_baseline"] = case_mean_baseline(y, train, test, case_of)
     guard_interp = guard(x, train, test, s, seed)
     folds = []
     for held_out, tr, te in leave_one_case_out(case_of):
@@ -489,6 +553,18 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                       "equal_rows": fold.get("equal_rows", {}),
                       "mlp_training": {k: v for k, v in fold["mlp_training"].items() if k != "validation_history"},
                       "held_out_flag_rate": float(g["false_alarm_rate"])})
+    # transfer: a whole ore group held out, so no sibling with the same carrier mineral stays in training (L-01)
+    groups = transfer_groups(cases)
+    grouped = []
+    for key, tr, te in leave_one_group_out(case_of, groups):
+        fold = fit_and_score(x, y, tr, te, s, seed)
+        fold.pop("_hgb", None)
+        g = guard(x, tr, te, s, seed)
+        grouped.append({"held_out_group": key, "cases": [c for c in dict.fromkeys(case_of[te].tolist())],
+                        "train_rows": int(len(tr)), "test_rows": int(len(te)), "models": fold["models"],
+                        "spread": {target: float(np.std(y[te, j])) for j, target in enumerate(TARGETS)},
+                        "held_out_flag_rate": float(g["false_alarm_rate"])})
+    singles = [f for f in folds if sum(1 for g in groups.values() if g == groups[f["held_out"]]) == 1]
     seeds = mlp_seeds(x, y, [("interpolation", train, test)] + [(h, tr, te) for h, tr, te in leave_one_case_out(case_of)],
                       s, [seed + int(k) for k in s["mlp_seed_offsets"]])
     # the deployable surrogate and guard: every state trains them
@@ -518,12 +594,20 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
         summary[model_name] = {}
         for target in TARGETS:
             pooled = [f["models"][model_name][target] for f in folds]
+            transfer = [f["models"][model_name][target] for f in grouped + singles]
             summary[model_name][target] = {
                 "interpolation_rmse": interpolation["models"][model_name][target]["rmse"],
                 "interpolation_r2": interpolation["models"][model_name][target]["r2"],
+                # against each case's own mean, beside the predictor that knows only the case (L-03)
+                "interpolation_r2_within_case": interpolation["models"][model_name][target]["r2_within_case"],
+                "case_mean_r2": interpolation["case_mean_baseline"][target]["r2"],
                 "loco_rmse_mean": float(np.mean([p["rmse"] for p in pooled])),
                 "loco_rmse_max": float(np.max([p["rmse"] for p in pooled])),
                 "loco_r2_median": float(np.median([p["r2"] for p in pooled])),
+                # one ore group out: the grouped folds and the groups of one case (L-01)
+                "transfer_rmse_mean": float(np.mean([p["rmse"] for p in transfer])),
+                "transfer_rmse_max": float(np.max([p["rmse"] for p in transfer])),
+                "transfer_r2_median": float(np.median([p["r2"] for p in transfer])),
             }
             if model_name == "gaussian_process":
                 # M-08: the coverage under leave one case out, beside the interpolation's
@@ -547,6 +631,8 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                           "permutation_importance": interpolation["permutation_importance"]},
         "guard": {k: v for k, v in guard_interp.items() if not k.startswith("_")},
         "leave_one_case_out": folds,
+        "transfer_groups": groups,
+        "leave_one_group_out": grouped,
         "equal_rows": interpolation.get("equal_rows", {}),
         "mlp_seeds": seeds,
         "summary": summary,

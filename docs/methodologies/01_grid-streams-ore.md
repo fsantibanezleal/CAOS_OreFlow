@@ -16,7 +16,9 @@ The representative size is the geometric mean $d_i = \sqrt{x_i x_{i+1}}$ (for th
 $x_{62} \cdot 2^{-1/8}$). Cumulative passing at $x_i$ is the mass in classes $i$ and finer, and
 percentiles (P80 and others) interpolate linearly in $(\ln x, \text{passing})$.
 
-The top bound sits above the coarsest crusher feed in the catalog, and the fine end resolves the
+The top bound sits above the 60 mm F80 of the catalog's crusher feed, but not above its whole Rosin-Rammler tail:
+2.5% of that feed lies above 150 mm and is lumped into the top class, which moves the crusher product's cumulative
+passing by at most 2.8e-5 and its P80 by 0.3 um (review of 2026-10-04, C-09). The fine end resolves the
 slimes that desliming and entrainment act on. A fixed grid makes every case comparable and gives the
 learned models a common feature space.
 
@@ -38,9 +40,18 @@ iron-bearing silicate gangue) declare their composition with a source in
 
 ## Ore at an operating point
 
-A case declares the payable species and the minerals that carry them. A **stoichiometric** carrier
-takes the ore fraction its share of the head grade implies,
-$w_m = g \cdot s / c_m$ (grade $g$, share $s$, content $c_m$); a **trace** carrier (gold in pyrite)
+A case declares the payable species and the minerals that carry them. The head grade is the ore's total assay of
+the payable. A **stoichiometric** carrier takes the ore fraction its share of the carriers' grade implies,
+$w_m = G_c \cdot s / c_m$ (share $s$, content $c_m$), where the carriers' grade $G_c$ is the head grade less what the
+other minerals hold:
+
+$$G_c = \frac{G - F - c_b\,(1 - X_d - X_o)}{1 - c_b K},$$
+
+with $F$ and $X_d$ the declared minerals' element and fraction, $X_o$ the other payables' carriers, $c_b$ the balance
+gangue's content and $K$ the carriers' sum of share over content. Where no other mineral holds the element,
+$G_c = G$ and $w_m = G s / c_m$. The magnetite case is where it matters: its iron silicate holds 5% Fe, so magnetite
+takes 0.367 of the ore at 29.7% Fe, not the 0.410 the simple form gives (review of 2026-10-04, C-04, which found this
+page stating only the simple form). A **trace** carrier (gold in pyrite)
 keeps a declared fraction and receives the content its share implies. Gangue minerals with a declared
 fraction are absolute; exactly one gangue mineral takes the balance and hosts the composites.
 

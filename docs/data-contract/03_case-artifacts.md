@@ -30,9 +30,14 @@ factor; the classifier cut's factor applies to the nominal state's solved cut, s
   `method` (`gps-progressive-barrier`), `weights`, `screened` (with `unscreened_reason: cut_mode` for the cut-mode
   variants), `screen_bound_pct` and `proposal_columns`; per start the end, evaluations, iterations, `stop` and the
   screen's counts and proposals; `trace`, `without_screen` (the same starts on a fresh cache) and `path` (the
-  optimum at 0.75, 0.5 and 0.25);
-- `uncertainty`: the seeded Monte Carlo record ([page 13](../methodologies/13_uncertainty-sensitivity.md));
-- `sensitivity`: the Sobol record, on the nominal variant only.
+  optimum at 0.75, 0.5 and 0.25, each step with `stop` and `converged`); `status` is `optimal`, `infeasible` or
+  `base_refused` (a base the engine refuses, with `refused`, its codes, and no search), and an optimum carries
+  `converged`, false when its best start stopped on the evaluation budget (since 0.09.000);
+- `uncertainty`: the seeded Monte Carlo record ([page 13](../methodologies/13_uncertainty-sensitivity.md)), with
+  `refused` (draws with no steady state, by code) and `solved` (the design rows the output values belong to, since
+  0.09.000);
+- `sensitivity`: the Sobol record, on the nominal variant only; `status: "refused_draws"` with `refused` and no
+  indices where any draw of the design has no steady state.
 
 Because the artifact embeds the definition and the point, the browser engine recomputes every
 variant from the artifact alone; `frontend/src/test/parity.test.ts` does exactly that for all 96

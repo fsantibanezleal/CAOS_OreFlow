@@ -66,7 +66,8 @@ export type MagneticPlant = {
   max_capture: number; fine_scale_um: number; composite_threshold: number; entrapment_base: number;
   entrapment_fines: number; entrapment_scale_um: number; cleaner_factor: number; concentrate_solids: number;
 };
-export type DeslimePlant = { sharpness: number; bypass: number };
+/** The desliming cyclone: its sharpness and declared underflow solids (mass fraction); the water split follows (P-04). */
+export type DeslimePlant = { sharpness: number; underflow_solids: number };
 export type GradeSpec = { species: string; minimum: number };
 export type Family = 'rougher' | 'gravity_rougher' | 'magnetic' | 'deslime_rougher';
 export type Plant = {

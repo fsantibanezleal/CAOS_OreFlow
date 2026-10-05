@@ -31,6 +31,8 @@ surrogate's and the engine's values, and the same multi-start without the screen
 """
 from __future__ import annotations
 
+import math
+
 from dataclasses import asdict
 from typing import Any
 
@@ -72,6 +74,8 @@ class Problem:
         self.water_limit = case.plant.water_limit_m3_t
         self.cache: dict[tuple[float, ...], dict[str, Any]] = {}
         base_eval = self.evaluate_point(base)
+        # a base the engine refuses has no scales: the objective would mix t/h with kWh/t (M-05)
+        self.base_refused = [] if base_eval["valid"] else sorted(base_eval["relative"])
         self.scale = base_eval["recovered_tph"] if base_eval["recovered_tph"] > 0.0 else 1.0
         self.energy_scale = base_eval["values"].get("energy_kwh_t", 0.0) or 1.0
         self.recovery_scale = base_eval.get("recovery_pct", 0.0) or 1.0
@@ -121,7 +125,8 @@ class Problem:
         """The evaluator the pattern search minimizes: (-objective, violation beyond the tolerance)."""
         def evaluate(x: tuple[float, ...]) -> tuple[float, float]:
             e = self.evaluate(x)
-            if not e["valid"]:
+            # a non-finite slack is no evidence of feasibility; Python's max(0, nan) would read it as 0 (M-10)
+            if not e["valid"] or not all(math.isfinite(v) for v in e["relative"].values()):
                 return float("inf"), float("inf")
             # a product, not a power: the browser computes the same square (engine/optimize.ts)
             h = 0.0
@@ -291,6 +296,15 @@ def optimize(case: CaseDef, base: OperatingPoint, contract: dict[str, Any], weig
     problem = Problem(case, base, contract, screen)
     tolerance = float(constant("optimization.feasibility_tolerance"))
     weight = float(constant("optimization.weight_default")) if weight is None else float(weight)
+    if problem.base_refused:
+        # nothing to optimize from: the engine refuses the base state, so no objective is defined (M-05)
+        return {"method": METHOD, "weights": {"recovered_metal": weight, "energy": 1.0 - weight},
+                "decisions": list(problem.names), "bounds": {n: [lo, hi] for n, (lo, hi) in zip(problem.names, problem.bounds)},
+                "constraints": {"grade": {"minimum": problem.spec.minimum, "species": problem.spec.species},
+                                "power": {"maximum_kw": case.plant.mill.installed_power_kw},
+                                **({"water": {"maximum_m3_t": problem.water_limit}} if problem.water_limit > 0.0 else {})},
+                "screened": False, "base": _summary(problem, problem.evaluate_point(base)), "starts": [],
+                "evaluations": len(problem.cache), "status": "base_refused", "refused": problem.base_refused, "optimum": None}
     runs = _multistart(problem, weight, tolerance)
     base_summary = _summary(problem, problem.evaluate_point(base))
     record: dict[str, Any] = {
@@ -321,6 +335,8 @@ def optimize(case: CaseDef, base: OperatingPoint, contract: dict[str, Any], weig
         optimum = _summary(problem, problem.evaluate_point(base.with_values(**best_decisions)))
         if optimum["feasible"]:
             record["status"], record["optimum"] = "optimal", optimum
+            # a best start that stopped on its evaluation budget did not meet the mesh criterion (M-09)
+            record["converged"] = best["stop"] == "mesh"
             record["gain_tph"] = optimum["recovered_tph"] - base_summary["recovered_tph"]
             record["gain_pct"] = (100.0 * record["gain_tph"] / base_summary["recovered_tph"]
                                   if base_summary["recovered_tph"] > 0.0 else None)
@@ -352,7 +368,7 @@ def _weight_path(problem: Problem, start_decisions: dict[str, float] | None, tol
         summary = _summary(problem, end)
         step = {"weight": weight, "status": "optimal" if summary["feasible"] else "infeasible", "decisions": summary["decisions"],
                 "recovered_tph": summary["recovered_tph"], "energy_kwh_t": summary["values"].get("energy_kwh_t"),
-                "evaluations": run["evaluations"], "stop": run["stop"]}
+                "evaluations": run["evaluations"], "stop": run["stop"], "converged": run["stop"] == "mesh"}
         if "screen" in run:
             step["screen"] = {k: v for k, v in run["screen"].items() if k != "proposals"}
         steps.append(step)

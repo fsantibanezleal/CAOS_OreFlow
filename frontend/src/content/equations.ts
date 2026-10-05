@@ -9,18 +9,18 @@ export type Formula = { tex: string; caption: Bi };
 const r = String.raw;
 
 export const CIRCUIT: Formula[] = [
-  { tex: r`S_i^E = \alpha_0 \frac{d_i^{\alpha_1}}{1 + (d_i/d_{crit})^{\alpha_2}}`,
-    caption: { en: 'Energy-specific selection function (t/kWh) of size class i (Herbst and Fuerstenau; Moly-Cop form): breakage rate per unit of specific energy.',
-      es: 'Función de selección por energía específica (t/kWh) de la clase i (Herbst y Fuerstenau; forma de Moly-Cop): tasa de fractura por unidad de energía específica.' } },
+  { tex: r`S_i^E = \alpha_0\,\frac{W_{i,ref}}{W_i}\,\frac{d_i^{\alpha_1}}{1 + (d_i/d_{crit})^{\alpha_2}}`,
+    caption: { en: 'Energy-specific selection function (t/kWh) of size class i (Herbst and Fuerstenau; Moly-Cop form), scaled by the ore\'s work index: breakage rate per unit of specific energy; each mineral takes it times its grindability over the ore\'s harmonic mean.',
+      es: 'Función de selección por energía específica (t/kWh) de la clase i (Herbst y Fuerstenau; forma de Moly-Cop), escalada por el índice de trabajo del mineral: tasa de fractura por unidad de energía específica; cada mineral la toma por su moliendabilidad sobre la media armónica del mineral.' } },
   { tex: r`\begin{aligned} B_{ij} &= \beta_0 \left(\frac{x_i}{x_{j+1}}\right)^{\beta_1} + (1-\beta_0)\left(\frac{x_i}{x_{j+1}}\right)^{\beta_2} \\ b_{ij} &= B_{ij} - B_{i+1,j} \end{aligned}`,
     caption: { en: 'Cumulative breakage function (Austin form) and the fraction of broken class j that reports to class i.',
       es: 'Función de fractura acumulada (forma de Austin) y fracción de la clase j fracturada que reporta a la clase i.' } },
   { tex: r`\begin{gathered} T^{-1}(e) = I + e\,D + c_2 e^2 D^2 + c_3 e^3 D^3 \\ D = (I - \tilde B)\,\mathrm{diag}(S^E) \end{gathered}`,
     caption: { en: 'The mill as three perfect mixers in series sharing one breakage operator: e is the specific energy per pass, c2 and c3 the symmetric sums of the mixers\' volume fractions.',
       es: 'El molino como tres mezcladores perfectos en serie que comparten un operador de fractura: e es la energía específica por pasada, c2 y c3 las sumas simétricas de las fracciones de volumen.' } },
-  { tex: r`\left(T^{-1}(e) - \mathrm{diag}(C)\right) p = f`,
-    caption: { en: 'Closed circuit: with the cyclone returning fraction $C_i$ of the mill product, one lower-triangular solve gives the mill product p for new feed f; e is found so that the overflow meets the target P80 and the circulating load its design value.',
-      es: 'Circuito cerrado: con el ciclón devolviendo la fracción $C_i$ del producto del molino, una resolución triangular inferior da el producto p para la alimentación fresca f; e se busca para que el rebose cumpla el P80 objetivo y la carga circulante su valor de diseño.' } },
+  { tex: r`\left(T^{-1}(e) - \mathrm{diag}(r)\right) p = f`,
+    caption: { en: 'Closed circuit: with the cyclone returning fraction $r_i$ of the mill product (less a gravity unit\'s take), one lower-triangular solve gives the mill product p for new feed f; e is found so that the overflow meets the target P80 and the circulating load its design value.',
+      es: 'Circuito cerrado: con el ciclón devolviendo la fracción $r_i$ del producto del molino (menos lo que toma una unidad gravimétrica), una resolución triangular inferior da el producto p para la alimentación fresca f; e se busca para que el rebose cumpla el P80 objetivo y la carga circulante su valor de diseño.' } },
   { tex: r`\begin{gathered} y(d) = R_f + (1 - R_f)\left(1 - e^{-\ln 2\,(d/d_{50c})^{m}}\right) \\ d_{50c,k} = d_{50c}\sqrt{\frac{\rho_h - 1}{\rho_k - 1}} \end{gathered}`,
     caption: { en: 'Cyclone partition to underflow (Plitt, Rosin-Rammler form) with water bypass $R_f$, and the cut of a particle class k of density $\\rho_k$ from Plitt\'s density dependence on the host gangue density $\\rho_h$: dense minerals return to the mill at finer sizes.',
       es: 'Partición del ciclón a la descarga (Plitt, forma Rosin-Rammler) con cortocircuito de agua $R_f$, y el corte de una clase k de densidad $\\rho_k$ según la dependencia de densidad de Plitt sobre la densidad de la ganga huésped $\\rho_h$: los minerales densos vuelven al molino a tamaños más finos.' } },
@@ -39,9 +39,9 @@ export const FLOTATION: Formula[] = [
   { tex: r`\begin{aligned} ENT_i &= \frac{2}{e^{a_i} + e^{-a_i}},\qquad a_i = 2.292\,(d_i/\xi)^{adj} \\ adj &= 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)} \end{aligned}`,
     caption: { en: 'Degree of entrainment of size class i (Savassi et al.): $\\xi$ is the size at which $ENT = 0.2$ and $\\delta$ the drainage parameter; entrained gangue follows the water recovered.',
       es: 'Grado de arrastre de la clase i (Savassi y colaboradores): $\\xi$ es el tamaño con $ENT = 0.2$ y $\\delta$ el parámetro de drenaje; la ganga arrastrada sigue al agua recuperada.' } },
-  { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1-r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`,
-    caption: { en: 'Recovery per perfectly mixed cell with residence $\\tau$ and water recovery $r_w$, and $R_N$ over a bank of N cells; without entrainment it is the tanks-in-series result ${1 - \\left(N/(N + k\\tau_{bank})\\right)^N}$.',
-      es: 'Recuperación por celda perfectamente mezclada con residencia $\\tau$ y recuperación de agua $r_w$, y $R_N$ en un banco de N celdas; sin arrastre es el resultado de tanques en serie ${1 - \\left(N/(N + k\\tau_{banco})\\right)^N}$.' } },
+  { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ \tau_j = \frac{V(1-\varepsilon_g)}{Q_{tail,j}},\qquad R_N = 1 - \prod_{j=1}^{N} (1 - r_j) \end{gathered}`,
+    caption: { en: 'Recovery per perfectly mixed cell with residence $\\tau_j$, its pulp volume over its own tail flow, and water ratio $w = k_w\\tau$; $R_N$ over a bank of N cells in series, each fed the tail of the one before.',
+      es: 'Recuperación por celda perfectamente mezclada con residencia $\\tau_j$, su volumen de pulpa sobre su propio flujo de relave, y razón de agua $w = k_w\\tau$; $R_N$ en un banco de N celdas en serie, cada una alimentada con el relave de la anterior.' } },
 ];
 
 export const GRAVITY: Formula[] = [

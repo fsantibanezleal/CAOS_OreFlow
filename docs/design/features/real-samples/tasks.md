@@ -13,6 +13,29 @@
 - [x] T7 (RS-10). The gate's source axis, with the captures read. The source axis in `495dad3`; the full matrix ran on the release build.
 - [x] Convergence: every RS and IS requirement with its gate's result. Below (IS in `industrial-soft-sensor`).
 
+## Convergence verdict, 0.09.000 (2026-10-05)
+
+ADR-0075 section 4: each live requirement, the gate it names and that gate's result on the 0.09.000 release: the
+release bake and its validation, the Python and frontend suites on the final tree, the full optimizer parity
+(`OF_PARITY=full`) and the browser gate's records on the served release build, every capture read
+(`docs/release-verification.md`, 0.09.000). A parametrized test passes when every one of its cases does.
+
+| Requirement | Result on the 0.09.000 release |
+|---|---|
+| RS-01 | met: `test_sources_pinned_and_ledger` passed |
+| RS-02 | met: `test_bond_work_index` passed |
+| RS-03 | met: `test_normative_mineralogy` passed |
+| RS-03b | met: `test_stoichiometry_from_atomic_weights` passed; `test_copper_minerals_sourced` passed |
+| RS-04 | met: `test_work_index_assignment` passed |
+| RS-05 | met: `test_record_fields` passed (2 cases); `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
+| RS-06 | met: `real-samples-parity.test.ts` passed (53 tests) |
+| RS-07 | met: `real-samples-claims.test.ts` passed (4 tests); `gate.mjs` on the served release build (`index-DH8Uoys2.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, captures read |
+| RS-08 | met: `gate.mjs` on the served release build (`index-DH8Uoys2.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, captures read |
+| RS-09 | met: `real-samples-claims.test.ts` passed (4 tests) |
+| RS-10 | met: `gate.mjs` on the served release build (`index-DH8Uoys2.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, captures read |
+
+11 of 11 met.
+
 ## Convergence verdict, 0.08.000 (2026-10-04)
 
 ADR-0075 section 4: each live requirement, the gate it names and that gate's result on the 0.08.000 release: the

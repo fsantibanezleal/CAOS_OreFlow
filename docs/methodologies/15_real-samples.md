@@ -48,8 +48,14 @@ which describe the least-squares form of the same element-to-mineral conversion)
 The thresholds are each mineral's S/Cu from its formula, and each pair is the 2x2 balance of copper and sulphur.
 One sample falls in the first band, 15 in the second and 36 in the third. In the median sample bornite carries 56%
 of the copper and chalcocite 38%. The iron the sulphides leave goes to magnetite, an assumption, since the assays do
-not identify it (3.7 to 75% of the ore); quartz closes the mass. The allocation is one choice in a family: pyrite
-could take part of the sulphur in the two deficient bands as well, and the record carries one such alternative.
+not identify it (3.7 to 75% of the ore); quartz closes the mass. An assay whose iron cannot cover the iron its
+sulphides need is excluded with that reason, as one short of sulphur is; none of the 52 pinned samples is (until
+0.09.000 the iron was clamped at zero, and an iron-poor assay would have given sulphides holding more iron than it
+assays; review of 2026-10-04, L-09). The allocation is one choice in a family, and the record carries the other end of
+it in the two sulphur-deficient bands: chalcopyrite with chalcocite, which close the same copper and sulphur without
+bornite. The chalcopyrite-pyrite band has no freedom and keeps its allocation, and no allocation in either version
+gives pyrite any sulphur in the deficient bands, which have none to spare (until 0.09.000 this page said pyrite could
+take part of it; review of 2026-10-04, L-06).
 
 **Bornite and chalcocite** join the mineral table (RS-03b; dossier of 2026-09-30). Their densities are the Handbook
 of Mineralogy's (5.07 and 5.8 t/m3), and their element contents follow from the atomic weights. The test's
@@ -82,8 +88,8 @@ hole folds).
 
 At the case's 720 t/h every sample leaves the mill at installed power: they are harder than the 11 kWh/t ore the
 circuit was sized for, so the product is coarse (P80 208 to 496 um against the 150 um target) and the
-engine's recovery falls below the locked-cycle test's. The engine is 20.4 points below the measurement on
-average (RMSE 22.2 points; 0.3 to 39.9 points below); the GeoMet lane's data-driven predictions, which never see
+engine's recovery falls below the locked-cycle test's. The engine is 22.6 points below the measurement on
+average (RMSE 24.1 points; 2.9 to 41.1 points below); the GeoMet lane's data-driven predictions, which never see
 the engine, are within 5.1 to 5.5 points RMSE.
 
 That gap is mostly the host circuit's size. The record's sensitivity block re-runs the 52 samples under other
@@ -91,27 +97,27 @@ assumptions (review of 2026-10-02, S-01 to S-09); engine minus measured, in poin
 
 | Run | Mean | RMSE |
 |---|---|---|
-| the soft porphyry's circuit at 720 t/h (the record) | -20.4 | 22.2 |
-| the hard porphyry's circuit at its nominal point | -2.9 | 8.0 |
-| the mill sized for a 150 um product | +2.0 | 6.0 |
-| each sample at the throughput that gives 150 um (340 to 586 t/h) | +5.2 | 7.6 |
+| the soft porphyry's circuit at 720 t/h (the record) | -22.6 | 24.1 |
+| the hard porphyry's circuit at its nominal point | -4.9 | 8.8 |
+| the mill sized for a 150 um product | +0.2 | 5.6 |
+| each sample at the throughput that gives 150 um (340 to 586 t/h) | +4.0 | 6.7 |
 
 - **The grind the tests were floated at is not in the open data.** With the mill sized for an assumed product, the
-  gap runs from +10.4 points at 75 um to -18.5 at 300 um and changes sign between 160 and 165 um. No single
+  gap runs from +10.0 points at 75 um to -20.8 at 300 um and changes sign between 150 and 160 um. No single
   grind-corrected number is published; the record keeps the curve.
-- **Residence.** Of the +5.2 points at each sample's own target-grind throughput, 3.2 come from the longer flotation
+- **Residence.** Of the +4.0 points at each sample's own target-grind throughput, 3.8 come from the longer flotation
   residence at the lower throughput, not from the grind.
 - **The engine does not order the samples.** At every assumed grind its recovery is uncorrelated with the measured
-  one (Pearson r between -0.03 and 0.01), and it varies by 0.6 to 2.9 points across the samples against the tests'
+  one (Pearson r between 0.03 and 0.06), and it varies by 0.6 to 2.6 points across the samples against the tests'
   5.3. That holds with the declared floatability ratios: with chalcocite at 0.67 of bornite, the low end of its
-  range, r is 0.27 to 0.33.
+  range, r is 0.30 to 0.35.
 - **The authored choices move the level.** With the mill sized for 150 um, the alternative allocation moves the mean
-  by 2.0 points, removing the magnetite by 2.8, the bornite ratio over its range (0.62 to 0.80) by 2.6 and the
-  chalcocite ratio over its range (0.67 to 2.5 times bornite) by 4.2. At 720 t/h the same four move it by 2.7, 4.3,
-  3.0 and 5.8.
+  by 2.0 points, removing the magnetite by 3.0, the bornite ratio over its range (0.62 to 0.80) by 2.7 and the
+  chalcocite ratio over its range (0.67 to 2.5 times bornite) by 4.6. At 720 t/h the same four move it by 2.4, 4.2,
+  3.0 and 5.7.
 - **The work index.** At 720 t/h a sample's recovery falls by 2.8 points per kWh/t (the median over the samples).
-  Taking the deposit median for every sample gives -21.5 points, and the nearest comminution sample anywhere in the
-  deposit gives -19.8.
+  Taking the deposit median for every sample gives -23.7 points, and the nearest comminution sample anywhere in the
+  deposit gives -22.0.
 
 This is a comparison of a simulated plant at an operating point with a laboratory locked-cycle test, and not a
 calibration: nothing in the engine is fitted to these samples. In the workbench the operating controls stay live

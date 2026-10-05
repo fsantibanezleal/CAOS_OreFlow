@@ -39,7 +39,8 @@ export function patternSearch(evaluate: Evaluator, start: Point, options: Patter
     let v = cache.get(k);
     if (v === undefined) {
       const [f, h] = evaluate(x);
-      v = [f, Math.max(0, h)];
+      // a non-finite violation is the extreme barrier in both languages (M-10)
+      v = [f, Number.isNaN(h) ? Infinity : Math.max(0, h)];
       cache.set(k, v);
       evaluations.push({ x: [...x], f: v[0], h: v[1], source });
     }
