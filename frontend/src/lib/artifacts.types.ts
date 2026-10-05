@@ -89,7 +89,9 @@ export type CaseManifest = {
   kpis: Record<string, { value: number; range: [number, number]; within: boolean }>;
 };
 
-export type LearningSummary = Record<string, Record<string, { interpolation_rmse: number; interpolation_r2: number; loco_rmse_mean: number; loco_rmse_max: number; loco_r2_median: number }>>;
+export type LearningSummary = Record<string, Record<string, { interpolation_rmse: number; interpolation_r2: number; loco_rmse_mean: number; loco_rmse_max: number; loco_r2_median: number;
+  /** Since 0.09.000: R2 against each case's own mean, the case-mean predictor's R2 (L-03), and one ore group out (L-01). */
+  interpolation_r2_within_case?: number; case_mean_r2?: number; transfer_rmse_mean?: number; transfer_rmse_max?: number; transfer_r2_median?: number }>>;
 export type LearningRecord = {
   schema: 'oreflow.learning/v1';
   features: string[];
@@ -105,6 +107,9 @@ export type LearningRecord = {
   };
   guard: { threshold: number; false_alarm_rate: number; false_accept_rate: number; false_accept_by_feature: Record<string, number>; in_envelope_rows: number; probe_rows: number };
   leave_one_case_out: Array<{ held_out: string; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
+  /** Since 0.09.000 (L-01): each case's ore group, and the folds that hold a group of more than one case out. */
+  transfer_groups?: Record<string, string>;
+  leave_one_group_out?: Array<{ held_out_group: string; cases: string[]; train_rows: number; test_rows: number; models: Record<string, Record<string, Record<string, number>>>; held_out_flag_rate: number }>;
   summary: LearningSummary;
   final: { mlp_training: Record<string, unknown>; guard_threshold: number; exports: Record<string, { path: string; bytes: number; max_abs_difference: number; opset: number; gp_rows?: number; gp_max_abs_difference?: number }> };
   settings: Record<string, unknown>;

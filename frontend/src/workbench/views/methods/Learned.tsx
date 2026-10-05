@@ -50,8 +50,10 @@ const TEXT = {
   loading: { en: 'Loading the ONNX models', es: 'Cargando los modelos ONNX' },
   failed: { en: 'The ONNX models could not be loaded', es: 'No se pudieron cargar los modelos ONNX' },
   protocol: { en: 'How far to trust it (precompute protocols, exported MLP)', es: 'Cuánto confiar (protocolos del precálculo, MLP exportado)' },
-  interpolation: { en: 'Interpolation split R²', es: 'R² en la partición de interpolación' },
-  loco: { en: 'Leave one case out: median R²', es: 'Dejando un caso fuera: R² mediano' },
+  interpolation: { en: 'Interpolation split R² (pooled / within case / a predictor that knows only the case)', es: 'R² en la partición de interpolación (conjunto / dentro de cada caso / un predictor que solo conoce el caso)' },
+  transfer: { en: 'One ore group out (transfer): median R²', es: 'Dejando fuera un grupo de mineral (transferencia): R² mediano' },
+  cutMode: { en: 'The learned lane describes the target mode: its features carry the grind target and the design load, which a set classifier cut ignores, so it does not answer here.', es: 'La vía aprendida describe el modo objetivo: sus atributos llevan el objetivo de molienda y la carga de diseño, que un corte del clasificador fijado ignora, así que aquí no responde.' },
+  loco: { en: 'One case out (near neighbours stay in training): median R²', es: 'Dejando un caso fuera (sus vecinos quedan en el entrenamiento): R² mediano' },
   locoRmse: { en: 'Leave one case out: mean RMSE', es: 'Dejando un caso fuera: RMSE medio' },
   guardRates: { en: 'Guard false alarms / false accepts', es: 'Guardia: falsas alarmas / falsas aceptaciones' },
   heldOut: { en: 'States of the held-out case the guard flags', es: 'Estados del caso reservado que marca el guardia' },
@@ -74,7 +76,8 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
 }) {
   const caseId = artifact.case_id;
   const entry = contract.cases[caseId];
-  const names = Object.keys(entry.inputs);
+  // an input with an off value (the classifier cut) switches the lane's domain, so it is no sweep axis here (L-02)
+  const names = Object.keys(entry.inputs).filter(n => entry.inputs[n].off === undefined);
   const declared = Object.fromEntries(contract.inputs.map(s => [s.name, s]));
   const gradeUnit = entry.primary.unit;
   const unitOf = (name: string) => (declared[name].unit === 'case' ? gradeUnit : declared[name].unit);
@@ -152,6 +155,8 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
       out.xs.push(c.x);
       if (c.engine === null) { out.engine.push(null); out.surrogate.push(null); out.outside.push(null); out.guard.push(null); continue; }
       const answer = answers[k++];
+      // a cut-mode state has no learned answer (L-02)
+      if (answer.notApplicable) { out.engine.push(c.engine[target]); out.surrogate.push(null); out.outside.push(null); out.guard.push(null); continue; }
       const value = shown(answer, target, c.engine.head_grade);
       out.engine.push(c.engine[target]);
       out.surrogate.push(value);
@@ -202,7 +207,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
         {status === 'loading' && <p className="of-hint" role="status">{TEXT.loading[lang]}</p>}
         {current && trace && (
           <>
-            <table className="of-table">
+            {!current.notApplicable && <table className="of-table">
               <thead><tr><th scope="col" /><th scope="col">{TEXT.engine[lang]}</th><th scope="col">{TEXT.surrogate[lang]}</th><th scope="col">{TEXT.difference[lang]}</th></tr></thead>
               <tbody>{TARGETS.map(k => {
                 const u = targetUnit(k);
@@ -213,16 +218,19 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
                     <td>{formatValue(engine, u, lang)}</td><td>{formatValue(learned, u, lang)}</td><td>{formatValue(learned - engine, u, lang)}</td></tr>
                 );
               })}</tbody>
-            </table>
+            </table>}
             <p className={current.outside ? 'of-status-line warn' : 'of-status-line'}>
-              {`${current.outside ? TEXT.verdictOut[lang] : TEXT.verdictIn[lang]} (${formatSignificant(current.guardError, lang, 3)} / ${formatSignificant(current.guardThreshold, lang, 3)})`}
+              {current.notApplicable ? TEXT.cutMode[lang]
+                : `${current.outside ? TEXT.verdictOut[lang] : TEXT.verdictIn[lang]} (${formatSignificant(current.guardError, lang, 3)} / ${formatSignificant(current.guardThreshold, lang, 3)})`}
             </p>
           </>
         )}
         {summaryRow && learning && <p className="of-facts-title">{`${TEXT.protocol[lang]}${target === 'concentrate_grade' ? `; ${TEXT.learnedAs[lang]}` : ''}`}</p>}
         {summaryRow && learning && (
           <dl className="of-facts">
-            <div><dt>{TEXT.interpolation[lang]}</dt><dd>{formatSignificant(summaryRow.interpolation_r2, lang, 3)}</dd></div>
+            <div><dt>{TEXT.interpolation[lang]}</dt><dd>{[summaryRow.interpolation_r2, summaryRow.interpolation_r2_within_case, summaryRow.case_mean_r2]
+              .filter((v): v is number => v !== undefined).map(v => formatSignificant(v, lang, 3)).join(' / ')}</dd></div>
+            {summaryRow.transfer_r2_median !== undefined && <div><dt>{TEXT.transfer[lang]}</dt><dd>{formatSignificant(summaryRow.transfer_r2_median, lang, 3)}</dd></div>}
             <div><dt>{TEXT.loco[lang]}</dt><dd>{formatSignificant(summaryRow.loco_r2_median, lang, 3)}</dd></div>
             <div><dt>{TEXT.locoRmse[lang]}</dt><dd>{target === 'concentrate_grade' ? formatSignificant(summaryRow.loco_rmse_mean, lang, 3)
               : target === 'recovery_pct' ? `${formatSignificant(summaryRow.loco_rmse_mean, lang, 3)} ${TEXT.points[lang]}` : formatWithUnit(summaryRow.loco_rmse_mean, unit, lang)}</dd></div>

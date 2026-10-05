@@ -168,3 +168,11 @@ def test_the_sample_ore_is_what_the_design_says():
     design = (Path(__file__).resolve().parents[1] / "docs" / "design" / "features" / "real-samples" / "design.md").read_text(encoding="utf-8")
     assert "in its authored proportions" not in design and "pyrite enters only when the allocation gives it" in design
     assert "the Methods view shows the soft-sensor record" not in design
+
+
+def test_allocation_refuses_an_assay_short_of_iron():
+    """L-09: Cu 5,000, S 20,000 and Fe 2,000 ppm; 0.08.001 clamped the iron at 0 and allocated sulphides holding 8.7
+    times the assayed iron."""
+    assert rs.allocate(5000.0, 20000.0, 2000.0) is None
+    assert rs.refusal_reason(5000.0, 20000.0) == "the iron cannot cover the iron the sulphides need"
+    assert rs.allocate(5000.0, 20000.0, 30000.0) is not None

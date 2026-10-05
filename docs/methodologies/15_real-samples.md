@@ -48,8 +48,14 @@ which describe the least-squares form of the same element-to-mineral conversion)
 The thresholds are each mineral's S/Cu from its formula, and each pair is the 2x2 balance of copper and sulphur.
 One sample falls in the first band, 15 in the second and 36 in the third. In the median sample bornite carries 56%
 of the copper and chalcocite 38%. The iron the sulphides leave goes to magnetite, an assumption, since the assays do
-not identify it (3.7 to 75% of the ore); quartz closes the mass. The allocation is one choice in a family: pyrite
-could take part of the sulphur in the two deficient bands as well, and the record carries one such alternative.
+not identify it (3.7 to 75% of the ore); quartz closes the mass. An assay whose iron cannot cover the iron its
+sulphides need is excluded with that reason, as one short of sulphur is; none of the 52 pinned samples is (until
+0.09.000 the iron was clamped at zero, and an iron-poor assay would have given sulphides holding more iron than it
+assays; review of 2026-10-04, L-09). The allocation is one choice in a family, and the record carries the other end of
+it in the two sulphur-deficient bands: chalcopyrite with chalcocite, which close the same copper and sulphur without
+bornite. The chalcopyrite-pyrite band has no freedom and keeps its allocation, and no allocation in either version
+gives pyrite any sulphur in the deficient bands, which have none to spare (until 0.09.000 this page said pyrite could
+take part of it; review of 2026-10-04, L-06).
 
 **Bornite and chalcocite** join the mineral table (RS-03b; dossier of 2026-09-30). Their densities are the Handbook
 of Mineralogy's (5.07 and 5.8 t/m3), and their element contents follow from the atomic weights. The test's

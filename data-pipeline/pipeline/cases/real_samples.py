@@ -109,7 +109,9 @@ def allocate(cu_ppm: float, s_ppm: float, fe_ppm: float) -> dict[str, Any] | Non
     """Sulphur-limited normative mineralogy in moles (RS-03): the copper minerals the sample's sulphur can make, in
     order of falling S/Cu (chalcopyrite, bornite, chalcocite), pyrite from sulphur left over chalcopyrite, and
     magnetite from the iron left over the sulphides. The S/Cu of each mineral comes from its formula. Returns None
-    when the sulphur cannot cover even chalcocite."""
+    when the sulphur cannot cover even chalcocite, or when the assayed iron cannot cover the iron the sulphides need
+    (until 0.09.000 the iron was clamped at zero and an iron-poor assay gave sulphides holding 8.7 times the assayed
+    iron; review of 2026-10-04, L-09)."""
     w = atomic_weights()
     c, s = cu_ppm / w["Cu"], s_ppm / w["S"]          # mol per 1e6 g of ore
     ratio = {m: _atoms(m)["S"] / _atoms(m)["Cu"] for m in COPPER_MINERALS}
@@ -128,7 +130,9 @@ def allocate(cu_ppm: float, s_ppm: float, fe_ppm: float) -> dict[str, Any] | Non
         moles[pair[0]], moles[pair[1]] = (c * b2 - s * a2) / det, (a1 * s - b1 * c) / det
         band = "_".join(pair)
     fe_sulphides = sum(moles[m] * _atoms(m).get("Fe", 0.0) for m in (*COPPER_MINERALS, "pyrite"))
-    fe_left = max(0.0, fe_ppm / w["Fe"] - fe_sulphides)
+    fe_left = fe_ppm / w["Fe"] - fe_sulphides
+    if fe_left < 0.0:
+        return None
     moles["magnetite"] = fe_left / _atoms("magnetite")["Fe"]
     mass = {m: n * formula_weight(mineral_table()[m]["formula"]) / 1e6 for m, n in moles.items()}
     cu_mass = {m: moles[m] * _atoms(m)["Cu"] * w["Cu"] for m in COPPER_MINERALS}
@@ -152,6 +156,15 @@ def assign_work_index(hole: str, xyz: list[float], comminution: list[dict[str, A
     n = len(values)
     median = values[n // 2] if n % 2 else 0.5 * (values[n // 2 - 1] + values[n // 2])
     return {"value": median, "how": "deposit_median", "from_source_row": None, "distance_m": None}
+
+
+def refusal_reason(cu_ppm: float, s_ppm: float) -> str:
+    """Why ``allocate`` returned None for an assay: the sulphur, or else the iron, cannot cover the minerals."""
+    w = atomic_weights()
+    c, s = cu_ppm / w["Cu"], s_ppm / w["S"]
+    if s < _atoms("chalcocite")["S"] / _atoms("chalcocite")["Cu"] * c:
+        return "the sulphur cannot cover the copper even as chalcocite"
+    return "the iron cannot cover the iron the sulphides need"
 
 
 def allocate_alternative(cu_ppm: float, s_ppm: float, fe_ppm: float) -> dict[str, Any] | None:
@@ -221,8 +234,7 @@ def locked_cycle_samples(comminution: list[dict[str, Any]]) -> tuple[list[dict[s
             continue
         allocation = allocate(cu, s, fe)
         if allocation is None:
-            excluded.append({"table": "flotation", "source_row": source_row,
-                             "reason": "the sulphur cannot cover the copper even as chalcocite"})
+            excluded.append({"table": "flotation", "source_row": source_row, "reason": refusal_reason(cu, s)})
             continue
         samples.append({"id": f"lct-{source_row}", "source_row": source_row, "hole": row["HOLEID"], "xyz": xyz,
                         "assays_pct": {"Cu": cu / 1e4, "S": s / 1e4, "Fe": fe / 1e4},

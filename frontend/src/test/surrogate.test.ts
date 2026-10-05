@@ -5,7 +5,7 @@ import * as ort from 'onnxruntime-web';
 import { beforeAll, describe, expect, it } from 'vitest';
 import type { OperatingPoint, Ore, Plant } from '../engine';
 import { features, FEATURES } from '../learning/features';
-import { standardize, type Scalers } from '../learning/surrogate';
+import { outsideLearnedDomain, standardize, type Scalers } from '../learning/surrogate';
 
 // PE-39: the browser recomputes the learned lane's features exactly as the bake does, and the exported
 // surrogate and guard, run by onnxruntime-web, reproduce the reference ONNX Runtime outputs the bake wrote
@@ -61,4 +61,14 @@ describe('the browser learned lane reproduces the bake reference', () => {
       expect(error > scalers.guard_threshold).toBe(row.guard_flag);
     });
   }
+});
+
+// L-02 (implementation review of 2026-10-04): a cut-mode state carries the nominal state's features, so the lane would
+// answer it with the nominal prediction and the guard's "inside"; it declines it instead.
+describe('the learned lane declines the cut mode', () => {
+  it('a set classifier cut is outside its domain; the target mode is inside', () => {
+    const { point } = nominal('copper_porphyry_soft');
+    expect(outsideLearnedDomain(point)).toBeNull();
+    expect(outsideLearnedDomain({ ...point, d50c_um: 120.0 })).toBe('cut_mode');
+  });
 });

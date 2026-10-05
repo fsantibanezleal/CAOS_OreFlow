@@ -22,21 +22,34 @@ The baked design has 256 states per case, 3072 in all, each simulated by the eng
 ## Features and targets
 
 The features are physical properties and controls known before the simulation. The case identity
-is never a feature, so leave-one-case-out measures transfer to an unseen ore and plant rather than
-recall of a label (`tests/test_learning.py::test_features_never_see_the_case_identity` renames a case
-and checks the features do not change).
+is never a feature, so a held-out case is predicted from its physics, not recalled from a label
+(`tests/test_learning.py::test_features_never_see_the_case_identity` renames a case and checks the features do not
+change). Holding one case out is still a near-neighbour test when its siblings share its ore: the five chalcopyrite
+cases carry the same mineral, four of them with the same liberation size and composite content, and the fifth inside
+the design's own perturbation of them. Transfer is therefore measured by holding a whole ore group out, the cases that
+share their primary payable and the carrier holding most of it: the five chalcopyrite cases, the two gold-in-pyrite
+cases, and each other case alone (`learning.transfer_groups`). One case out is reported beside it as the near-neighbour
+figure. Until 0.09.000 this page called one case out "transfer to an unseen ore and plant" (review of 2026-10-04,
+L-01).
 
 | Feature | Meaning |
 |---|---|
 | `log_payable_fraction` | log10 of the head grade as a mass fraction |
 | `specific_throughput_t_h_mw` | throughput per installed megawatt of mill power |
 | `target_p80_um`, `circulating_load`, `water_m3_t`, `crusher_css_mm`, `work_index_kwh_t` | the operating inputs |
-| `carrier_liberation_um`, `grind_to_liberation` | share-weighted liberation size of the payable's carriers, and the grind target over it |
-| `carrier_composite_content`, `carrier_density_t_m3`, `carrier_floatability` | share-weighted carrier properties |
+| `carrier_liberation_um`, `grind_to_liberation` | share-weighted liberation size of the payable's carriers that have one, and the grind target over it |
+| `carrier_composite_content`, `carrier_density_t_m3`, `carrier_floatability` | share-weighted properties of the same carriers |
 | `dose_ratio` | collector dose over the carriers' half-response dose |
 | `jg_cm_s`, `rougher_cells`, `rougher_volume_m3_per_tph` | rougher gas velocity, cells, and cell volume times cells per t/h |
 | `gravity_bleed`, `deslime_cut_um` | family levers, zero where absent |
 | `has_flotation`, `has_gravity`, `has_magnetic`, `has_desliming` | circuit descriptors |
+
+The carrier features weight only the carriers with a declared liberation size, renormalised: a liberation size has no
+meaning for gravity grains, so electrum (45% of the gold case's gold) and chrysocolla (10% of the oxide copper's
+copper) are left out, and the gravity gold enters through `has_gravity` and `gravity_bleed` (review of 2026-10-04,
+L-05, which found this table saying "the payable's carriers" without the rule). The features do not carry the
+classifier cut: the lane describes the target mode, so the workbench's surrogate declines a cut-mode state instead of
+answering it with the nominal state's prediction (L-02), as the optimizer's screen already did.
 
 The targets are the overall recovery (%), the log10 upgrade ratio $\log_{10}(G_c/G_f)$ (concentrate
 over head grade, which is unit-free and comparable between a copper, a gold and an iron circuit),
@@ -183,9 +196,11 @@ averages those answers; it is not a detection rate.
 | `rougher_volume_m3_per_tph` | 3.95 |
 | `carrier_composite_content` | 2.82 |
 
-The gradient-boosting surrogate leans on the collector dose ratio and throughput per installed megawatt, then on
-work index, rougher volume per t/h and the payable carrier's composite content: the reagent kinetics, grinding
-capacity, residence and liberation the engine's recovery responds to.
+The importance is the RMSE increase when a feature's values are shuffled within each case. A feature that takes one
+value per case, the payable carrier's composite content and density and the circuit descriptors, is constant within
+every case and scores exactly 0: the surrogate never saw the engine respond to it, and shuffling it across the cases,
+as the record did until 0.09.000, measured which case a row came from and read it as liberation (review of
+2026-10-04, L-04).
 
 ## Verification
 
@@ -203,7 +218,7 @@ capacity, residence and liberation the engine's recovery responds to.
 
 ## What it is not
 
-A replacement for the engine. The surrogates learn this engine on these twelve authored plants; the
-leave-one-case-out numbers say how badly they transfer to a thirteenth, which is the honest bound on
-using them for a new plant. The guard detects states unlike its training features, not errors in
+A replacement for the engine. The surrogates learn this engine on these twelve authored plants; the one-ore-group-out
+numbers say how badly they transfer to a thirteenth whose ore none of them shares, which is the honest bound on using
+them for a new plant, and the one-case-out numbers are the easier case of a new plant on a known ore. The guard detects states unlike its training features, not errors in
 the engine.

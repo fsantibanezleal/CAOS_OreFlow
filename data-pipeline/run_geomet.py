@@ -303,10 +303,11 @@ def fit_checkpoint(source_path: Path = RAW, checkpoint_path: Path = CHECKPOINT) 
     x = np.log1p(np.clip(values, 0, None))
     y = frame["LCT"].to_numpy(dtype=float) * 100
     models = {name: estimator.fit(x, y) for name, estimator in make_models().items()}
-    checkpoint = {"schema": "oreflow.geomet-checkpoint/v1", "source_sha256": hashlib.sha256(data).hexdigest(),
+    checkpoint = {"schema": "oreflow.geomet-checkpoint/v2", "source_sha256": hashlib.sha256(data).hexdigest(),
                   "features": list(FEATURES), "training_rows": len(y),
                   "assay_min": np.nanmin(values, axis=0).tolist(), "assay_max": np.nanmax(values, axis=0).tolist(),
-                  "models": models}
+                  # the training mean is the lane's first model, the one its record says no other beats (L-07)
+                  "train_mean": float(np.mean(y)), "models": models}
     checkpoint_path.parent.mkdir(parents=True, exist_ok=True)
     joblib.dump(checkpoint, checkpoint_path)
     return checkpoint
@@ -317,7 +318,7 @@ def predict_assays(input_path: Path, output_path: Path, source_path: Path = RAW,
     frame = validate_assays(input_path)
     expected_hash = hashlib.sha256(source_bytes(source_path)).hexdigest()
     checkpoint = joblib.load(checkpoint_path) if checkpoint_path.is_file() else fit_checkpoint(source_path, checkpoint_path)
-    if checkpoint.get("schema") != "oreflow.geomet-checkpoint/v1" or checkpoint.get("source_sha256") != expected_hash or checkpoint.get("features") != list(FEATURES):
+    if checkpoint.get("schema") != "oreflow.geomet-checkpoint/v2" or checkpoint.get("source_sha256") != expected_hash or checkpoint.get("features") != list(FEATURES):
         raise ValueError("stale or incompatible GeoMet checkpoint; rerun --fit-checkpoint")
     values = frame[list(FEATURES)].to_numpy(dtype=float)
     missing = np.isnan(values).sum(axis=1)
@@ -328,6 +329,9 @@ def predict_assays(input_path: Path, output_path: Path, source_path: Path = RAW,
     output = frame.copy()
     output["missing_assay_count"] = missing
     output["outside_reference_range"] = outside
+    # the four models of the record, in its order: the training mean, ridge, random forest, Gaussian process (L-07;
+    # until 0.09.000 the training mean was left out)
+    output["train_mean_lct_pct"] = float(checkpoint["train_mean"])
     for name, model in checkpoint["models"].items():
         output[f"{name}_lct_pct"] = np.clip(model.predict(x), 0, 100)
     output["evidence_boundary"] = "within-deposit locked-cycle model; not a plant set-point"
