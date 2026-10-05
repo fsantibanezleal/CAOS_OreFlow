@@ -88,6 +88,7 @@ class BankResult:
     cell_recovery: list[Species]       # per cell
     cell_residence_min: list[float]
     converged: bool                    # every cell's tail flow settled
+    cell_tail_m3_min: list[float]      # each cell's tail flow, the next recycle pass's starting guess
 
 
 def pulp_flow_m3_min(species: Species, defs: list[SpeciesDef], water_tph: float) -> float:
@@ -97,15 +98,16 @@ def pulp_flow_m3_min(species: Species, defs: list[SpeciesDef], water_tph: float)
     return (solids + water_tph / water_density) / minutes
 
 
-def tail_flow(g: Callable[[float], float], q0: float) -> tuple[float, bool]:
-    """The fixed point ``q = g(q)`` of a cell's tail flow, from the feed flow ``q0``. ``g`` rises with ``q`` (a faster
+def tail_flow(g: Callable[[float], float], q0: float, guess: float | None = None) -> tuple[float, bool]:
+    """The fixed point ``q = g(q)`` of a cell's tail flow below the feed flow ``q0``. ``g`` rises with ``q`` (a faster
     pulp floats less), so a plain substitution from ``q0`` descends to it; the secant takes over while its step stays
-    inside ``(0, q0]``."""
+    inside ``(0, q0]``. A ``guess`` (the cell's tail flow in the previous recycle pass) starts it close."""
     tolerance = float(constant("numerics.cell_tail_tolerance"))
-    q_prev, h_prev = q0, q0 - g(q0)
-    if h_prev == 0.0:
-        return q0, True
-    q = q0 - h_prev
+    q_prev = guess if guess is not None and 0.0 < guess <= q0 else q0
+    h_prev = q_prev - g(q_prev)
+    if abs(h_prev) <= tolerance * q_prev:
+        return q_prev, True
+    q = q_prev - h_prev
     for _ in range(int(constant("numerics.root_max_iterations"))):
         h = q - g(q)
         if abs(h) <= tolerance * q:
@@ -117,53 +119,64 @@ def tail_flow(g: Callable[[float], float], q0: float) -> tuple[float, bool]:
 
 
 def bank(rates: Species, ent: np.ndarray, cells: int, bank_def: Bank, feed: Species, feed_water: float,
-         defs: list[SpeciesDef], sb: float, water_floatability: float) -> BankResult:
+         defs: list[SpeciesDef], sb: float, water_floatability: float, guess: list[float] | None = None) -> BankResult:
     """A bank of ``cells`` perfect mixers in series. Each cell's residence is its pulp volume over its own tail flow,
     as the single-cell balance requires (the tail carries the pulp composition); until 0.09.000 every cell took the
     bank feed's flow, which understated recovery by 0.3 to 1 point (review of 2026-10-04, F-02)."""
     per_minute = float(constant("time.seconds_per_minute"))
+    water_density = float(constant("water.density_t_m3"))
+    minutes = float(constant("time.minutes_per_hour"))
     volume = bank_def.cell_volume_m3 * (1.0 - bank_def.gas_holdup)
     kw = per_minute * water_floatability * sb
-    ent_eff = ent * bank_def.wash_factor
-    n = grid().n
-    x = {k: v.copy() for k, v in feed.items()}
+    ent_eff = (ent * bank_def.wash_factor)[None, :]
+    keys = list(rates)
+    density = {d.id: d.density for d in defs}
+    # one row per particle class, one column per size: the same equations on a matrix
+    k = np.array([rates[key] for key in keys])
+    rho = np.array([density[key] for key in keys])
+    x = np.array([feed[key] for key in keys], dtype=float)
     water = feed_water
-    unfloated = {k: np.ones(n) for k in rates}
-    entrained = {k: np.zeros(n) for k in rates}
+    unfloated = np.ones_like(k)
+    entrained = np.zeros_like(k)
     water_unfloated = 1.0
     cell_recovery: list[Species] = []
     cell_water: list[float] = []
     residence: list[float] = []
     converged = True
 
-    def cell(q: float) -> tuple[float, float, Species]:
+    def cell(q: float) -> tuple[float, float, np.ndarray, np.ndarray]:
         tau = volume / q
         w = kw * tau
-        return tau, w, {key: (k * tau + ent_eff * w) / (1.0 + k * tau + ent_eff * w) for key, k in rates.items()}
+        numerator = k * tau + ent_eff * w
+        return tau, w, numerator, numerator / (1.0 + numerator)
+
+    def pulp(solids: np.ndarray, water_tph: float) -> float:
+        return (float(np.sum(np.sum(solids, axis=1) / rho)) + water_tph / water_density) / minutes
 
     def tail(q: float) -> float:
-        _, w, r = cell(q)
-        return pulp_flow_m3_min({key: x[key] * (1.0 - r[key]) for key in x}, defs, water / (1.0 + w))
+        _, w, _, r = cell(q)
+        return pulp(x * (1.0 - r), water / (1.0 + w))
 
-    for _ in range(cells):
-        q, settled = tail_flow(tail, pulp_flow_m3_min(x, defs, water))
+    tails: list[float] = []
+    for j in range(cells):
+        q, settled = tail_flow(tail, pulp(x, water), guess[j] if guess is not None and j < len(guess) else None)
+        tails.append(q)
         converged = converged and settled
-        tau, w, r = cell(q)
-        for key, k in rates.items():
-            numerator = k * tau + ent_eff * w
-            share = np.where(numerator > 0.0, ent_eff * w / np.where(numerator > 0.0, numerator, 1.0), 0.0)
-            entrained[key] = entrained[key] + unfloated[key] * r[key] * share
-            unfloated[key] = unfloated[key] * (1.0 - r[key])
-            x[key] = x[key] * (1.0 - r[key])
+        tau, w, numerator, r = cell(q)
+        share = np.where(numerator > 0.0, ent_eff * w / np.where(numerator > 0.0, numerator, 1.0), 0.0)
+        entrained = entrained + unfloated * r * share
+        unfloated = unfloated * (1.0 - r)
+        x = x * (1.0 - r)
         water = water / (1.0 + w)
         water_unfloated /= 1.0 + w
-        cell_recovery.append(r)
+        cell_recovery.append({key: r[i] for i, key in enumerate(keys)})
         cell_water.append(w / (1.0 + w))
         residence.append(tau)
-    recovery = {key: 1.0 - unfloated[key] for key in rates}
-    share = {key: np.where(recovery[key] > 0.0, entrained[key] / np.where(recovery[key] > 0.0, recovery[key], 1.0), 0.0) for key in rates}
+    recovered = 1.0 - unfloated
+    share = np.where(recovered > 0.0, entrained / np.where(recovered > 0.0, recovered, 1.0), 0.0)
     total = float(sum(residence))
-    return BankResult(recovery, 1.0 - water_unfloated, cell_water, total / cells, total, share, cell_recovery, residence, converged)
+    return BankResult({key: recovered[i] for i, key in enumerate(keys)}, 1.0 - water_unfloated, cell_water, total / cells, total,
+                      {key: share[i] for i, key in enumerate(keys)}, cell_recovery, residence, converged, tails)
 
 
 @dataclass
@@ -227,9 +240,12 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
     sb_rc = bubble_surface_flux(recl.jg_cm_s, plant) if recl is not None else 0.0
     k_rc = rate_constants(ore, defs, sb_rc, op.collector_gpt) if recl is not None else {}
     zeros = {d.id: np.zeros(grid().n) for d in defs}
+    # each bank's cell tail flows in the last pass: the next pass starts its cells from them
+    warm: dict[str, list[float] | None] = {"rougher": None, "cleaner": None, "recleaner": None}
 
     def pass_once(x: Species, water_x: float, t_rc: Species, water_t_rc: float) -> dict[str, object]:
-        rougher = bank(k_r, ent, op.rougher_cells, plant.rougher, x, water_x, defs, sb_r, plant.water_floatability)
+        rougher = bank(k_r, ent, op.rougher_cells, plant.rougher, x, water_x, defs, sb_r, plant.water_floatability, warm["rougher"])
+        warm["rougher"] = rougher.cell_tail_m3_min
         conc_r = {k: rougher.recovery[k] * x[k] for k in x}
         water_conc_r = rougher.water_recovery * water_x
         if regrind is not None:
@@ -239,7 +255,8 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
         y = {k: ground[k] + t_rc[k] for k in x}
         water_y0 = water_conc_r + water_t_rc
         water_y = _diluted(water_y0, _solids(y), plant.cleaner.feed_solids)
-        cleaner = bank(k_c, ent, plant.cleaner.cells, plant.cleaner, y, water_y, defs, sb_c, plant.water_floatability)
+        cleaner = bank(k_c, ent, plant.cleaner.cells, plant.cleaner, y, water_y, defs, sb_c, plant.water_floatability, warm["cleaner"])
+        warm["cleaner"] = cleaner.cell_tail_m3_min
         conc_c = {k: cleaner.recovery[k] * y[k] for k in x}
         tail_c = {k: y[k] - conc_c[k] for k in x}
         water_conc_c = cleaner.water_recovery * water_y
@@ -249,7 +266,8 @@ def run_flotation(fo: Species, feed_water: float, ore: ResolvedOre, plant: Flota
                                   "water_tail_c": water_y - water_conc_c}
         if recl is not None:
             water_z = _diluted(water_conc_c, _solids(conc_c), recl.feed_solids)
-            recleaner = bank(k_rc, ent, recl.cells, recl, conc_c, water_z, defs, sb_rc, plant.water_floatability)
+            recleaner = bank(k_rc, ent, recl.cells, recl, conc_c, water_z, defs, sb_rc, plant.water_floatability, warm["recleaner"])
+            warm["recleaner"] = recleaner.cell_tail_m3_min
             final = {k: recleaner.recovery[k] * conc_c[k] for k in x}
             water_final = recleaner.water_recovery * water_z
             out.update({"recleaner": recleaner, "water_z": water_z, "dilution_rc": water_z - water_conc_c, "final": final,

@@ -27,12 +27,18 @@ export type StartRecord = {
 export type PathStep = {
   weight: number; status: string; decisions: Record<string, number>; recovered_tph: number; energy_kwh_t: number | undefined;
   evaluations: number; stop: string; screen?: Omit<ScreenRecord, 'proposals'>;
+  /** The step's search stopped on its mesh, not on its evaluation budget (M-09). */
+  converged?: boolean;
 };
 export type OptimizationRecord = {
   method: string; weights: { recovered_metal: number; energy: number }; decisions: string[]; bounds: Record<string, [number, number]>;
   constraints: { grade: { minimum: number; species: string }; power: { maximum_kw: number }; water?: { maximum_m3_t: number } };
   screened: boolean; unscreened_reason?: string; base: Summary; starts: StartRecord[];
-  evaluations: number; status: 'optimal' | 'infeasible'; optimum: Summary | null; screen_bound_pct?: number; proposal_columns?: string[];
+  evaluations: number; status: 'optimal' | 'infeasible' | 'base_refused'; optimum: Summary | null; screen_bound_pct?: number; proposal_columns?: string[];
+  /** The engine's refusal codes of the base state, when it refuses it (M-05). */
+  refused?: string[];
+  /** The best start stopped on its mesh, not on its evaluation budget (M-09). */
+  converged?: boolean;
   trace?: TraceRow[]; gain_tph?: number; gain_pct?: number | null; least_violating?: Summary;
   without_screen?: { evaluations: number; starts: number[]; status: string; decisions: Record<string, number> | null; recovered_tph: number | null };
   path?: PathStep[];

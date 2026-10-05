@@ -10,6 +10,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type uPlot from 'uplot';
 import { cancelSweep, sweepInWorker } from '../../../engine/client';
+import { gridValues } from '../../../engine/sweep';
 import type { OperatingContract } from '../../../engine/contract';
 import type { OperatingPoint } from '../../../engine/model';
 import type { Trace } from '../../../engine/trace';
@@ -121,8 +122,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
   const compute = () => {
     if (running.current !== null) cancelSweep(running.current);
     const spec = entry.inputs[xInput];
-    const values = Array.from({ length: POINTS }, (_, i) => spec.min + (spec.max - spec.min) * i / (POINTS - 1));
-    const axis = { input: xInput, values: declared[xInput].integer ? [...new Set(values.map(Math.round))] : values };
+    const axis = { input: xInput, values: gridValues(spec.min, spec.max, POINTS, declared[xInput].integer) };
     setCells([]);
     setAnswers(null);
     setChanged(false);

@@ -38,17 +38,20 @@ export type ContractError = { code: string; input: string | null; value?: number
 export type Verdict = { accepted: boolean; point: Record<string, number> | null; errors: ContractError[] };
 
 const isNumber = (value: unknown): value is number => typeof value === 'number';
+// own properties only: `name in object` also finds Object.prototype's members, so 0.08.001 accepted "constructor",
+// "toString" or "__proto__" as inputs where the API answered unknown_input (review of 2026-10-04, K-03)
+const owns = (object: object, name: string): boolean => Object.prototype.hasOwnProperty.call(object, name);
 
 export function validate(contract: OperatingContract, caseId: string, values: Record<string, unknown>): Verdict {
   const entry = contract.cases[caseId];
   if (!entry) return { accepted: false, point: null, errors: [{ code: 'unknown_case', input: null }] };
-  const declared: Record<string, ContractInput> = {};
+  const declared: Record<string, ContractInput> = Object.create(null) as Record<string, ContractInput>;
   for (const spec of contract.inputs) declared[spec.name] = spec;
   const point: Record<string, number> = { ...entry.nominal };
   const errors: ContractError[] = [];
   for (const [name, value] of Object.entries(values)) {
-    if (!(name in declared)) { errors.push({ code: 'unknown_input', input: name }); continue; }
-    if (!(name in entry.inputs)) {
+    if (!owns(declared, name)) { errors.push({ code: 'unknown_input', input: name }); continue; }
+    if (!owns(entry.inputs, name)) {
       if (!(isNumber(value) && value === 0)) errors.push({ code: 'not_applicable', input: name });
       continue;
     }
@@ -78,7 +81,7 @@ export function validate(contract: OperatingContract, caseId: string, values: Re
 /** Order-free summary of a validation result, compared across validators. */
 /** Interpret one method control (port of io/contract.py:validate_control), with the operating inputs' error codes plus off_step. */
 export function validateControl(contract: OperatingContract, name: string, value: unknown): { accepted: boolean; value: number | null; errors: ContractError[] } {
-  const spec = contract.controls?.[name];
+  const spec = contract.controls !== undefined && owns(contract.controls, name) ? contract.controls[name] : undefined;
   if (spec === undefined) return { accepted: false, value: null, errors: [{ code: 'unknown_input', input: name }] };
   if (!isNumber(value)) return { accepted: false, value: null, errors: [{ code: 'not_a_number', input: name }] };
   if (!Number.isFinite(value)) return { accepted: false, value: null, errors: [{ code: 'not_finite', input: name }] };

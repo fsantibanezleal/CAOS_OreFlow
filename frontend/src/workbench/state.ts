@@ -100,7 +100,8 @@ export function sourceQuery(source: Source, sampleId: string | null, hourKey: st
   return `&${params.toString()}`;
 }
 
-/** The changed inputs of a `set=` query value; unknown or non-numeric entries are dropped, the contract validates the rest. */
+/** The changed inputs of a `set=` query value; non-numeric entries are dropped, and the contract validates the rest, rejecting an
+ * unknown name as unknown_input (K-03). */
 export function parseSet(value: string | null): Partial<Record<keyof OperatingPoint, number>> {
   const out: Partial<Record<keyof OperatingPoint, number>> = {};
   if (!value) return out;

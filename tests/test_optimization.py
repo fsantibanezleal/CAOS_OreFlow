@@ -301,3 +301,42 @@ def test_record_fields():
     assert [step["weight"] for step in record["path"]] == constant("optimization.weight_path")
     assert all("screen" in step and step["stop"] in ("mesh", "budget") for step in record["path"])
     assert all(len(row) == 5 and row[0] in "diu" for row in record["trace"])
+
+
+def test_a_refused_base_has_no_optimum():
+    """M-05: at a base the engine refuses, 0.08.001 normalised the objective by 1 and mixed t/h with kWh/t."""
+    from pipeline.cases.catalog import CASE_BY_ID, variant_point
+    from pipeline.io.contract import build_contract
+    from pipeline.methods.optimization import optimize
+
+    case = CASE_BY_ID["copper_porphyry_hard"]
+    point = variant_point(case, next(v for v in case.variants if v["id"] == "cut_finer"))
+    base = point.with_values(work_index_kwh_t=1.15 * point.work_index_kwh_t)
+    record = optimize(case, base, build_contract(), weight=0.5, path=False)
+    assert record["status"] == "base_refused" and record["optimum"] is None and record["refused"]
+
+
+def test_a_non_finite_slack_is_infeasible():
+    """M-10: Python's max(0, nan) is 0, which read a NaN slack as feasible; the browser read it as a barrier."""
+    import math
+
+    from pipeline.cases.catalog import CASE_BY_ID
+    from pipeline.io.contract import build_contract
+    from pipeline.methods.optimization import Problem
+
+    case = CASE_BY_ID["copper_porphyry_soft"]
+    problem = Problem(case, case.nominal, build_contract())
+    problem.evaluate = lambda x: {"valid": True, "recovered_tph": 1.0, "values": {"energy_kwh_t": 1.0}, "relative": {"grade": math.nan}}
+    assert problem.scored(0.5, 1e-6)((0.5, 0.5, 0.5)) == (math.inf, math.inf)
+
+
+def test_records_say_whether_the_search_converged():
+    """M-09: an optimum from a start that stopped on its evaluation budget is labelled so."""
+    from pipeline.cases.catalog import CASE_BY_ID
+    from pipeline.io.contract import build_contract
+    from pipeline.methods.optimization import optimize
+
+    case = CASE_BY_ID["iron_magnetite_fine"]
+    record = optimize(case, case.nominal, build_contract(), weight=1.0, path=True)
+    assert record["status"] == "optimal" and isinstance(record["converged"], bool)
+    assert all(isinstance(step["converged"], bool) for step in record["path"])

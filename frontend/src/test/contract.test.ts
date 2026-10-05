@@ -60,3 +60,13 @@ describe('the method controls', () => {
     }
   });
 });
+
+// K-03 (implementation review of 2026-10-04): names of Object.prototype are unknown inputs, as in the API; 0.08.001
+// accepted them, and a shared link `?set=constructor:1` reached the worker.
+describe('prototype names are unknown inputs (K-03)', () => {
+  it.each(['constructor', 'toString', '__proto__', 'hasOwnProperty', 'valueOf'])('%s', name => {
+    const verdict = validate(contract, 'copper_porphyry_soft', JSON.parse(`{"${name}": 1}`) as Record<string, unknown>);
+    expect(verdict.accepted).toBe(false);
+    expect(verdict.errors[0].code).toBe('unknown_input');
+  });
+});

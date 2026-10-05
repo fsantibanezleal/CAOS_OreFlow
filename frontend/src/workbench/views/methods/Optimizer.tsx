@@ -58,6 +58,8 @@ const TEXT = {
     es: 'Con parte del peso en la energía, el óptimo cede metal recuperado a cambio de menos energía por tonelada. El peso es una elección de modelo, no un precio, así que este punto no es una recomendación.',
   },
   noFeasible: { en: 'No start reached a state within every constraint; the least-violating end point is shown.', es: 'Ningún inicio alcanzó un estado dentro de todas las restricciones; se muestra el punto final de menor violación.' },
+  budgetStop: { en: 'The best search stopped on its evaluation budget, not on its mesh, so a better point may lie nearby.', es: 'La mejor búsqueda se detuvo por su presupuesto de evaluaciones, no por su malla, así que puede haber un punto mejor cerca.' },
+  baseRefused: { en: 'The engine refuses the current state (no steady state), so there is no base to optimize from: the objective is relative to it.', es: 'El motor rechaza el estado actual (sin estado estacionario), así que no hay base desde la cual optimizar: el objetivo es relativo a ella.' },
   gain: { en: 'of recovered metal', es: 'de metal recuperado' },
   evaluations: { en: 'engine evaluations', es: 'evaluaciones del motor' },
   starts: { en: 'starts', es: 'inicios' },
@@ -151,7 +153,14 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
     setProgress({ done: 0, total: 1 });
     const { id, done } = optimizeInWorker(caseId, ore, plant, point, contract, verdict.value / 100, (d, total) => setProgress({ done: d, total }));
     runId.current = id;
-    done.then(result => { if (runId.current === id) { setLive(result); setProgress(null); runId.current = 0; } },
+    done.then(result => {
+      if (runId.current !== id) return;
+      setProgress(null);
+      runId.current = 0;
+      // a refused base has no objective (M-05): the baked record stays, with the reason
+      if (result.status === 'base_refused') setFailure(TEXT.baseRefused[lang]);
+      else setLive(result);
+    },
       (error: Error) => { if (runId.current === id) { setProgress(null); runId.current = 0; if (error.message !== 'cancelled') setFailure(error.message); } });
   };
   const stop = () => { if (runId.current) { cancelOptimize(runId.current); runId.current = 0; } setProgress(null); };
@@ -268,6 +277,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
       + `${record.gain_pct != null ? ` (${sign(record.gain_pct)}${formatSignificant(record.gain_pct, lang, 3)}%)` : ''}`
       + `, ${TEXT.energyChangeLine[lang]} ${sign(energyChange)}${formatFixed(energyChange, lang, 2)} kWh/t${energyPct !== null ? ` (${sign(energyPct)}${formatSignificant(energyPct, lang, 3)}%)` : ''}`
     : TEXT.noFeasible[lang];
+  const statusLine = record.optimum && record.converged === false ? `${status}. ${TEXT.budgetStop[lang]}` : status;
   const screenTotals = record.screened ? {
     screened: starts.reduce((s, r) => s + (r.screen?.screened ?? 0), 0), guard: starts.reduce((s, r) => s + (r.screen?.rejected.guard ?? 0), 0),
     interval: starts.reduce((s, r) => s + (r.screen?.rejected.interval ?? 0), 0), proposed: starts.reduce((s, r) => s + (r.screen?.proposed ?? 0), 0),
@@ -310,7 +320,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
         {view === 'screen' && !proposals.length && <p className="of-note">{record.screened ? TEXT.noProposals[lang] : TEXT.unscreened[lang]}</p>}
         {/* a gain is good news; a loss at a partial weight is a trade the weight asked for, shown neutral, never green */}
         {/* U-35: while a re-run is on its way, the previous record's status is not shown under its progress */}
-        {progress === null && <p className={!record.optimum ? 'of-status-line warn' : (record.gain_tph ?? 0) < 0 ? 'of-status-line neutral' : 'of-status-line'}>{status}</p>}
+        {progress === null && <p className={!record.optimum ? 'of-status-line warn' : (record.gain_tph ?? 0) < 0 ? 'of-status-line neutral' : 'of-status-line'}>{statusLine}</p>}
         {record.optimum && record.weights.recovered_metal < 1 && <p className="of-note">{TEXT.weightNote[lang]}</p>}
         <table className="of-table">
           <thead><tr><th scope="col">{TEXT.quantity[lang]}</th><th scope="col">{TEXT.baseCol[lang]}</th>
@@ -379,7 +389,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
           {meanError !== null && `; ${TEXT.disagreement[lang]}: ${formatSignificant(meanError, lang, 3)} ${lang === 'es' ? 'puntos' : 'points'}`}
           {'.'}
         </p>
-        {record.path && <p className="of-footnote">{record.path.map(s => `${Math.round(100 * s.weight)}%: ${s.status === 'optimal' ? formatWithUnit(metal(s.recovered_tph), metalUnit, lang) : TEXT.infeasible[lang]}`).join('; ')}</p>}
+        {record.path && <p className="of-footnote">{record.path.map(s => `${Math.round(100 * s.weight)}%: ${s.status === 'optimal' ? formatWithUnit(metal(s.recovered_tph), metalUnit, lang) : TEXT.infeasible[lang]}${s.converged === false ? ' *' : ''}`).join('; ')}${record.path.some(s => s.converged === false) ? ` (* ${TEXT.budgetStop[lang]})` : ''}</p>}
         {record.optimum && <p className="of-footnote">{TEXT.costNote[lang]}</p>}
       </div>
     </div>

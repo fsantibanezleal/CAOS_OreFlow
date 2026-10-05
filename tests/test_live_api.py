@@ -83,3 +83,11 @@ def test_engine_refusal_is_a_rejection():
     assert body["schema"] == "oreflow.rejection/v1"
     assert [e["code"] for e in body["errors"]] == ["power_unreachable_at_cut"]
     assert body["errors"][0]["input"] == "d50c_um" and "steady state" in body["errors"][0]["message"]
+
+
+def test_a_huge_integer_is_answered_not_finite():
+    """K-04: 0.08.001 answered a 400-digit throughput with a bare 500; it is a 422 not_finite, as the browser says."""
+    body = '{"case_id": "copper_porphyry_soft", "point": {"throughput_tph": ' + "9" * 400 + "}}"
+    response = client.post("/api/simulate", content=body, headers={"content-type": "application/json"})
+    assert response.status_code == 422
+    assert "not_finite" in response.text

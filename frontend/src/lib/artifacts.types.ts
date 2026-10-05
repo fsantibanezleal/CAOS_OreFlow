@@ -27,6 +27,10 @@ export type UncertaintyRecord = {
   design: string;
   inputs: Record<string, { half_width: number }>;
   factors: number[][];
+  /** The design rows the output values belong to, the draws with a steady state (M-01); absent before 0.09.000. */
+  solved?: number[];
+  /** Draws with no steady state, by refusal code. */
+  refused?: Record<string, number>;
   outputs: Record<string, OutputDistribution>;
   probabilities: Record<string, number>;
   base_checks: Record<string, boolean>;
@@ -34,7 +38,9 @@ export type UncertaintyRecord = {
   max_balance_error: number;
 };
 export type SobolIndices = { S1: Record<string, number>; S1_conf: Record<string, number>; ST: Record<string, number>; ST_conf: Record<string, number> } | { constant: true };
-export type SensitivityRecord = { status: string; base_samples: number; evaluations: number; seed: number; inputs: Record<string, { half_width: number }>; indices: Record<string, SobolIndices> };
+export type SensitivityRecord = { status: string; base_samples: number; evaluations: number; seed: number; inputs: Record<string, { half_width: number }>; indices: Record<string, SobolIndices>;
+  /** Draws with no steady state, by refusal code, when status is refused_draws (M-08). */
+  refused?: Record<string, number> };
 
 export type VariantArtifact = {
   id: string;

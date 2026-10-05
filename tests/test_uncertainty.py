@@ -6,6 +6,7 @@ import json
 from functools import lru_cache
 
 import numpy as np
+import pytest
 
 from pipeline.cases.catalog import CASE_BY_ID
 from pipeline.engine.constants import constant
@@ -134,3 +135,64 @@ def test_lhs_strata():
     assert digest.hexdigest() == LHS_128_4_20260926_SHA256
     assert latin_hypercube(128, 4, 20260926) == latin_hypercube(128, 4, 20260926)
     assert latin_hypercube(128, 4, 20260926) != latin_hypercube(128, 4, 20260927)
+
+
+def _cut_finer(case_id):
+    from pipeline.cases.catalog import CASE_BY_ID, variant_point
+
+    case = CASE_BY_ID[case_id]
+    return case, variant_point(case, next(v for v in case.variants if v["id"] == "cut_finer"))
+
+
+def test_floatability_factor_reaches_every_floating_valuable_mineral():
+    """M-03: electrum (45% of the gold case's gold) has no liberation size; 0.08.001 left it out of the floatability
+    factor, the interval of gold recovery 18% too narrow."""
+    from pipeline.cases.catalog import CASE_BY_ID
+    from pipeline.methods.uncertainty import perturbed
+
+    case = CASE_BY_ID["gold_free_milling"]
+    ore, _ = perturbed(case, case.nominal, {"floatability": 1.1})
+    before = {m.id: m for m in case.ore.minerals}
+    after = {m.id: m for m in ore.minerals}
+    assert after["electrum"].flotation.floatability == pytest.approx(1.1 * before["electrum"].flotation.floatability, rel=1e-15)
+    assert after["electrum"].liberation_size_um == before["electrum"].liberation_size_um
+    assert after["quartz"].flotation.floatability == before["quartz"].flotation.floatability
+
+
+def test_the_record_says_which_draws_the_values_belong_to():
+    """M-01, M-02: with refused draws the values are those of the solved draws; the record lists them, so a view pairs
+    each value with its own design row (0.08.001 paired row i with value i)."""
+    from pipeline.methods.uncertainty import _evaluate, uncertainty
+
+    case, point = _cut_finer("copper_porphyry_hard")
+    record = uncertainty(case, point, samples=24, seed=7)
+    refused = sum(record["refused"].values())
+    assert refused > 0 and len(record["solved"]) == 24 - refused
+    values = record["outputs"]["recovery_pct"]["values"]
+    assert len(values) == len(record["solved"])
+    names = list(record["inputs"])
+    for j in (0, len(values) - 1):
+        row = record["factors"][record["solved"][j]]
+        again = _evaluate(case, point, dict(zip(names, row)))
+        assert again["outputs"]["recovery_pct"] == pytest.approx(values[j], rel=1e-12)
+
+
+def test_sensitivity_reports_refused_draws():
+    """M-08: a Saltelli design cannot drop rows; 0.08.001 raised KeyError on the first refused draw."""
+    from pipeline.methods.uncertainty import sensitivity
+
+    case, point = _cut_finer("copper_porphyry_hard")
+    record = sensitivity(case, point, base_samples=4, seed=7)
+    assert record["status"] == "refused_draws" and sum(record["refused"].values()) > 0
+    assert "indices" not in record
+
+
+def test_sensitivity_is_reproducible_at_seed_zero():
+    """M-13: SALib seeds its bootstrap only for a truthy seed; at seed 0 the half widths changed from call to call."""
+    from pipeline.cases.catalog import CASE_BY_ID
+    from pipeline.methods.uncertainty import sensitivity
+
+    case = CASE_BY_ID["iron_magnetite_fine"]
+    first = sensitivity(case, case.nominal, base_samples=8, seed=0)
+    second = sensitivity(case, case.nominal, base_samples=8, seed=0)
+    assert first == second

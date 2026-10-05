@@ -88,6 +88,66 @@
   {
    "case_id": "copper_porphyry_soft",
    "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_soft",
+   "values": {
     "throughput_tph": 360.0
    },
    "expected": {
@@ -970,6 +1030,66 @@
   {
    "case_id": "copper_porphyry_hard",
    "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_porphyry_hard",
+   "values": {
     "throughput_tph": 255.0
    },
    "expected": {
@@ -1845,6 +1965,66 @@
      [
       "not_finite",
       "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "gold_free_milling",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
      ]
     ]
    }
@@ -2776,6 +2956,66 @@
   {
    "case_id": "iron_magnetite_fine",
    "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "iron_magnetite_fine",
+   "values": {
     "throughput_tph": 460.0
    },
    "expected": {
@@ -3510,6 +3750,66 @@
      [
       "not_finite",
       "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
      ]
     ]
    }
@@ -4392,6 +4692,66 @@
      [
       "not_finite",
       "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "phosphate_clay",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
      ]
     ]
    }
@@ -5350,6 +5710,66 @@
   {
    "case_id": "copper_molybdenum",
    "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_molybdenum",
+   "values": {
     "throughput_tph": 320.0
    },
    "expected": {
@@ -6225,6 +6645,66 @@
      [
       "not_finite",
       "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "copper_oxide",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
      ]
     ]
    }
@@ -7114,6 +7594,66 @@
   {
    "case_id": "zinc_sulfide",
    "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "zinc_sulfide",
+   "values": {
     "throughput_tph": 390.0
    },
    "expected": {
@@ -7989,6 +8529,66 @@
      [
       "not_finite",
       "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
      ]
     ]
    }
@@ -8878,6 +9478,66 @@
   {
    "case_id": "low_grade_copper",
    "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "low_grade_copper",
+   "values": {
     "throughput_tph": 560.0
    },
    "expected": {
@@ -9753,6 +10413,66 @@
      [
       "not_finite",
       "throughput_tph"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "constructor": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "constructor"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "toString": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "toString"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "hasOwnProperty": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "hasOwnProperty"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "refractory_gold",
+   "values": {
+    "valueOf": 1.0
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "unknown_input",
+      "valueOf"
      ]
     ]
    }

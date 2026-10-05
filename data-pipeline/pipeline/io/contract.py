@@ -245,7 +245,7 @@ def validate_control(contract: dict[str, Any], name: str, value: Any) -> dict[st
         return {"accepted": False, "value": None, "errors": [{"code": "unknown_input", "input": name}]}
     if not _is_number(value):
         return {"accepted": False, "value": None, "errors": [{"code": "not_a_number", "input": name}]}
-    if not math.isfinite(float(value)):
+    if not _is_finite(value):
         return {"accepted": False, "value": None, "errors": [{"code": "not_finite", "input": name}]}
     if spec["integer"] and float(value) != int(value):
         return {"accepted": False, "value": None, "errors": [{"code": "not_integer", "input": name, "value": value}]}
@@ -291,6 +291,15 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+def _is_finite(value: int | float) -> bool:
+    """A JSON integer beyond double range is not finite, as the browser reads it (JSON.parse gives Infinity); 0.08.001
+    let math.isfinite raise OverflowError on it and the service answered a bare 500 (review of 2026-10-04, K-04)."""
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def validate(contract: dict[str, Any], case_id: str, values: dict[str, Any]) -> dict[str, Any]:
     """Interpret the resolved contract for one state; missing inputs take the case nominal.
 
@@ -314,7 +323,7 @@ def validate(contract: dict[str, Any], case_id: str, values: dict[str, Any]) -> 
         if not _is_number(value):
             errors.append({"code": "not_a_number", "input": name})
             continue
-        if not math.isfinite(value):
+        if not _is_finite(value):
             errors.append({"code": "not_finite", "input": name})
             continue
         if declared[name]["integer"] and value != math.floor(value):
@@ -350,6 +359,10 @@ def probe_states(contract: dict[str, Any]) -> list[dict[str, Any]]:
         probes.append({"case_id": case_id, "values": {"throughput_tph": "720"}})
         probes.append({"case_id": case_id, "values": {"throughput_tph": True}})
         probes.append({"case_id": case_id, "values": {"throughput_tph": math.inf}})
+        # names that are members of a JavaScript object's prototype (K-03); "__proto__" is tested apart, since a
+        # bundled JSON import reads it as the prototype, not a key
+        for name in ("constructor", "toString", "hasOwnProperty", "valueOf"):
+            probes.append({"case_id": case_id, "values": {name: 1.0}})
         for name, bounds in case["inputs"].items():
             integer = isinstance(bounds["min"], int)
             outside = 1 if integer else 0.01 * (bounds["max"] - bounds["min"])

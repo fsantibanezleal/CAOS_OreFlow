@@ -8,6 +8,7 @@
 import { simulate } from './circuit';
 import { constant } from './constants';
 import { InfeasibleState, type MineralSpec, type OperatingPoint, type Ore, type Plant } from './model';
+import { resolve } from './ore';
 import { latinHypercube } from './sampling';
 
 export const UNCERTAIN_INPUTS = ['work_index', 'head_grade', 'liberation_size', 'floatability'] as const;
@@ -24,6 +25,8 @@ export type UncertaintyRecord = {
   generator: 'SplitMix64';
   inputs: Record<string, { half_width: number }>;
   factors: number[][];
+  /** The design rows the outputs belong to: the draws with a steady state (M-01). */
+  solved: number[];
   outputs: Record<UncertainOutput, OutputSummary>;
   probabilities: Record<string, number>;
   base_checks: Record<string, boolean>;
@@ -36,13 +39,15 @@ export function inputsFor(plant: Plant): UncertainInput[] {
   return UNCERTAIN_INPUTS.filter(n => n !== 'floatability' || plant.flotation !== null);
 }
 
-/** The ore and operating point with each uncertain property multiplied by its factor. */
+/** The ore and operating point with each uncertain property multiplied by its factor: floatability on every valuable
+ * mineral that floats, liberation on those with a liberation size (uncertainty.py perturbed, M-03). */
 export function perturbed(ore: Ore, point: OperatingPoint, factors: Partial<Record<UncertainInput, number>>): [Ore, OperatingPoint] {
+  const valuable = new Set(resolve(ore, point).valuable);
   const minerals: MineralSpec[] = ore.minerals.map(m => {
-    if (m.liberation_size_um <= 0) return m; // the valuable minerals: liberation is declared for them
     let flotation = m.flotation;
-    if (flotation !== null && factors.floatability !== undefined) flotation = { ...flotation, floatability: flotation.floatability * factors.floatability };
-    return { ...m, liberation_size_um: m.liberation_size_um * (factors.liberation_size ?? 1), flotation };
+    if (valuable.has(m.id) && flotation !== null && factors.floatability !== undefined) flotation = { ...flotation, floatability: flotation.floatability * factors.floatability };
+    const liberation = m.liberation_size_um > 0 ? m.liberation_size_um * (factors.liberation_size ?? 1) : m.liberation_size_um;
+    return { ...m, liberation_size_um: liberation, flotation };
   });
   return [{ ...ore, minerals },
     { ...point, work_index_kwh_t: point.work_index_kwh_t * (factors.work_index ?? 1), head_grade: point.head_grade * (factors.head_grade ?? 1) }];
@@ -126,7 +131,8 @@ export function summarize(design: ReturnType<typeof designFor>, drawn: Array<Eva
   return {
     status: 'computed', samples: design.samples, seed: design.seed, design: 'Latin hypercube', generator: 'SplitMix64',
     inputs: Object.fromEntries(design.names.map((name, k) => [name, { half_width: design.widths[k] }])),
-    factors: design.factors, outputs, probabilities, refused, base_checks: base.checks, flag_counts: flagCounts,
+    factors: design.factors, solved: drawn.flatMap((r, i) => (isRefused(r) ? [] : [i])), outputs, probabilities, refused,
+    base_checks: base.checks, flag_counts: flagCounts,
     max_balance_error: Math.max(...rows.map(r => r.balance)),
   };
 }

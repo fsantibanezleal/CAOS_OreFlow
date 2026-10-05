@@ -212,13 +212,16 @@ def _laplante_run(pub: dict[str, Any], grains: GrainSize, bleed: float, max_reco
 
 
 def _fit_max_recovery(pub: dict[str, Any], grains: GrainSize, fit: dict[str, Any], scale_um: float) -> tuple[float, bool]:
-    """The unit's maximum recovery that meets the printed GRG recovery at the fit row, by bisection; at the bound when
-    even that bound cannot reach it."""
+    """The unit's maximum recovery that meets the printed GRG recovery at the fit row, by bisection; at a bound when
+    the target lies beyond it, on either side (until 0.09.000 only the upper bound was checked, so a target below the
+    lower bound's recovery was reported as an interior fit, review of 2026-10-04, M-12)."""
     row = pub["bleed"].index(fit["row"])
     target = pub["grg_recovery_pct"][row]
     lo, hi = (float(v) for v in fit["bounds"])
     if _laplante_run(pub, grains, fit["row"], hi, scale_um)["grg_recovery_pct"] < target:
         return hi, True
+    if _laplante_run(pub, grains, fit["row"], lo, scale_um)["grg_recovery_pct"] >= target:
+        return lo, True
     for _ in range(_FIT_STEPS):
         mid = 0.5 * (lo + hi)
         if _laplante_run(pub, grains, fit["row"], mid, scale_um)["grg_recovery_pct"] < target:
