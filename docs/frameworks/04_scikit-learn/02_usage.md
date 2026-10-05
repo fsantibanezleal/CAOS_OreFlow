@@ -36,28 +36,31 @@ half-width, the fitted length scales, the features whose length scale reached th
 (`switched_off`: the kernel decided they do not matter) and the fitted noise level. Optimizer
 convergence warnings are counted, not hidden: a length scale at its bound is a result.
 
-`permutation_importance` explains the gradient-boosting model on the held-out rows (10 repeats,
-scored by RMSE).
+A permutation importance explains the gradient-boosting model on the held-out rows (10 repeats, scored by RMSE),
+with each feature shuffled within each case: shuffled across the cases, as `sklearn.inspection.permutation_importance`
+does, a feature that takes one value per case measures which case a row came from (review of 2026-10-04, L-04).
 
 **What the record shows** (`data/derived/learning.json`, recovery, RMSE in percentage points):
 
 | Model | Interpolation | Leave one case out, mean | Worst held-out case |
 |---|---|---|---|
-| Ridge | 9.68 | 19.28 | 53.97 |
-| Random forest | 6.63 | 13.02 | 50.90 |
-| Histogram gradient boosting | 4.77 | 13.35 | 64.64 |
-| Gaussian process | 6.62 | 14.54 | 44.23 |
-| MLP (PyTorch, [05](../05_pytorch.md)) | 3.35 | 55.51 | 282.84 |
+| Ridge | 9.56 | 16.10 | 34.40 |
+| Random forest | 6.64 | 13.61 | 48.35 |
+| Histogram gradient boosting | 4.60 | 13.89 | 60.42 |
+| Gaussian process | 6.43 | 14.20 | 43.00 |
+| MLP (PyTorch, [05](../05_pytorch.md)) | 3.70 | 60.11 | 471.75 |
 
 On average every model is worse on an unseen case than inside the cases it trained on, and the
-ranking changes between the protocols: the MLP interpolates best and has the largest transfer errors,
-while by the median held-out R² gradient boosting (0.714) and the MLP (0.638) lead. The loss is
-concentrated, not uniform. A copper sulphide case, with neighbours in the training set, transfers about
-as well as the pooled interpolation (held out, the hard porphyry costs the MLP 2.3 points and ridge 9.2),
-while the three circuits unlike the others fail: for the MLP, 283 points on the magnetite circuit
-(drums instead of flotation), 242 on phosphate (desliming first) and 88 on free-milling gold (a
-gravity circuit). The Gaussian process's 95% intervals cover 88.2% of the held-out recoveries (90.0%
-and 91.8% for the other two targets), so they are too narrow for every target. The Benchmark page's Learned lane tab shows the full tables and
+ranking changes between the protocols: the MLP interpolates best and has the largest one-case-out errors,
+while by the median held-out R² the MLP (0.694) and gradient boosting (0.581) lead. The loss is
+concentrated, not uniform. A copper sulphide case, with four neighbours on the same mineral in the training set,
+transfers about as well as the pooled interpolation (held out, the hard porphyry costs the MLP 2.1 points and ridge
+9.1), while the two circuits unlike the others fail: for the MLP, 172 points on the magnetite circuit (drums instead
+of flotation) and 472 on phosphate (desliming first). One case out is therefore a near-neighbour test for the copper
+plants; holding a whole ore group out (the five chalcopyrite plants together, the two gold plants together), no model
+keeps a positive median recovery R² (the random forest comes closest, -0.004). The Gaussian process's 95% intervals
+cover 86.1% of the held-out recoveries (89.7% and 91.3% for the other two targets), so they are too narrow for every
+target. The Benchmark page's Learned lane tab shows the full tables and
 charts.
 
 ## 2. The particle lane (`stages/particle_experiment.py`)

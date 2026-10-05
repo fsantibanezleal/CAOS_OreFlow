@@ -27,6 +27,18 @@ export function matmul(a: Mat, b: Mat): Mat {
   return { n, data: out };
 }
 
+/** a x (NumPy's `a @ x`). */
+export function matvec(a: Mat, x: Vec): Vec {
+  const n = a.n;
+  const out = new Float64Array(n);
+  for (let i = 0; i < n; i += 1) {
+    let s = 0.0;
+    for (let k = 0; k < n; k += 1) s += a.data[i * n + k] * x[k];
+    out[i] = s;
+  }
+  return out;
+}
+
 /** a[i][j] * scale[j]: every column j scaled by scale[j] (NumPy's `a * s[None, :]`). */
 export function scaleColumns(a: Mat, scale: Vec): Mat {
   const n = a.n;

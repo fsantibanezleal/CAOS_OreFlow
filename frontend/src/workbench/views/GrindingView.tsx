@@ -13,7 +13,7 @@ import { metricLabel, mineralName } from '../../lib/i18n';
 import { Chart, type CursorReading, type Series } from '../../components/charts/Chart';
 
 type Curves = {
-  size_um: number[]; psd: Record<string, number[]>; partition: Record<string, number[]>;
+  size_um: number[]; psd: Record<string, number[]>; partition: Record<string, Array<number | null>>;
   liberation: Record<string, number[]>; composite_scale: number[];
 };
 
@@ -45,13 +45,13 @@ const TEXT = {
   host: { en: 'Host gangue', es: 'Ganga huésped' },
   xl: { en: 'liberation size', es: 'tamaño de liberación de' },
   psdSummary: { en: 'Cumulative size distributions of the grinding circuit streams, with the target and achieved P80.', es: 'Distribuciones granulométricas acumuladas de las corrientes de molienda, con el P80 objetivo y logrado.' },
-  partSummary: { en: 'Cyclone partition to underflow by size for the host gangue and each valuable mineral, with the host cut.', es: 'Partición del ciclón a la descarga por tamaño para la ganga huésped y cada mineral valioso, con el corte de la ganga.' },
+  partSummary: { en: 'Share of each size class of the cyclone feed that reports to the underflow, for the host gangue and each valuable mineral (liberated grains and composites together, with the bypass), with the host cut.', es: 'Fracción de cada clase de tamaño de la alimentación al ciclón que reporta a la descarga, para la ganga huésped y cada mineral valioso (granos liberados y mixtos juntos, con el cortocircuito), con el corte de la ganga.' },
   libSummary: { en: 'Liberated fraction of each valuable mineral by size, with its liberation size and the target P80.', es: 'Fracción liberada de cada mineral valioso por tamaño, con su tamaño de liberación y el P80 objetivo.' },
   scaleSummary: { en: 'Share of the declared composites the host gangue can supply in each size class (1 everywhere unless a class is valuable-rich).', es: 'Fracción de los mixtos declarados que la ganga huésped puede aportar en cada clase de tamaño (1 salvo en clases ricas en mineral valioso).' },
 };
 
 /** The trace lists sizes from coarse to fine; uPlot needs x ascending. */
-function ascending(x: number[], ...ys: number[][]): uPlot.AlignedData {
+function ascending(x: number[], ...ys: Array<Array<number | null>>): uPlot.AlignedData {
   const order = x.map((_, i) => i).reverse();
   return [order.map(i => x[i]), ...ys.map(y => order.map(i => y[i]))] as uPlot.AlignedData;
 }

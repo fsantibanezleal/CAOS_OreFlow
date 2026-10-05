@@ -72,6 +72,11 @@ def test_validator_branches():
     assert validate(document, "copper_porphyry_soft", {"rougher_cells": 8.5})["errors"][0]["code"] == "not_integer"
     assert validate(document, "copper_porphyry_soft", {"jg_cm_s": True})["errors"][0]["code"] == "not_a_number"
     assert validate(document, "copper_porphyry_soft", {"jg_cm_s": math.nan})["errors"][0]["code"] == "not_finite"
+    # K-04: a JSON integer beyond double range is not finite, as the browser reads it (0.08.001 raised OverflowError)
+    assert validate(document, "copper_porphyry_soft", {"throughput_tph": 10 ** 400})["errors"][0]["code"] == "not_finite"
+    # K-03: a JavaScript prototype member is an unknown input in both validators
+    for name in ("constructor", "toString", "__proto__", "hasOwnProperty", "valueOf"):
+        assert validate(document, "copper_porphyry_soft", {name: 1.0})["errors"][0]["code"] == "unknown_input", name
     assert validate(document, "nope", {})["errors"][0]["code"] == "unknown_case"
     at_limit = validate(document, "phosphate_clay", {"target_p80_um": 80.0, "deslime_cut_um": 40.0})
     assert at_limit["accepted"]
@@ -82,20 +87,37 @@ def test_validator_branches():
 
 
 def _envelope_states(document: dict, case_id: str, samples: int) -> list[dict]:
-    """Both corners, every input at each bound alone, and seeded uniform states that pass the rules."""
+    """Both corners in both modes, every input at each bound alone, and seeded uniform states that pass the rules, half
+    of them in the target mode. Until 0.09.000 both corners and every seeded state set the classifier cut, so the target
+    mode, every case's nominal, was never solved with two inputs off nominal (review of 2026-10-04, K-06)."""
     inputs = document["cases"][case_id]["inputs"]
+    off = {n: b["off"] for n, b in inputs.items() if "off" in b}
     states = [{n: b["min"] for n, b in inputs.items()}, {n: b["max"] for n, b in inputs.items()}]
+    states += [{**state, **off} for state in states]
     for name, bounds in inputs.items():
         states += [{name: bounds["min"]}, {name: bounds["max"]}]
     rng = np.random.default_rng(20260926)
-    while len(states) < 2 + 2 * len(inputs) + samples:
+    corners = len(states)
+    while len(states) < corners + samples:
         state = {}
         for name, bounds in inputs.items():
             value = bounds["min"] + rng.random() * (bounds["max"] - bounds["min"])
             state[name] = int(round(value)) if isinstance(bounds["min"], int) else float(value)
+        if (len(states) - corners) % 2 == 0:
+            state.update(off)
         if validate(document, case_id, state)["accepted"]:
             states.append(state)
     return states
+
+
+def test_the_envelope_gate_solves_the_target_mode_off_nominal():
+    """K-06: the gate holds target-mode states with two or more inputs off nominal (none before 0.09.000)."""
+    document = build_contract()
+    for case in CASES:
+        nominal = document["cases"][case.id]["nominal"]
+        target = [s for s in _envelope_states(document, case.id, samples=8)
+                  if s.get("d50c_um", 0) == 0 and sum(1 for k, v in s.items() if v != nominal.get(k)) >= 2]
+        assert len(target) >= 5, case.id
 
 
 @pytest.mark.parametrize("case_id", [c.id for c in CASES])
@@ -111,7 +133,8 @@ def test_engine_solves_the_envelope(case_id):
         try:
             circuit = simulate(case.ore, case.plant, point)
         except InfeasibleState as refusal:   # E-01: the engine refuses a cut-mode state with no steady state
-            assert refusal.code in ("power_unreachable_at_cut", "circulating_load_above_bound"), (state, refusal)
+            assert refusal.code in ("power_unreachable_at_cut", "circulating_load_above_bound", "deslime_cut_above_half_p80"), (state, refusal)
+            assert point.d50c_um > 0.0, (state, refusal)   # the target mode is never refused
             continue
         body = trace(circuit, point, case.plant.family)
         json.dumps(body, allow_nan=False)

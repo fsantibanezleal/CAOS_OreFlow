@@ -75,7 +75,9 @@ def pattern_search(evaluate: Evaluator, start: Point, *, mesh_initial: float, me
     def value(x: Point, source: str) -> tuple[float, float]:
         if x not in cache:
             f, h = evaluate(x)
-            cache[x] = (float(f), max(0.0, float(h)))
+            # a non-finite violation is the extreme barrier in both languages (M-10)
+            h = float(h)
+            cache[x] = (float(f), max(0.0, h) if h == h else float("inf"))
             evaluations.append({"x": list(x), "f": cache[x][0], "h": cache[x][1], "source": source})
         return cache[x]
 

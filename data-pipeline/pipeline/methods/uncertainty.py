@@ -25,6 +25,7 @@ from ..cases.catalog import CaseDef
 from ..engine.circuit import simulate
 from ..engine.constants import constant
 from ..engine.model import InfeasibleState, OperatingPoint, Ore
+from ..engine.ore import resolve
 from .sampling import latin_hypercube
 
 INPUTS = ("work_index", "head_grade", "liberation_size", "floatability")
@@ -41,15 +42,19 @@ def _half_widths(names: tuple[str, ...]) -> list[float]:
 
 
 def perturbed(case: CaseDef, point: OperatingPoint, factors: dict[str, float]) -> tuple[Ore, OperatingPoint]:
-    """The ore and operating point with each uncertain property multiplied by its factor."""
+    """The ore and operating point with each uncertain property multiplied by its factor. The floatability factor acts
+    on every valuable mineral that floats, the liberation factor on those with a declared liberation size; until
+    0.09.000 both took the liberation-size rule, which left electrum (45% of the gold case's gold) and chrysocolla out
+    of the floatability factor (review of 2026-10-04, M-03)."""
+    valuable = set(resolve(case.ore, point).valuable)
     minerals = []
     for m in case.ore.minerals:
-        if m.liberation_size_um > 0.0:   # the valuable minerals: liberation is declared for them
-            flotation = m.flotation
-            if flotation is not None and "floatability" in factors:
-                flotation = replace(flotation, floatability=flotation.floatability * factors["floatability"])
-            m = replace(m, liberation_size_um=m.liberation_size_um * factors.get("liberation_size", 1.0), flotation=flotation)
-        minerals.append(m)
+        flotation = m.flotation
+        if m.id in valuable and flotation is not None and "floatability" in factors:
+            flotation = replace(flotation, floatability=flotation.floatability * factors["floatability"])
+        if m.liberation_size_um > 0.0:
+            m = replace(m, liberation_size_um=m.liberation_size_um * factors.get("liberation_size", 1.0))
+        minerals.append(replace(m, flotation=flotation))
     ore = replace(case.ore, minerals=tuple(minerals))
     new_point = point.with_values(work_index_kwh_t=point.work_index_kwh_t * factors.get("work_index", 1.0),
                                   head_grade=point.head_grade * factors.get("head_grade", 1.0))
@@ -81,6 +86,8 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
     factors = 1.0 - np.asarray(widths) + 2.0 * np.asarray(widths) * unit
     drawn = [_evaluate(case, point, dict(zip(names, map(float, row)))) for row in factors]
     rows = [r for r in drawn if "refused" not in r]
+    # the design rows the outputs belong to, so a view pairs each value with its own draw (M-01)
+    solved = [i for i, r in enumerate(drawn) if "refused" not in r]
     refused: dict[str, int] = {}
     for r in drawn:
         if "refused" in r:
@@ -110,6 +117,8 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
         "generator": "SplitMix64",
         "inputs": {name: {"half_width": w} for name, w in zip(names, widths)},
         "factors": [[float(v) for v in row] for row in factors],
+        # the quantiles are over these draws, the ones with a steady state; the probabilities over every draw (M-02)
+        "solved": solved,
         "outputs": outputs,
         "probabilities": probabilities,
         # draws with no steady state (E-01), by code; the outputs are over the solved draws only
@@ -118,6 +127,22 @@ def uncertainty(case: CaseDef, point: OperatingPoint, samples: int | None = None
         "flag_counts": flag_counts,
         "max_balance_error": max(r["balance"] for r in rows),
     }
+
+
+def _analyze(problem: dict[str, Any], y: np.ndarray, seed: int) -> Any:
+    """SALib's estimators with a bootstrap that every admitted seed reproduces. SALib seeds its resampling only for a
+    truthy seed and otherwise draws from NumPy's global generator, so at seed 0 the half-widths changed from call to
+    call (M-13): the global generator is seeded for the call and restored after it."""
+    kwargs = {"calc_second_order": False, "num_resamples": int(constant("sensitivity.resamples")),
+              "conf_level": float(constant("sensitivity.confidence"))}
+    if seed:
+        return sobol_analyze.analyze(problem, y, seed=seed, **kwargs)
+    state = np.random.get_state()
+    try:
+        np.random.seed(0)
+        return sobol_analyze.analyze(problem, y, **kwargs)
+    finally:
+        np.random.set_state(state)
 
 
 def sensitivity(case: CaseDef, point: OperatingPoint, base_samples: int | None = None, seed: int | None = None) -> dict[str, Any]:
@@ -129,10 +154,18 @@ def sensitivity(case: CaseDef, point: OperatingPoint, base_samples: int | None =
                "bounds": [[1.0 - w, 1.0 + w] for w in widths]}
     design = sobol_sample.sample(problem, n, calc_second_order=False, scramble=True, seed=seed)
     results = {key: np.empty(len(design)) for key in OUTPUTS}
+    refused: dict[str, int] = {}
     for i, row in enumerate(design):
-        outputs = _evaluate(case, point, dict(zip(names, map(float, row))))["outputs"]
+        evaluation = _evaluate(case, point, dict(zip(names, map(float, row))))
+        if "refused" in evaluation:
+            refused[evaluation["refused"]] = refused.get(evaluation["refused"], 0) + 1
+            continue
         for key in OUTPUTS:
-            results[key][i] = outputs[key]
+            results[key][i] = evaluation["outputs"][key]
+    if refused:
+        # a Saltelli design cannot drop rows: no indices where any draw has no steady state (M-08)
+        return {"status": "refused_draws", "base_samples": n, "evaluations": len(design), "seed": seed, "refused": refused,
+                "inputs": {name: {"half_width": w} for name, w in zip(names, widths)}}
     indices = {}
     for key in OUTPUTS:
         y = results[key]
@@ -141,9 +174,7 @@ def sensitivity(case: CaseDef, point: OperatingPoint, base_samples: int | None =
         if float(np.ptp(y)) <= float(constant("sensitivity.constant_tolerance")) * float(np.max(np.abs(y))):
             indices[key] = {"constant": True}
             continue
-        analysis = sobol_analyze.analyze(problem, y, calc_second_order=False,
-                                         num_resamples=int(constant("sensitivity.resamples")),
-                                         conf_level=float(constant("sensitivity.confidence")), seed=seed)
+        analysis = _analyze(problem, y, seed)
         indices[key] = {part: {name: float(v) for name, v in zip(names, analysis[part])}
                         for part in ("S1", "S1_conf", "ST", "ST_conf")}
     return {"status": "computed", "base_samples": n, "evaluations": len(design), "seed": seed,

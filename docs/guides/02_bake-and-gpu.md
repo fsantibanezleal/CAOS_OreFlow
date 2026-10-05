@@ -29,17 +29,18 @@ stages and stops with an error if the last one, the artifact checks, finds anyth
 
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
-| contract | `contract/operating_contract.json`, `contract/contract_probes.json` | under 1 s |
-| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 2645.5 s on CUDA in the committed 0.08.001 bake |
-| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 905.4 s on 12 workers in the committed 0.08.001 bake |
-| benchmark | `benchmark.json` | under 1 s |
-| studies | `studies.json`: the ablations and the uncertainty seed study | 67.8 s on 12 workers |
-| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 64.4 s |
+| contract | `contract/operating_contract.json`, `contract/contract_probes.json` | 2.5 s |
+| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 7843.0 s on CUDA in the committed 0.09.000 bake |
+| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 5388.2 s on 12 workers in the committed 0.09.000 bake |
+| benchmark | `benchmark.json` | 2.4 s |
+| studies | `studies.json`: the ablations and the uncertainty seed study | 409.2 s on 12 workers |
+| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 352.4 s |
 | manifests | `manifests/<case>.json`, `manifests/index.json` | under 1 s |
-| validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | under 1 s |
+| validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | 2.3 s |
 
 The times are those recorded in the committed `validation.json` (development machine: 32 logical cores,
-RTX 4070 Laptop GPU). Each stage and each finished case prints a timestamped line; a bake still running
+RTX 4070 Laptop GPU). The committed bake ran while another session's job held part of the machine; on an idle one the
+same engine took 3610 s to learn and 1849 s for the cases. Each stage and each finished case prints a timestamped line; a bake still running
 after four hours, well past a normal run, prints every thread's stack once, so a stall shows where it is.
 
 ## The GPU lane
@@ -65,8 +66,9 @@ To see what a change would produce without touching the committed records:
 ./scripts/smoke.ps1 -Bake         # the whole local gate, then a bake into build/smoke (ignored by git)
 ```
 
-The sandbox is seeded with the committed measured lanes, since the process bake validates them but does
-not produce them.
+The sandbox is seeded with the committed measured lanes, their records and the particle lane's model
+(`models/particle_mlp.onnx`), since the process bake validates them but does not produce them; a sandbox
+built by hand for `run.py --output --models` needs the same seed, or its last stage fails on the missing model.
 
 ## After the bake
 

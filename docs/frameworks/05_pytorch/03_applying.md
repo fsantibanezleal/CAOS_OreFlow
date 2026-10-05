@@ -54,4 +54,5 @@ machine that fell back to the CPU.
 - **Keep the state on the device you trained on**, and move the network to the CPU before exporting
   (`export_onnx` does `model.to("cpu")`).
 - **A surrogate's interpolation score is not its transfer score.** The MLP here interpolates best of
-  five models and has the largest mean transfer error; report both protocols or neither.
+  five models and has the largest mean one-case-out error, and one case out is itself a near-neighbour test where
+  other plants share the ore; report interpolation, one case out and one ore group out together, or none of them.

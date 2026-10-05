@@ -93,9 +93,25 @@ def test_protocols_and_model_identity(tmp_path):
     g = record["guard"]
     assert g["threshold"] > 0.0 and 0.0 <= g["false_alarm_rate"] <= 1.0 and 0.0 <= g["false_accept_rate"] <= 1.0
     assert g["false_accept_rate"] < 1.0 - g["false_alarm_rate"]
-    # permutation importance for every feature and target
+    # permutation importance for every feature and target, shuffled within each case: a feature constant within every
+    # case scores exactly 0 (L-04; 0.08.001 shuffled across cases and gave the carrier's composite content 2.82 points)
     for target in record["targets"]:
-        assert set(record["interpolation"]["permutation_importance"][target]) == set(learning.FEATURES)
+        imp = record["interpolation"]["permutation_importance"][target]
+        assert set(imp) == set(learning.FEATURES)
+        assert imp["carrier_composite_content"] == 0.0 and imp["carrier_density_t_m3"] == 0.0
+    # L-01: the two chalcopyrite cases form one ore group, held out together
+    assert record["transfer_groups"] == {"copper_porphyry_soft": "Cu:chalcopyrite", "copper_porphyry_hard": "Cu:chalcopyrite",
+                                         "iron_magnetite_fine": "Fe:magnetite"}
+    [fold] = record["leave_one_group_out"]
+    assert fold["cases"] == ["copper_porphyry_soft", "copper_porphyry_hard"]
+    assert fold["train_rows"] + fold["test_rows"] == record["design"]["rows"]
+    # L-03: every interpolation score beside its within-case R2 and the predictor that knows only the case
+    for model in record["models"]:
+        for target in record["targets"]:
+            row = record["summary"][model][target]
+            assert np.isfinite(row["interpolation_r2_within_case"]) and np.isfinite(row["case_mean_r2"])
+            assert np.isfinite(row["transfer_rmse_mean"]) and np.isfinite(row["transfer_r2_median"])
+            assert row["interpolation_r2_within_case"] <= row["interpolation_r2"] + 1e-12 or row["case_mean_r2"] < 0.0
     # ONNX exports reproduce PyTorch and ship their scalers
     for export in record["final"]["exports"].values():
         assert (tmp_path / export["path"]).stat().st_size == export["bytes"]

@@ -55,8 +55,10 @@ describe('the Benchmark states the real-sample comparison as the record holds it
     expect(text).toContain(`The samples are ${Math.floor(s.work_index_kwh_t.min)} to ${Math.round(s.work_index_kwh_t.max)} kWh/t`);
     expect(text).toContain(`the engine is ${(-s.engine_minus_measured_pp.mean).toFixed(1)} points below the locked-cycle tests on average (RMSE ${s.engine_minus_measured_pp.rmse.toFixed(1)})`);
     expect(text).toContain(`in the hard porphyry's circuit it is ${(-se.hosts.hard_nominal.mean_gap_pp).toFixed(1)} points below`);
-    expect(text).toContain(`from ${curve[75].mean_gap_pp.toFixed(1)} points above at 75 µm to ${(-curve[300].mean_gap_pp).toFixed(1)} below at 300 µm, crossing zero near 165 µm`);
-    expect(curve[160].mean_gap_pp > 0 && curve[170].mean_gap_pp < 0).toBe(true);
+    expect(text).toContain(`from ${curve[75].mean_gap_pp.toFixed(1)} points above at 75 µm to ${(-curve[300].mean_gap_pp).toFixed(1)} below at 300 µm, crossing zero near 150 µm`);
+    // the sign changes between 150 and 160 µm, nearer 150 (linear interpolation within 5 µm of it)
+    expect(curve[150].mean_gap_pp > 0 && curve[160].mean_gap_pp < 0).toBe(true);
+    expect(150 + 10 * curve[150].mean_gap_pp / (curve[150].mean_gap_pp - curve[160].mean_gap_pp)).toBeLessThan(155);
     expect(text).toContain(`the gap is ${signed(se.target_grind_throughput.mean_gap_pp)} points, of which ${se.target_grind_throughput.residence_share_pp.toFixed(1)} come from the longer flotation residence`);
     const rs = se.gap_by_assumed_p80.map((x: any) => x.pearson), sd = se.gap_by_assumed_p80.map((x: any) => x.engine_sd_pp);
     expect(text).toContain(`(Pearson r between ${Math.min(...rs).toFixed(2)} and ${Math.max(...rs).toFixed(2)})`);

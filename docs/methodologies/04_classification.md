@@ -18,7 +18,13 @@ particle classifies as if it were larger. The engine applies that dependence per
 
 $$d_{50c,k} = d_{50c}\sqrt{\frac{\rho_{host} - 1}{\rho_k - 1}},$$
 
-which sends liberated sulphides, magnetite and gold to the underflow at finer sizes than the gangue.
+which sends liberated sulphides and magnetite to the underflow at finer sizes than the gangue. Composites take the
+density of their makeup. Gravity-recoverable gold is the one exception: its classes take the exponent
+`cyclone.grg_density_exponent` = 1.0, fitted to measured GRG partitions, in place of 0.5, which puts electrum's cut at
+0.112 of the host's instead of 0.335 ([methodology 06](06_gravity-gold.md); review of 2026-10-04, P-03). The partition
+the workbench draws for a mineral is the one the circuit applies, the share of each class of the cyclone feed that
+reports to the underflow, liberated grains and composites together; until 0.09.000 it drew the liberated grains' curve
+only, up to 0.08 above the applied one near the cut (P-02).
 In a closed circuit this returns dense minerals to the mill until they are fine, the known
 overgrinding of dense minerals; plant audits of gold circuits show the same shift of the partition
 curve (Laplante and Staunton, AMIRA P420B).

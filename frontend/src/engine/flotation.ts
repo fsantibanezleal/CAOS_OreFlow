@@ -1,8 +1,9 @@
 /**
  * Flotation circuit: rougher, optional regrind, cleaner and optional recleaner, with recycles (port of
  * engine/flotation.py; theory in docs/methodologies/05_flotation.md). Per perfectly mixed cell a class is
- * recovered with r = (k tau + ENT w)/(1 + k tau + ENT w); k = 60 P Sb f_size f_dose with Sb = 6 Jg/D32;
- * ENT after Savassi et al. (1998). The recycle is a fixed point on an absolute and a per-class relative change.
+ * recovered with r = (k tau + ENT w)/(1 + k tau + ENT w), tau the cell's pulp volume over its own tail flow (F-02);
+ * k = 60 P Sb f_size f_dose with Sb = 6 Jg/D32; ENT after Savassi et al. (1998). The recycle is a fixed point on an
+ * absolute and a per-class relative change.
  */
 import { constant } from './constants';
 import { grid, type Vec } from './grid';
@@ -54,7 +55,17 @@ export function rateConstants(ore: ResolvedOre, defs: SpeciesDef[], sb: number, 
     const response = ore.spec[d.mineral].flotation;
     if (response === null) { out[d.id] = new Float64Array(n); continue; }
     let p = response.floatability;
-    if (d.kind === 'composite') p = p * Math.pow(ore.spec[d.mineral].composite_content, constant('flotation.composite_surface_exponent'));
+    if (d.kind === 'composite') {
+      // the exposed valuable surface goes with the two-thirds power of the valuable's VOLUME share (F-01)
+      let valuable = 0.0;
+      let total = 0.0;
+      for (const [mineral, share] of d.makeup) {
+        const v = share / ore.density[mineral];
+        total += v;
+        if (mineral === d.mineral) valuable += v;
+      }
+      p = p * Math.pow(valuable / total, constant('flotation.composite_surface_exponent'));
+    }
     const shape = sizeResponse(response.optimum_size_um, response.fine_width, response.coarse_width);
     const dose = doseResponse(doseGpt, response.half_dose_gpt, response.unresponsive_fraction);
     const k = new Float64Array(n);
@@ -67,11 +78,17 @@ export function rateConstants(ore: ResolvedOre, defs: SpeciesDef[], sb: number, 
 export type BankResult = {
   recovery: Species;
   water_recovery: number;
-  cell_water_recovery: number;
+  cell_water_recovery: number[];
+  /** The mean of the cells' residences; residence_min is their sum. */
   tau_cell_min: number;
   residence_min: number;
   entrained_share: Species;
-  cell_recovery: Species;
+  cell_recovery: Species[];
+  cell_residence_min: number[];
+  /** Every cell's tail flow settled. */
+  converged: boolean;
+  /** Each cell's tail flow, the next recycle pass's starting guess. */
+  cell_tail_m3_min: number[];
 };
 
 const vsum = (v: Vec) => { let s = 0.0; for (let i = 0; i < v.length; i += 1) s += v[i]; return s; };
@@ -84,31 +101,110 @@ export function pulpFlowM3Min(species: Species, defs: SpeciesDef[], waterTph: nu
   return (solids + waterTph / waterDensity) / minutes;
 }
 
-export function bank(rates: Species, ent: Vec, cells: number, bankDef: Bank, flowM3Min: number, sb: number, waterFloatability: number): BankResult {
+/** The fixed point q = g(q) of a cell's tail flow from the feed flow q0: secant while its step stays in (0, q0],
+ * substitution otherwise (flotation.py tail_flow). */
+export function tailFlow(g: (q: number) => number, q0: number, guess: number | null = null): [number, boolean] {
+  const tolerance = constant('numerics.cell_tail_tolerance');
+  let qPrev = guess !== null && guess > 0.0 && guess <= q0 ? guess : q0;
+  let hPrev = qPrev - g(qPrev);
+  if (Math.abs(hPrev) <= tolerance * qPrev) return [qPrev, true];
+  let q = qPrev - hPrev;
+  for (let k = 0; k < constant('numerics.root_max_iterations'); k += 1) {
+    const h = q - g(q);
+    if (Math.abs(h) <= tolerance * q) return [q, true];
+    const candidate = h !== hPrev ? q - h * (q - qPrev) / (h - hPrev) : q - h;
+    qPrev = q; hPrev = h;
+    q = candidate > 0.0 && candidate <= q0 ? candidate : q - h;
+  }
+  return [q, false];
+}
+
+/** A bank of `cells` perfect mixers in series, each with its pulp volume over its own tail flow (F-02). */
+export function bank(rates: Species, ent: Vec, cells: number, bankDef: Bank, feed: Species, feedWater: number, defs: SpeciesDef[],
+  sb: number, waterFloatability: number, guess: number[] | null = null): BankResult {
   const perMinute = constant('time.seconds_per_minute');
-  const tau = bankDef.cell_volume_m3 * (1.0 - bankDef.gas_holdup) / flowM3Min;
+  const volume = bankDef.cell_volume_m3 * (1.0 - bankDef.gas_holdup);
   const kw = perMinute * waterFloatability * sb;
-  const rw = kw * tau / (1.0 + kw * tau);
-  const w = rw / (1.0 - rw);
+  const n = grid().n;
+  const entEff = new Float64Array(n);
+  for (let i = 0; i < n; i += 1) entEff[i] = ent[i] * bankDef.wash_factor;
+  const keys = Object.keys(rates);
+  const x: Species = {};
+  for (const k of keys) x[k] = Float64Array.from(feed[k]);
+  let water = feedWater;
+  const unfloated: Species = {};
+  const entrained: Species = {};
+  for (const k of keys) { unfloated[k] = new Float64Array(n).fill(1.0); entrained[k] = new Float64Array(n); }
+  let waterUnfloated = 1.0;
+  const cellRecovery: Species[] = [];
+  const cellWater: number[] = [];
+  const residence: number[] = [];
+  let converged = true;
+  const cell = (q: number): [number, number, Species] => {
+    const tau = volume / q;
+    const w = kw * tau;
+    const r: Species = {};
+    for (const key of keys) {
+      const k = rates[key];
+      const v = new Float64Array(n);
+      for (let i = 0; i < n; i += 1) v[i] = (k[i] * tau + entEff[i] * w) / (1.0 + k[i] * tau + entEff[i] * w);
+      r[key] = v;
+    }
+    return [tau, w, r];
+  };
+  const waterDensity = constant('water.density_t_m3');
+  const minutes = constant('time.minutes_per_hour');
+  const density: Record<string, number> = {};
+  for (const d of defs) density[d.id] = d.density;
+  // the tail's pulp flow at a trial flow q, summed without building the tail (flotation.py tail)
+  const tail = (q: number): number => {
+    const tau = volume / q;
+    const w = kw * tau;
+    let solids = 0.0;
+    for (const key of keys) {
+      const k = rates[key];
+      const xs = x[key];
+      let left = 0.0;
+      for (let i = 0; i < n; i += 1) {
+        const numerator = k[i] * tau + entEff[i] * w;
+        left += xs[i] * (1.0 - numerator / (1.0 + numerator));
+      }
+      solids += left / density[key];
+    }
+    return (solids + water / (1.0 + w) / waterDensity) / minutes;
+  };
+  const tails: number[] = [];
+  for (let j = 0; j < cells; j += 1) {
+    const [q, settled] = tailFlow(tail, pulpFlowM3Min(x, defs, water), guess !== null && j < guess.length ? guess[j] : null);
+    tails.push(q);
+    converged = converged && settled;
+    const [tau, w, r] = cell(q);
+    for (const key of keys) {
+      const k = rates[key];
+      for (let i = 0; i < n; i += 1) {
+        const numerator = k[i] * tau + entEff[i] * w;
+        const share = numerator > 0.0 ? entEff[i] * w / numerator : 0.0;
+        entrained[key][i] += unfloated[key][i] * r[key][i] * share;
+        unfloated[key][i] *= 1.0 - r[key][i];
+        x[key][i] *= 1.0 - r[key][i];
+      }
+    }
+    water /= 1.0 + w;
+    waterUnfloated /= 1.0 + w;
+    cellRecovery.push(r);
+    cellWater.push(w / (1.0 + w));
+    residence.push(tau);
+  }
   const recovery: Species = {};
   const share: Species = {};
-  const cell: Species = {};
-  for (const [key, k] of Object.entries(rates)) {
-    const rec = new Float64Array(k.length);
-    const sh = new Float64Array(k.length);
-    const ce = new Float64Array(k.length);
-    for (let i = 0; i < k.length; i += 1) {
-      const entEff = ent[i] * bankDef.wash_factor;
-      const numerator = k[i] * tau + entEff * w;
-      const r = numerator / (1.0 + numerator);
-      ce[i] = r;
-      rec[i] = 1.0 - Math.pow(1.0 - r, cells);
-      sh[i] = numerator > 0.0 ? entEff * w / numerator : 0.0;
-    }
-    recovery[key] = rec; share[key] = sh; cell[key] = ce;
+  for (const key of keys) {
+    recovery[key] = Float64Array.from(unfloated[key], v => 1.0 - v);
+    share[key] = Float64Array.from(recovery[key], (v, i) => (v > 0.0 ? entrained[key][i] / v : 0.0));
   }
-  return { recovery, water_recovery: 1.0 - Math.pow(1.0 - rw, cells), cell_water_recovery: rw, tau_cell_min: tau,
-    residence_min: tau * cells, entrained_share: share, cell_recovery: cell };
+  let total = 0.0;
+  for (const t of residence) total += t;
+  return { recovery, water_recovery: 1.0 - waterUnfloated, cell_water_recovery: cellWater, tau_cell_min: total / cells, residence_min: total,
+    entrained_share: share, cell_recovery: cellRecovery, cell_residence_min: residence, converged, cell_tail_m3_min: tails };
 }
 
 export type FlotationResult = {
@@ -190,15 +286,19 @@ export function runFlotation(fo: Species, feedWaterIn: number, ore: ResolvedOre,
   const n = grid().n;
   const zeros = mapSpecies(defs.map(d => d.id), () => new Float64Array(n));
 
+  // each bank's cell tail flows in the last pass: the next pass starts its cells from them
+  const warm: Record<'rougher' | 'cleaner' | 'recleaner', number[] | null> = { rougher: null, cleaner: null, recleaner: null };
   const passOnce = (x: Species, waterX: number, tRc: Species, waterTRc: number): PassState => {
-    const rougher = bank(kR, ent, op.rougher_cells, plant.rougher, pulpFlowM3Min(x, defs, waterX), sbR, plant.water_floatability);
+    const rougher = bank(kR, ent, op.rougher_cells, plant.rougher, x, waterX, defs, sbR, plant.water_floatability, warm.rougher);
+    warm.rougher = rougher.cell_tail_m3_min;
     const concR = mapSpecies(keys, k => times(rougher.recovery[k], x[k]));
     const waterConcR = rougher.water_recovery * waterX;
     const ground = regrind !== null ? toSpecies(new Stream(regrind(toMinerals(concR, defs, ore)), waterConcR), ore, defs) : concR;
     const y = mapSpecies(keys, k => plus(ground[k], tRc[k]));
     const waterY0 = waterConcR + waterTRc;
     const waterY = diluted(waterY0, solidsOf(y), plant.cleaner.feed_solids);
-    const cleaner = bank(kC, ent, plant.cleaner.cells, plant.cleaner, pulpFlowM3Min(y, defs, waterY), sbC, plant.water_floatability);
+    const cleaner = bank(kC, ent, plant.cleaner.cells, plant.cleaner, y, waterY, defs, sbC, plant.water_floatability, warm.cleaner);
+    warm.cleaner = cleaner.cell_tail_m3_min;
     const concC = mapSpecies(keys, k => times(cleaner.recovery[k], y[k]));
     const tailC = mapSpecies(keys, k => minus(y[k], concC[k]));
     const waterConcC = cleaner.water_recovery * waterY;
@@ -206,7 +306,8 @@ export function runFlotation(fo: Species, feedWaterIn: number, ore: ResolvedOre,
       conc_c: concC, tail_c: tailC, water_conc_c: waterConcC, water_tail_c: waterY - waterConcC };
     if (recl !== null) {
       const waterZ = diluted(waterConcC, solidsOf(concC), recl.feed_solids);
-      const recleaner = bank(kRc, ent, recl.cells, recl, pulpFlowM3Min(concC, defs, waterZ), sbRc, plant.water_floatability);
+      const recleaner = bank(kRc, ent, recl.cells, recl, concC, waterZ, defs, sbRc, plant.water_floatability, warm.recleaner);
+      warm.recleaner = recleaner.cell_tail_m3_min;
       const final = mapSpecies(keys, k => times(recleaner.recovery[k], concC[k]));
       const waterFinal = recleaner.water_recovery * waterZ;
       return { ...base, recleaner, water_z: waterZ, dilution_rc: waterZ - waterConcC, final, water_final: waterFinal,
@@ -250,6 +351,9 @@ export function runFlotation(fo: Species, feedWaterIn: number, ore: ResolvedOre,
     flags.add('recycle_not_converged', `Flotation recycle residual ${residual.toExponential(2)} t/h (relative ${relative.toExponential(2)}) after ${iterations} iterations.`);
   }
   const s = passOnce(x, waterX, tRc, waterTRc);
+  if (![s.rougher, s.cleaner, s.recleaner].every(b => b === null || b.converged)) {
+    flags.add('cell_residence_not_converged', 'A flotation cell\'s tail flow did not settle; the last iterate is reported.');
+  }
   const stream = (species: Species, water: number) => new Stream(toMinerals(species, defs, ore), water);
   const streams: Record<string, Stream> = {
     flotation_feed: stream(fo, feedWater),
@@ -279,28 +383,32 @@ export function finalStreamName(result: FlotationResult): string {
   return result.recleaner !== null ? 'recleaner_concentrate' : 'cleaner_concentrate';
 }
 
-/** Cumulative grade and recovery of `species` along the rougher cells (grade-recovery curve). */
-export function bankProfile(result: FlotationResult, ore: ResolvedOre, species: string, cellsInBank: number): Array<Record<string, number>> {
+/** Cumulative grade and recovery of `species` along the rougher cells, each with its own recovery (F-02). */
+export function bankProfile(result: FlotationResult, ore: ResolvedOre, species: string): Array<Record<string, number>> {
   const x = result.rougher_feed_species;
   const defs = result.defs;
-  const cells = result.rougher.cell_recovery;
   const content: Record<string, number> = {};
   for (const d of defs) content[d.id] = speciesContentOf(d, ore, species);
   let total = 0.0;
   let feedMass = 0.0;
   for (const d of defs) { total += content[d.id] * vsum(x[d.id]); feedMass += vsum(x[d.id]); }
+  const unfloated: Species = {};
+  for (const d of defs) unfloated[d.id] = new Float64Array(x[d.id].length).fill(1.0);
   const out: Array<Record<string, number>> = [];
-  for (let j = 1; j <= cellsInBank; j += 1) {
+  result.rougher.cell_recovery.forEach((cell, index) => {
     let mass = 0.0;
     let value = 0.0;
     for (const d of defs) {
       let recovered = 0.0;
-      for (let i = 0; i < x[d.id].length; i += 1) recovered += x[d.id][i] * (1.0 - Math.pow(1.0 - cells[d.id][i], j));
+      for (let i = 0; i < x[d.id].length; i += 1) {
+        unfloated[d.id][i] *= 1.0 - cell[d.id][i];
+        recovered += x[d.id][i] * (1.0 - unfloated[d.id][i]);
+      }
       mass += recovered;
       value += content[d.id] * recovered;
     }
-    out.push({ cell: j, recovery: total > 0.0 ? value / total : 0.0, grade: mass > 0.0 ? value / mass : 0.0,
+    out.push({ cell: index + 1, recovery: total > 0.0 ? value / total : 0.0, grade: mass > 0.0 ? value / mass : 0.0,
       mass_pull: feedMass > 0.0 ? mass / feedMass : 0.0 });
-  }
+  });
   return out;
 }

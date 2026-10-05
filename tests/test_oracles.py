@@ -93,3 +93,17 @@ def test_zandrivierspoort_trend():
     rougher = record["engine"]["rougher_75"]
     assert 90.0 < rougher["magnetite_recovery_pct"] <= 100.0 and rougher["concentrate_fe_pct"] < coarse
     assert "regrind" in record["published"]["grinds"][1] and record["published"]["grind_75_passing_pct"] == 66.8
+
+
+def test_the_laplante_fit_reports_either_bound():
+    """M-12: a target below the lower bound's recovery is a fit at that bound, not an interior one."""
+    import copy
+
+    from pipeline.methods import oracles
+
+    d = copy.deepcopy(oracles.oracle_data()["laplante"])
+    pub, fit = d["published"], d["fit"]
+    pub["grg_recovery_pct"][pub["bleed"].index(fit["row"])] = 0.01
+    grains = oracles.grg_grains(d["grg"])
+    value, at_bound = oracles._fit_max_recovery(pub, grains, fit, d["authored"]["unit_size_scale_um"])
+    assert at_bound and value == float(fit["bounds"][0])

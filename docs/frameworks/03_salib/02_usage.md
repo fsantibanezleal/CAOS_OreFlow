@@ -47,7 +47,11 @@ S1_i = mean( f(B) (f(A_B^(i)) - f(A)) ) / var(f(A), f(B))
 ST_i = 0.5 mean( (f(A) - f(A_B^(i)))^2 ) / var(f(A), f(B))
 ```
 
-and a bootstrap over rows (200 resamples) gives a 95% confidence half-width for each index.
+and a bootstrap over rows (200 resamples at a 0.95 level) gives a half width for each index. The bootstrap treats the
+rows of the scrambled Sobol design as independent draws, so the half width overstates the estimator's error (10 to 21
+times on additive models, 1.4 to 2.8 times on the Ishigami function, measured over 60 seeds in the implementation
+review of 2026-10-04); OreFlow reports it as a bound, not as a 95% interval. SALib seeds the bootstrap only for a
+non-zero `seed`, so OreFlow seeds and restores NumPy's global generator for seed 0.
 
 ## What the record holds
 

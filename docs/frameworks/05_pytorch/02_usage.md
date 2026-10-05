@@ -40,14 +40,15 @@ thousand parameters, so one step over all rows is cheap and makes the loss curve
 given seed and device.
 
 **The surrogate** is two hidden layers of 64 with SiLU, 22 standardized features in and three
-standardized targets out (5827 parameters). It is scored under the same two protocols as the
-scikit-learn models ([04](../04_scikit-learn.md)): it interpolates best of all five (recovery RMSE 3.35
-points) and has the largest transfer errors (55.5 points on average over the held-out cases). The
-average hides where it fails: held out, each of the five copper sulphide cases, which have neighbours
-in the training set, costs it 1.8 to 3.5 points, less than any other model, while the magnetite circuit
-costs 283 (recoveries predicted far outside 0 to 100%), phosphate 242 and free-milling gold 88. The
-final surrogate is trained on all 3072 states; the committed run stopped at epoch 1939 with its best
-validation loss at epoch 1789, on CUDA.
+standardized targets out (5827 parameters). It is scored under the same protocols as the
+scikit-learn models ([04](../04_scikit-learn.md)): it interpolates best of all five (recovery RMSE 3.70
+points) and has the largest one-case-out errors (60.1 points on average over the held-out cases at the
+record's seed, 26.7 to 60.1 over five seeds). The average hides where it fails: held out, each of the five
+copper sulphide cases, which have neighbours on the same mineral in the training set, costs it 1.9 to 3.0
+points, less than any other model, while the magnetite circuit costs 172 (recoveries predicted far outside
+0 to 100%) and phosphate 472. Held out together, the five copper cases score a recovery R² of 0.572. The
+final surrogate is trained on all 3072 states; the committed run reached its 3000-epoch cap with its best
+validation loss at epoch 2950, on CUDA.
 
 **The guard** is an autoencoder: hidden layers of 16, 6 and 16 with tanh, trained to reproduce its
 own standardized input (956 parameters). Its reconstruction error is small for states like the

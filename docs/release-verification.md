@@ -2,6 +2,55 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.09.000, 2026-10-05
+
+The fixes of the adversarial validation of the implementation (issue #82): every equation, model and piece of logic
+checked against its source and against every input the contract admits, each finding verified before it was fixed,
+each fix with a test that fails on 0.08.001.
+
+### Local gate
+
+- The first release bake (2026-10-05, 02:48 to 04:24, on an otherwise idle machine: learning 3610 s, cases 1849 s on
+  12 workers, studies 151 s, real samples 108 s) passed its validation. Compared leaf by leaf with 0.08.001's
+  records: 223,388 values equal, 196,404 changed, 19,703 added and 5,128 removed, every change from the fixes.
+  Re-measuring the pages on it found five process-water capacities off their declared rule, because the fixes moved
+  the nominal need (oxide copper 3.3% above it instead of 5%); `test_case_rules` and `test_cases` caught it. The five
+  were re-authored by the rule (eb8621f), and that bake was not committed.
+- The second bake was started with a 3-hour bound sized from the idle bake and was killed by it at 12:49, still in its
+  learning stage, while another session's job held part of the machine; the bound was the error. Restarted with a
+  9-hour bound.
+- The release bake (2026-10-05, 13:10 to 17:04) into a sandbox seeded with the committed measured-lane records and
+  the particle lane's model: learning 7843 s on CUDA (RTX 4070 Laptop GPU), cases 5388 s on 12 workers, studies 409 s,
+  real samples 352 s, the contract, benchmark and validation stages 2.3 to 2.5 s each, while the other job held part
+  of the machine. `validation.json` records `passed: true`. Compared leaf by leaf with the first bake: 434,551 values
+  equal and 4,282 changed, all where the capacity enters (the optimizer and uncertainty records of the five cases, two
+  cases' seed-study probabilities, the plant definitions), in random-forest scores at their last bits (at most
+  5.7e-14 relative) and in the timings; the exported networks, the scalers and the screen are byte-identical. Compared
+  with 0.08.001's records: 223,556 equal, 196,562 changed, 19,579 added, 4,802 removed. It was adopted whole.
+- `scripts/check_artifacts.py`, every guard (template residue over 527 tracked files, content standards, CI budget,
+  units, interface formulas, the bilingual diagrams, the SDD with 103 live requirements) and the use-case page check
+  (13 pages) pass on the adopted records; ruff and the typecheck pass. The worktree carries no environments, so the
+  steps of `scripts/smoke.sh` were run one by one with the repository's `.venv-gpu`.
+- The suites: Python 609 of 609 (1892 s), and the tests that read the documents changed after that run passed again
+  on the final tree; frontend 501 of 501 on the final tree (446 s). `OF_PARITY=full`: 96 of 96 variants in six
+  processes of two cases each (437 to 2921 s per process). `OF_CORNERS=full`: the cut-mode envelope's corners in all 12
+  cases, 12 of 12 (164 s). The nine framework examples pass.
+- The browser gate against the service (`uvicorn app.main:app`, as the VPS serves the site). The first full run on the
+  release build passed 1,328 of 1,332: the workbench's Sobol table was 8 to 32 px wider than its panel at 1280x800 in
+  both themes and languages, because the new "within error" label sat in a cell that could not wrap; it now wraps
+  (3c4c131, 52ab94f). Reading the captures then found passages written before one ore group out existed or before
+  the cut-mode refusals (the Benchmark's learned captions, the Experiments Splits topic, the precompute's stage table,
+  the Introduction's contract sentence), and a sweep for statements the fixes made untrue found the same in the
+  design document, PE-30b and three framework pages; each was restated with a test (9f62e02, 13bb53c). On the final
+  build (`index-DH8Uoys2.js`): 1,332 of 1,332 checks, the full matrix in 16 combinations, the review pass and the phone and tablet
+  pass, captures read.
+- The convergence verdicts: every feature's `tasks.md` gives each live requirement's gate and its result in this
+  release's runs: 103 of 103 live requirements met, across the seven live features (the GeoMet lane's seven with the process engine's).
+
+### Remote gate
+
+- Recorded after the deployment.
+
 ## 0.08.001, 2026-10-04
 
 A patch of 0.08.000: the service answers a direct request for a page again.

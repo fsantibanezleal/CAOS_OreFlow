@@ -9,7 +9,7 @@ import type uPlot from 'uplot';
 import { cancelSweep, sweepInWorker } from '../../engine/client';
 import type { OperatingContract } from '../../engine/contract';
 import type { OperatingPoint } from '../../engine/model';
-import type { SweepCell } from '../../engine/sweep';
+import { gridValues, type SweepCell } from '../../engine/sweep';
 import type { CaseArtifact, OptimizationRecord } from '../../lib/artifacts.types';
 import { formatFixed, formatValue, formatWithUnit, sharedDecimals, unitLabel, type Lang } from '../../lib/format';
 import { metricLabel, t, UI } from '../../lib/i18n';
@@ -32,10 +32,7 @@ const TEXT = {
   optimizerRecord: { en: 'optimizer record', es: 'registro del optimizador' },
 };
 
-const linspace = (lo: number, hi: number, n: number, integer: boolean) => {
-  const values = Array.from({ length: n }, (_, i) => lo + (hi - lo) * i / (n - 1));
-  return integer ? [...new Set(values.map(v => Math.round(v)))] : values;
-};
+const linspace = gridValues;
 
 /** U-13: the grid count near `around` whose step has the fewest significant digits, so the ticks read round and both
  * bounds stay on the grid (75 to 300 in steps of 25, 0 to 75 in steps of 7.5). A display choice, not an engine one. */

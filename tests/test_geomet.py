@@ -120,3 +120,14 @@ def test_documented_significance():
                     "docs/frameworks/04_scikit-learn/03_applying.md", "docs/guides/03_use-on-other-data.md",
                     "manuscript/oreflow-digital-twin.md", "frontend/src/content/lanes.tsx"):
         assert "only ridge beats" not in (root / surface).read_text(encoding="utf-8"), surface
+
+
+def test_local_inference_writes_the_four_models(tmp_path):
+    """L-07: the training mean, ridge, random forest and the Gaussian process, as the pages say; 0.08.001 wrote three."""
+    from pathlib import Path
+
+    from run_geomet import MODEL_NAMES, predict_assays
+
+    example = Path(__file__).resolve().parents[1] / "data" / "examples" / "geomet-assays.csv"
+    out = predict_assays(example, tmp_path / "out.csv", checkpoint_path=tmp_path / "geomet.joblib")
+    assert [c for c in out.columns if c.endswith("_lct_pct")] == [f"{name}_lct_pct" for name in MODEL_NAMES]

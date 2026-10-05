@@ -130,6 +130,21 @@ def test_every_baked_variant_fit_converges():
             assert m["converged"], (case_id, variant_id, m["id"], m["iterations"])
 
 
+def test_bound_fits_are_counted_as_the_page_states():
+    """Page 11: 29 baked fits rest on A = 100%, all Klimpel, four on nominal states."""
+    bound, nominal = [], []
+    for case_id, variant_id in all_variants():
+        if CASE_BY_ID[case_id].plant.flotation is None:
+            continue
+        for m in _record(case_id, variant_id)["models"]:
+            if m["at_bound"]:
+                bound.append((m["id"], tuple(m["at_bound"])))
+                if variant_id == "nominal":
+                    nominal.append(case_id)
+    assert len(bound) == 29 and set(bound) == {("klimpel", ("R_inf",))}
+    assert sorted(nominal) == ["gold_free_milling", "phosphate_clay", "refractory_gold", "zinc_sulfide"]
+
+
 def test_documented_findings_on_nominal_cases():
     # docs/methodologies/11_kinetic-fits.md states these ranges; this keeps the page and the engine in step.
     first, rmse, lumping, betas = [], [], [], []
@@ -139,7 +154,27 @@ def test_documented_findings_on_nominal_cases():
         rmse += [by_id["kelsall"]["rmse_pct"], by_id["gamma"]["rmse_pct"]]
         lumping += [abs(by_id["kelsall"]["lumping_error_pct"]), abs(by_id["gamma"]["lumping_error_pct"])]
         betas.append(by_id["stretched_exponential"]["parameters"]["beta"])
-    assert all(-6.45 <= v <= -2.95 for v in first), first        # "underestimates by 3.0 to 6.4 points"
+    assert all(-7.95 <= v <= -3.65 for v in first), first        # "underestimates by 3.7 to 7.9 points"
     assert max(rmse) < 0.2, rmse                                   # "within 0.2 points RMSE"
-    assert max(lumping) < 1.7, lumping                             # "project within about 1.6 points"
-    assert all(0.83 <= b <= 0.94 for b in betas), betas            # "beta between 0.83 and 0.94"
+    assert max(lumping) < 2.1, lumping                             # "project within about 2.0 points"
+    assert all(0.82 <= b <= 0.94 for b in betas), betas            # "beta between 0.82 and 0.94"
+
+
+def test_a_fit_reports_the_bounds_it_rests_on():
+    """F-07: a fit whose bounded parameter sits at its bound says so (41 baked Klimpel fits of 0.08.001 ended at
+    R_inf = 100% as plain "converged")."""
+    for case_id in flotation_cases():
+        for m in _record(case_id, "nominal")["models"]:
+            at_r_inf = abs(m["parameters"]["R_inf"] - 100.0) <= 1e-7
+            assert ("R_inf" in m["at_bound"]) == at_r_inf, (case_id, m["id"])
+
+
+def test_a_curve_without_signal_is_not_fitted():
+    """F-08: with no collector on the oxide copper's minerals nothing floats; 0.08.001 reported five "converged" fits of
+    a zero curve, with parameters the two engines did not agree on."""
+    case = CASE_BY_ID["copper_oxide"]
+    from pipeline.engine.circuit import simulate
+    result = simulate(case.ore, case.plant, case.nominal.with_values(collector_gpt=0.0))
+    record = kinetic_record(result.flotation, result.ore, case.nominal.rougher_cells, result.metrics["rougher_recovery_pct"])
+    assert record["status"] == "no_signal"
+    assert "models" not in record

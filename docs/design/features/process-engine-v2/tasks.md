@@ -18,7 +18,8 @@ card for any library it introduces) in the same commit before the next one start
 - [x] T12 Kinetic fits and bank projection (PE-26): five lumped models, including the gamma form of the dossier.
 - [x] T13 Constrained optimization (PE-27): grade, power and process-water constraints; water capacities authored per case.
 - [x] T14 Uncertainty and Sobol (PE-28): scrambled Latin hypercube, authored spreads, SALib Saltelli indices.
-- [x] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29); the baked
+- [x] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29), and since 0.09.000
+  leave-one-ore-group-out and the within-case scores (L-01, L-03); the baked
   results and the test that pins the page's findings land with T16.
 - [x] T16 Pipeline stages, artifacts, manifests, benchmark, non-vacuous validation, check_artifacts (PE-02).
   Canonical bake of 2026-09-26: 12 cases and 72 variants, validation passed (cases 375 s on twelve
@@ -82,6 +83,68 @@ card for any library it introduces) in the same commit before the next one start
   Every live requirement (the 42 of this feature and the 7 of `geomet-lct`) runs the gate it names on the
   release: 49 of 49 met (the table below). Not requirements, and still open: Felipe's acceptance of the
   design, and any plant calibration (the twelve cases are authored inside published ranges).
+
+## Convergence verdict, 0.09.000 (2026-10-05)
+
+ADR-0075 section 4: each live requirement, the gate it names and that gate's result on the 0.09.000 release: the
+release bake and its validation, the Python and frontend suites on the final tree, the full optimizer parity
+(`OF_PARITY=full`) and the browser gate's records on the served release build, every capture read
+(`docs/release-verification.md`, 0.09.000). A parametrized test passes when every one of its cases does.
+
+| Requirement | Result on the 0.09.000 release |
+|---|---|
+| PE-01 | met: `test_grid_and_stream_shapes` passed |
+| PE-02 | met: `test_unit_and_circuit_closure_all_variants` passed (96 cases); `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
+| PE-03 | met: `test_stoichiometry_from_atomic_weights` passed |
+| PE-04 | met: `test_whiten_form_mass_and_css_response` passed |
+| PE-05 | met: `test_target_and_circulating_load_met` passed (12 cases) |
+| PE-06 | met: `test_overflow_equals_new_feed_by_mineral` passed (12 cases) |
+| PE-07 | met: `test_power_limited_mode` passed |
+| PE-07b | met: `test_grindability_shares_breakage_not_hardness` passed; `test_bond_efficiency_consistent_across_cases` passed (12 cases) |
+| PE-08 | met: `test_molycop_base_case` passed |
+| PE-09 | met: `test_gmg_worked_example` passed |
+| PE-10 | met: `test_laws_calibrated_and_not_summed` passed |
+| PE-11 | met: `test_partition_bypass_and_density_correction` passed |
+| PE-12 | met: `test_plitt_sizing_consistency` passed (12 cases) |
+| PE-13 | met: `test_bank_reduces_to_tanks_in_series` passed |
+| PE-14 | met: `test_rate_follows_bubble_surface_flux` passed |
+| PE-15 | met: `test_savassi_entrainment` passed |
+| PE-16 | met: `test_cleaner_recycle_converges` passed (11 cases) |
+| PE-17 | met: `test_stage_and_overall_recovery_are_distinct` passed |
+| PE-18 | met: `test_bleed_response_and_gold_circulating_load` passed; `test_laplante_like_for_like` passed; `test_grg_enters_with_its_own_sizes` passed; `test_the_oracle_and_the_case_declare_the_same_grg` passed; `test_grg_breaks_at_banisis_rate` passed; `test_grg_classifies_with_the_fitted_exponent` passed; `test_the_unit_on_the_mill_discharge_closes` passed; `test_without_a_bleed_both_positions_agree` passed; `test_the_case_recovers_within_its_sourced_range` passed |
+| PE-19 | met: `test_grade_rises_with_finer_grind` passed; `test_zandrivierspoort_trend` passed |
+| PE-20 | met: `test_deslime_cut_tradeoff` passed |
+| PE-21 | met: `test_collector_trades_grade_for_recovery` passed (11 cases) |
+| PE-22 | met: `test_hardness_effects` passed (11 cases) |
+| PE-22b | met: `test_desliming_coarser_product_reduces_slimes_loss` passed |
+| PE-23 | met: `test_throughput_effects` passed (10 cases) |
+| PE-24 | met: `test_aeration_raises_entrainment` passed (9 cases) |
+| PE-25 | met: `test_grind_energy_and_liberation` passed (4 cases) |
+| PE-26 | met: `test_fits_and_bank_projection` passed (11 cases) |
+| PE-27 | met: `test_constraints_respected` passed (4 cases) |
+| PE-28 | met: `test_seeded_quantiles_and_sobol` passed |
+| PE-29 | met: `test_protocols_and_model_identity` passed; `check_artifacts.py` passed on the adopted records (the bake's validation stage, and again after adoption) |
+| PE-30 | met: `test_export_matches_validator` passed; `test_api_and_contract_agree` passed; `contract.test.ts` passed (8 tests) |
+| PE-30b | met: `test_engine_solves_the_envelope` passed (12 cases) |
+| PE-31 | met: `parity.test.ts` passed (96 tests) |
+| PE-32 | met: `test_variants_are_single_factor` passed (12 cases) |
+| PE-33 | met: `check_units.py` passed |
+| PE-34 | met: `test_parameters_carry_units_and_sources` passed (12 cases) |
+| PE-35 | met: `locale.test.ts` passed (10 tests) |
+| PE-36 | met: `trace-curves.test.ts` passed (12 tests); `check_ui_formulas.py` passed |
+| PE-37 | met: `flowsheet.test.ts` passed (24 tests) |
+| PE-38 | met: `worker-sweeps.test.ts` passed (4 tests); `check_ui_formulas.py` passed |
+| PE-39 | met: `surrogate.test.ts` passed (14 tests) |
+| PE-40 | met: `case-claims.test.ts` passed (10 tests) |
+| GM-01 | met: `test_source_hash` passed |
+| GM-02 | met: `test_contract_and_missingness` passed |
+| GM-03 | met: `test_group_splits` passed |
+| GM-04 | met: `test_benchmark_matrix` passed |
+| GM-05 | met: `gate.mjs` on the served release build (`index-DH8Uoys2.js`): 1,332 of 1,332 checks, the full matrix in all 16 combinations, the review pass and the phone and tablet pass, captures read |
+| GM-06 | met: `test_evidence_boundary` passed |
+| GM-07 | met: `test_assay_input_contract` passed |
+
+50 of 50 met.
 
 ## Convergence verdict, 0.08.000 (2026-10-04)
 

@@ -13,6 +13,8 @@ import { formulaText, metricLabel, speciesName } from '../../lib/i18n';
 import { Chart, type CursorReading, type Series } from '../../components/charts/Chart';
 
 type KineticModel = { id: string; parameters: Record<string, number>; parameter_units: Record<string, string>; rmse_pct: number; converged: boolean;
+  /** Parameters the fit left at a bound (F-07). */
+  at_bound?: string[];
   dense_pct: number[]; bank_projection_pct: number; lumping_error_pct: number; ultimate_gap_pct: number };
 type Kinetics = { status: string; times_min?: number[]; batch_recovery_pct?: number[]; dense_times_min?: number[];
   bank?: { cells: number; residence_min: number; exact_true_flotation_pct: number; engine_rougher_pct: number }; models?: KineticModel[] };
@@ -40,6 +42,8 @@ const TEXT = {
   lumping: { en: 'Lumping', es: 'Agregación' },
   gap: { en: 'Ultimate gap', es: 'Brecha final' },
   points: { en: 'Errors in percentage points.', es: 'Errores en puntos porcentuales.' },
+  bound: { en: '† the fit rests on a bound (R∞ = 100% or a limit of φ or β): a constrained optimum.', es: '† el ajuste descansa en un límite (R∞ = 100% o un límite de φ o β): un óptimo restringido.' },
+  noSignal: { en: 'No batch kinetics at this state: the payable does not float in the virtual batch test (no collector on minerals without a natural floatability), so there is no curve to fit.', es: 'Sin cinética batch en este estado: el pagable no flota en la prueba batch virtual (sin colector sobre minerales sin flotabilidad natural), así que no hay curva que ajustar.' },
   exact: { en: 'Exact bank (all classes)', es: 'Banco exacto (todas las clases)' },
   engine: { en: 'Engine rougher (with entrainment)', es: 'Rougher del motor (con arrastre)' },
   sizeSummary: { en: 'Rougher recovery by size for the payable and the host gangue, with the entrained share of that gangue.', es: 'Recuperación rougher por tamaño del pagable y de la ganga huésped, con la fracción arrastrada de esa ganga.' },
@@ -180,7 +184,7 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
     <div className="of-view of-grid-2x2 of-grid-strip-panel">
       {charts.recovery_by_size}
       {charts.bank_profile}
-      {charts.deslime ?? charts.kinetics}
+      {charts.deslime ?? charts.kinetics ?? (kinetics.status === 'no_signal' ? <div className="of-panel"><p className="of-footnote">{TEXT.noSignal[lang]}</p></div> : null)}
       <div className="of-panel">
         {/* U-12: the family's own answer first (slimes, gravity, a second payable), then the flotation facts */}
         <Facts trace={trace} lang={lang} keys={['slimes_mass_pct', 'slimes_loss_pct', 'gravity_recovery_pct', 'grg_recovery_pct', 'gold_circulating_load_pct',
@@ -191,11 +195,11 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
         {/* U-36: the kinetic table goes with its chart; where the desliming chart takes its place, so does the table */}
         {models.length > 0 && kinetics.bank && !charts.deslime && (
           <table className="of-table">
-            <caption>{`${TEXT.exact[lang]}: ${formatWithUnit(kinetics.bank.exact_true_flotation_pct, '%', lang)} · ${TEXT.engine[lang]}: ${formatWithUnit(kinetics.bank.engine_rougher_pct, '%', lang)}. ${TEXT.points[lang]}`}</caption>
+            <caption>{`${TEXT.exact[lang]}: ${formatWithUnit(kinetics.bank.exact_true_flotation_pct, '%', lang)} · ${TEXT.engine[lang]}: ${formatWithUnit(kinetics.bank.engine_rougher_pct, '%', lang)}. ${TEXT.points[lang]}${models.some(md => (md.at_bound ?? []).length > 0) ? ` ${TEXT.bound[lang]}` : ''}`}</caption>
             <thead><tr><th scope="col">{TEXT.model[lang]}</th><th scope="col">{TEXT.rmse[lang]}</th><th scope="col">{TEXT.projection[lang]}</th><th scope="col">{TEXT.lumping[lang]}</th><th scope="col">{TEXT.gap[lang]}</th></tr></thead>
             {/* U-30: one precision per column, so "-1" never sits beside "-0.99" */}
             <tbody>{models.map(md => (
-              <tr key={md.id}><th scope="row">{MODEL_NAMES[md.id][lang === 'es' ? 1 : 0]}{md.converged ? '' : ' *'}</th>
+              <tr key={md.id}><th scope="row">{MODEL_NAMES[md.id][lang === 'es' ? 1 : 0]}{md.converged ? '' : ' *'}{(md.at_bound ?? []).length > 0 ? ' †' : ''}</th>
                 <td>{formatFixed(md.rmse_pct, lang, sharedDecimals(models.map(x => x.rmse_pct), '%'))}</td>
                 <td>{`${formatFixed(md.bank_projection_pct, lang, sharedDecimals(models.map(x => x.bank_projection_pct), '%'))}%`}</td>
                 <td>{formatFixed(md.lumping_error_pct, lang, sharedDecimals(models.map(x => x.lumping_error_pct), '%'))}</td>

@@ -6,8 +6,9 @@ Scale-dependent inputs (throughput, head grade, work index, collector dose) are 
 the case nominal; intensive inputs have absolute bounds. ``build_contract()`` resolves every bound
 for every case into plain numbers, and ``validate()`` reads only that resolved document. The API
 validates against the exported JSON and the browser ports ``validate`` over the same JSON, so both
-accept and reject exactly the same states. Every accepted state is solvable by the engine; the
-envelope test in ``tests/test_contract.py`` enforces that.
+accept and reject exactly the same states. Every accepted target-mode state is solvable by the engine, which the
+envelope test in ``tests/test_contract.py`` enforces; in the cut mode the engine refuses, with a code these messages
+carry, a state with no steady state or whose achieved product the desliming cut would discard (K-05).
 """
 from __future__ import annotations
 
@@ -122,10 +123,13 @@ INPUTS: tuple[InputSpec, ...] = (
               display_scale=100.0, display_unit="%"),
     InputSpec("deslime_cut_um", "um", "absolute", 8.0, 45.0, 0.5, False, ("deslime_rougher",),
               ("Desliming cut", "Corte de deslamado"),
-              ("Cut size of the desliming cyclone. Finer particles go to tailings as slimes: a coarser cut cleans the "
-               "flotation feed and loses more of the fine valuable mineral.",
-               "Tamaño de corte del ciclón de deslamado. Las partículas más finas van a relaves como lamas: un corte más "
-               "grueso limpia la alimentación a flotación y pierde más mineral valioso fino.")),
+              ("Corrected cut of the desliming cyclone for the host quartz: denser minerals are cut finer (apatite at 0.87 "
+               "of it) and the water bypass sends a share of every class to the underflow. Finer particles go to tailings "
+               "as slimes: a coarser cut sends less clay to flotation and loses more of the fine valuable mineral.",
+               "Corte corregido del ciclón de deslamado para el cuarzo huésped: los minerales más densos se cortan más fino "
+               "(el apatito a 0,87 de él) y el cortocircuito de agua envía una fracción de cada clase a la descarga. Las "
+               "partículas más finas van a relaves como lamas: un corte más grueso envía menos arcilla a flotación y "
+               "pierde más mineral valioso fino.")),
     # CM-01: bounds are factors of the cut the target mode solves at the case's nominal state, and 0 (the nominal)
     # is the target mode itself
     InputSpec("d50c_um", "um", "solved", 0.8, 1.6, 0.01, False, FAMILIES,
@@ -148,7 +152,7 @@ INPUT_BY_NAME = {spec.name: spec for spec in INPUTS}
 
 RULES: tuple[dict[str, Any], ...] = (
     {"id": "deslime_cut_above_half_target", "families": ["deslime_rougher"], "left": "deslime_cut_um", "relation": "<=",
-     "factor": 0.5, "right": "target_p80_um",
+     "factor": float(constant("deslime.max_cut_over_p80")), "right": "target_p80_um",
      "message": {"en": "The desliming cut must be at most half the grind target; a coarser cut discards the product.",
                  "es": "El corte de deslamado debe ser a lo más la mitad del objetivo de molienda; un corte más grueso "
                        "descarta el producto."}},
@@ -166,6 +170,8 @@ MESSAGES = {
     # the engine's refusals of states the contract accepts (E-01): served as rejections, never as solved states
     "power_unreachable_at_cut": {"en": "At this classifier cut the mill cannot draw its installed power: there is no steady state. Choose a coarser cut, a lower throughput or a softer ore.",
                                  "es": "Con este corte del clasificador el molino no puede consumir su potencia instalada: no hay estado estacionario. Elija un corte más grueso, un tratamiento menor o un mineral más blando."},
+    "deslime_cut_above_half_p80": {"en": "At this classifier cut the product is finer than twice the desliming cut, so the desliming would discard the product. Choose a finer desliming cut or a coarser classifier cut.",
+                                   "es": "Con este corte del clasificador el producto es más fino que el doble del corte de deslamado, así que el deslamado descartaría el producto. Elija un corte de deslamado más fino o un corte del clasificador más grueso."},
     "circulating_load_above_bound": {"en": "At this classifier cut the circulating load would exceed the 600% the cut mode accepts. Choose a coarser cut or a lower throughput.",
                                      "es": "Con este corte del clasificador la carga circulante superaría el 600% que acepta el modo de corte. Elija un corte más grueso o un tratamiento menor."},
 }
@@ -239,7 +245,7 @@ def validate_control(contract: dict[str, Any], name: str, value: Any) -> dict[st
         return {"accepted": False, "value": None, "errors": [{"code": "unknown_input", "input": name}]}
     if not _is_number(value):
         return {"accepted": False, "value": None, "errors": [{"code": "not_a_number", "input": name}]}
-    if not math.isfinite(float(value)):
+    if not _is_finite(value):
         return {"accepted": False, "value": None, "errors": [{"code": "not_finite", "input": name}]}
     if spec["integer"] and float(value) != int(value):
         return {"accepted": False, "value": None, "errors": [{"code": "not_integer", "input": name, "value": value}]}
@@ -285,6 +291,15 @@ def _is_number(value: Any) -> bool:
     return isinstance(value, (int, float)) and not isinstance(value, bool)
 
 
+def _is_finite(value: int | float) -> bool:
+    """A JSON integer beyond double range is not finite, as the browser reads it (JSON.parse gives Infinity); 0.08.001
+    let math.isfinite raise OverflowError on it and the service answered a bare 500 (review of 2026-10-04, K-04)."""
+    try:
+        return math.isfinite(value)
+    except OverflowError:
+        return False
+
+
 def validate(contract: dict[str, Any], case_id: str, values: dict[str, Any]) -> dict[str, Any]:
     """Interpret the resolved contract for one state; missing inputs take the case nominal.
 
@@ -308,7 +323,7 @@ def validate(contract: dict[str, Any], case_id: str, values: dict[str, Any]) -> 
         if not _is_number(value):
             errors.append({"code": "not_a_number", "input": name})
             continue
-        if not math.isfinite(value):
+        if not _is_finite(value):
             errors.append({"code": "not_finite", "input": name})
             continue
         if declared[name]["integer"] and value != math.floor(value):
@@ -344,6 +359,10 @@ def probe_states(contract: dict[str, Any]) -> list[dict[str, Any]]:
         probes.append({"case_id": case_id, "values": {"throughput_tph": "720"}})
         probes.append({"case_id": case_id, "values": {"throughput_tph": True}})
         probes.append({"case_id": case_id, "values": {"throughput_tph": math.inf}})
+        # names that are members of a JavaScript object's prototype (K-03); "__proto__" is tested apart, since a
+        # bundled JSON import reads it as the prototype, not a key
+        for name in ("constructor", "toString", "hasOwnProperty", "valueOf"):
+            probes.append({"case_id": case_id, "values": {name: 1.0}})
         for name, bounds in case["inputs"].items():
             integer = isinstance(bounds["min"], int)
             outside = 1 if integer else 0.01 * (bounds["max"] - bounds["min"])

@@ -7,6 +7,14 @@ import { validate, type OperatingContract } from './contract';
 import { InfeasibleState, type OperatingPoint, type Ore, type Plant } from './model';
 
 export type Axis = { input: string; values: number[] };
+
+/** n values from lo to hi with both declared bounds exactly on the grid: lo + (hi - lo) i/(n - 1) rounds above hi for
+ * some ranges (1.8000000000000003 for the nickel head grade), which the validator rejects as out of range (review of
+ * 2026-10-04, M-04). Integer inputs keep their distinct rounded values. */
+export function gridValues(lo: number, hi: number, n: number, integer: boolean): number[] {
+  const values = Array.from({ length: n }, (_, i) => (i === 0 ? lo : i === n - 1 ? hi : Math.min(hi, Math.max(lo, lo + (hi - lo) * i / (n - 1)))));
+  return integer ? [...new Set(values.map(v => Math.round(v)))] : values;
+}
 export type SweepRequest = {
   id: number;
   caseId: string;

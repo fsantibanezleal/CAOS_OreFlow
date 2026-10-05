@@ -3,6 +3,8 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { VARIANT_KINDS } from '../content/design';
+import { EXPERIMENTS } from '../content/experiments';
+import { STAGE_TEXT } from '../content/implementation';
 import { kpiMargin } from '../lib/format';
 
 // The Experiments page states the design, the protocols and what every variant did; each of those
@@ -80,6 +82,19 @@ describe('the Experiments page says what the bake did', () => {
     expect([learning.guard.in_envelope_rows, learning.guard.probe_rows]).toEqual([612, 11016]);
   });
 
+  // L-01 (review of 2026-10-04): the Splits topic and the precompute's stage table name the third protocol
+  it('the splits name three protocols, one ore group out among them, with the record\'s groups and fold sizes', () => {
+    const splits = EXPERIMENTS.flatMap(tab => tab.topics).find(t => t.id === 'splits')!;
+    const text = [...splits.paragraphs, ...(splits.limits ?? [])].map(p => p.en).join(' ');
+    const record = read<{ transfer_groups: Record<string, string>; leave_one_group_out: Array<{ cases: string[]; train_rows: number; test_rows: number }> }>('learning.json');
+    expect(new Set(Object.values(record.transfer_groups)).size).toBe(7);
+    expect([record.leave_one_group_out[0].cases.length, record.leave_one_group_out[0].train_rows, record.leave_one_group_out[0].test_rows]).toEqual([5, 1792, 1280]);
+    expect(text).toMatch(/The learned lane has three protocols/);
+    expect(text).toMatch(/Leave one ore group out holds out together every case that shares a payable and its dominant carrier mineral \(the five chalcopyrite plants, the two gold plants, and each other plant alone, seven groups\)/);
+    expect(text).toMatch(/One ore group out measures transfer to a thirteenth authored plant on an ore none of the twelve shares/);
+    expect(STAGE_TEXT.learning.what.en).toMatch(/three protocols/);
+  });
+
   it('no nominal state is power-limited and every plausibility check holds', () => {
     for (const c of benchmark.cases) {
       expect(c.variants.nominal.power_limited, c.case_id).toBe(false);
@@ -109,7 +124,10 @@ describe('the Experiments page says what the bake did', () => {
     const energy = changes('harder_ore', 'specific_energy_total_kwh_t');
     expect(rises(energy)).toBe(12);
     expect(range(energy, 1)).toEqual([0.5, 2.5]);
-    expect(falls(changes('harder_ore', 'concentrate_grade'))).toBe(12);
+    const grade = changes('harder_ore', 'concentrate_grade');
+    expect(falls(grade)).toBe(11);
+    // the gold grade rises under harder ore as under a coarser grind: the same coarser product
+    expect(grade.filter(r => r.delta > 0).map(r => [r.id, Number(r.delta.toFixed(2))])).toEqual([['gold_free_milling', 0.1]]);
     expect(ids(changes('harder_ore', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     expect(falls(changes('harder_ore', 'recovery_pct'))).toBe(11);
   });
@@ -118,9 +136,10 @@ describe('the Experiments page says what the bake did', () => {
     const energy = changes('coarser_grind', 'specific_energy_total_kwh_t');
     expect(falls(energy)).toBe(12);
     expect(range(energy, 1)).toEqual([-3.4, -1.2]);
-    // the rebuilt gravity circuit: in the gold case a coarser grind raises the grade by 0.07 points
-    expect(falls(changes('coarser_grind', 'concentrate_grade'))).toBe(11);
-    expect(ids(changes('coarser_grind', 'concentrate_grade'), 1)).toEqual(['gold_free_milling']);
+    // the rebuilt gravity circuit: in the gold case a coarser grind raises the grade by 0.68 g/t
+    const grade = changes('coarser_grind', 'concentrate_grade');
+    expect(falls(grade)).toBe(11);
+    expect(grade.filter(r => r.delta > 0).map(r => [r.id, Number(r.delta.toFixed(2))])).toEqual([['gold_free_milling', 0.68]]);
     expect(ids(changes('coarser_grind', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     expect(falls(changes('coarser_grind', 'recovery_pct'))).toBe(11);
   });
@@ -129,28 +148,28 @@ describe('the Experiments page says what the bake did', () => {
     const energy = changes('higher_throughput', 'specific_energy_total_kwh_t');
     expect(energy.every(r => r.limited)).toBe(true);
     expect(falls(energy)).toBe(12);
-    expect(range(energy, 1)).toEqual([-2.8, -0.6]);
+    expect(range(energy, 1)).toEqual([-2.8, -0.7]);
     expect(rises(changes('higher_throughput', 'p80_um'))).toBe(12);
     expect(rises(changes('higher_throughput', 'recovered_primary_tph'))).toBe(12);
     expect(ids(changes('higher_throughput', 'recovery_pct'), 1)).toEqual([MAGNETITE]);
     const grade = changes('higher_throughput', 'concentrate_grade');
-    expect(rises(grade)).toBe(9);
-    expect(ids(grade, -1)).toEqual(['copper_porphyry_hard', MAGNETITE, 'refractory_gold']);
+    expect(rises(grade)).toBe(10);
+    expect(ids(grade, -1)).toEqual([MAGNETITE, 'refractory_gold']);
   });
 
   it('more collector trades grade for recovery in all eleven flotation cases; more air raises recovery in all nine', () => {
     const collector = changes('more_collector', 'recovery_pct');
     expect(collector).toHaveLength(11);
     expect(rises(collector)).toBe(11);
-    expect(range(collector, 1)).toEqual([0.4, 1.5]);
+    expect(range(collector, 1)).toEqual([0.3, 1.4]);
     expect(falls(changes('more_collector', 'concentrate_grade'))).toBe(11);
     const air = changes('more_air', 'recovery_pct');
     expect(air).toHaveLength(9);
     expect(rises(air)).toBe(9);
-    expect(range(air, 1)).toEqual([0.8, 1.3]);
+    expect(range(air, 1)).toEqual([0.9, 1.4]);
     const grade = changes('more_air', 'concentrate_grade');
-    expect(rises(grade)).toBe(7);
-    expect(ids(grade, -1)).toEqual(['nickel_sulphide', 'refractory_gold']);
+    expect(rises(grade)).toBe(8);
+    expect(ids(grade, -1)).toEqual(['refractory_gold']);
   });
 
   it('the families\' own levers move their results by the amounts quoted', () => {
@@ -165,6 +184,17 @@ describe('the Experiments page says what the bake did', () => {
     expect(one('finer_grind', 'p80_um').limited).toBe(true);
     expect(Number(one('finer_crusher', 'specific_energy_total_kwh_t').delta.toFixed(2))).toBe(-0.17);
     expect(Math.abs(one('finer_crusher', 'p80_um').delta)).toBeLessThan(1e-6);
-    expect(Number(one('coarser_deslime', 'recovery_pct').delta.toFixed(1))).toBe(-5.3);
+    expect(Number(one('coarser_deslime', 'recovery_pct').delta.toFixed(1))).toBe(-5.5);
+  });
+
+  it('the variant paragraphs quote the directions and ranges checked above', () => {
+    const text = EXPERIMENTS.flatMap(tab => tab.topics).find(t => t.id === 'responses')!.paragraphs.map(p => p.en).join(' ');
+    expect(text).toMatch(/the product coarsens by 9 to 64 µm, specific energy rises by 0\.5 to 2\.5 kWh\/t and concentrate grade falls in eleven cases; in the gold case it rises by 0\.10 g\/t/);
+    expect(text).toMatch(/saves 1\.2 to 3\.4 kWh\/t and lowers concentrate grade in eleven cases.*\(in the gold case the grade rises by 0\.68 g\/t\)/);
+    expect(text).toMatch(/the energy per tonne falls by 0\.7 to 2\.8 kWh\/t/);
+    expect(text).toMatch(/Grade rises in ten cases and falls in the magnetite and the refractory gold/);
+    expect(text).toMatch(/by 0\.3 to 1\.4 points, and lowers concentrate grade in all eleven/);
+    expect(text).toMatch(/by 0\.9 to 1\.4 points; grade rises in eight and falls in the refractory gold/);
+    expect(text).toMatch(/adds 0\.1 points of gold recovery, grinding the magnetite finer raises its concentrate by 1\.3 points of Fe at 2\.3 kWh\/t more and at installed power, a finer crusher setting saves 0\.17 kWh\/t at the same product, and widening the phosphate desliming cut loses 5\.5 points/);
   });
 });

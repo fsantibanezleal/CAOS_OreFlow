@@ -13,7 +13,12 @@ export type Scalers = {
   guard_feature_mean: number[]; guard_feature_scale: number[]; guard_threshold: number;
   reference?: Array<{ case_id: string; features: number[]; prediction: Record<string, number>; guard_error: number; guard_flag: boolean }>;
 };
-export type SurrogateAnswer = { prediction: Record<string, number>; guardError: number; guardThreshold: number; outside: boolean };
+/** Why the lane does not describe a state at all, or null: its features carry the grind target and the design load, which a
+ * set classifier cut ignores (L-02). */
+export const outsideLearnedDomain = (point: OperatingPoint): 'cut_mode' | null => (point.d50c_um > 0.0 ? 'cut_mode' : null);
+
+/** `notApplicable` marks a state the lane never learned (a set classifier cut, L-02): no prediction, flagged outside. */
+export type SurrogateAnswer = { prediction: Record<string, number>; guardError: number; guardThreshold: number; outside: boolean; notApplicable?: 'cut_mode' };
 
 type Session = import('onnxruntime-web').InferenceSession;
 let loaded: Promise<{ ort: typeof import('onnxruntime-web/wasm'); surrogate: Session; guard: Session; scalers: Scalers }> | null = null;
@@ -55,7 +60,12 @@ export async function askSurrogate(ore: Ore, plant: Plant, points: OperatingPoin
   const out = (await surrogate.run({ features: new ort.Tensor('float32', input, [rows, width]) })).targets.data as Float32Array;
   const rec = (await guard.run({ features: new ort.Tensor('float32', guardInput, [rows, width]) })).reconstruction.data as Float32Array;
   const targets = scalers.targets.length;
-  return points.map((_, r) => {
+  return points.map((point, r) => {
+    // the lane's features carry the grind target and the design load, which the cut mode ignores: a cut-mode state
+    // would get the nominal state's answer and the guard's "inside" (review of 2026-10-04, L-02; the optimizer's screen
+    // already declines the cut mode)
+    const domain = outsideLearnedDomain(point);
+    if (domain !== null) return { prediction: {}, guardError: Number.NaN, guardThreshold: scalers.guard_threshold, outside: true, notApplicable: domain };
     const prediction: Record<string, number> = {};
     scalers.targets.forEach((name, i) => { prediction[name] = out[r * targets + i] * scalers.target_scale[i] + scalers.target_mean[i]; });
     let error = 0.0;

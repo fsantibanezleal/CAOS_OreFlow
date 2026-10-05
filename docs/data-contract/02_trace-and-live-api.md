@@ -59,7 +59,7 @@ classes) and `upper_um` (class upper bounds).
 | Key | Content |
 |---|---|
 | `psd` | cumulative passing of the main streams (crusher feed, new feed, mill discharge, cyclone underflow and overflow, final concentrate and tail, and where present slimes, deslime underflow, gravity concentrate) |
-| `partition` | cyclone partition to underflow, with bypass, for the host gangue and each valuable mineral |
+| `partition` | the share of each class of the cyclone feed that reports to the underflow, as the circuit applies it (liberated grains and composites together, with the bypass), for the host gangue and each valuable mineral; `null` in a class holding less than `numerics.curve_class_share_floor` of that mineral (since 0.09.000; before, the liberated grains' curve) |
 | `liberation` | liberated fraction of each valuable mineral by size |
 | `composite_scale` | host-limited composite scale by size (1 where the host suffices; methodology page 03) |
 | `recovery_by_size` | rougher recovery by size of the primary payable, of free host gangue, and the entrained share of that gangue; the payable's value is `null` in a class holding less than `numerics.curve_class_share_floor` (1e-8) of the rougher-feed payable, where the class composition is round-off of the cyclone split |
@@ -72,14 +72,19 @@ classes) and `upper_um` (class upper bounds).
 | Code | Meaning |
 |---|---|
 | `power_limited` | required mill power exceeds installed power; the circuit runs at installed power and the product is coarser than the target |
+| `power_limit_not_converged` | the energy at installed power (a fixed point on the mill feed, which a gravity unit's take moves) did not settle; the last pass is reported |
 | `target_unreachable` | the target P80 cannot be met within the energy search range |
 | `circulating_load_unreachable` | the design circulating load cannot be held at this energy |
 | `circulating_load_out_of_range` | in the cut mode, the cut sets a circulating load outside the range the target mode accepts |
 | `cut_mode_load_not_converged` | in the cut mode, the circulating load's fixed point did not settle; the last pass is reported |
 | `mill_water_negative`, `sump_water_negative` | the declared densities leave no room for water addition at the mill or the sump |
 | `recycle_not_converged` | the flotation recycle did not meet its absolute and relative tolerances |
-| `composite_scale_not_converged` | the host-limited composite fixed point did not converge |
-| `negative_mass` | a class mass is negative beyond round-off |
+| `cell_residence_not_converged` | a flotation cell's tail flow, which sets its residence, did not settle; the last iterate is reported |
+| `composite_scale_not_converged` | the host-limited composite fixed point of the reported pass did not converge (a trial point of a root search raises no flag since 0.09.000) |
+| `negative_mass` | a class mass is below minus 1e-9 of its own mineral's flow in the stream (since 0.09.000; before, 1e-9 t/h per t/h of throughput, blind to trace minerals) |
+| `balance_not_closed` | a unit's closure (per mineral, per size class where no breakage acts, per species, water, or a breakage operator's own steady state) errs by more than 1e-9 |
+| `bond_efficiency_fine_product` | the product is finer than about 70 um, below which GMG01-MP-2021 qualifies the Bond efficiency; the ratio is reported without the fineness correction |
+| `deslime_water_short` | the desliming feed carries too little water for the declared underflow density; everything reports to the underflow |
 | `non_finite_output` | a non-finite number was replaced by `null` |
 
 **Refusals.** A cut-mode state the contract accepts can still have no steady state (CM-09, 0.08.000). The engine
@@ -129,6 +134,8 @@ checks the 500 envelope.
 `bank` (`cells`, `cell_residence_min`, `residence_min`, `exact_true_flotation_pct`,
 `engine_rougher_pct`), and `models`, one per lumped form with `id` (`first_order`, `kelsall`,
 `klimpel`, `gamma`, `stretched_exponential`), `parameters` and `parameter_units`, `rmse_pct`,
-`iterations`, `converged`, `fitted_pct` (at the batch times), `dense_pct`, `bank_projection_pct`,
-`lumping_error_pct` (projection minus the exact bank) and `ultimate_gap_pct` (fitted ultimate recovery
-minus the fitted recovery at the last batch time).
+`iterations`, `converged`, `at_bound` (the parameters left at a bound of the fit, since 0.09.000), `fitted_pct` (at
+the batch times), `dense_pct`, `bank_projection_pct`, `lumping_error_pct` (projection minus the exact bank) and
+`ultimate_gap_pct` (fitted ultimate recovery minus the fitted recovery at the last batch time). `cell_residence_min`
+is the mean of the rougher cells' own residences. A batch curve that ends below a recovery of 1e-6 gives
+`{"status": "no_signal", "species", "times_min", "batch_recovery_pct", "reason"}` and no fits.

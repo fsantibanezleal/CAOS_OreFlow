@@ -53,7 +53,10 @@ $\int f(t) E(t)\,dt = \int_0^\infty f(\tau_c v)\, \frac{v^{N-1}}{(N-1)!}\, e^{-v
 
 **The exact answer.** Because the engine knows every class rate, it also computes the unlumped bank
 recovery $\sum_j c_j x_j [1 - (1 + k_j \tau_c)^{-N}] / \sum_j c_j x_j$. The **lumping error** of a model is
-its projection minus this exact value. The **ultimate gap** is the fitted $A$ minus the fitted
+its projection minus this exact value. The engine's own rougher solves each cell on its own tail flow (page 05), so
+its cells' residences differ a little down the bank; the projections and the exact answer use $N$ equal cells of the
+mean of those residences, $\tau_c$, so the lumping error compares like with like, and the engine's rougher recovery
+(with entrainment and its own cell residences) is reported beside them. The **ultimate gap** is the fitted $A$ minus the fitted
 recovery at the last batch time: the part of the projection that rests on extrapolation, because a
 bank residence (often above 20 min) is longer than the 16 min test.
 
@@ -63,7 +66,10 @@ bank residence (often above 20 min) is longer than the 16 min test.
 
 - The virtual batch test floats the rougher feed (fresh flotation feed plus the cleaner recycle) with
   the rougher's rate constants: the same bubble surface area flux and collector dose, and no
-  entrainment. Samples are taken at 0.5, 1, 2, 3, 4, 6, 8, 12 and 16 min.
+  entrainment. Samples are taken at 0.5, 1, 2, 3, 4, 6, 8, 12 and 16 min. A curve that ends below a recovery of
+  1e-6 (`kinetics.signal_floor`) has nothing to fit: the record says `no_signal` with the curve and no fits (the
+  oxide copper case with no collector, whose minerals have no natural floatability). Until 0.09.000 such a curve got
+  five "converged" fits whose parameters the two engines did not agree on (review of 2026-10-04, F-08).
 - Bounds are imposed by reparameterization, so the least-squares problem is unconstrained:
   $A$ and $\phi$ through a logistic, rates and $p$ through an exponential, $k_f = k_s + e^{\theta}$ so the
   fast rate stays above the slow one, and $\beta$ in $[0.2, 5]$ through a scaled logistic.
@@ -75,17 +81,21 @@ bank residence (often above 20 min) is longer than the 16 min test.
 - Starting values come from the curve: $A_0$ halfway between the last batch recovery and 1, and
   $k_0 = \ln 2 / t_{1/2}$ from the interpolated half-recovery time.
 - The record in the trace (`methods.kinetics`) holds the batch curve, each model's parameters, fit
-  RMSE, iterations and convergence, the fitted values at the batch times and on a 65-point curve,
+  RMSE, iterations, convergence and the parameters left at a bound (`at_bound`: $A$ or $\phi$ within a relative
+  1e-9 of 0 or 1, $\beta$ of its range), the fitted values at the batch times and on a 65-point curve,
   the bank projection, the lumping error and the ultimate gap, plus the exact distributed bank
   recovery and the engine's rougher recovery (which adds entrainment).
 
-On the eleven flotation cases' nominal states the first-order model underestimates the exact bank by 3.0 to 6.4 points,
+On the eleven flotation cases' nominal states the first-order model underestimates the exact bank by 3.7 to 7.9 points,
 because it caps the ultimate recovery at the plateau of a 16 min test. The Kelsall and gamma forms
-fit the batch curve to within 0.2 points RMSE and project within about 1.6 points. The stretched
-exponential settles at $\beta$ between 0.83 and 0.94: a spread of rates, as the class structure
+fit the batch curve to within 0.2 points RMSE and project within about 2.0 points. The stretched
+exponential settles at $\beta$ between 0.82 and 0.94: a spread of rates, as the class structure
 implies. These ranges are pinned by `test_documented_findings_on_nominal_cases`. All 440 fits on
 the baked flotation variants converge (88 variants, five models each; the magnetite case has no flotation), which
-the browser parity depends on. In the seeded envelope sample of
+the browser parity depends on. Converged is not interior: 29 of them, all Klimpel, rest on the bound $A = 100\%$
+(four on nominal states: the free-milling gold, phosphate, zinc and refractory gold cases), where a free $A$ would
+go above 100% to follow the curve. They are constrained optima and the kinetic table marks them (review of
+2026-10-04, F-07). In the seeded envelope sample of
 the contract gate (measured on 2026-09-26), 12 of 1670 fits, gamma and Kelsall at states whose batch
 curve reaches only 6 to 35% by 16 min, stop at the iteration cap: there the curve has no plateau, so
 the ultimate recovery and the slow rate trade off along a flat valley and are not separately
@@ -107,6 +117,7 @@ identifiable. They are reported with `converged: false`, never as a converged fi
 - `test_every_baked_variant_fit_converges`: all five fits converge on every baked flotation variant.
 - `test_documented_findings_on_nominal_cases`: the ranges stated on this page hold on the nominal
   cases.
+- `test_a_fit_reports_the_bounds_it_rests_on` (F-07) and `test_a_curve_without_signal_is_not_fitted` (F-08).
 
 ## What it is not
 

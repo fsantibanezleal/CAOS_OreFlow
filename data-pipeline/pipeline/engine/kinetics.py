@@ -11,7 +11,8 @@ models are fitted to that curve by one deterministic Levenberg-Marquardt routine
 - compressed or stretched exponential ``R = A (1 - exp(-(k t)^beta))``.
 
 Each fit is projected to the rougher bank under its residence distribution, N perfectly mixed cells of
-residence ``tau_c`` (an Erlang distribution): closed forms for the first three, Gauss-Laguerre
+residence ``tau_c`` (an Erlang distribution), ``tau_c`` the mean of the rougher cells' own residences (the engine
+solves each cell on its own tail flow, F-02): closed forms for the first three, Gauss-Laguerre
 quadrature with the exported node table for the other two. The projection is compared with the exact
 distributed bank recovery of the same rate constants; the difference is the error of lumping a
 distribution of rates into a few parameters (Polat and Chander 2000, doi:10.1016/S0301-7516(99)00069-1).
@@ -345,6 +346,23 @@ def _half_time_rate(times: Vector, observed: Vector, ultimate: float) -> float:
     return math.log(2.0) / times[-1]
 
 
+def _bounds(model: Model, q: Vector) -> list[str]:
+    """The parameters a fit left at a bound of its reparameterization (F-07): R_inf and phi at 0 or 1, beta at either
+    end of its range."""
+    tolerance = float(constant("numerics.fit_bound_tolerance"))
+    out = []
+    for name, value in zip(model.names, q):
+        if name in ("R_inf", "phi"):
+            low, high = 0.0, 1.0
+        elif name == "beta":
+            low, high = _beta_bounds()
+        else:
+            continue
+        if value - low <= tolerance * (high - low) or high - value <= tolerance * (high - low):
+            out.append(name)
+    return out
+
+
 def kinetic_record(flotation: object, ore: object, cells: int, engine_rougher_pct: float) -> dict[str, object]:
     """Batch curve, the five fits and their bank projections for one flotation circuit."""
     defs = flotation.defs
@@ -354,6 +372,10 @@ def kinetic_record(flotation: object, ore: object, cells: int, engine_rougher_pc
     feed = flotation.rougher_feed_species
     times = [float(v) for v in constant("batch.times_min")]
     observed = batch_curve(rates, feed, content, times)
+    if observed[-1] < float(constant("kinetics.signal_floor")):
+        # nothing floats (no collector on a mineral without a natural floatability): no curve to fit (F-08)
+        return {"status": "no_signal", "species": primary, "times_min": times, "batch_recovery_pct": [100.0 * v for v in observed],
+                "reason": "the payable does not float in the virtual batch test at this state"}
     tau_c = flotation.rougher.tau_cell_min
     exact = distributed_bank(rates, feed, content, cells, tau_c)
     last = times[-1]
@@ -377,6 +399,8 @@ def kinetic_record(flotation: object, ore: object, cells: int, engine_rougher_pc
             "rmse_pct": 100.0 * math.sqrt(fit.sse / len(times)),
             "iterations": fit.iterations,
             "converged": fit.converged,
+            # parameters left at a bound: a constrained optimum, not the interior minimum "converged" suggests (F-07)
+            "at_bound": _bounds(model, q),
             "fitted_pct": [100.0 * v for v in fitted],
             "dense_pct": [100.0 * model.value(t, q) for t in dense],
             "bank_projection_pct": 100.0 * projection,

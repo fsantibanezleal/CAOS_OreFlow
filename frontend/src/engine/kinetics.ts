@@ -273,6 +273,18 @@ function halfTimeRate(times: V, observed: V, ultimate: number): number {
   return Math.log(2.0) / times[times.length - 1];
 }
 
+/** The parameters a fit left at a bound of its reparameterization (kinetics.py _bounds, F-07). */
+function atBound(model: Model, q: number[]): string[] {
+  const tolerance = constant('numerics.fit_bound_tolerance');
+  const out: string[] = [];
+  model.names.forEach((name, i) => {
+    let low: number; let high: number;
+    if (name === 'R_inf' || name === 'phi') { low = 0.0; high = 1.0; } else if (name === 'beta') { [low, high] = betaBounds(); } else return;
+    if (q[i] - low <= tolerance * (high - low) || high - q[i] <= tolerance * (high - low)) out.push(name);
+  });
+  return out;
+}
+
 export function kineticRecord(flotation: FlotationResult, ore: ResolvedOre, cells: number, engineRougherPct: number): Record<string, unknown> {
   const defs = flotation.defs;
   const primary = ore.primary;
@@ -282,6 +294,11 @@ export function kineticRecord(flotation: FlotationResult, ore: ResolvedOre, cell
   const feed = flotation.rougher_feed_species;
   const times = constant<number[]>('batch.times_min');
   const observed = batchCurve(rates, feed, content, times);
+  if (observed[observed.length - 1] < constant('kinetics.signal_floor')) {
+    // nothing floats (no collector on a mineral without a natural floatability): no curve to fit (F-08)
+    return { status: 'no_signal', species: primary, times_min: times, batch_recovery_pct: observed.map(v => 100.0 * v),
+      reason: 'the payable does not float in the virtual batch test at this state' };
+  }
   const tauC = flotation.rougher.tau_cell_min;
   const exact = distributedBank(rates, feed, content, cells, tauC);
   const last = times[times.length - 1];
@@ -303,7 +320,7 @@ export function kineticRecord(flotation: FlotationResult, ore: ResolvedOre, cell
     });
     return {
       id: model.id, parameters, parameter_units: parameterUnits, rmse_pct: 100.0 * Math.sqrt(fit.sse / times.length),
-      iterations: fit.iterations, converged: fit.converged, fitted_pct: fitted.map(v => 100.0 * v),
+      iterations: fit.iterations, converged: fit.converged, at_bound: atBound(model, q), fitted_pct: fitted.map(v => 100.0 * v),
       dense_pct: dense.map(t => 100.0 * model.value(t, q)), bank_projection_pct: 100.0 * projection,
       lumping_error_pct: 100.0 * (projection - exact), ultimate_gap_pct: 100.0 * (q[0] - fitted[fitted.length - 1]),
     };

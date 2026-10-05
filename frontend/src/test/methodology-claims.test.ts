@@ -61,6 +61,30 @@ describe('the Methodology page says what the engine and the records hold', () =>
     expect(text).toMatch(new RegExp(`Over the precompute's ${screened.length} screened variants it cost ${round(100 * (withScreen / without - 1), 1)}% more engine evaluations`));
     expect(text).toMatch(new RegExp(`the surrogate's recovery was ${round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)} points from the engine's on average`));
     expect(text).toMatch(new RegExp(`the same optima in ${screened.filter(r => r.same_optimum_without_screen).length} of the ${screened.length} variants`));
+    expect(text).toMatch(new RegExp(`and a little more metal in the other ${['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][screened.filter(r => !r.same_optimum_without_screen).length]}`));
+  });
+
+  // the gravity topic quotes the gold case's nominal recoveries and loads; until 0.09.000 no test read them
+  it('separation: the gold case\'s nominal gravity recovery and gold circulating load, from its record', async () => {
+    const { SEPARATION } = await import('../content/methodology/separation');
+    const text = SEPARATION.flatMap(t => t.paragraphs).map(p => p.en).join(' ');
+    const m = read<{ variants: Variant[] }>('cases/gold_free_milling.json').variants[0].trace.metrics;
+    expect(text).toContain(`At the nominal state the gold case recovers ${m.grg_recovery_pct.toFixed(1)}% of its GRG by gravity, ${m.gravity_recovery_pct.toFixed(1)}% of all its gold`);
+    expect(text).toContain(`the GRG circulates at ${Math.round(m.gold_circulating_load_pct)}% against the ore's ${Math.round(m.circulating_load_pct)}%`);
+  });
+
+  // L-01 (review of 2026-10-04): the learned lane has three protocols, and one case out is not the transfer bound
+  it('learned lane: three protocols, with one ore group out as the transfer and one case out as near neighbours', () => {
+    const learned = METHODS.find(t => t.id === 'learned')!;
+    const text = [...learned.paragraphs, ...(learned.limits ?? [])].map(p => p.en).join(' ');
+    const groups = read<{ leave_one_group_out: Array<{ cases: string[] }>; transfer_groups: Record<string, string> }>('learning.json');
+    expect(groups.leave_one_group_out.map(g => g.cases.length).sort()).toEqual([2, 5]);
+    expect(text).toMatch(/Three protocols score five models/);
+    expect(text).toMatch(/leave one ore group out, which holds out together every plant sharing a payable and its dominant carrier mineral \(the five chalcopyrite plants, the two gold plants\)/);
+    expect(text).toMatch(/one ore group out says how badly they transfer to a thirteenth on an ore none of them shares/);
+    expect(text).not.toMatch(/Two protocols|leave-one-case-out says how badly/);
+    const src = readFileSync(fileURLToPath(new URL('../content/methodology/methods.tsx', import.meta.url)), 'utf-8');
+    expect(src).toMatch(/transfer: one ore group out/);
   });
 });
 

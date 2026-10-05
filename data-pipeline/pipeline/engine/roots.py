@@ -16,7 +16,12 @@ from .constants import constant
 
 
 class RootError(ValueError):
-    pass
+    """A failed search. ``side`` says where the root lies when no sign change was found: ``"above"`` the upper limit
+    or ``"below"`` the lower one, so a caller can fall back to the bracket end nearest to it (K-11)."""
+
+    def __init__(self, message: str, side: str | None = None) -> None:
+        super().__init__(message)
+        self.side = side
 
 
 def _value(f: Callable[[float], float], x: float) -> float:
@@ -40,7 +45,7 @@ def bracket_decreasing(f: Callable[[float], float], x0: float, step: float, lo: 
             if fb <= 0.0:
                 break
             if b >= hi:
-                raise RootError("no sign change below the upper limit")
+                raise RootError("no sign change below the upper limit", "above")
             a, fa = b, fb
             step *= 2.0
         else:
@@ -53,7 +58,7 @@ def bracket_decreasing(f: Callable[[float], float], x0: float, step: float, lo: 
             if fa > 0.0:
                 break
             if a <= lo:
-                raise RootError("no sign change above the lower limit")
+                raise RootError("no sign change above the lower limit", "below")
             b, fb = a, fa
             step *= 2.0
         else:
@@ -88,12 +93,17 @@ def illinois(f: Callable[[float], float], a: float, b: float, fa: float, fb: flo
             if side == -1:
                 fa *= 0.5
             side = -1
-        else:
+        elif math.isfinite(fc):
             a, fa = c, fc
             if side == 1:
                 fb *= 0.5
             side = 1
-    return c
+        else:
+            # a non-finite value lies on the positive side with no usable size: the bracket shrinks, the last finite
+            # value stays the secant's weight, so the next iterate stays inside the bracket (K-11)
+            a = c
+    # the cap ends a search that has not converged: a caller must not take the last iterate for a root (K-11)
+    raise RootError("the root search did not converge within the iteration cap")
 
 
 def solve_decreasing(f: Callable[[float], float], x0: float, step: float, lo: float, hi: float) -> float:

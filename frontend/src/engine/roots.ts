@@ -5,7 +5,12 @@
 import { constant } from './constants';
 import { SingularMatrixError } from './linalg';
 
-export class RootError extends Error {}
+/** A failed search; `side` says where the root lies when no sign change was found (roots.py RootError, K-11). */
+export class RootError extends Error {
+  constructor(message: string, readonly side: 'above' | 'below' | null = null) {
+    super(message);
+  }
+}
 
 function value(f: (x: number) => number, x: number): number {
   let v: number;
@@ -32,7 +37,7 @@ export function bracketDecreasing(f: (x: number) => number, x0: number, stepIn: 
       b = Math.min(hi, a + step);
       fb = value(f, b);
       if (fb <= 0.0) { found = true; break; }
-      if (b >= hi) throw new RootError('no sign change below the upper limit');
+      if (b >= hi) throw new RootError('no sign change below the upper limit', 'above');
       a = b; fa = fb;
       step *= 2.0;
     }
@@ -44,7 +49,7 @@ export function bracketDecreasing(f: (x: number) => number, x0: number, stepIn: 
       a = Math.max(lo, b - step);
       fa = value(f, a);
       if (fa > 0.0) { found = true; break; }
-      if (a <= lo) throw new RootError('no sign change above the lower limit');
+      if (a <= lo) throw new RootError('no sign change above the lower limit', 'below');
       b = a; fb = fa;
       step *= 2.0;
     }
@@ -76,13 +81,18 @@ export function illinois(f: (x: number) => number, aIn: number, bIn: number, faI
       b = c; fb = fc;
       if (side === -1) fa *= 0.5;
       side = -1;
-    } else {
+    } else if (Number.isFinite(fc)) {
       a = c; fa = fc;
       if (side === 1) fb *= 0.5;
       side = 1;
+    } else {
+      // a non-finite value lies on the positive side with no usable size: the bracket shrinks, the last finite value
+      // stays the secant's weight (roots.py, K-11)
+      a = c;
     }
   }
-  return c;
+  // the cap ends a search that has not converged: a caller must not take the last iterate for a root (K-11)
+  throw new RootError('the root search did not converge within the iteration cap');
 }
 
 export function solveDecreasing(f: (x: number) => number, x0: number, step: number, lo: number, hi: number): number {
