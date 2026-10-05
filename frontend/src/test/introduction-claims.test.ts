@@ -38,6 +38,15 @@ describe('the Introduction says what the case records hold', () => {
     expect(all('en')).toMatch(/pass through the engine as inputs/);
   });
 
+  // E-01, K-05 (review of 2026-10-04): the cut mode refuses states with no steady state, so 'every accepted state
+  // solves' holds for the target mode only, and the page says so
+  it('says which accepted states are solved and which the cut mode refuses', () => {
+    expect(text('en')).toMatch(/The target-mode states the contract accepts are tested to solve with closed balances/);
+    expect(text('en')).toMatch(/In the cut mode a state with no steady state, where the mill cannot draw its power at that cut or the load runs past its bound, is refused with its reason/);
+    expect(text('es')).toMatch(/los estados en modo objetivo que acepta el contrato se resuelven con balances cerrados/);
+    expect(text('en')).not.toMatch(/The states the contract accepts are tested to solve/);
+  });
+
   // L-01 (review of 2026-10-04): one case out is a near-neighbour test for the five chalcopyrite plants, so the page
   // names the ore-group protocol as the bound on a new plant, and the learning record carries it
   it('names a whole ore group held out, not one case out, as the bound on a new plant', () => {

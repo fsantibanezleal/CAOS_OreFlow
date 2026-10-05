@@ -74,7 +74,8 @@ all minerals share the bulk distribution. Crushing energy is Bond with the crush
   dilution, which must be non-negative (flagged otherwise).
 - Solve: for a per-pass energy `e`, find `d50c` giving circulating load `U/F = CL` (Illinois
   root finder on `ln d50c`), then find `e` giving overflow P80 equal to the target (Illinois on
-  `ln e`). Grinding specific energy per tonne of new feed `E = e (1 + CL)`; power `E F`. If the
+  `ln e`). Grinding specific energy per tonne of new feed `E = e m / F`, with the mill feed `m = F + U - G` (`G` the gravity
+  concentrate taken from the underflow; `E = e (1 + CL)` without one); power `e m = E F` (review of 2026-10-04, C-03). If the
   power exceeds the installed power, set `E = P_inst / F` and solve `d50c` at that energy; the
   achieved P80 is reported with `power_limited = true`.
 - Plitt sizing at the solved cyclone feed: flow per cyclone from the Plitt cut equation for the
@@ -92,11 +93,13 @@ the overflow reports to tailings as slimes; P2O5 lost to slimes is reported.
   the monotone increase reported by Nesset et al.).
 - `k_s,i = 60 P_s Sb f_size,s(d_i) f_dose,s(D)` (1/min): two-sided log-normal size factor around
   `x_opt`; dose factor `D/(D + K)` with `K_gangue > K_valuable`; composite floatability
-  `P_V c^(2/3)`.
+  `P_V phi^(2/3)`, with `phi` the valuable mineral's volume share of the particle (the exposed-surface law; until
+  0.09.000 the mass content `c` was raised to 2/3, review of 2026-10-04, F-01).
 - Water per cell: `r_w = kw tau / (1 + kw tau)`, `kw = 60 P_w Sb`; `w = r_w/(1 - r_w)`.
 - Entrainment: Savassi ENT with `(xi, delta)`; cleaner ENT multiplied by a froth-wash factor.
-- Per cell: `r = (k tau + ENT w)/(1 + k tau + ENT w)`; bank of N cells `R = 1 - (1 - r)^N`;
-  `tau = V_cell (1 - eps_g) / Q_pulp` with the bank feed pulp flow.
+- Per cell j: `r_j = (k tau_j + ENT w_j)/(1 + k tau_j + ENT w_j)`; bank of N cells in series `R = 1 - prod_j (1 - r_j)`;
+  `tau_j = V_cell (1 - eps_g) / Q_tail,j`, the cell's own tail flow, a scalar fixed point per cell (until 0.09.000
+  every cell took the bank feed's pulp flow, review of 2026-10-04, F-02).
 - Circuit: rougher feed `X = F_o + T_c`; cleaner feed is rougher concentrate diluted to `s_cf`;
   `T_c = (1 - R_c) R_r X`; fixed-point on X and its water until the residual is below 1e-10 t/h.
 - Outputs: final concentrate and tails by species and size; grades from element contents; overall,
@@ -150,7 +153,8 @@ languages ([live-uncertainty](../live-uncertainty/design.md)); SALib still compu
   nominal, intensive inputs absolutely; the export resolves every bound per case. Exported to
   `data/derived/contract/operating_contract.json` with the Gauss-Laguerre table, the grid and a
   digest; `validate()` interprets only that document, and `contract_probes.json` records the
-  verdicts every validator must reproduce. Every accepted state must solve (PE-30b).
+  verdicts every validator must reproduce. Every accepted state must solve, except a cut-mode state the engine
+  refuses with its code: no steady state, or a desliming cut past half the achieved P80 (PE-30b).
 - Contract 2: case artifact with the ore and plant definitions (everything the engine needs), six
   variants each with operating point, metrics, streams, curves, method records and flags. Since 0.07.000
   eight: the last two run the grinding circuit in the cut mode ([cut-mode](../cut-mode/design.md)).
