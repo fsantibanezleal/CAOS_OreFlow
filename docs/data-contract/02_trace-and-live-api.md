@@ -134,6 +134,8 @@ checks the 500 envelope.
 `bank` (`cells`, `cell_residence_min`, `residence_min`, `exact_true_flotation_pct`,
 `engine_rougher_pct`), and `models`, one per lumped form with `id` (`first_order`, `kelsall`,
 `klimpel`, `gamma`, `stretched_exponential`), `parameters` and `parameter_units`, `rmse_pct`,
-`iterations`, `converged`, `fitted_pct` (at the batch times), `dense_pct`, `bank_projection_pct`,
-`lumping_error_pct` (projection minus the exact bank) and `ultimate_gap_pct` (fitted ultimate recovery
-minus the fitted recovery at the last batch time).
+`iterations`, `converged`, `at_bound` (the parameters left at a bound of the fit, since 0.09.000), `fitted_pct` (at
+the batch times), `dense_pct`, `bank_projection_pct`, `lumping_error_pct` (projection minus the exact bank) and
+`ultimate_gap_pct` (fitted ultimate recovery minus the fitted recovery at the last batch time). `cell_residence_min`
+is the mean of the rougher cells' own residences. A batch curve that ends below a recovery of 1e-6 gives
+`{"status": "no_signal", "species", "times_min", "batch_recovery_pct", "reason"}` and no fits.
