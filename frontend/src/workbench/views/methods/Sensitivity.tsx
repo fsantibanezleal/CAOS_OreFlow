@@ -79,7 +79,7 @@ export function Sensitivity({ record, atNominal, lang, onCursor }: {
             <tbody>{factors.map((f, i) => (
               <tr key={f}><th scope="row">{names[i]} <span className="of-muted">{`±${formatFraction(record.inputs[f].half_width, lang, 0)}`}</span></th>
                 <td>{pm(indices.S1[f], indices.S1_conf[f])}</td><td>{pm(indices.ST[f], indices.ST_conf[f])}</td>
-                <td>{Math.abs(indices.ST[f] - indices.S1[f]) <= indices.S1_conf[f] + indices.ST_conf[f]
+                <td className="of-wrap">{Math.abs(indices.ST[f] - indices.S1[f]) <= indices.S1_conf[f] + indices.ST_conf[f]
                   ? <span className="of-muted">{TEXT.withinError[lang]}</span>
                   : formatFixed(indices.ST[f] - indices.S1[f], lang, Math.max(intervalDecimals(indices.S1_conf[f]), intervalDecimals(indices.ST_conf[f])))}</td></tr>
             ))}</tbody>
