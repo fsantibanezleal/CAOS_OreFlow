@@ -21,12 +21,13 @@ far a learned surrogate of a process can be trusted when the ore changes.
   balance ball mill (three mixers, Moly-Cop form) in a closed circuit that meets the target P80 and the
   design circulating load, at installed power when the target cannot be met, or, in the cut mode, holds the
   cyclone's cut at installed power and lets the P80 and the load follow; Plitt hydrocyclones with water
-  bypass and density-corrected cuts per mineral; flotation banks with rates from bubble surface area flux,
-  entrainment and cleaner recycles; a gravity unit on part of the cyclone underflow that recovers the
-  gravity-recoverable gold (Laplante's GRG model); low-intensity magnetic drums;
-  desliming; Bond, Rittinger and Kick energy; an independent audit of every balance.
+  bypass and density-corrected cuts per mineral; flotation banks of perfectly mixed cells, each on its own tail
+  flow, with rates from bubble surface area flux, entrainment and cleaner recycles; a gravity unit on part of the
+  cyclone underflow that recovers the gravity-recoverable gold (Laplante's GRG model); low-intensity magnetic drums;
+  a desliming cyclone at its declared underflow density; Bond, Rittinger and Kick energy; an independent audit of
+  every balance, size class by size class, with the breakage operators audited by their own steady state.
 - **Method records** for every variant: five lumped kinetic models fitted to a virtual batch test and
-  projected to the bank; a constrained optimizer (a pattern search with a progressive barrier from six starts,
+  projected to the bank; a constrained optimizer (a pattern search with a progressive barrier from up to six starts,
   its search step screened by the learned lane) that weighs recovered metal against energy under grade, power and
   water constraints, the same in the browser, where the weight is a live control; a seeded uncertainty record over
   four ore properties, which the browser re-runs at any seed; Sobol indices at the nominal state; mechanism
@@ -116,8 +117,8 @@ health checks) are in [app/README.md](app/README.md); the files of the repositor
 
 The cases are authored scenarios, each parameter and plausibility range cited or labelled authored, not calibrated plants; the directions of the
 effects are the engine's physics, their sizes depend on the authored parameters. The optimizer has no
-prices. The learned lane approximates this engine, and its held-out-case scores bound how it transfers to
-another authored plant, not to a real one. The measured lanes are separate evidence and calibrate nothing in
+prices. The learned lane approximates this engine, and its scores with a whole ore group held out bound how it
+transfers to another authored plant, not to a real one. The measured lanes are separate evidence and calibrate nothing in
 the engine.
 
 ## License

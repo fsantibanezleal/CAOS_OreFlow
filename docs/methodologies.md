@@ -23,7 +23,7 @@ and checked on 2026-09-26.
 | [07 Magnetic separation](methodologies/07_magnetic-separation.md) | LIMS rougher and cleaner | `separation.py` |
 | [08 Desliming](methodologies/08_desliming.md) | desliming cyclone | `separation.py` |
 | [09 Energy](methodologies/09_energy.md) | Bond, operating work index, Rittinger, Kick | `energy.py` |
-| [10 Conservation audit](methodologies/10_conservation-audit.md) | independent balance check | `balance.py` |
+| [10 Conservation audit](methodologies/10_conservation-audit.md) | independent balance check, by size class, with the breakage residuals | `balance.py` |
 
 Pages 11 to 14 are the methods that read the engine: they fit, optimize or learn from its results, and each
 measures its own error against the engine it approximates.
@@ -33,7 +33,7 @@ measures its own error against the engine it approximates.
 | [11 Kinetic fits and bank projection](methodologies/11_kinetic-fits.md) | five lumped batch models, Levenberg-Marquardt, tanks-in-series projection, lumping error | `kinetics.py` |
 | [12 Constrained optimization](methodologies/12_optimization.md) | recovered metal against energy under grade, power and water constraints: a pattern search with a progressive barrier from six starts, screened by the learned lane, the same in the browser | `methods/optimization.py`, `methods/pattern_search.py`, `methods/screen.py` |
 | [13 Uncertainty and sensitivity](methodologies/13_uncertainty-sensitivity.md) | seeded Latin-hypercube Monte Carlo, constraint probabilities, Saltelli-Sobol first and total indices | `methods/uncertainty.py` |
-| [14 Learned lane](methodologies/14_learned-lane.md) | five surrogates scored by interpolation and leave-one-case-out, GP coverage, autoencoder guard, ONNX export | `methods/learning.py` |
+| [14 Learned lane](methodologies/14_learned-lane.md) | five surrogates scored by interpolation (pooled, within case, against a case-mean predictor), one case out and one ore group out, GP coverage, autoencoder guard, ONNX export | `methods/learning.py` |
 
 Pages 15 to 18 are measured data. Page 15 runs measured ore samples through an engine circuit; pages 16 to 18 are
 the three measured lanes, which never run the engine and calibrate nothing in it: each asks its own question of a

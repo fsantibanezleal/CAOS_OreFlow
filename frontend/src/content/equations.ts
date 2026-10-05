@@ -39,9 +39,9 @@ export const FLOTATION: Formula[] = [
   { tex: r`\begin{aligned} ENT_i &= \frac{2}{e^{a_i} + e^{-a_i}},\qquad a_i = 2.292\,(d_i/\xi)^{adj} \\ adj &= 1 - \frac{\ln(1/\delta)}{\exp(d_i/\xi)} \end{aligned}`,
     caption: { en: 'Degree of entrainment of size class i (Savassi et al.): $\\xi$ is the size at which $ENT = 0.2$ and $\\delta$ the drainage parameter; entrained gangue follows the water recovered.',
       es: 'Grado de arrastre de la clase i (Savassi y colaboradores): $\\xi$ es el tamaño con $ENT = 0.2$ y $\\delta$ el parámetro de drenaje; la ganga arrastrada sigue al agua recuperada.' } },
-  { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ w = \frac{r_w}{1-r_w},\qquad R_N = 1 - (1 - r)^N \end{gathered}`,
-    caption: { en: 'Recovery per perfectly mixed cell with residence $\\tau$ and water recovery $r_w$, and $R_N$ over a bank of N cells; without entrainment it is the tanks-in-series result ${1 - \\left(N/(N + k\\tau_{bank})\\right)^N}$.',
-      es: 'Recuperación por celda perfectamente mezclada con residencia $\\tau$ y recuperación de agua $r_w$, y $R_N$ en un banco de N celdas; sin arrastre es el resultado de tanques en serie ${1 - \\left(N/(N + k\\tau_{banco})\\right)^N}$.' } },
+  { tex: r`\begin{gathered} r = \frac{k\tau + ENT\,w}{1 + k\tau + ENT\,w} \\ \tau_j = \frac{V(1-\varepsilon_g)}{Q_{tail,j}},\qquad R_N = 1 - \prod_{j=1}^{N} (1 - r_j) \end{gathered}`,
+    caption: { en: 'Recovery per perfectly mixed cell with residence $\\tau_j$, its pulp volume over its own tail flow, and water ratio $w = k_w\\tau$; $R_N$ over a bank of N cells in series, each fed the tail of the one before.',
+      es: 'Recuperación por celda perfectamente mezclada con residencia $\\tau_j$, su volumen de pulpa sobre su propio flujo de relave, y razón de agua $w = k_w\\tau$; $R_N$ en un banco de N celdas en serie, cada una alimentada con el relave de la anterior.' } },
 ];
 
 export const GRAVITY: Formula[] = [
