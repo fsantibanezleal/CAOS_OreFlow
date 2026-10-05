@@ -350,7 +350,7 @@ input, select, textarea { font: inherit; }
 /* a search range may break after its dash, so the optimizer's table fits the aside in Spanish (0.08 gate: 7 px over) */
 .of-table td.of-range { white-space: normal; min-width: 4.5rem; }
 /* a cell that holds words, not a number (the Sobol table's 'within error'), may wrap between them */
-.of-table td.of-wrap { white-space: normal; min-width: 4rem; }
+.of-table td.of-wrap { white-space: normal; }
 /* the start-by-start screen table's Spanish headers took it 7 px past the aside at 1280 px (0.08 gate) */
 .of-table.of-table-wraphead thead th { white-space: normal; vertical-align: bottom; }
 .of-table tr.of-table-group > * { border-top: 1px solid var(--color-fg-faint); }
