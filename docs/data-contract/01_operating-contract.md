@@ -4,8 +4,12 @@ Contract 1 is the operating envelope: the set of states for which OreFlow runs i
 and stands behind the result. It is declared once, in `data-pipeline/pipeline/io/contract.py`, and
 exported to `data/derived/contract/operating_contract.json`. The live API validates every request
 against that exported file, and the browser ports the same validator over the same file, so both
-accept and reject exactly the same states (requirement PE-30). Every state the contract accepts is
-solved by the engine with closed balances (PE-30b).
+accept and reject exactly the same states (requirement PE-30). Every target-mode state the contract accepts is
+solved by the engine with closed balances (PE-30b). In the cut mode the engine refuses the states that have no steady
+state (`power_unreachable_at_cut`, `circulating_load_above_bound`) and those whose achieved product a desliming cut
+would discard (`deslime_cut_above_half_p80`): of 368 accepted cut-mode states drawn uniformly over the contract, 90
+(24.5%) were refused, every one genuinely (review of 2026-10-04, K-05). The service answers a refusal with 422 and the
+browser shows its reason; until 0.09.000 this page promised a solve for every accepted state.
 
 What it is not: it is not a statement that a real plant can operate at every accepted state. It
 bounds the region where this engine, with each case's authored plant (mill power, cell volumes,
@@ -34,7 +38,7 @@ grinding loop, then flotation), `magnetic` (grinding, then low-intensity magneti
 | `jg_cm_s` | cm/s | 0.5 to 2.5 | 0.05 | flotation families | Superficial gas velocity in the rougher. |
 | `rougher_cells` | whole number | 3 to 12 | 1 | flotation families | Rougher cells in series. |
 | `gravity_bleed` | fraction (shown in %) | 0.10 to 0.60 | 0.01 | `gravity_rougher` | Fraction of the cyclone underflow sent to the gravity concentrator. |
-| `deslime_cut_um` | um | 8 to 45 | 0.5 | `deslime_rougher` | Cut size of the desliming cyclone. |
+| `deslime_cut_um` | um | 8 to 45 | 0.5 | `deslime_rougher` | Corrected cut of the desliming cyclone for the host quartz ([methodology 08](../methodologies/08_desliming.md)). |
 | `d50c_um` | um | 0 (off), or 0.8 to 1.6 of the nominal state's solved cut | 1% of that cut | all | The host gangue's corrected cyclone cut. Off, the target mode solves the cut; on, the mill draws its installed power and the P80 and the circulating load follow (the cut mode, since 0.07.000). |
 
 Why two kinds of bound. Throughput, grade, hardness and reagent dose are properties of a scenario:
@@ -50,8 +54,10 @@ absolute ranges, from the research dossier of 2026-09-26:
   analysis by Maldonado, Araya and Finch (2012, *An overview of optimizing strategies for flotation banks*,
   Minerals 2(4):258-271, doi:10.3390/min2040258), whose examples are banks of two to ten cells; the contract's 3 to
   12 rougher cells are authored around them.
-- The gravity bleed range is the range of the Laplante simulator example (10 to 60% of the underflow,
-  AMIRA P420B), which is also the product's gravity oracle.
+- The gravity bleed range, 10 to 60%, is authored on the range of the Laplante simulator example (AMIRA P420B), the
+  product's gravity oracle, which treats that share of the mill discharge. The cases' unit treats a share of the
+  cyclone underflow, a smaller tonnage at the same share (the underflow is $C/(1 + C)$ of the discharge, 71% at 250%);
+  until 0.09.000 this page called the example's range a share of the underflow (review of 2026-10-04, K-12).
 - Circulating load brackets the Moly-Cop BallSim base case (277%) and the Laplante example (250%);
   the water, crusher-setting and desliming ranges are authored around the case nominals (the phosphate review
   gives no desliming size, so the 20 um nominal is authored too; [methodology 08](../methodologies/08_desliming.md)).
@@ -75,7 +81,11 @@ collector 0 to 75 g/t (25). The resolved numbers for every case are in the expor
 | `deslime_cut_above_half_target` | `deslime_rougher` | `deslime_cut_um <= 0.5 target_p80_um` | A desliming cut close to the product size discards the product itself. |
 
 A rule is data: `left relation factor * right`, evaluated after every single input has passed, so
-both validators compute the same product of the same stored numbers.
+both validators compute the same product of the same stored numbers. The factor is the engine constant
+`deslime.max_cut_over_p80`. In the cut mode the grind target is ignored, so the rule would compare the cut with a number
+the engine does not use: the engine checks the same bound against the achieved P80 after the grinding solve and
+refuses the state as `deslime_cut_above_half_p80`. Until 0.09.000 such states were served, with up to 59% of the
+ore and 58.7% of the P2O5 sent to slimes (review of 2026-10-04, K-02).
 
 ## Validation
 

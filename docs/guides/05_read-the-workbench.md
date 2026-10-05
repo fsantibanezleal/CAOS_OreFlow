@@ -68,7 +68,10 @@ Escape or the reset button to restore, and the arrow keys to step through sample
 | `recycle_not_converged` | the flotation recycle did not converge |
 | `cell_residence_not_converged` | a flotation cell's tail flow did not settle |
 | `composite_scale_not_converged` | the host-limited composites did not converge |
-| `negative_mass` | a class mass is negative beyond round-off |
+| `negative_mass` | a class mass is below minus 1e-9 of its own mineral's flow in the stream (since 0.09.000; before, 1e-9 t/h per t/h of throughput, blind to trace minerals) |
+| `balance_not_closed` | a unit's closure (per mineral, per size class where no breakage acts, per species, water, or a breakage operator's own steady state) errs by more than 1e-9 |
+| `bond_efficiency_fine_product` | the product is finer than about 70 um, below which GMG01-MP-2021 qualifies the Bond efficiency; the ratio is reported without the fineness correction |
+| `deslime_water_short` | the desliming feed carries too little water for the declared underflow density; everything reports to the underflow |
 | `non_finite_output` | a non-finite number was replaced by null |
 
 The first five describe an operating state (a real plant can be power-limited); the rest would describe a

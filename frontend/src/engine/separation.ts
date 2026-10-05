@@ -4,7 +4,8 @@
  */
 import { correctedCut, reducedPartition } from './cyclone';
 import { grid, type Vec } from './grid';
-import type { DeslimePlant, MagneticPlant } from './model';
+import { constant } from './constants';
+import type { DeslimePlant, Flags, MagneticPlant } from './model';
 import type { ResolvedOre } from './ore';
 import { partitionSpecies, speciesDefs, toMinerals, type Species, type SpeciesDef } from './species';
 import { Stream } from './streams';
@@ -78,20 +79,36 @@ export function runMagnetic(x: Species, feedWater: number, ore: ResolvedOre, mp:
   };
 }
 
-export type DeslimeResult = { underflow: Stream; slimes: Stream; partition: Species; underflow_species: Species; underflow_water: number };
+export type DeslimeResult = { underflow: Stream; slimes: Stream; partition: Species; underflow_species: Species; underflow_water: number; bypass: number };
 
-export function runDeslime(x: Species, feedWater: number, ore: ResolvedOre, dp: DeslimePlant, cutUm: number): DeslimeResult {
+/** The desliming cyclone at its declared underflow density: R_f = k Y / (1 - k X + k Y), k = (1 - s_u)/(s_u W)
+ * (separation.py run_deslime, P-04); declared grains classify with the GRG exponent (L-1). */
+export function runDeslime(x: Species, feedWater: number, ore: ResolvedOre, dp: DeslimePlant, cutUm: number, flags: Flags | null = null): DeslimeResult {
   const defs = speciesDefs(ore);
   const rhoRef = ore.density[ore.host];
-  const partition: Species = {};
+  const grg = constant('cyclone.grg_density_exponent');
+  const corrected: Species = {};
   for (const d of defs) {
-    const y = reducedPartition(correctedCut(cutUm, rhoRef, d.density), dp.sharpness);
-    const v: Vec = new Float64Array(y.length);
-    for (let i = 0; i < y.length; i += 1) v[i] = dp.bypass + (1.0 - dp.bypass) * y[i];
-    partition[d.id] = v;
+    const exponent = d.kind === 'liberated' && (ore.spec[d.mineral].grains ?? null) !== null ? grg : 0.5;
+    corrected[d.id] = reducedPartition(correctedCut(cutUm, rhoRef, d.density, exponent), dp.sharpness);
   }
+  let solids = 0.0;
+  let classified = 0.0;
+  for (const key of Object.keys(x)) {
+    let a = 0.0;
+    let b = 0.0;
+    for (let i = 0; i < x[key].length; i += 1) { a += x[key][i]; b += corrected[key][i] * x[key][i]; }
+    solids += a;
+    classified += b;
+  }
+  const k = (1.0 - dp.underflow_solids) / (dp.underflow_solids * feedWater);
+  let rf = 1.0;
+  if (k * solids < 1.0) rf = k * classified / (1.0 - k * solids + k * classified);
+  else if (flags !== null) flags.add('deslime_water_short', 'The desliming feed carries too little water for the declared underflow density; all of it reports to the underflow.');
+  const partition: Species = {};
+  for (const [key, y] of Object.entries(corrected)) partition[key] = Float64Array.from(y, v => rf + (1.0 - rf) * v);
   const [under, over] = partitionSpecies(x, partition);
-  const waterUnder = dp.bypass * feedWater;
+  const waterUnder = rf * feedWater;
   return { underflow: new Stream(toMinerals(under, defs, ore), waterUnder), slimes: new Stream(toMinerals(over, defs, ore), feedWater - waterUnder),
-    partition, underflow_species: under, underflow_water: waterUnder };
+    partition, underflow_species: under, underflow_water: waterUnder, bypass: rf };
 }

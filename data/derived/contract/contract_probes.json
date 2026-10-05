@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "2b35e7d0fd6b3744b1fe43173097521ea746c4df02f6340a06f7ccfb0144274a",
+ "digest": "1cfa2df0d46d7432d225d479703daec964e55031aa0ac39b5476c784426a93fa",
  "probes": [
   {
    "case_id": "no_such_case",
@@ -5151,7 +5151,7 @@
   {
    "case_id": "phosphate_clay",
    "values": {
-    "d50c_um": 150.674775732
+    "d50c_um": 150.752823152
    },
    "expected": {
     "accepted": true,
@@ -5161,7 +5161,7 @@
   {
    "case_id": "phosphate_clay",
    "values": {
-    "d50c_um": 301.349551465
+    "d50c_um": 301.505646305
    },
    "expected": {
     "accepted": true,
@@ -5171,7 +5171,7 @@
   {
    "case_id": "phosphate_clay",
    "values": {
-    "d50c_um": 149.16802797467
+    "d50c_um": 149.24529492047
    },
    "expected": {
     "accepted": false,
@@ -5186,7 +5186,7 @@
   {
    "case_id": "phosphate_clay",
    "values": {
-    "d50c_um": 302.85629922233
+    "d50c_um": 303.01317453653
    },
    "expected": {
     "accepted": false,
@@ -6917,7 +6917,7 @@
   {
    "case_id": "copper_oxide",
    "values": {
-    "d50c_um": 136.504121424
+    "d50c_um": 136.622802275
    },
    "expected": {
     "accepted": true,
@@ -6927,7 +6927,7 @@
   {
    "case_id": "copper_oxide",
    "values": {
-    "d50c_um": 273.008242847
+    "d50c_um": 273.245604551
    },
    "expected": {
     "accepted": true,
@@ -6937,7 +6937,7 @@
   {
    "case_id": "copper_oxide",
    "values": {
-    "d50c_um": 135.13908020977001
+    "d50c_um": 135.25657425224
    },
    "expected": {
     "accepted": false,
@@ -6952,7 +6952,7 @@
   {
    "case_id": "copper_oxide",
    "values": {
-    "d50c_um": 274.37328406123004
+    "d50c_um": 274.61183257376
    },
    "expected": {
     "accepted": false,
@@ -8681,7 +8681,7 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
-    "d50c_um": 143.116784192
+    "d50c_um": 143.243216364
    },
    "expected": {
     "accepted": true,
@@ -8691,7 +8691,7 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
-    "d50c_um": 286.233568385
+    "d50c_um": 286.486432728
    },
    "expected": {
     "accepted": true,
@@ -8701,7 +8701,7 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
-    "d50c_um": 141.68561635007
+    "d50c_um": 141.81078420036002
    },
    "expected": {
     "accepted": false,
@@ -8716,7 +8716,7 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
-    "d50c_um": 287.66473622693
+    "d50c_um": 287.91886489164
    },
    "expected": {
     "accepted": false,

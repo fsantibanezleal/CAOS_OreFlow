@@ -348,7 +348,7 @@ def _cases() -> tuple[CaseDef, ...]:
             payables=(Payable("P2O5", "%", (Carrier("fluorapatite", 1.0),), 11.4),),
             work_index_kwh_t=8.5, crushing_work_index_kwh_t=9.5),
         Plant(family="deslime_rougher", crusher=_crusher(), mill=_mill(3660.0), cyclone=_cyclone(91.4),
-              flotation=_flotation(110.0, 30.0, 20.0, 0.0, xi_um=35.0, rougher_solids=0.33, cleaner_solids=0.3, recleaner_solids=0.3), deslime=DeslimePlant(sharpness=2.5, bypass=0.12),
+              flotation=_flotation(110.0, 30.0, 20.0, 0.0, xi_um=35.0, rougher_solids=0.33, cleaner_solids=0.3, recleaner_solids=0.3), deslime=DeslimePlant(sharpness=2.5, underflow_solids=0.70),
               grade_spec=GradeSpec("P2O5", 32.0), water_limit_m3_t=4.98),
         OperatingPoint(throughput_tph=470.0, target_p80_um=150.0, circulating_load=2.2, water_m3_t=2.8, crusher_css_mm=8.0,
                        work_index_kwh_t=8.5, head_grade=11.4, collector_gpt=500.0, jg_cm_s=1.2, rougher_cells=7, deslime_cut_um=20.0),

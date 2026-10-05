@@ -445,8 +445,9 @@ class GrindingCircuit:
         product_species = to_species(Stream(cyclone_solids, 0.0), ore, defs, self.flags)
         _, overflow_species = partition_species(product_species, self.species_underflow(cut, defs))
         rebuilt = to_minerals(overflow_species, defs, ore)
-        scale = max(float(np.max(np.abs(r.overflow[m]))) for m in ore.ids)
-        consistency = max(float(np.max(np.abs(rebuilt[m] - r.overflow[m]))) for m in ore.ids) / scale
+        # each mineral against its own overflow, so a trace mineral's split is held as tightly as the gangue's (K-10)
+        consistency = max((float(np.max(np.abs(rebuilt[m] - r.overflow[m]))) / float(np.max(np.abs(r.overflow[m])))
+                           for m in ore.ids if float(np.max(np.abs(r.overflow[m]))) > 0.0), default=0.0)
         # the energy per pass acts on the mill feed; per tonne of new feed (C-03)
         specific = energy * r.mill_feed_tph / self.new_feed_tph
         p80 = g.p80(total_over)

@@ -535,13 +535,16 @@ export class GrindingCircuit {
     const productSpecies = toSpecies(new Stream(cycloneSolids, 0.0), ore, defs);
     const overflowSpecies = partitionSpecies(productSpecies, this.speciesUnderflow(cut, defs))[1];
     const rebuilt = toMinerals(overflowSpecies, defs, ore);
-    let scale = 0.0;
-    let worst = 0.0;
+    // each mineral against its own overflow, so a trace mineral's split is held as tightly as the gangue's (K-10)
+    let consistency = 0.0;
     for (const m of ore.ids) {
+      let scale = 0.0;
+      let worst = 0.0;
       for (let i = 0; i < n; i += 1) {
         scale = Math.max(scale, Math.abs(r.overflow[m][i]));
         worst = Math.max(worst, Math.abs(rebuilt[m][i] - r.overflow[m][i]));
       }
+      if (scale > 0.0) consistency = Math.max(consistency, worst / scale);
     }
     // the energy per pass acts on the mill feed; per tonne of new feed (C-03)
     const specific = energy * r.millFeedTph / this.newFeedTph;
@@ -554,7 +557,7 @@ export class GrindingCircuit {
       streams, partition, sizing,
       water: { overflow_tph: this.waterOver, underflow_tph: this.waterUnder, mill_discharge_tph: waterMillDischarge,
         mill_addition_tph: millAddition, sump_addition_tph: sumpAddition },
-      gold_circulating_load: goldCl, defs, overflow_species: overflowSpecies, species_consistency: worst / scale,
+      gold_circulating_load: goldCl, defs, overflow_species: overflowSpecies, species_consistency: consistency,
       composite_scale: Float64Array.from(this.compositeScale), cut_mode: cutMode,
     };
   }

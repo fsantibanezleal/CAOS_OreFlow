@@ -97,6 +97,9 @@ const FLAGS: Record<string, T> = {
   circulating_load_out_of_range: { en: 'The cut sets a circulating load outside the range the target mode accepts.', es: 'El corte fija una carga circulante fuera del rango que acepta el modo objetivo.' },
   cut_mode_load_not_converged: { en: 'The cut mode did not settle on a circulating load; the last iterate is shown.', es: 'El modo de corte no se estabilizó en una carga circulante; se muestra la última iteración.' },
   power_limit_not_converged: { en: 'The energy at installed power did not settle; the last iterate is shown.', es: 'La energía a potencia instalada no se estabilizó; se muestra la última iteración.' },
+  balance_not_closed: { en: 'The conservation audit does not close within its tolerance.', es: 'La auditoría de conservación no cierra dentro de su tolerancia.' },
+  bond_efficiency_fine_product: { en: 'The product is finer than about 70 µm, below which the guideline qualifies the Bond efficiency; it is shown without the fineness correction.', es: 'El producto es más fino que unos 70 µm, bajo los cuales la guía condiciona la eficiencia de Bond; se muestra sin la corrección por finura.' },
+  deslime_water_short: { en: 'The desliming feed carries too little water for the declared underflow density; all of it reports to the underflow.', es: 'La alimentación al deslamado lleva muy poca agua para la densidad declarada de la descarga; todo reporta a la descarga.' },
   cell_residence_not_converged: { en: 'The tail flow of a flotation cell did not settle; the last iterate is shown.', es: 'El flujo de relave de una celda de flotación no se estabilizó; se muestra la última iteración.' },
   non_finite_output: { en: 'A non-finite number was replaced by null.', es: 'Un número no finito se reemplazó por nulo.' },
 };
@@ -124,6 +127,9 @@ const FLAG_SHORT: Record<string, T> = {
   circulating_load_out_of_range: { en: 'Load out of range', es: 'Carga fuera de rango' },
   cut_mode_load_not_converged: { en: 'Load not converged', es: 'Carga sin converger' },
   power_limit_not_converged: { en: 'Power limit not converged', es: 'Límite de potencia sin converger' },
+  balance_not_closed: { en: 'Balance not closed', es: 'Balance sin cerrar' },
+  bond_efficiency_fine_product: { en: 'Bond efficiency below 70 µm', es: 'Eficiencia de Bond bajo 70 µm' },
+  deslime_water_short: { en: 'Desliming water short', es: 'Agua de deslamado insuficiente' },
   cell_residence_not_converged: { en: 'Cell residence not converged', es: 'Residencia de celda sin converger' },
   non_finite_output: { en: 'Non-finite output', es: 'Salida no finita' },
 };

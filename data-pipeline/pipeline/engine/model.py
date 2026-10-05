@@ -160,7 +160,7 @@ class MagneticPlant:
 @dataclass(frozen=True)
 class DeslimePlant:
     sharpness: float
-    bypass: float                  # fraction of feed water (and fines) to the underflow
+    underflow_solids: float        # declared underflow solids, mass fraction; the water split and bypass follow (P-04)
 
 
 @dataclass(frozen=True)

@@ -5,7 +5,7 @@
     "grid.top_um": {
       "value": 150000.0,
       "unit": "um",
-      "source": "Design: upper bound of the coarsest class, above the coarsest crusher feed in the catalog."
+      "source": "Design: upper bound of the coarsest class, above the catalog crusher feed's 60 mm F80; the 2.5% of that Rosin-Rammler feed above it is lumped into the top class (review of 2026-10-04, C-09)."
     },
     "grid.classes_per_octave": {
       "value": 4,
@@ -355,10 +355,20 @@
       "unit": "1",
       "source": "Declared: the exposed valuable surface of a composite grain scales with the two-thirds power of the valuable's volume fraction in the particle, phi = (c/rho_V)/(c/rho_V + (1 - c)/rho_host) for a mass content c; until 0.09.000 the mass content itself was raised to 2/3, which overstated composite rates by 7 to 47% (review of 2026-10-04, F-01)."
     },
-    "numerics.negative_mass_tolerance_per_tph": {
+    "numerics.negative_mass_tolerance": {
       "value": 1e-09,
-      "unit": "t/h per t/h of throughput",
-      "source": "Numerics: a class mass below minus this tolerance raises a negative-mass flag."
+      "unit": "1 (class mass over that mineral's flow in the stream)",
+      "source": "Numerics: a class mass below minus this share of its own mineral's flow in the stream raises a negative-mass flag. Until 0.09.000 the tolerance was 1e-9 t/h per t/h of throughput, which could not see a trace mineral: a -2.3e-7 t/h electrum class, 7% of its stream's electrum, passed (review of 2026-10-04, K-10)."
+    },
+    "numerics.balance_tolerance": {
+      "value": 1e-09,
+      "unit": "1 (relative closure error of a unit)",
+      "source": "Numerics: a unit whose closure (per mineral, per size class where no breakage acts, per species, water, and the steady-state residual of a breakage operator) errs by more than this raises balance_not_closed (review of 2026-10-04, K-01); the same bound the envelope gate holds."
+    },
+    "bond.efficiency_min_product_um": {
+      "value": 70.0,
+      "unit": "um",
+      "source": "GMG01-MP-2021, sections 2 and 4.1 (Bond 1962): the Bond efficiency should not be applied to circuits with a P80 finer than about 70 um without qualification, the ball-mill fineness correction applying below it; the engine flags the state and does not apply the correction (review of 2026-10-04, C-02)."
     },
     "numerics.curve_class_share_floor": {
       "value": 1e-08,
@@ -379,6 +389,11 @@
       "value": 4.0,
       "unit": "1",
       "source": "Numerics: geometric step of the cut-size bracket search."
+    },
+    "deslime.max_cut_over_p80": {
+      "value": 0.5,
+      "unit": "1 (desliming cut over the product P80)",
+      "source": "Design: the operating contract's rule deslime_cut_above_half_target (a coarser cut discards the product, page 08); the contract checks it against the grind target, and in the cut mode, where the target is ignored, the engine checks it against the achieved P80 and refuses the state (review of 2026-10-04, K-02)."
     },
     "numerics.cell_tail_tolerance": {
       "value": 1e-13,
@@ -794,7 +809,7 @@
     "cyclone.grg_density_exponent": {
       "value": 1.0,
       "unit": "1",
-      "source": "Fitted to the GRG and solids partition curves of Laplante and Staunton (AMIRA P420B), Figure 9: 1.13 at Jundee, 0.87 at Marvel Loch. Stokes' 0.5 puts the GRG cut three to four times too coarse there; every other mineral keeps 0.5 for want of a measurement of its own (review of 2026-10-02, E-11)."
+      "source": "Fitted to the GRG and solids partition curves of Laplante and Staunton (AMIRA P420B), Figure 9: 1.13 at Jundee, 0.87 at Marvel Loch. Stokes' 0.5 puts the GRG cut two to four times too coarse there (2.2 at Marvel Loch, 3.8 at Jundee; the fit used the ore at SG 2.75 as the reference, and on quartz at 2.65 it gives 0.85 and 1.10); every other mineral keeps 0.5 for want of a measurement of its own (review of 2026-10-02, E-11; review of 2026-10-04, P-01)."
     },
     "gravity.grg_selection_sizes_um": {
       "value": [

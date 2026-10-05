@@ -307,8 +307,8 @@
     "es": "Corte de deslamado"
    },
    "help": {
-    "en": "Cut size of the desliming cyclone. Finer particles go to tailings as slimes: a coarser cut cleans the flotation feed and loses more of the fine valuable mineral.",
-    "es": "Tamaño de corte del ciclón de deslamado. Las partículas más finas van a relaves como lamas: un corte más grueso limpia la alimentación a flotación y pierde más mineral valioso fino."
+    "en": "Corrected cut of the desliming cyclone for the host quartz: denser minerals are cut finer (apatite at 0.87 of it) and the water bypass sends a share of every class to the underflow. Finer particles go to tailings as slimes: a coarser cut sends less clay to flotation and loses more of the fine valuable mineral.",
+    "es": "Corte corregido del ciclón de deslamado para el cuarzo huésped: los minerales más densos se cortan más fino (el apatito a 0,87 de él) y el cortocircuito de agua envía una fracción de cada clase a la descarga. Las partículas más finas van a relaves como lamas: un corte más grueso envía menos arcilla a flotación y pierde más mineral valioso fino."
    },
    "display_scale": 1.0,
    "display_unit": ""
@@ -391,6 +391,10 @@
   "power_unreachable_at_cut": {
    "en": "At this classifier cut the mill cannot draw its installed power: there is no steady state. Choose a coarser cut, a lower throughput or a softer ore.",
    "es": "Con este corte del clasificador el molino no puede consumir su potencia instalada: no hay estado estacionario. Elija un corte más grueso, un tratamiento menor o un mineral más blando."
+  },
+  "deslime_cut_above_half_p80": {
+   "en": "At this classifier cut the product is finer than twice the desliming cut, so the desliming would discard the product. Choose a finer desliming cut or a coarser classifier cut.",
+   "es": "Con este corte del clasificador el producto es más fino que el doble del corte de deslamado, así que el deslamado descartaría el producto. Elija un corte de deslamado más fino o un corte del clasificador más grueso."
   },
   "circulating_load_above_bound": {
    "en": "At this classifier cut the circulating load would exceed the 600% the cut mode accepts. Choose a coarser cut or a lower throughput.",
@@ -935,12 +939,12 @@
      "unit": "um"
     },
     "d50c_um": {
-     "min": 150.674775732,
-     "max": 301.349551465,
-     "step": 1.88343469666,
+     "min": 150.752823152,
+     "max": 301.505646305,
+     "step": 1.88441028941,
      "unit": "um",
      "off": 0.0,
-     "reference": 188.34346966558897
+     "reference": 188.44102894055797
     }
    }
   },
@@ -1119,12 +1123,12 @@
      "unit": "1"
     },
     "d50c_um": {
-     "min": 136.504121424,
-     "max": 273.008242847,
-     "step": 1.7063015178,
+     "min": 136.622802275,
+     "max": 273.245604551,
+     "step": 1.70778502844,
      "unit": "um",
      "off": 0.0,
-     "reference": 170.63015177950382
+     "reference": 170.7785028443339
     }
    }
   },
@@ -1303,12 +1307,12 @@
      "unit": "1"
     },
     "d50c_um": {
-     "min": 143.116784192,
-     "max": 286.233568385,
-     "step": 1.78895980241,
+     "min": 143.243216364,
+     "max": 286.486432728,
+     "step": 1.79054020455,
      "unit": "um",
      "off": 0.0,
-     "reference": 178.89598024059893
+     "reference": 179.0540204552262
     }
    }
   },
@@ -1813,5 +1817,5 @@
    2.089063508436509e-101
   ]
  },
- "digest": "2b35e7d0fd6b3744b1fe43173097521ea746c4df02f6340a06f7ccfb0144274a"
+ "digest": "1cfa2df0d46d7432d225d479703daec964e55031aa0ac39b5476c784426a93fa"
 }

@@ -2,7 +2,7 @@
  * Assemble each family's flowsheet and report streams, metrics, curves, flags and the audit (port of
  * engine/circuit.py). Families: rougher, gravity_rougher, magnetic and deslime_rougher.
  */
-import { audit, nonnegative, type Unit } from './balance';
+import { audit, nonnegative, residual, type Unit } from './balance';
 import { crush } from './comminution';
 import { constant } from './constants';
 import { energyReport } from './energy';
@@ -10,7 +10,7 @@ import { bankProfile, finalStreamName, runFlotation, type FlotationResult } from
 import { grid, type Vec } from './grid';
 import { GrindingCircuit, type GrindingResult } from './grinding';
 import { solve } from './linalg';
-import { Flags, type Flag, type OperatingPoint, type Ore, type Plant } from './model';
+import { Flags, InfeasibleState, type Flag, type OperatingPoint, type Ore, type Plant } from './model';
 import { fractionToGrade, resolve, type ResolvedOre } from './ore';
 import { runDeslime, runMagnetic, type DeslimeResult, type MagneticResult } from './separation';
 import { speciesContentOf } from './species';
@@ -101,7 +101,12 @@ export function simulate(ore: Ore, plant: Plant, op: OperatingPoint): CircuitRes
     let separationSpecies = grinding.overflow_species;
     let separationWater = overflow.water;
     if (plant.family === 'deslime_rougher') {
-      deslime = runDeslime(grinding.overflow_species, overflow.water, r, plant.deslime as NonNullable<Plant['deslime']>, op.deslime_cut_um);
+      const factor = constant('deslime.max_cut_over_p80');
+      // the contract checks the desliming cut against the grind target, which the cut mode ignores (K-02)
+      if (op.d50c_um > 0.0 && op.deslime_cut_um > factor * grinding.p80_um) {
+        throw new InfeasibleState('deslime_cut_above_half_p80', 'deslime_cut_um', op.deslime_cut_um, factor * grinding.p80_um);
+      }
+      deslime = runDeslime(grinding.overflow_species, overflow.water, r, plant.deslime as NonNullable<Plant['deslime']>, op.deslime_cut_um, flags);
       streams.deslime_underflow = deslime.underflow;
       streams.slimes = deslime.slimes;
       units.push(['deslime', ['cyclone_overflow'], ['deslime_underflow', 'slimes'], 0.0]);
@@ -143,12 +148,27 @@ export function simulate(ore: Ore, plant: Plant, op: OperatingPoint): CircuitRes
   const topology: TopologyUnit[] = units.map(([unit, inputs, outputs, water]) => ({ unit, inputs: [...inputs], outputs: [...outputs], water_added_tph: water }));
   units.push(['circuit', ['crusher_feed'], [...concentrates, ...tails], freshWater]);
   const auditUnits: Unit[] = units.map(([name, inputs, outputs, water]) => [name, inputs.map(s => streams[s]), outputs.map(s => streams[s]), water]);
-  const balance = audit(auditUnits, r);
-  const negative = nonnegative(streams, constant('numerics.negative_mass_tolerance_per_tph') * Math.max(1.0, op.throughput_tph));
+  // the breakage operators are audited by their own steady state, T^-1(e) p = m per class (K-01)
+  const e = grinding.energy_per_pass_kwh_t;
+  const equations: Record<string, number> = { mill_equation: Math.max(...r.ids.map(m => residual(circuit.operators[m].inverse(e), streams.mill_discharge.solids[m], streams.mill_feed.solids[m]))) };
+  const regrindEnergy = plant.flotation?.regrind_energy_kwh_t ?? 0.0;
+  if (regrindEnergy > 0.0 && 'regrind_product' in streams) {
+    equations.regrind_equation = Math.max(...r.ids.map(m => residual(circuit.operators[m].inverse(regrindEnergy), streams.regrind_product.solids[m], streams.rougher_concentrate.solids[m])));
+  }
+  const balance = audit(auditUnits, r, equations);
+  if (balance.max_relative_error > constant('numerics.balance_tolerance')) {
+    let worstUnit = '';
+    for (const [name, error] of Object.entries(balance.units)) if (worstUnit === '' || error > balance.units[worstUnit]) worstUnit = name;
+    flags.add('balance_not_closed', `The audit does not close: ${worstUnit} errs by ${balance.max_relative_error.toExponential(1)}.`);
+  }
+  const negative = nonnegative(streams, constant('numerics.negative_mass_tolerance'));
   if (negative.length) flags.add('negative_mass', `Negative class masses in: ${negative.join(', ')}.`);
   streams.final_concentrate = add(...concentrates.map(s => streams[s]));
   streams.final_tail = add(...tails.map(s => streams[s]));
   const [metrics, metricUnits] = computeMetrics(r, plant, op, streams, grinding, flotation, magnetic, deslime, freshWater, balance);
+  if (grinding.p80_um < constant('bond.efficiency_min_product_um')) {
+    flags.add('bond_efficiency_fine_product', 'The product is finer than about 70 um, below which the guideline qualifies the Bond efficiency; the ratio is reported without the fineness correction.');
+  }
   const curves = computeCurves(r, op, streams, grinding, flotation, magnetic, deslime);
   return { ore: r, streams, concentrates, tails, metrics, metric_units: metricUnits, curves, flags: flags.items, balance, topology,
     grinding, flotation, magnetic, deslime };

@@ -10,14 +10,14 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from .balance import audit, nonnegative
+from .balance import audit, nonnegative, residual
 from .comminution import crush
 from .constants import constant
 from .energy import energy_report
 from .flotation import FlotationResult, bank_profile, final_stream_name, run_flotation
 from .grid import grid
 from .grinding import GrindingCircuit, GrindingResult
-from .model import Flags, OperatingPoint, Ore, Plant
+from .model import Flags, InfeasibleState, OperatingPoint, Ore, Plant
 from .ore import ResolvedOre, fraction_to_grade, resolve
 from .separation import DeslimeResult, MagneticResult, run_deslime, run_magnetic
 from .species import species_content
@@ -60,6 +60,8 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
     deslime: DeslimeResult | None = None
     concentrates: list[str] = []
     tails: list[str] = []
+    regrind = None
+    energy = 0.0
     overflow = streams["cyclone_overflow"]
     fresh_water = grinding.water["mill_addition_tph"] + grinding.water["sump_addition_tph"]
     # Units by stream name: (unit, input streams, output streams, fresh water added in t/h).
@@ -95,7 +97,12 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
         separation_feed = "cyclone_overflow"
         separation_species, separation_water = grinding.overflow_species, overflow.water
         if plant.family == "deslime_rougher":
-            deslime = run_deslime(grinding.overflow_species, overflow.water, r, plant.deslime, op.deslime_cut_um)
+            factor = float(constant("deslime.max_cut_over_p80"))
+            if op.d50c_um > 0.0 and op.deslime_cut_um > factor * grinding.p80_um:
+                # the contract checks the desliming cut against the grind target, which the cut mode ignores: here the
+                # product is a result, and a cut above half of it would discard the product (K-02)
+                raise InfeasibleState("deslime_cut_above_half_p80", "deslime_cut_um", op.deslime_cut_um, factor * grinding.p80_um)
+            deslime = run_deslime(grinding.overflow_species, overflow.water, r, plant.deslime, op.deslime_cut_um, flags)
             streams["deslime_underflow"] = deslime.underflow
             streams["slimes"] = deslime.slimes
             units.append(("deslime", ["cyclone_overflow"], ["deslime_underflow", "slimes"], 0.0))
@@ -138,14 +145,27 @@ def simulate(ore: Ore, plant: Plant, op: OperatingPoint) -> CircuitResult:
         for name, inputs, outputs, water in units
     ]
     units.append(("circuit", ["crusher_feed"], concentrates + tails, fresh_water))
+    # the breakage operators are audited by their own steady state, T^-1(e) p = m per class (K-01)
+    e = grinding.energy_per_pass_kwh_t
+    equations = {"mill_equation": max(residual(circuit.operators[m].inverse(e), streams["mill_discharge"].solids[m],
+                                               streams["mill_feed"].solids[m]) for m in r.ids)}
+    if regrind is not None:
+        equations["regrind_equation"] = max(residual(circuit.operators[m].inverse(energy), streams["regrind_product"].solids[m],
+                                                     streams["rougher_concentrate"].solids[m]) for m in r.ids)
     balance = audit([(name, [streams[n] for n in inputs], [streams[n] for n in outputs], water)
-                     for name, inputs, outputs, water in units], r)
-    negative = nonnegative(streams, float(constant("numerics.negative_mass_tolerance_per_tph")) * max(1.0, op.throughput_tph))
+                     for name, inputs, outputs, water in units], r, equations)
+    if balance["max_relative_error"] > float(constant("numerics.balance_tolerance")):
+        worst = max(balance["units"], key=balance["units"].get)
+        flags.add("balance_not_closed", f"The audit does not close: {worst} errs by {balance['max_relative_error']:.1e}.")
+    negative = nonnegative(streams, float(constant("numerics.negative_mass_tolerance")))
     if negative:
         flags.add("negative_mass", f"Negative class masses in: {', '.join(negative)}.")
     streams["final_concentrate"] = add(*[streams[n] for n in concentrates])
     streams["final_tail"] = add(*[streams[n] for n in tails])
     metrics, metric_units = _metrics(r, plant, op, streams, grinding, flotation, magnetic, deslime, concentrates, fresh_water, balance)
+    if grinding.p80_um < float(constant("bond.efficiency_min_product_um")):
+        flags.add("bond_efficiency_fine_product", "The product is finer than about 70 um, below which the guideline qualifies the "
+                                                  "Bond efficiency; the ratio is reported without the fineness correction.")
     curves = _curves(r, op, streams, grinding, flotation, magnetic, deslime)
     return CircuitResult(r, streams, concentrates, tails, metrics, metric_units, curves, flags.items, balance, topology,
                          grinding, flotation, magnetic, deslime)

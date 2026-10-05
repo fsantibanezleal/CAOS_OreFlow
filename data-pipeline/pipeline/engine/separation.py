@@ -4,7 +4,8 @@ LIMS: liberated magnetite is captured with ``p_max (1 - exp(-d/d_f))``; composit
 that rises with their magnetite content, ``p_max (1 - exp(-c/c0)) (1 - exp(-d/d_f))``; free gangue
 reports by entrapment ``e0 + e1 exp(-d/d_e)``, scaled down in the cleaner drum. Concentrate Fe
 grade therefore follows liberation, and so the grind (Muthaphuli 2014, JSAIMM 114(7)).
-Desliming: a cyclone at a fine cut sends slimes to tailings with a water bypass to the underflow.
+Desliming: a cyclone at a fine cut sends slimes to tailings. Like the grinding cyclone it has a declared underflow
+density, so its water split, which is also its bypass of fines, follows the solids it sends down (P-04).
 Sources: docs/methodologies/07_magnetic-separation.md and 08_desliming.md.
 """
 from __future__ import annotations
@@ -14,9 +15,10 @@ from dataclasses import dataclass
 
 import numpy as np
 
+from .constants import constant
 from .cyclone import corrected_cut, reduced_partition
 from .grid import grid
-from .model import DeslimePlant, MagneticPlant
+from .model import DeslimePlant, Flags, MagneticPlant
 from .ore import ResolvedOre
 from .species import SpeciesDef, partition_species, species_defs, to_minerals
 from .streams import Stream
@@ -81,15 +83,35 @@ class DeslimeResult:
     partition: dict[str, np.ndarray]
     underflow_species: dict[str, np.ndarray]
     underflow_water: float
+    bypass: float                  # the water split to the underflow, which is also the bypass of every class
 
 
-def run_deslime(x: dict[str, np.ndarray], feed_water: float, ore: ResolvedOre, dp: DeslimePlant, cut_um: float) -> DeslimeResult:
+def run_deslime(x: dict[str, np.ndarray], feed_water: float, ore: ResolvedOre, dp: DeslimePlant, cut_um: float,
+                flags: Flags | None = None) -> DeslimeResult:
+    """The desliming cyclone. Its underflow leaves at the declared solids fraction ``s_u``, so its water split ``R_f``
+    (the bypass of every class) solves ``R_f W = U (1 - s_u)/s_u`` with ``U = R_f X + (1 - R_f) Y``, ``X`` the feed solids
+    and ``Y`` the solids the corrected partition sends down: ``R_f = k Y / (1 - k X + k Y)``, ``k = (1 - s_u)/(s_u W)``.
+    Until 0.09.000 ``R_f`` was a fixed 12% of the feed water, and at 1 m3/t the underflow reached 88% w/w (P-04)."""
     defs = species_defs(ore)
     rho_ref = ore.density[ore.host]
-    partition: dict[str, np.ndarray] = {}
+    grg = float(constant("cyclone.grg_density_exponent"))
+    corrected: dict[str, np.ndarray] = {}
     for d in defs:
-        partition[d.id] = dp.bypass + (1.0 - dp.bypass) * reduced_partition(corrected_cut(cut_um, rho_ref, d.density), dp.sharpness)
+        # declared grains classify with the GRG exponent, as in the grinding cyclone (L-1)
+        exponent = grg if d.kind == "liberated" and ore.spec[d.mineral].grains is not None else 0.5
+        corrected[d.id] = reduced_partition(corrected_cut(cut_um, rho_ref, d.density, exponent), dp.sharpness)
+    solids = float(sum(float(np.sum(v)) for v in x.values()))
+    classified = float(sum(float(np.sum(corrected[k] * x[k])) for k in x))
+    k = (1.0 - dp.underflow_solids) / (dp.underflow_solids * feed_water)
+    if k * solids < 1.0:
+        rf = k * classified / (1.0 - k * solids + k * classified)
+    else:
+        # the feed water cannot carry the solids at the declared density: everything reports to the underflow
+        rf = 1.0
+        if flags is not None:
+            flags.add("deslime_water_short", "The desliming feed carries too little water for the declared underflow density; all of it reports to the underflow.")
+    partition = {key: rf + (1.0 - rf) * y for key, y in corrected.items()}
     under, over = partition_species(x, partition)
-    water_under = dp.bypass * feed_water
+    water_under = rf * feed_water
     return DeslimeResult(Stream(to_minerals(under, defs, ore), water_under),
-                         Stream(to_minerals(over, defs, ore), feed_water - water_under), partition, under, water_under)
+                         Stream(to_minerals(over, defs, ore), feed_water - water_under), partition, under, water_under, rf)

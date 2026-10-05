@@ -81,7 +81,10 @@ classes) and `upper_um` (class upper bounds).
 | `recycle_not_converged` | the flotation recycle did not meet its absolute and relative tolerances |
 | `cell_residence_not_converged` | a flotation cell's tail flow, which sets its residence, did not settle; the last iterate is reported |
 | `composite_scale_not_converged` | the host-limited composite fixed point of the reported pass did not converge (a trial point of a root search raises no flag since 0.09.000) |
-| `negative_mass` | a class mass is negative beyond round-off |
+| `negative_mass` | a class mass is below minus 1e-9 of its own mineral's flow in the stream (since 0.09.000; before, 1e-9 t/h per t/h of throughput, blind to trace minerals) |
+| `balance_not_closed` | a unit's closure (per mineral, per size class where no breakage acts, per species, water, or a breakage operator's own steady state) errs by more than 1e-9 |
+| `bond_efficiency_fine_product` | the product is finer than about 70 um, below which GMG01-MP-2021 qualifies the Bond efficiency; the ratio is reported without the fineness correction |
+| `deslime_water_short` | the desliming feed carries too little water for the declared underflow density; everything reports to the underflow |
 | `non_finite_output` | a non-finite number was replaced by `null` |
 
 **Refusals.** A cut-mode state the contract accepts can still have no steady state (CM-09, 0.08.000). The engine

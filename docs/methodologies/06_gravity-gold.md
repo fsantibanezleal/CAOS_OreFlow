@@ -41,8 +41,11 @@ steady state.
 
   $$d_{50c}^{GRG} = d_{50c}^{host}\left(\frac{\rho_{host} - 1}{\rho_{Au} - 1}\right)^{n},\qquad n = 1.0$$
 
-  Stokes' $n = 0.5$, which every other mineral keeps for want of a measurement of its own, puts the GRG cut three to
-  four times too coarse at those plants.
+  Stokes' $n = 0.5$, which every other mineral keeps for want of a measurement of its own, puts the GRG cut two to four
+  times too coarse at those plants (2.2 at Marvel Loch, 3.8 at Jundee: Stokes cuts of 33 and 39 um against the fitted
+  15.2 and 10.3 um). The fit took the cut of the ore at SG 2.75 as the reference; on the host quartz at 2.65 the same
+  data give 0.85 and 1.10, and $n$ rounds to 1.0 either way (review of 2026-10-04, P-01, which corrected "three to
+  four times"). The desliming cyclone applies the same exponent to declared grains.
 - **Breakage.** GRG's selection is the ore's divided by Banisi's slowdown: 6 at 75 um and 20 at 707 um (the centres
   of his ranges), log-log between and constant outside. GRG ground fine leaves by the overflow, which is the engine's
   form of overgrinding into non-GRG.
@@ -51,7 +54,11 @@ steady state.
 
   $$R(d) = R_{max}\left(1 - e^{-(d/x_g)^2}\right),$$
 
-  locked gold with a small fixed recovery and gangue at a small mass yield. On the mill discharge, the GRG balance is
+  and every other mineral at a small mass yield, the gangue yield. That includes the gold carried in pyrite, 55% of
+  the gold case's gold, which reaches the gravity concentrate at that yield. The unit's composite recovery applies to
+  composites of a gravity mineral, and the catalog has none (declared grains cannot have composites), so it acts on no
+  mineral of the cases; until 0.09.000 this page said the unit recovered "locked gold with a small fixed recovery"
+  (review of 2026-10-04, P-06). On the mill discharge, the GRG balance is
   the engine's form of Eq. 5.1, with $T(e)$ the mill operator at the energy per pass and $p$ the mill discharge:
 
   $$\left(T^{-1}(e) - \mathrm{diag}\big[C\,(1 - bR)\big]\right) p = f,\qquad d = b\,R\,p$$
