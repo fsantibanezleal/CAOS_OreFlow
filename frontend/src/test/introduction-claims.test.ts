@@ -38,6 +38,17 @@ describe('the Introduction says what the case records hold', () => {
     expect(all('en')).toMatch(/pass through the engine as inputs/);
   });
 
+  // L-01 (review of 2026-10-04): one case out is a near-neighbour test for the five chalcopyrite plants, so the page
+  // names the ore-group protocol as the bound on a new plant, and the learning record carries it
+  it('names a whole ore group held out, not one case out, as the bound on a new plant', () => {
+    const learning = JSON.parse(readFileSync(join(derived, 'learning.json'), 'utf-8')) as { leave_one_group_out: unknown[]; transfer_groups: Record<string, string> };
+    expect(learning.leave_one_group_out.length).toBeGreaterThan(0);
+    expect(new Set(Object.values(learning.transfer_groups)).size).toBe(7);
+    expect(text('en')).toMatch(/Its errors with a whole ore group held out, not its interpolation scores and not one case out \(a near-neighbour test where other plants share the ore\), bound how far it can be trusted for a new plant/);
+    expect(text('es')).toMatch(/Sus errores dejando fuera un grupo de mineral completo, no sus puntajes de interpolación ni dejar un caso fuera/);
+    expect(text('en')).not.toMatch(/Its leave-one-case-out errors/);
+  });
+
   // D-07, D-13, D-18, D-19 (review of 0.07.000): the figures draw what the engine runs
   it('the figures draw the regrind, the recleaner, the cut-mode variants, the source switch and water as one number', () => {
     const source = readFileSync(fileURLToPath(new URL('../content/introduction.tsx', import.meta.url)), 'utf-8');

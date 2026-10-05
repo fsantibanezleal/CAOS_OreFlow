@@ -48,10 +48,15 @@ those folders whole, so a case left over from an older catalog would otherwise s
 
 Each stage and each finished case prints a timestamped line, and a bake still running after four
 hours, well past a normal run, prints the stack of every thread once, so a stall shows where it is. On the development
-machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about twenty minutes on twelve
-workers since 0.07.000, when every target-mode optimizer began to run twice (with and without the screen) and
-along the weight path, and the learning stage about forty minutes; both run several times longer when another
-job holds the machine's cores. The measurements (cases, then learning):
+machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about thirty minutes on twelve
+workers and the learning stage about an hour on an idle machine since 0.09.000, whose per-cell flotation residence
+doubled the engine's cost (every target-mode optimizer has run twice, with and without the screen, and along the
+weight path since 0.07.000); both run several times longer when another job holds the machine's cores. The
+measurements (cases, then learning):
+- 5388 s and 7843 s for the committed 0.09.000 bake of 2026-10-05, with the studies in 409 s and the
+  real samples in 352 s, while another session's job held part of the machine;
+- 1849 s and 3610 s for the first 0.09.000 bake of 2026-10-05, on an otherwise idle machine, superseded the same
+  day when five water capacities were re-authored;
 - 905 s and 2646 s for the committed 0.08.001 bake of 2026-10-04, with the studies in 68 s and the real
   samples in 64 s, on an otherwise idle machine;
 - 4445 s and 15303 s for the 0.08.000 bake of 2026-10-03, with the studies in 378 s and the real samples in

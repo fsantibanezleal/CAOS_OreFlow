@@ -77,8 +77,15 @@ def test_off_specification_base_is_restored():
 
 
 def test_water_constraint_can_bind():
-    record = _record("copper_oxide")
-    assert "water" in record["optimum"]["active"]
+    """The water capacity binds where the optimum's water need reaches it: at the oxide copper's and the nickel case's
+    nominal optima, each on its capacity within the active tolerance. With 0.08.001's capacity (3.29 m3/t, 3.3% above
+    the fixed engine's nominal need) the oxide copper's search stopped on power; re-authored by its rule to 3.34, the
+    capacity binds there again."""
+    for case_id in ("copper_oxide", "nickel_sulphide"):
+        case = CASE_BY_ID[case_id]
+        optimum = _record(case_id)["optimum"]
+        assert "water" in optimum["active"], case_id
+        assert abs(optimum["values"]["water_m3_t"] / case.plant.water_limit_m3_t - 1.0) <= ACTIVE, case_id
 
 
 # OP-02 to OP-04: the pattern search with a progressive barrier on analytic problems, before the engine uses it

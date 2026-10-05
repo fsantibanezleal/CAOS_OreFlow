@@ -21,7 +21,7 @@ A coarser grind makes fewer slimes, which is why overgrinding a desliming feed c
 A desliming cyclone on the grinding overflow partitions each particle class with the Rosin-Rammler
 form of page 04 and a declared sharpness. Its cut, an operating control (`deslime_cut_um`), is the corrected
 (bypass-free) cut of the host quartz; every other class is cut at its density-corrected size, as in the grinding
-cyclone (apatite at 0.87 of the control, 17.4 um at the nominal 20 um; kaolinite at 1.02 of it; declared grains with
+cyclone (apatite at 0.87 of the control, 17.4 um at the nominal 20 um; kaolinite at 1.01 of it; declared grains with
 the fitted GRG exponent of page 06), and the bypass sends the same share of every class to the underflow, so no
 partition falls below it.
 

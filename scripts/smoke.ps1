@@ -2,7 +2,7 @@
 # request: every guard CI runs, ruff, the Python suite, every framework example (docs/frameworks/*/example.py,
 # which fit models and so stay out of CI), and the frontend typecheck, tests and build.
 # -Bake adds a sandbox bake into build/smoke, validated by the bake's own last stage; the committed
-# data/derived and models/ are never written. It takes as long as a real bake (about forty minutes).
+# data/derived and models/ are never written. It takes as long as a real bake (about an hour and a half on an idle machine since 0.09.000).
 param([switch]$Bake)
 $ErrorActionPreference = "Stop"
 Set-Location (Join-Path $PSScriptRoot "..")

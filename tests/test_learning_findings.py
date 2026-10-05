@@ -59,6 +59,21 @@ def test_model_table_quotes_the_record():
             assert _matches(values[k], actual), (cells[0], target, column, values[k], actual)
 
 
+def test_within_case_and_transfer_table_quotes_the_record():
+    """L-01, L-03: the scores within each case and with a whole ore group held out."""
+    record = json.loads(RECORD.read_text(encoding="utf-8"))
+    rows = _rows(_findings(), "Model, within case and one group out")
+    assert {r[0] for r in rows} == set(MODELS), rows
+    columns = ("interpolation_r2_within_case", "transfer_r2_median", "transfer_rmse_mean")
+    for cells in rows:
+        model = MODELS[cells[0]]
+        values = cells[1:]
+        assert len(values) == len(TARGETS) * len(columns), cells
+        for k, (target, column) in enumerate((t, c) for t in TARGETS for c in columns):
+            actual = record["summary"][model][target][column]
+            assert _matches(values[k], actual), (cells[0], target, column, values[k], actual)
+
+
 def test_guard_table_quotes_the_record():
     record = json.loads(RECORD.read_text(encoding="utf-8"))
     folds = record["leave_one_case_out"]
@@ -111,3 +126,20 @@ def test_design_line_quotes_the_record():
     section = _findings()
     match = re.search(r"(\d[\d,]*) engine states", section)
     assert match and int(match.group(1).replace(",", "")) == record["design"]["rows"]
+
+
+def test_protocols_section_quotes_the_group_folds():
+    """The Protocols section listed two protocols for a release after the record gained the third (L-01); it is held
+    to the record's ore groups and fold sizes."""
+    record = json.loads(RECORD.read_text(encoding="utf-8"))
+    groups = {g["held_out_group"]: g for g in record["leave_one_group_out"]}
+    cu, au = groups["Cu:chalcopyrite"], groups["Au:pyrite"]
+    alone = len(record["transfer_groups"]) - len(cu["cases"]) - len(au["cases"])
+    words = {5: "five", 7: "seven"}
+    text = re.sub(r"\s+", " ", PAGE.read_text(encoding="utf-8"))
+    section = text[text.index("## Protocols"):text.index("## Models")]
+    for phrase in (f"the {words[len(cu['cases'])]} chalcopyrite plants ({cu['train_rows']} training and {cu['test_rows']} test rows)",
+                   f"the two gold plants with most of their gold in pyrite ({au['train_rows']} and {au['test_rows']})",
+                   f"each of the other {words[alone]} alone",
+                   f"{words[len(set(record['transfer_groups'].values()))]} groups in all"):
+        assert phrase in section, phrase

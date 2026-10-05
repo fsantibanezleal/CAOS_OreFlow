@@ -18,7 +18,8 @@ card for any library it introduces) in the same commit before the next one start
 - [x] T12 Kinetic fits and bank projection (PE-26): five lumped models, including the gamma form of the dossier.
 - [x] T13 Constrained optimization (PE-27): grade, power and process-water constraints; water capacities authored per case.
 - [x] T14 Uncertainty and Sobol (PE-28): scrambled Latin hypercube, authored spreads, SALib Saltelli indices.
-- [x] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29); the baked
+- [x] T15 Learned lane with interpolation and leave-one-case-out protocols, ONNX (PE-29), and since 0.09.000
+  leave-one-ore-group-out and the within-case scores (L-01, L-03); the baked
   results and the test that pins the page's findings land with T16.
 - [x] T16 Pipeline stages, artifacts, manifests, benchmark, non-vacuous validation, check_artifacts (PE-02).
   Canonical bake of 2026-09-26: 12 cases and 72 variants, validation passed (cases 375 s on twelve

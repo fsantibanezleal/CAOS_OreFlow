@@ -2,6 +2,97 @@
 
 ## [Unreleased]
 
+## [0.09.000] - 2026-10-05
+
+The fixes of the adversarial validation of the implementation (issue #82): six reviewers, one per dimension, tested
+whether every equation, model and piece of logic is the one its source states and is applied correctly for every
+input the contract admits; the lead session verified every finding and reviewed the equations the app shows. No
+finding was refuted; three were narrowed. Every fix carries a test that fails on 0.08.001, in both engines where the
+code lives in both. Plant calibration stays out of scope.
+
+### Changed (the engine)
+
+- **Composite flotation** goes with the two-thirds power of the valuable mineral's volume share in the particle, as
+  its exposed-surface law requires; 0.08.001 raised the mass content to 2/3, which made composites float 7 to 47% too
+  fast and nominal recoveries 0.24 to 2.71 points too high (F-01).
+- **Each flotation cell** takes its residence on its own tail flow, as the single-cell balance (the tail carries the
+  pulp composition) requires, a scalar fixed point per cell; the cells of a bank are solved in series. 0.08.001 used
+  the bank feed's flow for every cell (F-02). The bank is vectorised and warm-started, so the engine runs at about
+  twice 0.08.001's cost in Python and 1.2 times in the browser.
+- **Mill power** is the energy per pass times the mill's own feed; with the gravity unit on the underflow the
+  gravity concentrate never enters the mill, and 0.08.001 counted it (C-03, P-05, K-07).
+- **The desliming cyclone** holds a declared underflow density, like the grinding cyclone, so its water split follows
+  the solids it sends down; 0.08.001 sent a fixed 12% of the water, and at 1 m3/t its underflow reached 88% solids
+  (P-04). Declared gravity grains classify with the fitted GRG exponent in both cyclones (L-1).
+- **The cut mode refuses** a desliming cut above half the achieved P80, which the contract's rule could not see
+  because the cut mode ignores the grind target (K-02).
+- **The audit** closes every size class of every mineral where no breakage acts, audits the mill and the regrind by
+  their own steady state, and flags `balance_not_closed`; negative masses and the particle-class consistency are
+  judged against each mineral's own flow (K-01, K-10).
+- **Root searches** raise at their iteration cap, fall back to the side where the root lies, and flag only the pass
+  they report (K-11, K-13, C-10). The Bond efficiency is flagged below 70 um, as GMG01-MP-2021 qualifies it (C-02).
+  Kaolinite's density is the Handbook of Mineralogy's 2.63 (F-06).
+
+### Changed (the cases)
+
+- **Five process-water capacities** are re-authored by their declared rule, 5% above the nominal need, which the
+  fixes above moved: oxide copper 3.29 to 3.34 m3/t (3.3% above its new need), the soft porphyry 2.29 to 2.28, the
+  phosphate 4.98 to 4.97, the zinc 2.81 to 2.80 and the refractory gold 2.37 to 2.35; the rule test caught them.
+
+### Changed (the methods and the records)
+
+- The entrained share of gangue is defined on the rougher concentrate, and the rougher mass pull on the rougher's
+  own feed (F-04, F-05, K-08, K-09). Kinetic fits report the bounds they rest on, and a batch curve with no signal
+  is not fitted (F-07, F-08).
+- Uncertainty records list the draws their values belong to; the floatability factor reaches every floating valuable
+  mineral, electrum and chrysocolla included (M-01 to M-03). A base the engine refuses has no optimum, optima say
+  whether their search converged, Sobol records report refused draws, are reproducible at seed 0 and label their
+  bootstrap half widths as bounds (M-05 to M-13).
+- The learned lane measures transfer by holding a whole ore group out, scores interpolation within each case beside a
+  predictor that knows only the case, and shuffles importance within each case; the browser's surrogate declines the
+  cut mode (L-01 to L-04). GeoMet local inference writes its four models, the benchmark protocol is built from its
+  counts, and the normative allocation refuses an assay short of iron (L-07 to L-09).
+
+### Fixed (the app and the contract)
+
+- The Uncertainty scatter paired design rows with other draws' outputs after a refused draw (M-01); sweep grids drop
+  no declared bound (M-04); the browser validator no longer accepts a prototype member as an input (K-03); a huge
+  integer is `not_finite`, not a 500 (K-04); the partition curve is the one the circuit applies (P-02).
+- Pages 01 to 15, the data contract, the guide and the app's equations state what the code does: the net energy
+  basis, the scaled crushing work index, the refusals and their share, the audit's identities, the volume-share law,
+  the water-recovery equation, the per-cell residence, the Stokes factor of the GRG fit, the desliming cut and its
+  density, the bleed range's basis, the parameter values the cases run, the starts and budget of the optimizer, the
+  uncertainty's refused draws, the Sobol estimates' bounds, the transfer protocol and the allocation's alternative.
+  A guard checks every content string for control characters.
+- Pages no test read had drifted, and each now has its test: frameworks 04 and 05 quoted a 0.05 to 0.07 learning
+  record (the MLP at 55.5 points, the free-milling gold "failing"), page 08 kept kaolinite's cut factor from its old
+  density, page 14 listed two protocols and the scikit-learn importance the record no longer uses, and page 06 and
+  the app's gravity topic quoted the gold case's nominal recoveries unchecked. Requirement PE-29 and the design document
+  name the third protocol.
+- The manuscript draft adds the one-ore-group-out protocol and its result (held out as an ore group, no model keeps a
+  positive median recovery R²; one case out is a near-neighbour test for the five chalcopyrite plants), describes
+  the composite rate, the per-cell residence, the mill power basis and the desliming water split, and no longer says
+  the grinding energy is Bond's: it is the population balance's net energy, with Bond giving the work index beside it.
+
+### Records
+
+- Re-baked whole: the release bake of 2026-10-05 (learning 7843 s on CUDA, cases 5388 s on 12 workers, studies 409 s,
+  real samples 352 s, while another session's job held part of the machine) passed its validation. Against
+  0.08.001's records: 223,556 values equal, 196,562 changed, 19,579 added and 4,802 removed. The changes are the fixes':
+  every trace through the composite rate, the cell residence, the mill power basis and the desliming water split; the
+  kinetic fits, the optimizer, uncertainty and Sobol records and the learning scores that follow; and the new fields
+  (the ore groups and their folds, the within-case scores and the case-mean baseline, the solved and refused draws,
+  the convergence flags, the GeoMet lane's fourth prediction, the refusal reasons).
+- The first release bake of the day was not committed: re-measuring the pages on it found the five water capacities
+  above off their rule. Against it the committed bake differs only where the capacity enters (the optimizer and
+  uncertainty records of those five cases, two cases' seed-study probabilities, the plant definitions), in
+  random-forest scores at their last bits (at most 5.7e-14 relative) and in the timings; the exported networks, the
+  scalers and the screen are byte-identical.
+- What the records now say, each page with its own figures: the first-order kinetic projection misses by 5.95 points
+  on average (gamma 0.89, Kelsall 1.07); the optimizer's nominal gains run 0.3 to 8.4%; the nickel case has the
+  widest recovery interval (8.4 points P05 to P95); the MLP interpolates recovery best (R² 0.946), and held out as an
+  ore group no model keeps a positive median recovery R².
+
 ## [0.08.001] - 2026-10-04
 
 A patch of 0.08.000: the service answers a direct request for a page again.

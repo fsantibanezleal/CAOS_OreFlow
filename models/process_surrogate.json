@@ -77,14 +77,14 @@
   0.2763853991962942
  ],
  "target_mean": [
-  75.90070677590515,
-  1.2850311538438508,
-  13.74164880414552
+  75.23536353697718,
+  1.2849706158497372,
+  13.777549445590118
  ],
  "target_scale": [
-  15.783609321018465,
-  0.48329024660132885,
-  4.816756136662414
+  15.771066616601942,
+  0.48229159821898626,
+  4.8234273943006905
  ],
  "guard_feature_mean": [
   -2.461359604206042,
@@ -163,9 +163,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 94.08542966633448,
-    "log_upgrade": 1.557459340711996,
-    "specific_energy_total_kwh_t": 10.454152139586217
+    "recovery_pct": 92.97994170591056,
+    "log_upgrade": 1.5654505441964677,
+    "specific_energy_total_kwh_t": 10.409927086673644
    },
    "guard_error": 0.0373107917978454,
    "guard_flag": false
@@ -197,9 +197,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 93.53830420132252,
-    "log_upgrade": 1.6976322755262656,
-    "specific_energy_total_kwh_t": 15.867000946121685
+    "recovery_pct": 92.8776346089434,
+    "log_upgrade": 1.6969583601385174,
+    "specific_energy_total_kwh_t": 15.968525683953466
    },
    "guard_error": 0.03392862433521868,
    "guard_flag": false
@@ -231,9 +231,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 98.67224910825259,
-    "log_upgrade": 1.4123959817728147,
-    "specific_energy_total_kwh_t": 16.84195013668606
+    "recovery_pct": 98.51574324611666,
+    "log_upgrade": 1.4138827952286057,
+    "specific_energy_total_kwh_t": 16.52126488929806
    },
    "guard_error": 0.1263775532763411,
    "guard_flag": false
@@ -265,9 +265,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 85.26630544498211,
-    "log_upgrade": 0.336768326391656,
-    "specific_energy_total_kwh_t": 20.09452296961966
+    "recovery_pct": 85.10979572942001,
+    "log_upgrade": 0.3396688310748568,
+    "specific_energy_total_kwh_t": 20.12364860493946
    },
    "guard_error": 0.008161698625074725,
    "guard_flag": false
@@ -299,9 +299,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 78.69610915357431,
-    "log_upgrade": 1.211662441250406,
-    "specific_energy_total_kwh_t": 15.400845469104533
+    "recovery_pct": 76.45726517324725,
+    "log_upgrade": 1.2170572827396597,
+    "specific_energy_total_kwh_t": 15.406699507942722
    },
    "guard_error": 0.07181575772475603,
    "guard_flag": false
@@ -333,9 +333,9 @@
     1.0
    ],
    "prediction": {
-    "recovery_pct": 71.4561919986421,
-    "log_upgrade": 0.4830852509797121,
-    "specific_energy_total_kwh_t": 7.226068738135238
+    "recovery_pct": 71.86204448837928,
+    "log_upgrade": 0.4708076240963972,
+    "specific_energy_total_kwh_t": 7.25338050602382
    },
    "guard_error": 0.030645940277943772,
    "guard_flag": false
@@ -367,9 +367,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 94.66765738138517,
-    "log_upgrade": 1.638892972488906,
-    "specific_energy_total_kwh_t": 15.077496488993845
+    "recovery_pct": 93.90080146155513,
+    "log_upgrade": 1.6425355428462192,
+    "specific_energy_total_kwh_t": 15.076514321772192
    },
    "guard_error": 0.025325489360064676,
    "guard_flag": false
@@ -401,9 +401,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 79.67192526883352,
-    "log_upgrade": 1.280946597979949,
-    "specific_energy_total_kwh_t": 12.81565751817058
+    "recovery_pct": 77.87858052899335,
+    "log_upgrade": 1.2858320071060536,
+    "specific_energy_total_kwh_t": 12.879314887058685
    },
    "guard_error": 0.029456155150951433,
    "guard_flag": false
@@ -435,9 +435,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 91.44809748468155,
-    "log_upgrade": 1.0394007881491976,
-    "specific_energy_total_kwh_t": 17.141019269072228
+    "recovery_pct": 91.05168690125345,
+    "log_upgrade": 1.0447993914112037,
+    "specific_energy_total_kwh_t": 17.078596311001387
    },
    "guard_error": 0.06428228958839027,
    "guard_flag": false
@@ -469,9 +469,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 92.39063974888761,
-    "log_upgrade": 1.7334092932170972,
-    "specific_energy_total_kwh_t": 11.565011516561874
+    "recovery_pct": 91.70810526852645,
+    "log_upgrade": 1.7381506262874855,
+    "specific_energy_total_kwh_t": 11.652554153469103
    },
    "guard_error": 0.043388349176832985,
    "guard_flag": false
@@ -503,9 +503,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 92.45696072387503,
-    "log_upgrade": 1.9392703412727794,
-    "specific_energy_total_kwh_t": 12.95447244933884
+    "recovery_pct": 91.63573808958495,
+    "log_upgrade": 1.9382566323780552,
+    "specific_energy_total_kwh_t": 12.968905655858054
    },
    "guard_error": 0.04473624071784437,
    "guard_flag": false
@@ -537,9 +537,9 @@
     0.0
    ],
    "prediction": {
-    "recovery_pct": 94.48166964490207,
-    "log_upgrade": 1.097140064569752,
-    "specific_energy_total_kwh_t": 19.34331678617348
+    "recovery_pct": 92.20678867928865,
+    "log_upgrade": 1.0963833884216914,
+    "specific_energy_total_kwh_t": 19.331254527898302
    },
    "guard_error": 0.024293445820679424,
    "guard_flag": false

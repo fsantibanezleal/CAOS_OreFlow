@@ -51,7 +51,8 @@ refuses them (page 03). They are left out of the quantiles, moments and values, 
 draws only, and each counts as failing every constraint in the probabilities, which are over every draw. The record
 lists the refusals by code and the design rows the values belong to (`solved`), and the view states the solved count
 beside the design size and pairs each value with its own draw. The refused draws are the hard ores (in the hard
-porphyry's finer-cut variant, 40 of 128, every one with a work-index factor of 1.077 or more), so the quantiles there
+porphyry's finer-cut variant, 40 of 128, every one refused as `circulating_load_above_bound` with a work-index factor
+of 1.077 or more), so the quantiles there
 describe the ores that have a steady state, not the whole design. Until 0.09.000 neither the page nor the view said
 so, the view titled the histogram "128 samples" over 88 values, and its scatter paired design row $i$ with value $i$,
 which after the first refusal joined one ore with another's result (review of 2026-10-04, M-01 and M-02).
@@ -77,8 +78,8 @@ $X_i$:
 $$S_i = \frac{V\left[E(Y \mid X_i)\right]}{V(Y)}, \qquad S_{T_i} = \frac{E\left[V(Y \mid X_{\sim i})\right]}{V(Y)}.$$
 
 In exact arithmetic $S_{T_i} \ge S_i$, and $S_{T_i} - S_i$ is the interaction share. The estimates below carry
-sampling error: in the baked records at $N = 256$, $S_T$ falls below $S_1$ in 76 of 188 entries, one total index
-exceeds 1 (1.0004) and 14 first-order indices are slightly negative (to -0.0003). The view shows an interaction
+sampling error: in the baked records at $N = 256$, $S_T$ falls below $S_1$ in 78 of 188 entries (by at most 0.0073), one
+total index exceeds 1 (1.0004) and 14 first-order indices are slightly negative (to -0.0002). The view shows an interaction
 within the estimates' half widths as "within error", never as a negative share (M-06). The indices are estimated with the
 Saltelli design: two independent base matrices $A$ and $B$ of $N$ rows and, for each input, a matrix
 $A_B^{(i)}$ that is $A$ with column $i$ taken from $B$, which costs $N(D + 2)$ evaluations; the
@@ -115,7 +116,7 @@ the Sensitivity view says so instead of drawing indices.
 Measured on the committed records (drawn with the SplitMix64 design since 0.07.000) on two cases, and held to them
 by `tests/test_docs_claims.py` (the baked records for every case are on the Experiments page):
 
-- Soft copper porphyry: recovery P05 to P95 of 90.2 to 94.5%; the mill stays within installed power
+- Soft copper porphyry: recovery P05 to P95 of 89.4 to 93.8%; the mill stays within installed power
   in 82% of the samples, because a harder ore trips the power limit. Floatability drives recovery
   (total index about 0.8), liberation size drives grade (about 0.8), the work index drives grinding
   energy (about 1.00) and head grade drives recovered metal (about 0.98).

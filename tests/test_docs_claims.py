@@ -55,7 +55,7 @@ def test_page_15_quotes_the_real_samples_record():
     pearson = [row["pearson"] for row in sens["gap_by_assumed_p80"]]
     spread = [row["engine_sd_pp"] for row in sens["gap_by_assumed_p80"]]
     sign = [a for a, b in zip(sorted(curve), sorted(curve)[1:]) if curve[a]["mean_gap_pp"] > 0 > curve[b]["mean_gap_pp"]]
-    assert len(sign) == 1 and (sign[0], sorted(curve)[sorted(curve).index(sign[0]) + 1]) == (160.0, 165.0)
+    assert len(sign) == 1 and (sign[0], sorted(curve)[sorted(curve).index(sign[0]) + 1]) == (150.0, 160.0)
     assert (bornite[0], bornite[-1], chalcocite[0], chalcocite[-1]) == (0.62, 0.8, 0.67, 2.5)
     wi = s["work_index_kwh_t"]
     missing = _missing("15_real-samples.md", [
@@ -71,7 +71,7 @@ def test_page_15_quotes_the_real_samples_record():
         f"| the hard porphyry's circuit at its nominal point | {hosts['hard_nominal']['mean_gap_pp']:.1f} | {hosts['hard_nominal']['rmse_pp']:.1f} |",
         f"| the mill sized for a 150 um product | {base_150:+.1f} | {hosts['soft_720_sized_150']['rmse_pp']:.1f} |",
         f"| each sample at the throughput that gives 150 um ({target['tph']['min']:.0f} to {target['tph']['max']:.0f} t/h) | {target['mean_gap_pp']:+.1f} | {target['rmse_pp']:.1f} |",
-        f"the gap runs from {curve[75.0]['mean_gap_pp']:+.1f} points at 75 um to {curve[300.0]['mean_gap_pp']:.1f} at 300 um and changes sign between 160 and 165 um",
+        f"the gap runs from {curve[75.0]['mean_gap_pp']:+.1f} points at 75 um to {curve[300.0]['mean_gap_pp']:.1f} at 300 um and changes sign between 150 and 160 um",
         f"Of the {target['mean_gap_pp']:+.1f} points at each sample's own target-grind throughput, {target['residence_share_pp']:.1f} come from the longer flotation residence",
         f"(Pearson r between {min(pearson):.2f} and {max(pearson):.2f}), and it varies by {min(spread):.1f} to {max(spread):.1f} points across the samples against the tests' {sens['measured_population_sd_pp']:.1f}",
         f"with chalcocite at {chalcocite[0]:g} of bornite, the low end of its range, r is {low_ratio[0]:.2f} to {low_ratio[-1]:.2f}",
@@ -279,7 +279,13 @@ def test_page_12_quotes_the_optimizer_records():
         optimum = next(x for x in cases[c]["variants"] if x["id"] == v)["methods"]["optimization"]["optimum"]
         for series in ([optimum["values"]["energy_kwh_t"], *[s["energy_kwh_t"] for s in r["path"]]], [optimum["recovered_tph"], *[s["recovered_tph"] for s in r["path"]]]):
             worst = max(worst, *(b / a - 1 for a, b in zip(series, series[1:])))
-    names = {"iron_magnetite_fine": "magnetite", "copper_oxide": "oxide copper", "zinc_sulfide": "zinc"}
+    budget_optima = sum(1 for c, v, _ in feasible if next(x for x in cases[c]["variants"] if x["id"] == v)["methods"]["optimization"]["converged"] is False)
+    steps = [s for c in cases for x in cases[c]["variants"] for s in (x["methods"].get("optimization") or {}).get("path") or []]
+    budget_steps, total_steps = sum(1 for s in steps if s["converged"] is False), len(steps)
+    names = {"copper_porphyry_soft": "soft porphyry", "copper_porphyry_hard": "hard porphyry", "gold_free_milling": "free-milling gold",
+             "iron_magnetite_fine": "magnetite", "nickel_sulphide": "nickel", "phosphate_clay": "phosphate",
+             "copper_molybdenum": "copper-molybdenum", "copper_oxide": "oxide copper", "zinc_sulfide": "zinc",
+             "mixed_ore_high_clay": "copper ore with clay", "low_grade_copper": "low-grade copper", "refractory_gold": "refractory gold"}
     infeasible = sorted(v for c, v, r in records if r["status"] != "optimal")
     assert infeasible == ["harder_ore", "higher_throughput"]
     assert gains[0][1:] == ("iron_magnetite_fine", "coarser_grind") and gains[-1][1:] == ("copper_oxide", "coarser_grind")
@@ -305,6 +311,8 @@ def test_page_12_quotes_the_optimizer_records():
         f"the nominal optima spend {min(t[1] for t in moved):.0f} to {max(t[1] for t in moved):.0f}% less energy per tonne and recover "
         f"{min(t[2] for t in moved):.0f} to {max(t[2] for t in moved):.0f}% less metal",
         f"beyond {worst:.1e} relative".replace("e-0", "e-"),
+        # M-09: the optima and the path steps whose search stopped on its budget, counted in the case records
+        f"In the baked records {budget_optima} of the {len(feasible)} optima and {budget_steps} of the {total_steps} path steps are of that kind",
     ])
     assert not missing, missing
 
@@ -313,6 +321,7 @@ def test_page_06_quotes_the_gravity_oracle():
     """The rebuilt gravity page quotes the like-for-like Laplante oracle; no test read it."""
     lap = _read(DERIVED / "benchmark.json")["oracles"]["laplante"]
     e, p, w, audit = lap["engine"], lap["published"], lap["without_grg_below_25um"], lap["audit"]
+    gold = _read(DERIVED / "cases" / "gold_free_milling.json")["variants"][0]["trace"]["metrics"]
     low = [-d for d in e["grg_recovery_difference_points"]]
     below = [-r for r in e["grg_circulating_load_relative_error"]]
     w_below = [-r for r in w["grg_circulating_load_relative_error"]]
@@ -335,6 +344,8 @@ def test_page_06_quotes_the_gravity_oracle():
         f"gold grade ratio of {p['audit']['underflow_au_gpt'] / p['audit']['overflow_au_gpt']:.1f} and "
         f"{100 * p['audit']['underflow_grg_share']:.0f}% GRG in the underflow gold; the engine gives "
         f"{audit['underflow_over_overflow_au_grade']:.1f} and {100 * audit['underflow_grg_share']:.0f}%",
+        # the nominal state's gravity recovery, which no test read until 0.09.000
+        f"At the nominal state the gold case recovers {gold['grg_recovery_pct']:.1f}% of its GRG by gravity, {gold['gravity_recovery_pct']:.1f}% of all its gold",
     ])
     assert not missing, missing
 
@@ -427,5 +438,72 @@ def test_contract_06_and_03_quote_their_records():
         f"{off} of the {pairs} case-switch pairs are not applicable",
         f"`seeds` ({seed['seeds'][0]} to {seed['seeds'][-1]} in steps of {seed['seeds'][1] - seed['seeds'][0]}), `samples` ({seed['samples']} per seed)",
         "(`" + "`, `".join(st["switches"]) + "`)",
+    ])
+    assert not missing, missing
+
+
+def test_the_framework_pages_quote_the_learning_record():
+    """Frameworks 04 and 05 quoted a learning record of 0.05 to 0.07 (MLP 55.5 points, magnetite 283, gold "failing")
+    four releases on, because no test read them (review of 2026-10-04). Every number they print is held here."""
+    learning = _read(DERIVED / "learning.json")
+    s = learning["summary"]
+    rec = {m: s[m]["recovery_pct"] for m in s}
+    folds = {f["held_out"]: f["models"] for f in learning["leave_one_case_out"]}
+    copper = ("copper_porphyry_soft", "copper_porphyry_hard", "copper_molybdenum", "mixed_ore_high_clay", "low_grade_copper")
+    gp = learning["interpolation"]["models"]["gaussian_process"]
+    seeds = learning["mlp_seeds"]["summary"]["recovery_pct"]["loco_rmse_mean"]
+    group = {g["held_out_group"]: g for g in learning["leave_one_group_out"]}["Cu:chalcopyrite"]["models"]
+    final = learning["final"]["mlp_training"]
+    closest = max(rec, key=lambda m: rec[m]["transfer_r2_median"])
+    names = {"ridge": "Ridge", "random_forest": "Random forest", "hist_gradient_boosting": "Histogram gradient boosting",
+             "gaussian_process": "Gaussian process", "mlp": "MLP (PyTorch, [05](../05_pytorch.md))"}
+    assert sorted(rec, key=lambda m: -rec[m]["loco_r2_median"])[:2] == ["mlp", "hist_gradient_boosting"] and closest == "random_forest"
+    assert all(rec[m]["transfer_r2_median"] < 0 for m in rec) and all(c in folds for c in copper)
+    def flat(rel: str) -> str:
+        return re.sub(r"\s+", " ", (ROOT / "docs" / "frameworks" / rel).read_text(encoding="utf-8"))
+
+    sklearn = flat("04_scikit-learn/02_usage.md")
+    missing = [p for p in [
+        *[f"| {names[m]} | {rec[m]['interpolation_rmse']:.2f} | {rec[m]['loco_rmse_mean']:.2f} | {rec[m]['loco_rmse_max']:.2f} |" for m in names],
+        f"by the median held-out R² the MLP ({rec['mlp']['loco_r2_median']:.3f}) and gradient boosting ({rec['hist_gradient_boosting']['loco_r2_median']:.3f}) lead",
+        f"(held out, the hard porphyry costs the MLP {folds['copper_porphyry_hard']['mlp']['recovery_pct']['rmse']:.1f} points and ridge"
+        f" {folds['copper_porphyry_hard']['ridge']['recovery_pct']['rmse']:.1f})",
+        f"for the MLP, {folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.0f} points on the magnetite circuit (drums instead of flotation) and"
+        f" {folds['phosphate_clay']['mlp']['recovery_pct']['rmse']:.0f} on phosphate (desliming first)",
+        f"no model keeps a positive median recovery R² (the random forest comes closest, {rec[closest]['transfer_r2_median']:.3f})",
+        f"cover {100 * gp['recovery_pct']['coverage_95']:.1f}% of the held-out recoveries ({100 * gp['log_upgrade']['coverage_95']:.1f}% and"
+        f" {100 * gp['specific_energy_total_kwh_t']['coverage_95']:.1f}% for the other two targets)",
+        "with each feature shuffled within each case",
+    ] if p not in sklearn]
+    torch = flat("05_pytorch/02_usage.md")
+    alone = [folds[c]["mlp"]["recovery_pct"]["rmse"] for c in copper]
+    missing += [p for p in [
+        f"({final['parameters']} parameters)",
+        f"(recovery RMSE {rec['mlp']['interpolation_rmse']:.2f} points)",
+        f"({rec['mlp']['loco_rmse_mean']:.1f} points on average over the held-out cases at the record's seed, {min(seeds):.1f} to {max(seeds):.1f} over five seeds)",
+        f"costs it {min(alone):.1f} to {max(alone):.1f} points",
+        f"the magnetite circuit costs {folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.0f} (recoveries predicted far outside 0 to 100%) and"
+        f" phosphate {folds['phosphate_clay']['mlp']['recovery_pct']['rmse']:.0f}",
+        f"the five copper cases score a recovery R² of {group['mlp']['recovery_pct']['r2']:.3f}",
+        f"reached its {final['epochs_run']}-epoch cap with its best validation loss at epoch {final['best_epoch']}, on {final['device'].upper()}"
+        if not final["stopped_early"] else f"stopped at epoch {final['epochs_run']} with its best validation loss at epoch {final['best_epoch']}",
+    ] if p not in torch]
+    assert not missing, missing
+
+
+def test_page_08_quotes_the_density_corrected_cuts():
+    """Page 08 kept kaolinite's cut factor (1.02) from its density before 0.09.000 corrected it to the Handbook of
+    Mineralogy's 2.63 (F-06), because no test read it. The factors are computed here from the declared densities."""
+    import sys
+
+    sys.path.insert(0, str(ROOT / "data-pipeline"))
+    from pipeline.engine.cyclone import corrected_cut
+
+    minerals = _read(ROOT / "data-pipeline" / "pipeline" / "engine" / "data" / "minerals.json")
+    density = {k: v["density"] for k, v in (minerals.get("minerals", minerals)).items() if isinstance(v, dict) and "density" in v}
+    apatite = corrected_cut(1.0, density["quartz"], density["fluorapatite"])
+    kaolinite = corrected_cut(1.0, density["quartz"], density["kaolinite"])
+    missing = _missing("08_desliming.md", [
+        f"apatite at {apatite:.2f} of the control, {20.0 * apatite:.1f} um at the nominal 20 um; kaolinite at {kaolinite:.2f} of it",
     ])
     assert not missing, missing

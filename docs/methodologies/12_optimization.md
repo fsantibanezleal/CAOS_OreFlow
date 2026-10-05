@@ -60,8 +60,8 @@ power-of-two mesh, so the two languages take the same path, and the weight is a 
   grind range) or when its search has visited 200 distinct points, counting those an earlier start had already run
   (so a budget stop can come after as few as 17 new engine runs), and the record says which (OP-02). An optimum whose
   best start stopped on the budget carries `converged: false`, and so does such a step of the weight path; the view
-  says the best search stopped on its budget. In the baked records 11 of the 94 optima and 21 path steps are of that
-  kind; until 0.09.000 they were plain `optimal` (review of 2026-10-04, M-09). A slack that is not a finite number is
+  says the best search stopped on its budget. In the baked records 9 of the 94 optima and 21 of the 288 path steps are
+  of that kind (11 and 21 in the review's count on 0.08.001's records); until 0.09.000 they were plain `optimal` (review of 2026-10-04, M-09). A slack that is not a finite number is
   infeasible in both languages (M-10).
 - **Constraints.** The grade, power and water constraints are relaxable: they enter through the aggregate
   violation of their relative slacks $s_c$,
@@ -136,28 +136,27 @@ gives every variant). `tests/test_docs_claims.py` holds each number here to the 
 - **Feasibility.** 94 of the 96 variants reach an optimum. The two that do not are the magnetite case's harder ore
   and higher throughput: the grind is the only decision, the mill is already at installed power, and no grind
   target meets every constraint. The least-violating point is reported for both.
-- **Gains.** 28 of the 72 target-mode variants break a constraint as run; the 24 cut-mode variants break none.
-  The gain in recovered metal runs from -0.8% (magnetite, coarser grind: a state that broke its grade
-  specification, restored at the cost of metal) to +18.1% (oxide copper, coarser grind); at the nominal states
-  from 0.3% (magnetite) to 7.6% (oxide copper), and in the cut mode from 0.3% (magnetite) to 5.1% (zinc).
-- **Active constraints.** Installed power at 81 of the 94 optima, and at all 24 in the cut mode; the grade
-  specification at 23; the water capacity at 10.
-- **What the screen cost (OP-06, OP-11).** Over the 72 screened variants the search spent 24,758 engine
-  evaluations, and the same starts and weight without the screen 21,692: 14.1% more with the screen. It took fewer
-  evaluations in 1 variant, more in 64 and the same in 7. Of the 74,327 candidates screened, the guard rejected
-  5,023 and the interval 42,306; the engine evaluated the best passing candidate 5,142 times, and 829 of those
-  became an incumbent. Without the screen the search reaches the same optima: in 65 of the 72 variants it ends at
-  the same decisions, and in the other seven within 0.02% of the recovered metal and at most five of the finest
-  mesh steps in any decision. The measurement before the build (`docs/design/features/live-optimizer/design.md`,
-  "Measured on 2026-09-30") gave 7.9% more over the 12 nominal states, and 1.9% more with one-step candidates
-  only; the design was kept as validated, and the cost is its result.
-- **The surrogate against the engine.** Where the screen proposed, the surrogate's recovery was on average 0.63
-  points from the engine's (the mean of the variants' means; 1.90 at worst).
-- **The weight path (OP-07).** With a quarter of the weight on metal, the nominal optima spend 31 to 46% less
-  energy per tonne and recover 7 to 35% less metal than the metal-only optimum. The magnetite optimum does not
-  move: its grade specification already binds at the metal-only optimum, and a coarser grind would break it. Along
-  every path neither the energy nor the metal rises as the weight falls, beyond 2.4e-5 relative, the mesh's
-  resolution.
+- **Gains.** 28 of the 72 target-mode variants break a constraint as run; the 24 cut-mode variants break none. The
+  gain in recovered metal runs from -0.8% (magnetite, coarser grind: a state that broke its grade specification,
+  restored at the cost of metal) to +19.5% (oxide copper, coarser grind); at the nominal states from 0.3% (magnetite)
+  to 8.4% (oxide copper), and in the cut mode from 0.3% (magnetite) to 5.1% (copper ore with clay).
+- **Active constraints.** Installed power at 78 of the 94 optima, and at all 24 in the cut mode; the grade
+  specification at 29; the water capacity at 14.
+- **What the screen cost (OP-06, OP-11).** Over the 72 screened variants the search spent 24,880 engine evaluations,
+  and the same starts and weight without the screen 21,600: 15.2% more with the screen. It took fewer evaluations in 5
+  variants, more in 61 and the same in 6. Of the 74,690 candidates screened, the guard rejected 5,104 and the interval
+  41,888; the engine evaluated the best passing candidate 5,304 times, and 854 of those became an incumbent. Without
+  the screen the search reaches the same optima: in 70 of the 72 variants it ends at the same decisions; in the other
+  two the unscreened search ends with a little more metal, within 0.02% of the recovered metal and one or two of the
+  finest mesh steps away. The measurement before the build (`docs/design/features/live-optimizer/design.md`, "Measured
+  on 2026-09-30") gave 7.9% more over the 12 nominal states, and 1.9% more with one-step candidates only; the design
+  was kept as validated, and the cost is its result.
+- **The surrogate against the engine.** Where the screen proposed, the surrogate's recovery was on average 0.62 points
+  from the engine's (the mean of the variants' means; 2.22 at worst).
+- **The weight path (OP-07).** With a quarter of the weight on metal, the nominal optima spend 31 to 47% less energy
+  per tonne and recover 8 to 37% less metal than the metal-only optimum. The magnetite optimum does not move: its
+  grade specification already binds at the metal-only optimum, and a coarser grind would break it. Along every path
+  neither the energy nor the metal rises as the weight falls, beyond 9.8e-5 relative, the mesh's resolution.
 
 ## Verification
 
