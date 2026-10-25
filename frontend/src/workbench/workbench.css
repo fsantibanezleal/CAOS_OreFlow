@@ -29,6 +29,7 @@ input, select, textarea { font: inherit; }
 .of-rail-case-selector > div > div > div:first-child { padding-right: 1.4rem; }
 .of-rail select { font-size: 0.76rem; }
 .of-rail .of-field select { font-size: 0.72rem; }
+.of-rail .of-field select.of-sample-picker-select { padding-inline: 6px; }
 .of-rail-modified { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; font-size: 0.68rem; line-height: 1.25; color: var(--color-accent); }
 .of-rail-modified span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .of-rail-modified button { flex: none; padding: 2px 5px; border: 1px solid var(--color-border); border-radius: 5px; background: var(--color-surface-2); color: var(--color-fg); font: inherit; cursor: pointer; }
