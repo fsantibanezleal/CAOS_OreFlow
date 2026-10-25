@@ -112,7 +112,7 @@ source is cited, and no sub-tab names more than about six. A source is never a f
 **Weights are the author's judgement of relative size** unless the sizing measures them; say so in `unknowns` when they are an
 estimate (the example does).
 
-Writing limits, checked by `scripts/check_sdd.py`, by `validateExecutive` (run in `frontend/src/content/executive.test.ts`)
+Writing limits, checked by `scripts/check_sdd.py`, by `validateExecutive` (run in `tests/test_documents.py`)
 and by the gate on the rendered page, in both languages alike:
 
 - every sentence at most 30 words; one sentence for the key messages, the interaction, the evidence statements, the signals,

@@ -14,21 +14,22 @@ input, select, textarea { font: inherit; }
 .of-rail {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  padding: 12px;
+  padding: 8px;
   border: 1px solid var(--color-border);
   border-radius: 10px;
   background: var(--color-surface);
 }
 .of-rail .cs-select { max-width: none; }
 .of-rail select { font-size: 0.8rem; }
+.of-rail-modified { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; font-size: 0.68rem; line-height: 1.25; color: var(--color-accent); }
+.of-rail-modified span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.of-rail-modified button { flex: none; padding: 2px 5px; border: 1px solid var(--color-border); border-radius: 5px; background: var(--color-surface-2); color: var(--color-fg); font: inherit; cursor: pointer; }
 .of-workbench-inert { display: flex; flex: 1 1 auto; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
 .of-workbench-inert[inert] { position: fixed; inset: 0 auto auto 0; width: 0; height: 0; visibility: hidden; }
-.app-shell:has(.of-bench) > .site-footer { display: none; }
-.app-shell:has(.of-bench) > .site-header, .app-shell:has(.of-bench) > .site-header .header-inner { min-height: 46px; height: 46px; }
 .of-hour-fold { font-size: 0.72rem; }
 .of-rail-question { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--color-fg-subtle); }
 .of-rail-question strong { color: var(--color-fg); font-weight: 600; }
@@ -36,7 +37,7 @@ input, select, textarea { font: inherit; }
 .of-rail-sections button {
   flex: 1 1 0;
   min-width: 0;
-  padding: 5px 4px;
+  padding: 3px 4px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: transparent;
@@ -52,15 +53,15 @@ input, select, textarea { font: inherit; }
 .of-rail-sections button.invalid { border-color: var(--color-bad); }
 /* one column no wider than the rail: an auto column took the longest row's width (the Spanish crusher
  * setting and its value) and the rail's overflow cut every value at its edge */
-.of-rail-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; min-height: 0; }
+.of-rail-controls { display: grid; grid-template-columns: minmax(0, 1fr); gap: 5px; min-height: 0; }
 
 .of-knob { display: grid; gap: 2px; }
-.of-knob label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.8rem; color: var(--color-fg); }
+.of-knob label { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-size: 0.74rem; color: var(--color-fg); }
 /* a long name wraps rather than hiding its end; the value keeps its line */
 .of-knob label span { min-width: 0; overflow-wrap: break-word; }
 .of-knob label.of-field { display: grid; justify-content: stretch; gap: 3px; }
 .of-knob label.of-field span { overflow-wrap: normal; }
-.of-knob output { font-family: var(--font-mono); font-size: 0.78rem; color: var(--color-fg); white-space: nowrap; }
+.of-knob output { font-family: var(--font-mono); font-size: 0.72rem; color: var(--color-fg); white-space: nowrap; }
 .of-knob input[type='range'] { width: 100%; margin: 0; accent-color: var(--color-accent); }
 .of-knob.invalid input[type='range'] { accent-color: var(--color-bad); }
 .of-knob-base { font-size: 0.68rem; color: var(--color-fg-subtle); }
@@ -125,8 +126,6 @@ input, select, textarea { font: inherit; }
 .of-readout-cursor { flex: 0 1 auto; max-width: 48%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg); }
 
 .of-bench .of-view-tabs { flex: 0 1 auto; display: flex; flex-wrap: nowrap; gap: 2px; max-width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; margin: 0; padding: 0 0 0.12rem; border-bottom: 1px solid var(--color-border); }
-.of-view-tabbed > .subtabs { margin: 0; }
-.of-view-tabbed .subtablist { margin-bottom: 4px; }
 .of-bench .of-view-tabs::-webkit-scrollbar { display: none; }
 .of-view-tab { flex: none; padding: 0.16rem 0.7rem; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--color-fg-subtle); font: inherit; font-size: 0.82rem; cursor: pointer; }
 .of-view-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
@@ -141,6 +140,7 @@ input, select, textarea { font: inherit; }
 .of-chart-deck-stage { flex: 1 1 auto; min-height: 0; }
 .of-chart-deck-stage > .of-plot, .of-chart-deck-stage > .of-heatmap { flex: 1 1 auto; width: 100%; min-height: 0; height: 100%; }
 .of-chart-deck-facts { flex: 1 1 auto; align-content: start; }
+.of-chart-deck-evidence { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: auto; }
 .of-context-copy { min-width: 0; }
 
 /* ---- view layouts ---- */
@@ -167,8 +167,14 @@ input, select, textarea { font: inherit; }
 .of-view-circuit > .of-stage { flex: 1 1 auto; position: relative; padding: 0; }
 .of-view-response, .of-view-compare { display: flex; flex-direction: column; gap: 8px; }
 .of-view-tabbed { display: flex; flex-direction: column; }
-.of-view-methods.of-view-tabbed > .subtabs { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-.of-view-methods.of-view-tabbed .subtabpanels, .of-view-methods.of-view-tabbed .subtabpanel { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.of-view-methods { min-width: 0; }
+.of-workbench-subtabs { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; }
+.of-workbench-subtablist { display: flex; flex: none; gap: 3px; min-width: 0; overflow-x: auto; border-bottom: 1px solid var(--color-border); }
+.of-workbench-subtab { flex: 0 0 auto; padding: 5px 9px; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--color-fg-subtle); font: inherit; font-size: 0.78rem; white-space: nowrap; cursor: pointer; }
+.of-workbench-subtab[aria-selected='true'] { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.of-workbench-subtab:focus-visible, .of-workbench-subtabpanel:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.of-workbench-subtabpanel { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; overflow: auto; }
+.of-workbench-subtabpanel[hidden] { display: none; }
 /* the real sources' Case views hand the view's height to their split, so its columns scroll inside the frame; as
  * blocks they took their content's height, and an hour's 21 sensors ran past it */
 .of-view-sample, .of-view-hour { display: flex; flex-direction: column; }
@@ -448,9 +454,6 @@ input, select, textarea { font: inherit; }
 .of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
 /* every sample against its test: its own sub-tab, or across the view under the facts on a large screen */
 .of-sample-chart { flex: 1 1 auto; display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; }
-.of-view-sample.of-view-tabbed > .subtabs { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-.of-view-sample.of-view-tabbed .subtabpanels, .of-view-sample.of-view-tabbed .subtabpanel { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
-.of-view-sample .subtabpanel > .of-split { flex: 1 1 auto; }
 /* RS-07: an hour's main column is the window's chart over the forecasts and their note. A two-row stack gave the note
  * an implicit third row that ran 60 px past the frame at 1280x800; the chart now takes what the rows leave, at least
  * 220 px, and the column scrolls where the frame is shorter than its content */

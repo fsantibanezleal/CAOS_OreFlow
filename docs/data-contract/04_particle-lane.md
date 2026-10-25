@@ -11,7 +11,7 @@ recorded.
 | Record | HZDR RODARE 336, doi:10.14278/rodare.336, CC BY 4.0 |
 | File | `SM1.Constructed cases data.xlsx`, saved as `data/raw/SM1.Constructed_cases_data.xlsx` (ignored by git) |
 | Fetched by | `scripts/fetch-data.ps1` or `.sh`, which refuse any file whose SHA-256 is not `1559e6c5fabd30988ea0de60bbdf04a750f7895401ffc31da974ea4477aa50b0` |
-| Run by | `data-pipeline/run_particles.py` (`pipeline/stages/particle_experiment.py`), from `scripts/precompute` |
+| Run by | `data-pipeline/run_particles.py` (`pipeline/stages/particle_experiment.py`), from `scripts/precompute.ps1` |
 
 ## Input fields
 

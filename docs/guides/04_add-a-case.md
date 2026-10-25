@@ -51,7 +51,7 @@ The catalog's size is stated in checks and prose, so a thirteenth case fails the
 | `tests/test_learning_findings.py::test_fold_table_quotes_the_record` | the twelve rows of the learned lane's held-out-case table on methodology page 14 |
 | `tests/test_manuscript_claims.py::test_table_2_quotes_every_held_out_case` | the manuscript's Table 2, one row per held-out case |
 | `tests/test_docs_counts.py` | the SDD's coverage matrix, one row per case |
-| the content pages, the architecture modal (`content/architecture.ts`, `public/svg/tech/`) and `docs/` | "twelve", "12", "96" in the prose and the diagrams |
+| the content pages, the architecture modal (`frontend/src/content/architecture.ts`, `public/svg/tech/`) and `docs/` | "twelve", "12", "96" in the prose and the diagrams |
 
 `grep -rn "twelve\|96 variants\|12 cases" frontend/src docs` finds the prose.
 

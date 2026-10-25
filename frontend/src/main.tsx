@@ -50,17 +50,17 @@ const config: ShellConfig = {
   links: { github: "https://github.com/fsantibanezleal/CAOS_OreFlow" },
   footer: {
     attribution: {
-      en: "Developed by Felipe Santibáñez-Leal",
-      es: "Desarrollado por Felipe Santibáñez-Leal",
+      en: "F. Santibáñez",
+      es: "F. Santibáñez",
     },
     license: { en: "MIT", es: "MIT" },
     provenance: {
-      en: "Particle reference: HZDR RODARE 336 (CC BY 4.0); authored circuits",
-      es: "Referencia de partículas: HZDR RODARE 336 (licencia CC BY); circuitos de autor",
+      en: "HZDR 336 · CC BY 4.0",
+      es: "HZDR 336 · CC BY 4.0",
     },
     disclaimer: {
-      en: "Simulator only; not plant-calibrated",
-      es: "Solo simulador; sin calibración de planta",
+      en: "Research only; not plant-calibrated",
+      es: "Investigación; sin calibración de planta",
     },
   },
 };

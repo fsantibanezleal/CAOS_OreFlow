@@ -11,8 +11,8 @@ and what is recorded.
 | Dataset | "Quality Prediction in a Mining Process", Eduardo Magalhaes Oliveira on Kaggle, dataset 6294, version 1, CC0 |
 | Archive | saved as `data/raw/iron-flotation-kaggle-v1.zip` (ignored by git); its one member is `MiningProcess_Flotation_Plant_Database.csv` |
 | Pin | SHA-256 of the archive `fa1fb0c928d84366ec1bd315e0ed1380f5d5576525603458b49ea4cfe446d98e`; the record also keeps the SHA-256 of the CSV |
-| Fetched by | `data-pipeline/run_iron_plant.py` itself when the archive is missing, with the same pin; `scripts/fetch-data` does not fetch it |
-| Run by | `data-pipeline/run_iron_plant.py`, from `scripts/precompute` |
+| Fetched by | `data-pipeline/run_iron_plant.py` itself when the archive is missing, with the same pin; `scripts/fetch-data.ps1` does not fetch it |
+| Run by | `data-pipeline/run_iron_plant.py`, from `scripts/precompute.ps1` |
 
 ## Input fields
 
@@ -59,7 +59,7 @@ The CSV has 737,453 rows and 24 columns, with a comma as the decimal separator.
 
 The eight models are `train_mean`, `previous_lab`, `ar1_previous_lab`, `ridge`, `random_forest`,
 `hist_gradient_boosting`, `ridge_with_previous_lab` and `boosting_with_previous_lab`. No model file is kept: the
-lane's models are refitted on each window by `scripts/precompute` and only their predictions are recorded.
+lane's models are refitted on each window by `scripts/precompute.ps1` and only their predictions are recorded.
 
 `scripts/check_artifacts.py` checks the pin, the population and exclusions, the features, the three windows and
 their embargo, the model matrix, the comparisons, the repeated-assay share, the held-label block and the held mark of

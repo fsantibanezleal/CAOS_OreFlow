@@ -5,7 +5,6 @@
  * not run in the engine (the plant's reverse cationic circuit is not an engine family), so every engine view says
  * so, and the Case view shows the hour: its sensors, its assays, and the soft sensor's forecast of the next hour.
  */
-import { SubTabs } from '@fasl-work/caos-app-shell';
 import { useEffect, useState } from 'react';
 import type uPlot from 'uplot';
 import { Chart } from '../../components/charts/Chart';
@@ -14,6 +13,7 @@ import type { IronPlant, RealSample, RealSamples } from '../../lib/artifacts';
 import { formatFixed, formatWithUnit, type Lang } from '../../lib/format';
 import { metricLabel, mineralName } from '../../lib/i18n';
 import { hourOf } from '../SourcePicker';
+import { WorkbenchSubTabs } from '../WorkbenchSubTabs';
 
 /** The GeoMet lane's models, as the Benchmark's measured-lanes tab names them. */
 const LANE_MODEL: Record<string, { en: string; es: string }> = {
@@ -72,7 +72,7 @@ export const SOURCE_TEXT = {
   },
   source: { en: 'GeoMet dataset, Zenodo 7051975, CC BY 4.0', es: 'Conjunto GeoMet, Zenodo 7051975, CC BY 4.0' },
   // the 52 samples against their tests: what the comparison table says for one sample, for all of them
-  samplesTitle: { en: 'Every sample against its locked-cycle test', es: 'Cada muestra frente a su ensayo en ciclo cerrado' },
+  samplesTitle: { en: 'GeoMet: model vs test', es: 'GeoMet: modelo vs ensayo' },
   samplesSummary: {
     en: 'Recovery of the 52 GeoMet samples against each one\'s measured locked-cycle recovery: the engine at the case\'s nominal state, the GeoMet lane\'s out-of-fold ridge prediction, the chosen sample at the current state, and the line where a prediction equals the test.',
     es: 'Recuperación de las 52 muestras GeoMet frente a la recuperación medida en ciclo cerrado de cada una: el motor en el estado nominal del caso, la predicción ridge fuera de la partición de la vía GeoMet, la muestra elegida en el estado actual, y la línea donde una predicción iguala al ensayo.',
@@ -277,7 +277,7 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
   ];
   return (
     <div className="of-view of-view-tabbed of-view-sample">
-      <SubTabs tabs={tabs} ariaLabel={SOURCE_TEXT.tabsLabel[lang]} />
+      <WorkbenchSubTabs tabs={tabs} label={SOURCE_TEXT.tabsLabel[lang]} />
     </div>
   );
 }

@@ -74,7 +74,7 @@ so instead of naming a winner (review of 2026-10-02, M-05).
 
 ## Predicting new samples
 
-`scripts/precompute` fits each model once more on all 52 tests into a local checkpoint
+`scripts/precompute.ps1` fits each model once more on all 52 tests into a local checkpoint
 (`models/geomet_lct.joblib`, ignored by git). `scripts/predict-geomet.ps1 INPUT.csv OUTPUT.csv` (or the shell
 counterpart) predicts the recovery of new assays with it: each output row carries the four predictions, the count of
 missing assays and a flag when any assay lies outside the range of the 52 training tests. The checkpoint is refused

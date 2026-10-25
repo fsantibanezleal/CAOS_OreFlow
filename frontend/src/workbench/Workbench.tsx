@@ -193,7 +193,7 @@ export default function Workbench() {
     const background = Array.from(document.querySelectorAll<HTMLElement>('.skip-link, .site-header'));
     const previous = background.map(node => node.hasAttribute('inert'));
     background.forEach(node => node.setAttribute('inert', ''));
-    const focusFrame = requestAnimationFrame(() => document.querySelector<HTMLElement>('[data-focus-exit]')?.focus());
+    queueMicrotask(() => document.querySelector<HTMLElement>('[data-focus-exit]')?.focus());
     const containTab = (event: KeyboardEvent) => {
       if (event.key !== 'Tab') return;
       const frame = document.querySelector<HTMLElement>('[data-focus-shell]');
@@ -212,7 +212,6 @@ export default function Workbench() {
     };
     document.addEventListener('keydown', containTab, true);
     return () => {
-      cancelAnimationFrame(focusFrame);
       document.removeEventListener('keydown', containTab, true);
       background.forEach((node, index) => { if (!previous[index]) node.removeAttribute('inert'); });
     };

@@ -20,5 +20,5 @@ Every process artifact is derived from the declared engine and seeded designs; t
 authored scenarios whose plausibility ranges are authoring constraints, not plant measurements, and nothing here is
 a claim of plant accuracy or of transfer across mines. The raw inputs of the measured lanes are not committed:
 `scripts/fetch-data.ps1` (or `.sh`) fetches the HZDR workbook and the GeoMet tables, `run_iron_plant.py` downloads
-its own archive, and `scripts/precompute` runs the three lanes before the bake. The schemas are documented in
+its own archive, and `scripts/precompute.ps1` runs the three lanes before the bake. The schemas are documented in
 [`docs/data-contract/`](../../docs/data-contract.md).
