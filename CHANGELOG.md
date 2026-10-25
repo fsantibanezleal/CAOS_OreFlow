@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.10.002] - 2026-10-25
+
+### Fixed
+- Correct GeoMet source-sample selection clipping at standard workbench widths.
+- Rebuild and validate release artifacts under engine version 0.10.002; process equations and operating assumptions are unchanged.
+
 ## [0.10.001] - 2026-10-25
 
 ### Changed

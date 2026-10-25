@@ -77,7 +77,7 @@ export function SamplePicker({ record, lang }: { record: RealSamples; lang: Lang
       <label className="of-field"><span>{TEXT.search[lang]}</span>
         <input type="search" value={query} onChange={e => setQuery(e.target.value)} /></label>
       <label className="of-field"><span>{TEXT.sample[lang]}</span>
-        <select value={current && shown.includes(current) ? current.id : ''} onChange={e => {
+        <select className="of-sample-picker-select" value={current && shown.includes(current) ? current.id : ''} onChange={e => {
           const next = record.samples.find(s => s.id === e.target.value);
           if (next) setSample(next.id, next.point);
         }}>

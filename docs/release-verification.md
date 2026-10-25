@@ -2,6 +2,21 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.10.002, 2026-10-25
+
+### Local gate
+
+- Corrected the GeoMet source-sample selector's 1 px text clipping at 1280x800 without changing the shared shell; the CSS ownership guard passes.
+- Rebuilt all release artifacts for engine 0.10.002: 12 cases / 96 variants, 3,072-state learning design, benchmark, studies, GeoMet real-sample lane, manifests and validation. The RTX 4070 Laptop MLP ran 3,000 epochs on CUDA. Validation passed with no errors; contract digest `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`.
+- Bake timings: learning 3,576.9 s; cases 3,517.3 s on 4 workers; studies 315.8 s; real samples 124.4 s. The final fitted model identity records `torch.nn.Sequential (cuda)`.
+- Regenerated 13 use-case pages and the manuscript's version and bake measurements from the committed records.
+- The complete `scripts/smoke.ps1` gate passed: 877 Python tests, nine numerical/API framework examples including CUDA and ONNX, 52 frontend test files / 503 tests, typecheck, and production build. Three record-based documentation assertions found old timing/version claims on the first run; all three passed after correcting the guide and manuscript.
+- The full local product browser gate passed 1,312 checks over 1280×800, 1600×900, 1920×1080 and 2560×1440 desktop sizes, plus 390×844 phone and 768×1024 tablet combinations; it checked light/dark, English/Spanish, all routes, process views, Focus entry/return, optimizer and uncertainty runs, sample selection, and browser console errors. The previously clipped Spanish GeoMet sample option passes.
+
+### Remote gate
+
+- Release and promotion PRs, trunk CI, tag, VPS deployment, and public-host verification: pending.
+
 ## 0.10.000, 2026-10-24
 
 ### Local gate
