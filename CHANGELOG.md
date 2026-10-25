@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.001] - 2026-10-25
+
+### Changed
+- Upgrade the app to CAOS App Shell 0.19.2 on the current CAOS Product Template 0.11.002 baseline.
+- Correct fixed-shell rail, stage, chart and Focus sizing; preserve visible navigation and usable vertical/horizontal scrolling at phone and tablet widths.
+- Improve flowsheet scale and selected-case readability; retain the authored process topology for each case and its distinct operating data.
+- Refresh the release artifacts with a complete, validated GPU bake at the new product version; no engine equations or operating assumptions changed.
+
 ## [0.10.000] - 2026-10-24
 
 ### Changed

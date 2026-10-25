@@ -6,9 +6,14 @@
 
 .of-doc { min-width: 0; }
 .of-introduction-page { min-width: 0; }
+.of-introduction-page > .caos-surface.page-body.wide { width: 100%; max-width: none; padding-inline: 0; }
+.of-introduction-page .caos-surface-lede { width: 100%; max-width: none; }
+.of-introduction-page .caos-surface-lede > .lede { display: block; width: 100%; max-width: none; }
+.of-introduction-page :target { scroll-margin-top: 10rem; }
 .of-doc-head { margin-bottom: 1.2rem; }
 .of-doc-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -0.01em; }
 .of-doc-head p { margin: 0; color: var(--color-fg-subtle); line-height: 1.6; }
+.of-doc :target { scroll-margin-top: 7rem; }
 
 .of-topic h2 { margin-top: 0; }
 .of-topic-body { display: block; }
@@ -76,7 +81,7 @@
 /* controls in a row, two charts side by side, the in-browser inference panel */
 .of-doc-controls { display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; align-items: center; }
 .of-doc-charts-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.8rem; min-width: 0; }
-.of-doc-chart-narrow { height: 300px; }
+.of-doc-chart-narrow { height: 300px; min-height: 306px; }
 .of-topic-side .of-doc-chart { height: 300px; }
 .of-doc-inference { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); align-items: start; gap: 1.2rem; }
 .of-doc-inputs { display: grid; gap: 0.7rem; }
@@ -88,6 +93,7 @@
 /* on a phone or a tablet a wide table scrolls inside its own box, never the page (ADR-0071): every content table,
  * the topic tables included, which have no scroll wrapper of their own */
 @media (max-width: 860px) {
+  .of-doc-control select { font-size: 0.72rem; }
   .of-doc-table { display: block; max-width: 100%; overflow-x: auto; }
   /* the caption above the rows at the box's width, held at its left edge while the rows scroll: laid out at the
    * table's width it ran past the box and was cut */

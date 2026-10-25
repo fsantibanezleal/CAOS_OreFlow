@@ -70,7 +70,7 @@ export const SOURCE_TEXT = {
     en: 'A simulated plant at an operating point against a laboratory locked-cycle test: a comparison, not a calibration. Nothing in the engine is fitted to these samples.',
     es: 'Una planta simulada en un punto de operación frente a un ensayo de laboratorio en ciclo cerrado: una comparación, no una calibración. Nada del motor se ajusta a estas muestras.',
   },
-  source: { en: 'GeoMet dataset, Zenodo 7051975, CC BY 4.0', es: 'Conjunto GeoMet, Zenodo 7051975, CC BY 4.0' },
+  source: { en: 'GeoMet dataset, Zenodo 7051975, CC BY 4.0', es: 'Conjunto GeoMet, Zenodo 7051975, licencia CC BY, versión 4' },
   // the 52 samples against their tests: what the comparison table says for one sample, for all of them
   samplesTitle: { en: 'GeoMet: model vs test', es: 'GeoMet: modelo vs ensayo' },
   samplesSummary: {

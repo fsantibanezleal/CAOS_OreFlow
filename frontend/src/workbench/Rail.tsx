@@ -74,10 +74,10 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, focusRe
       {sampleMode ? (samples ? <SamplePicker record={samples} lang={lang} /> : <p className="of-hint" role="status">{t(UI.loading, lang)}</p>) : <>
       <CaseSelector cases={cases} selectedId={caseId} onSelect={setCase} layout="select" lang={lang} ariaLabel={t(UI.case, lang)}
       />
-      {modified && <div className="of-rail-modified" role="status" title={`${t(UI.modified, lang)}: ${artifact.title[lang]}`}>
+      <div className="of-rail-modified" role="status" hidden={!modified} title={`${t(UI.modified, lang)}: ${artifact.title[lang]}`}>
         <span>{t(UI.modified, lang)}: {artifact.title[lang]}</span>
         <button type="button" onClick={reset}>{t(UI.reset, lang)}</button>
-      </div>}
+      </div>
       <label className="of-field">
         <span>{t(UI.variant, lang)}</span>
         <select value={variantId} onChange={event => {
