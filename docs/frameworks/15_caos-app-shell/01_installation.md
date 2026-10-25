@@ -21,7 +21,7 @@ import "@fasl-work/caos-app-shell/styles.css";
 ```
 
 is imported once, first, in `main.tsx`; OreFlow's own stylesheets (`workbench/workbench.css`,
-`content/content.css`) come after it, so an override placed there wins by order, not by specificity.
+`frontend/src/content/content.css`) come after it, so an override placed there wins by order, not by specificity.
 
 The shell declares React, react-dom, react-router, zustand, KaTeX and lucide-react as peer dependencies;
 the product pins each, and `vite.config.ts` dedupes React, react-dom, react-router and zustand so the shell

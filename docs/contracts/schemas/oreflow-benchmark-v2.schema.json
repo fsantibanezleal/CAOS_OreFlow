@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-benchmark-v2",
+  "title": "oreflow-benchmark-v2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.benchmark/v2",
+      "type": "string"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "contract_digest": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "case_count": {
+      "type": "integer"
+    },
+    "variant_count": {
+      "type": "integer"
+    },
+    "cases": {
+      "type": "array"
+    },
+    "oracles": {
+      "type": "object"
+    },
+    "kinetics": {
+      "type": "object"
+    },
+    "optimization": {
+      "type": "object"
+    },
+    "uncertainty": {
+      "type": "object"
+    },
+    "learning": {
+      "type": "object"
+    },
+    "lanes": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "engine_version",
+    "contract_digest",
+    "protocol",
+    "case_count",
+    "variant_count",
+    "cases",
+    "oracles",
+    "kinetics",
+    "optimization",
+    "uncertainty",
+    "learning",
+    "lanes"
+  ],
+  "additionalProperties": true
+}

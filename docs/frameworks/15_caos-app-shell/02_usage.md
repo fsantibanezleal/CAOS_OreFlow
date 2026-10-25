@@ -36,7 +36,7 @@ string, so OreFlow localizes the list before handing it over (`Citations` in `ma
 
 | Shell behaviour | Override in OreFlow | Gate |
 |---|---|---|
-| Known defect 1: `html`, `body` and `#root` at height 100% with horizontal overflow hidden make `<body>` the scroll container; the document never scrolls and its height reads as the viewport's (open in 0.6.11) | `content/content.css`: `html, body, #root { height: auto; min-height: 100%; }` | every tall content page must move on `scrollTo`; heights read through `<body>` |
+| Known defect 1: `html`, `body` and `#root` at height 100% with horizontal overflow hidden make `<body>` the scroll container; the document never scrolls and its height reads as the viewport's (open in 0.6.11) | `frontend/src/content/content.css`: `html, body, #root { height: auto; min-height: 100%; }` | every tall content page must move on `scrollTo`; heights read through `<body>` |
 | Known defect 2: `Tabs` hides inactive panels with `hidden`, which any author `display` overrides | the workbench's own tab row renders only the active view; the sub-tab panels that fill a view re-hide inactive panels explicitly (`.subtabpanel[hidden] { display: none; }`, `workbench.css`) | one tab row, the view at least half the viewport |
 | Known defect 3 (uPlot, same class): the live legend sits below the plot and a sized host clips it | `legend: { show: false }` and the reading reported to the readout row (`Chart.tsx`) | the gate's screenshots; the readout row in every view |
 | Known defect 4: the interface language is never written to `<html lang>` | `DocumentLanguage`, rendered inside `AppShell` and on the focus route | `<html lang>` equals the interface language on every state |

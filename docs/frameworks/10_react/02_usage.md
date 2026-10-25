@@ -22,7 +22,7 @@ createRoot(document.getElementById("root")!).render(
 - `/focus/:caseId` renders outside the `AppShell` (the focus layout has no site header); every other
   route renders inside it, and `DocumentLanguage` keeps `<html lang>` in step on both.
 - `Citations` wraps the shell's `CitationsProvider` and hands it the list in the interface language
-  (`localizeCitations` in `content/citations.ts`): in Spanish an author pair is joined with *y* and a
+  (`localizeCitations` in `frontend/src/content/citations.ts`): in Spanish an author pair is joined with *y* and a
   descriptive label is translated, while each bibliographic record stays verbatim.
 - An unknown path renders the workbench instead of an error page.
 

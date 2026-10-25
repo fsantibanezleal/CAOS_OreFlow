@@ -2,6 +2,22 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.10.000, 2026-10-24
+
+### Local gate
+
+- Shared-base review: OreFlow already pins the latest published shell, `@fasl-work/caos-app-shell` 0.19.1, and contains the template 0.11.001 lazy routes, shared vendor chunks, chart interaction work and Vite 8.3.5. Adopted template 0.11.002's UTF-8 guard diagnostics and recorded `.template-version`; the adversarial Windows `cp1252` pipe regression check passes.
+- The corrected 0.10.000 bake completed on the RTX 4070 Laptop workstation: learning 3590.0 s, cases 2892.7 s on 4 workers, studies 238.9 s, real samples 107.0 s; contract, benchmark, manifests and final validation completed in under one second each. `validation.json` records `passed: true`, CUDA for final MLP training and exported ONNX parity checks.
+- The new artifacts contain 12 authored cases and 96 variants. All case records, manifests, benchmark, learning, studies and measured-sample artifacts carry engine version 0.10.000 and the same contract digest. `scripts/check_readiness.py` reports current.
+- Manuscript and learned-lane findings were refreshed against the new records. `tests/test_manuscript_claims.py`, `tests/test_learning_findings.py`, `tests/test_docs_counts.py` and the nominal kinetics findings test pass after those updates.
+- The canonical `scripts/smoke.ps1` release gate passed: repository/readiness/SDD/contracts/artifact guards, the complete Python suite (877 collected), all framework examples (including PyTorch 2.12 CUDA execution on the NVIDIA RTX 4070 Laptop GPU and ONNX parity), API examples, and frontend typecheck, 52 test files / 503 tests, and production build.
+- Browser release gate passed: the full matrix recorded 1,224 desktop checks across 16 viewport/theme/language combinations and 12/12 interaction-review checks. The screenshot review caught a phone-only flowsheet that was clipped without a clear pan affordance. After adding a focusable horizontal scroller, keyboard arrows, a visible pan indicator, and correcting the gate to visit the app-owned Case and Methods tabs, the responsive gate passed 76/76 checks across phone and tablet in both tested theme/language combinations. A corrected 1280x800 desktop gate passed 77/77 checks, including all four app-owned Methods and Case tabs, the focus route and its return path. The browser gate measured the phone flowsheet at 356 px viewport width and 700 px drawing width; ArrowRight moved the drawing 256 px. Captures of the workbench, optimizer, focus view, phone circuit and phone benchmark were inspected.
+
+### Remote gate
+
+- Release and promotion PRs, trunk CI, tag and VPS deployment: pending completion.
+- Public API, direct-route and browser checks: pending completion.
+
 ## 0.09.000, 2026-10-05
 
 The fixes of the adversarial validation of the implementation (issue #82): every equation, model and piece of logic
@@ -442,7 +458,7 @@ A patch of 0.08.000: the service answers a direct request for a page again.
 - Coverage: 12 cases, 72 variants, 1,512 method records and 21 registered methods; check applicability separately.
 - Python: Ruff passed and the full test suite passed.
 - Data: HZDR RODARE workbook fetched, SHA256 recorded, and processed to an independent four-case particle benchmark; raw input remains ignored. The test sheet has constructed oracle probabilities but no realized test classes; case 4 has 663 rows excluded from the common finite comparison.
-- Compute: PyTorch 2.12.0+cu126 executed a tensor operation and trained the circuit MLP, autoencoder and independent HZDR particle MLP on the local RTX 4070 Laptop GPU. `models/registry.json` records the simulator lane; the particle artifact independently records `device: cuda`. The particle ONNX export was tested against its local PyTorch checkpoint over 32 vectors (absolute/relative tolerance 0.000001) and exercised in a browser with changed feature inputs. This is local training evidence, not VPS GPU evidence.
+- Compute: PyTorch 2.12.0+cu126 executed a tensor operation and trained the circuit MLP, autoencoder and independent HZDR particle MLP on the local RTX 4070 Laptop GPU. The simulator artifact registry records its lane; the particle artifact independently records `device: cuda`. The particle ONNX export was tested against its local PyTorch checkpoint over 32 vectors (absolute/relative tolerance 0.000001) and exercised in a browser with changed feature inputs. This is local training evidence, not VPS GPU evidence.
 
 ### Local product gate (0.03.004 and 0.04.000)
 

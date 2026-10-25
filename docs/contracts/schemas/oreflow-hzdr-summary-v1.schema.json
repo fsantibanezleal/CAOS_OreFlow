@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-hzdr-summary-v1",
+  "title": "oreflow-hzdr-summary-v1",
+  "type": "object",
+  "properties": {
+    "dataset": {
+      "type": "string"
+    },
+    "doi": {
+      "type": "string"
+    },
+    "features": {
+      "type": "object"
+    },
+    "license": {
+      "type": "string"
+    },
+    "main_mineral_counts": {
+      "type": "object"
+    },
+    "note": {
+      "type": "string"
+    },
+    "raw_available": {
+      "type": "boolean"
+    },
+    "raw_file": {
+      "type": "string"
+    },
+    "rows": {
+      "type": "object"
+    },
+    "status": {
+      "type": "string"
+    },
+    "url": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "dataset",
+    "doi",
+    "features",
+    "license",
+    "main_mineral_counts",
+    "note",
+    "raw_available",
+    "raw_file",
+    "rows",
+    "status",
+    "url"
+  ],
+  "additionalProperties": true
+}

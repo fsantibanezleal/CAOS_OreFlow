@@ -100,13 +100,13 @@ def test_the_unit_and_kinetic_pages_quote_the_records():
 
 
 RETIRED = {
-    r"\btwo measured(?:-data)? lanes\b": "three measured lanes since 0.07.000",
-    r"\bboth measured lanes\b": "three measured lanes since 0.07.000",
-    r"\bsix stages\b": "the bake runs eight stages since 0.07.000",
+    r"\btwo measured(?:-data)? lanes\b": "three measured lanes",
+    r"\bboth measured lanes\b": "three measured lanes",
+    r"\bsix stages\b": "the bake runs eight stages",
     r"\bindependent (?:browser|second) implementation\b": "the port is a line-by-line translation (W-26)",
-    r"\btwelve contract inputs\b": "thirteen inputs since 0.07.000",
-    r"\b12 x 6\b|\btwelve by six\b": "eight variants per case since 0.07.000",
-    r"\bcyclone_pressure\b(?! flag)": "the flag retired in 0.08.000",
+    r"\btwelve contract inputs\b": "thirteen inputs",
+    r"\b12 x 6\b|\btwelve by six\b": "eight variants per case",
+    r"\bcyclone_pressure\b(?! flag)": "the flag has been retired",
     r"\bPMC9572913\b": "cite Castellon et al. 2022 (W-44)",
 }
 
@@ -115,9 +115,10 @@ def test_current_docs_carry_no_retired_phrase():
     """W-11, W-13, W-16, W-26: phrases the product outgrew, swept from the documents that describe the current
     release. The design records, the CHANGELOG, the release verification and the rendered use cases describe their
     own releases and are left alone."""
-    current = [ROOT / "README.md", ROOT / "STRUCTURE.md", ROOT / "CONTRIBUTING.md", *(ROOT / "docs").glob("*.md")]
+    current = [ROOT / "README.md", ROOT / "CONTRIBUTING.md", *(ROOT / "docs").glob("*.md")]
     for folder in ("architecture", "guides", "methodologies", "data-contract", "frameworks"):
         current += sorted((ROOT / "docs" / folder).rglob("*.md"))
+    current.append(ROOT / "docs" / "architecture" / "01-oreflow-system.md")
     current.append(ROOT / "manuscript" / "oreflow-digital-twin.md")
     hits = []
     for path in current:
@@ -176,12 +177,13 @@ def test_the_changelog_has_one_entry_per_release_in_one_format():
 
     text = (ROOT / "CHANGELOG.md").read_text(encoding="utf-8")
     headings = re.findall(r"^## (.+)$", text, re.M)
-    assert headings[0] == "[Unreleased]"
+    current = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
     versions = []
-    for heading in headings[1:]:
+    for heading in headings:
         match = re.fullmatch(r"\[(\d\.\d\d\.\d\d\d)\] - \d{4}-\d\d-\d\d", heading)
         assert match, heading
         versions.append(match.group(1))
+    assert versions[0] == current
     assert versions == sorted(versions, reverse=True) and len(set(versions)) == len(versions)
     tags = subprocess.run(["git", "tag", "-l", "v*"], cwd=ROOT, capture_output=True, text=True).stdout.split()
     released = {t[1:] for t in tags if re.fullmatch(r"v\d\.\d\d\.\d\d\d", t)}

@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-readiness-v1",
+  "title": "oreflow-readiness-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.readiness/v1",
+      "type": "string"
+    },
+    "product_version": {
+      "type": "string"
+    },
+    "catalog_sha256": {
+      "type": "string"
+    },
+    "contracts": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "product_version",
+    "catalog_sha256",
+    "contracts"
+  ],
+  "additionalProperties": true
+}

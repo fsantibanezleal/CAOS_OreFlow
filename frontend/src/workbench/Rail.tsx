@@ -7,6 +7,7 @@
  * while the plant's operating controls stay, or to an iron-plant hour, which has no control.
  */
 import { CaseSelector, type CaseDef } from '@fasl-work/caos-app-shell';
+import type { RefObject } from 'react';
 import { validate, type ContractError, type OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
 import type { IronPlant, RealSamples } from '../lib/artifacts';
@@ -28,25 +29,13 @@ export const SECTION_INPUTS: Record<Section, Array<keyof OperatingPoint>> = {
   classification: ['d50c_um', 'target_p80_um', 'circulating_load', 'water_m3_t'],
   separation: ['collector_gpt', 'jg_cm_s', 'rougher_cells', 'gravity_bleed', 'deslime_cut_um'],
 };
+const SECTION_SHORT: Record<Section, { en: string; es: string }> = {
+  feed: { en: 'Feed', es: 'Alim.' },
+  classification: { en: 'Classify', es: 'Clasif.' },
+  separation: { en: 'Separate', es: 'Separar' },
+};
 
-/**
- * Short catalog codes for the case selector (L1, C2, F3, ...): the shell's select shows the id before the
- * name, and a snake_case case id would crowd the rail (shell known defect: select labels lead with the id).
- */
-export function caseCodes(index: CaseIndex): { toCode: Record<string, string>; toCase: Record<string, string> } {
-  const counts: Record<string, number> = {};
-  const toCode: Record<string, string> = {};
-  const toCase: Record<string, string> = {};
-  for (const c of index.cases) {
-    counts[c.category] = (counts[c.category] ?? 0) + 1;
-    const code = `${CATEGORY[c.category]?.code ?? c.category.slice(0, 1).toUpperCase()}${counts[c.category]}`;
-    toCode[c.case_id] = code;
-    toCase[code] = c.case_id;
-  }
-  return { toCode, toCase };
-}
-
-export function Rail({ index, contract, artifact, lang, errors, onFocus, samples, lane }: {
+export function Rail({ index, contract, artifact, lang, errors, onFocus, focusRef, samples, lane }: {
   index: CaseIndex;
   contract: OperatingContract;
   artifact: CaseArtifact;
@@ -55,6 +44,7 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, samples
   onFocus: () => void;
   samples: RealSamples | null;
   lane: IronPlant | null;
+  focusRef: RefObject<HTMLButtonElement | null>;
 }) {
   const { caseId, variantId, base, point, section, source, setCase, setVariant, reset, setSection } = useWorkbench();
   if (source === 'hour') {
@@ -66,8 +56,9 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, samples
     );
   }
   const inputs = contract.cases[caseId]?.inputs ?? {};
-  const { toCode, toCase } = caseCodes(index);
-  const cases: CaseDef[] = index.cases.map(c => ({ id: toCode[c.case_id], name: c.title[lang], category: CATEGORY[c.category]?.[lang] ?? c.category }));
+  // Keep the case's canonical id in the shared selector and the workbench marker. The previous L1/C1
+  // aliases meant the shell gate could select a value that the rendered case state could never equal.
+  const cases: CaseDef[] = index.cases.map(c => ({ id: c.case_id, name: c.title[lang], category: CATEGORY[c.category]?.[lang] ?? c.category }));
   const modified = Object.keys(changedInputs(base, point)).length > 0;
   const variant = artifact.variants.find(v => v.id === variantId);
   const sections = (Object.keys(SECTION_INPUTS) as Section[]).filter(s => SECTION_INPUTS[s].some(name => name in inputs));
@@ -81,9 +72,12 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, samples
       {/* U-03: the rejection shows at the top whatever section is open; the marked control carries it too */}
       {errors.length > 0 && <p role="alert" className="of-rail-rejected">{errors.map(e => contractMessage(contract, e, '', lang)).join(' · ')}</p>}
       {sampleMode ? (samples ? <SamplePicker record={samples} lang={lang} /> : <p className="of-hint" role="status">{t(UI.loading, lang)}</p>) : <>
-      <CaseSelector cases={cases} selectedId={toCode[caseId]} onSelect={code => setCase(toCase[code] ?? code)} layout="select" lang={lang} ariaLabel={t(UI.case, lang)}
-        modifiedFromId={modified ? toCode[caseId] : null} onResetToCanonical={reset}
-        text={{ modifiedPrefix: t(UI.modified, lang), reset: t(UI.reset, lang) }} />
+      <CaseSelector cases={cases} selectedId={caseId} onSelect={setCase} layout="select" lang={lang} ariaLabel={t(UI.case, lang)}
+      />
+      {modified && <div className="of-rail-modified" role="status" title={`${t(UI.modified, lang)}: ${artifact.title[lang]}`}>
+        <span>{t(UI.modified, lang)}: {artifact.title[lang]}</span>
+        <button type="button" onClick={reset}>{t(UI.reset, lang)}</button>
+      </div>}
       <label className="of-field">
         <span>{t(UI.variant, lang)}</span>
         <select value={variantId} onChange={event => {
@@ -95,18 +89,18 @@ export function Rail({ index, contract, artifact, lang, errors, onFocus, samples
       </label>
       <p className="of-rail-question"><strong>{t(UI.question, lang)}:</strong> {artifact.question[lang]}</p>
       </>}
-      <div className="of-rail-sections" role="group">
+      <div className="of-rail-sections" role="group" aria-label={lang === 'es' ? 'Secciones de controles' : 'Control sections'}>
         {sections.map(s => (
-          <button key={s} type="button" className={[s === active ? 'active' : '', hasError(s) ? 'invalid' : ''].join(' ').trim()}
-            aria-pressed={s === active} onClick={() => setSection(s)}>
-            {t(UI.sections[s], lang)}
+          <button key={s} type="button" className={['of-rail-section', s === active ? 'active' : '', hasError(s) ? 'invalid' : ''].join(' ').trim()}
+            title={t(UI.sections[s], lang)} aria-pressed={s === active} onClick={() => setSection(s)}>
+            {SECTION_SHORT[s][lang]}
           </button>
         ))}
       </div>
       <ControlList contract={contract} caseId={caseId} names={SECTION_INPUTS[active]} variantPoint={sampleMode ? base : variant?.point ?? null} errors={errors} lang={lang}
         fixed={sampleMode ? SAMPLE_FIXED : {}} baseLabel={sampleMode ? t(UI.sampleBase, lang) : undefined} />
       {sampleMode && modified && <button type="button" className="of-revert" onClick={reset}>{t(UI.backToSample, lang)}</button>}
-      <button type="button" className="of-focus-open" onClick={onFocus}>{t(UI.openFocus, lang)}</button>
+      <button ref={focusRef} type="button" className="of-focus-open" data-focus-enter onClick={onFocus}>{t(UI.openFocus, lang)}</button>
     </aside>
   );
 }

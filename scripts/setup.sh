@@ -4,6 +4,18 @@
 # its torch wheel is the CUDA 12.6 build, a large download published for Linux and Windows only, so macOS skips it
 # too. The workbench itself needs only Node (cd frontend && npm ci && npm run dev).
 set -euo pipefail
+if [ "${1:-}" = "--notebooks" ]; then
+  cd "$(dirname "$0")/.."
+  [ -x .venv-notebooks/bin/python ] || python -m venv .venv-notebooks
+  .venv-notebooks/bin/python -m pip install -r notebooks/requirements.txt
+  exit 0
+fi
+if [ "${1:-}" = "--notebooks" ]; then
+  cd "$(dirname "$0")/.."
+  [ -x .venv-notebooks/bin/python ] || python -m venv .venv-notebooks
+  .venv-notebooks/bin/python -m pip install -r notebooks/requirements.txt
+  exit 0
+fi
 cd "$(dirname "$0")/.."
 PY="${PYTHON:-python}"
 mkvenv(){ [ -d "$1" ] || "$PY" -m venv "$1"; }

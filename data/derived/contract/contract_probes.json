@@ -1,6 +1,6 @@
 {
  "schema": "oreflow.contract-probes/v1",
- "digest": "1cfa2df0d46d7432d225d479703daec964e55031aa0ac39b5476c784426a93fa",
+ "digest": "0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7",
  "probes": [
   {
    "case_id": "no_such_case",
@@ -4502,6 +4502,73 @@
   {
    "case_id": "nickel_sulphide",
    "values": {
+    "deslime_cut_um": 8.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "deslime_cut_um": 45.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "deslime_cut_um": 7.63
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "deslime_cut_um": 45.37
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
+    "deslime_cut_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "nickel_sulphide",
+   "values": {
     "d50c_um": 102.511820033
    },
    "expected": {
@@ -4604,13 +4671,14 @@
   {
    "case_id": "nickel_sulphide",
    "values": {
-    "deslime_cut_um": 1.0
+    "target_p80_um": 53.0,
+    "deslime_cut_um": 45.0
    },
    "expected": {
     "accepted": false,
     "errors": [
      [
-      "not_applicable",
+      "deslime_cut_above_half_target",
       "deslime_cut_um"
      ]
     ]
@@ -4619,7 +4687,8 @@
   {
    "case_id": "nickel_sulphide",
    "values": {
-    "deslime_cut_um": 0
+    "target_p80_um": 53.0,
+    "deslime_cut_um": 26.5
    },
    "expected": {
     "accepted": true,
@@ -9281,6 +9350,73 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
+    "deslime_cut_um": 8.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "deslime_cut_um": 45.0
+   },
+   "expected": {
+    "accepted": true,
+    "errors": []
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "deslime_cut_um": 7.63
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "deslime_cut_um": 45.37
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "out_of_range",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
+    "deslime_cut_um": {
+     "non_finite": "nan"
+    }
+   },
+   "expected": {
+    "accepted": false,
+    "errors": [
+     [
+      "not_finite",
+      "deslime_cut_um"
+     ]
+    ]
+   }
+  },
+  {
+   "case_id": "mixed_ore_high_clay",
+   "values": {
     "d50c_um": 143.243216364
    },
    "expected": {
@@ -9383,13 +9519,14 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
-    "deslime_cut_um": 1.0
+    "target_p80_um": 75.0,
+    "deslime_cut_um": 45.0
    },
    "expected": {
     "accepted": false,
     "errors": [
      [
-      "not_applicable",
+      "deslime_cut_above_half_target",
       "deslime_cut_um"
      ]
     ]
@@ -9398,7 +9535,8 @@
   {
    "case_id": "mixed_ore_high_clay",
    "values": {
-    "deslime_cut_um": 0
+    "target_p80_um": 75.0,
+    "deslime_cut_um": 37.5
    },
    "expected": {
     "accepted": true,

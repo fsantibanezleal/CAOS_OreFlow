@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-screen-v1",
+  "title": "oreflow-screen-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.screen/v1",
+      "type": "string"
+    },
+    "networks": {
+      "type": "object"
+    },
+    "gp": {
+      "type": "object"
+    },
+    "reference": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "networks",
+    "gp",
+    "reference"
+  ],
+  "additionalProperties": true
+}

@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-contract-probes-v1",
+  "title": "oreflow-contract-probes-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.contract-probes/v1",
+      "type": "string"
+    },
+    "digest": {
+      "type": "string"
+    },
+    "probes": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "digest",
+    "probes"
+  ],
+  "additionalProperties": true
+}

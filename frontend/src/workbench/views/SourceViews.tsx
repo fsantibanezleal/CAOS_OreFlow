@@ -5,7 +5,6 @@
  * not run in the engine (the plant's reverse cationic circuit is not an engine family), so every engine view says
  * so, and the Case view shows the hour: its sensors, its assays, and the soft sensor's forecast of the next hour.
  */
-import { SubTabs } from '@fasl-work/caos-app-shell';
 import { useEffect, useState } from 'react';
 import type uPlot from 'uplot';
 import { Chart } from '../../components/charts/Chart';
@@ -14,6 +13,7 @@ import type { IronPlant, RealSample, RealSamples } from '../../lib/artifacts';
 import { formatFixed, formatWithUnit, type Lang } from '../../lib/format';
 import { metricLabel, mineralName } from '../../lib/i18n';
 import { hourOf } from '../SourcePicker';
+import { WorkbenchSubTabs } from '../WorkbenchSubTabs';
 
 /** The GeoMet lane's models, as the Benchmark's measured-lanes tab names them. */
 const LANE_MODEL: Record<string, { en: string; es: string }> = {
@@ -72,7 +72,7 @@ export const SOURCE_TEXT = {
   },
   source: { en: 'GeoMet dataset, Zenodo 7051975, CC BY 4.0', es: 'Conjunto GeoMet, Zenodo 7051975, CC BY 4.0' },
   // the 52 samples against their tests: what the comparison table says for one sample, for all of them
-  samplesTitle: { en: 'Every sample against its locked-cycle test', es: 'Cada muestra frente a su ensayo en ciclo cerrado' },
+  samplesTitle: { en: 'GeoMet: model vs test', es: 'GeoMet: modelo vs ensayo' },
   samplesSummary: {
     en: 'Recovery of the 52 GeoMet samples against each one\'s measured locked-cycle recovery: the engine at the case\'s nominal state, the GeoMet lane\'s out-of-fold ridge prediction, the chosen sample at the current state, and the line where a prediction equals the test.',
     es: 'Recuperación de las 52 muestras GeoMet frente a la recuperación medida en ciclo cerrado de cada una: el motor en el estado nominal del caso, la predicción ridge fuera de la partición de la vía GeoMet, la muestra elegida en el estado actual, y la línea donde una predicción iguala al ensayo.',
@@ -152,7 +152,7 @@ export function sensorLabel(name: string, lang: Lang): string {
 
 export function SourceStatement({ kind, lang }: { kind: 'hour' | 'sample-methods' | 'sample-response'; lang: Lang }) {
   const text = kind === 'hour' ? SOURCE_TEXT.notEngine : kind === 'sample-methods' ? SOURCE_TEXT.sampleNoMethods : SOURCE_TEXT.sampleNoResponse;
-  return <div className="of-view of-view-statement"><p className="of-note" role="note">{text[lang]}</p></div>;
+  return <div className="of-view"><p className="of-note" role="note">{text[lang]}</p></div>;
 }
 
 /** U-07, S-01, S-03: the record's mean gap with what it depends on, every number from the record. */
@@ -277,7 +277,7 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
   ];
   return (
     <div className="of-view of-view-tabbed of-view-sample">
-      <SubTabs tabs={tabs} ariaLabel={SOURCE_TEXT.tabsLabel[lang]} />
+      <WorkbenchSubTabs tabs={tabs} label={SOURCE_TEXT.tabsLabel[lang]} />
     </div>
   );
 }
@@ -317,7 +317,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
             marks={[{ x: index, label: SOURCE_TEXT.thisHour[lang] }]}
             format={(v, axis) => (v === null ? '-' : axis === 'x' ? (Number.isInteger(v) && window.trace[v] ? window.trace[v].sensor_hour.slice(5, 13).replace('T', ' ') : '') : `${formatFixed(v, lang, 2)}%`)}
             onCursor={c => onCursor(c ? `${window.trace[c.index].sensor_hour.slice(0, 16)}: ${SOURCE_TEXT.observed[lang]} ${formatFixed(window.trace[c.index].observed_pct, lang, 2)}%` : null)} />
-          <table className="of-table of-table-data">
+          <table className="of-table">
             <caption>{`${SOURCE_TEXT.hourTitle[lang]}: ${hour.sensor_hour.slice(0, 16)}`}</caption>
             <thead><tr><th scope="col">{SOURCE_TEXT.model[lang]}</th><th scope="col">%</th><th scope="col">{SOURCE_TEXT.error[lang]}</th></tr></thead>
             <tbody>
@@ -331,7 +331,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
           </table>
           <p className="of-footnote">{`${SOURCE_TEXT.outOfFold[lang](window.id, Math.floor(window.embargo_hours_min))} ${SOURCE_TEXT.laneNote[lang]}`}</p>
           <p className="of-footnote">{SOURCE_TEXT.heldNote[lang](lane.held_labels.run_hours_min, formatFixed(lane.held_labels.pairs_touching, lang, 0), formatFixed(lane.protocol.pair_rows, lang, 0))}</p>
-          <p className="of-footnote of-hour-statement" role="note">{SOURCE_TEXT.caseNotEngine[lang]}</p>
+          <p className="of-footnote" role="note">{SOURCE_TEXT.caseNotEngine[lang]}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">

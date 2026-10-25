@@ -11,6 +11,7 @@ import type { Trace } from '../../engine/trace';
 import { formatFixed, formatSignificant, formatWithUnit, sharedDecimals, type Lang } from '../../lib/format';
 import { formulaText, metricLabel, speciesName } from '../../lib/i18n';
 import { Chart, type CursorReading, type Series } from '../../components/charts/Chart';
+import { ChartDeck } from '../../components/charts/ChartDeck';
 
 type KineticModel = { id: string; parameters: Record<string, number>; parameter_units: Record<string, string>; rmse_pct: number; converged: boolean;
   /** Parameters the fit left at a bound (F-07). */
@@ -168,24 +169,12 @@ export function separationCharts(trace: Trace, primary: { species: string; unit:
 export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trace; primary: { species: string; unit: string }; lang: Lang; onCursor: (text: string | null) => void }) {
   const charts = separationCharts(trace, primary, lang, onCursor);
   const m = trace.metrics;
-  if (charts.capture) {
-    return (
-      // the facts, a strip under the chart (of-grid-single)
-      <div className="of-view of-grid-single">
-        {charts.capture}
-        <Facts trace={trace} lang={lang} framed keys={['recovery_pct', 'magnetite_recovery_pct', 'concentrate_grade', 'concentrate_SiO2', 'mass_pull_pct', 'tail_grade']} />
-      </div>
-    );
-  }
+  if (charts.capture) return <ChartDeck label={lang === 'es' ? 'Análisis de separación' : 'Separation analysis'} className="of-view"
+    views={[{ id: 'capture', label: SEPARATION_CHARTS.capture[lang], content: charts.capture },
+      { id: 'facts', label: lang === 'es' ? 'Resultados' : 'Results', content: <Facts trace={trace} lang={lang} framed keys={['recovery_pct', 'magnetite_recovery_pct', 'concentrate_grade', 'concentrate_SiO2', 'mass_pull_pct', 'tail_grade']} /> }]} />;
   const kinetics = (trace.methods as { kinetics: Kinetics }).kinetics;
   const models = kinetics.models ?? [];
-  return (
-    // the kinetic table and the facts, a strip under the charts on a large screen (of-grid-strip-panel)
-    <div className="of-view of-grid-2x2 of-grid-strip-panel">
-      {charts.recovery_by_size}
-      {charts.bank_profile}
-      {charts.deslime ?? charts.kinetics ?? (kinetics.status === 'no_signal' ? <div className="of-panel"><p className="of-footnote">{TEXT.noSignal[lang]}</p></div> : null)}
-      <div className="of-panel">
+  const evidence = <div className="of-panel of-chart-deck-evidence">
         {/* U-12: the family's own answer first (slimes, gravity, a second payable), then the flotation facts */}
         <Facts trace={trace} lang={lang} keys={['slimes_mass_pct', 'slimes_loss_pct', 'gravity_recovery_pct', 'grg_recovery_pct', 'gold_circulating_load_pct',
           // a second payable's own recovery (molybdenum beside copper)
@@ -194,6 +183,7 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
           'bubble_surface_flux_s', 'rougher_water_recovery_pct', 'entrained_gangue_share_pct', 'cleaner_recycle_tph'].filter(k => k in m)} />
         {/* U-36: the kinetic table goes with its chart; where the desliming chart takes its place, so does the table */}
         {models.length > 0 && kinetics.bank && !charts.deslime && (
+          <div className="of-table-scroll">
           <table className="of-table">
             <caption>{`${TEXT.exact[lang]}: ${formatWithUnit(kinetics.bank.exact_true_flotation_pct, '%', lang)} · ${TEXT.engine[lang]}: ${formatWithUnit(kinetics.bank.engine_rougher_pct, '%', lang)}. ${TEXT.points[lang]}${models.some(md => (md.at_bound ?? []).length > 0) ? ` ${TEXT.bound[lang]}` : ''}`}</caption>
             <thead><tr><th scope="col">{TEXT.model[lang]}</th><th scope="col">{TEXT.rmse[lang]}</th><th scope="col">{TEXT.projection[lang]}</th><th scope="col">{TEXT.lumping[lang]}</th><th scope="col">{TEXT.gap[lang]}</th></tr></thead>
@@ -206,10 +196,17 @@ export function SeparationView({ trace, primary, lang, onCursor }: { trace: Trac
                 <td>{formatFixed(md.ultimate_gap_pct, lang, sharedDecimals(models.map(x => x.ultimate_gap_pct), '%'))}</td></tr>
             ))}</tbody>
           </table>
+          </div>
         )}
-      </div>
-    </div>
-  );
+      </div>;
+  const views = [
+    { id: 'recovery_by_size', label: SEPARATION_CHARTS.recovery_by_size[lang], content: charts.recovery_by_size! },
+    { id: 'bank_profile', label: SEPARATION_CHARTS.bank_profile[lang], content: charts.bank_profile! },
+    ...(charts.kinetics ? [{ id: 'kinetics', label: SEPARATION_CHARTS.kinetics[lang], content: charts.kinetics }] : []),
+    ...(charts.deslime ? [{ id: 'deslime', label: SEPARATION_CHARTS.deslime[lang], content: charts.deslime }] : []),
+    { id: 'evidence', label: lang === 'es' ? 'Indicadores y ajuste' : 'Indicators and fit', content: evidence },
+  ];
+  return <ChartDeck views={views} label={lang === 'es' ? 'Análisis de separación' : 'Separation analysis'} className="of-view" />;
 }
 
 // framed: a facts list that stands in the grid by itself (in a panel it takes the panel's frame)

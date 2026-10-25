@@ -186,6 +186,13 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
 
 
 def main() -> None:
+    import sys
+    if len(sys.argv) > 1 and sys.argv[1] == "readiness":
+        from .core import readiness
+        document = readiness.compute(repo_root=REPO_ROOT, derived_root=DERIVED, models_dir=MODELS)
+        readiness.write(DERIVED, document)
+        print(f"oreflow readiness {document['product_version']}: {len(document['contracts'])} contracts")
+        return
     parser = argparse.ArgumentParser(prog="oreflow.pipeline", description="Bake every OreFlow artifact.")
     parser.add_argument("--output", type=Path, help="sandbox derived directory (default data/derived)")
     parser.add_argument("--models", type=Path, help="sandbox models directory (default models)")

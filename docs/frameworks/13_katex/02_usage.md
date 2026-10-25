@@ -17,7 +17,7 @@ and the page renders each with the shell's component:
 ```
 
 where `formula` picks the language's TeX and localizes its decimals. The Case view renders the
-family's formulas from `content/equations.ts` the same way.
+family's formulas from `frontend/src/content/equations.ts` the same way.
 
 ## A formula in two languages
 

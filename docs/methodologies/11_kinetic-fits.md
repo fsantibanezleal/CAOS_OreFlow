@@ -56,7 +56,7 @@ recovery $\sum_j c_j x_j [1 - (1 + k_j \tau_c)^{-N}] / \sum_j c_j x_j$. The **lu
 its projection minus this exact value. The engine's own rougher solves each cell on its own tail flow (page 05), so
 its cells' residences differ a little down the bank; the projections and the exact answer use $N$ equal cells of the
 mean of those residences, $\tau_c$, so the lumping error compares like with like, and the engine's rougher recovery
-(with entrainment and its own cell residences) is reported beside them. The **ultimate gap** is the fitted $A$ minus the fitted
+(with entrainment and its own cell residences) is reported beside them. Because those residence distributions differ, the engine's rougher recovery can sit slightly above or below the equal-cell exact projection. The **ultimate gap** is the fitted $A$ minus the fitted
 recovery at the last batch time: the part of the projection that rests on extrapolation, because a
 bank residence (often above 20 min) is longer than the 16 min test.
 
@@ -86,13 +86,13 @@ bank residence (often above 20 min) is longer than the 16 min test.
   the bank projection, the lumping error and the ultimate gap, plus the exact distributed bank
   recovery and the engine's rougher recovery (which adds entrainment).
 
-On the eleven flotation cases' nominal states the first-order model underestimates the exact bank by 3.7 to 7.9 points,
+On the eleven flotation cases' nominal states the first-order model underestimates the exact bank by 3.7 to 14.1 points,
 because it caps the ultimate recovery at the plateau of a 16 min test. The Kelsall and gamma forms
-fit the batch curve to within 0.2 points RMSE and project within about 2.0 points. The stretched
-exponential settles at $\beta$ between 0.82 and 0.94: a spread of rates, as the class structure
+fit the batch curve to within 0.2 points RMSE and project within 5.5 points. The stretched
+exponential settles at $\beta$ between 0.80 and 0.94: a spread of rates, as the class structure
 implies. These ranges are pinned by `test_documented_findings_on_nominal_cases`. All 440 fits on
 the baked flotation variants converge (88 variants, five models each; the magnetite case has no flotation), which
-the browser parity depends on. Converged is not interior: 29 of them, all Klimpel, rest on the bound $A = 100\%$
+the browser parity depends on. Converged is not interior: 29 of them, 28 Klimpel and one gamma, rest on the bound $A = 100\%$
 (four on nominal states: the free-milling gold, phosphate, zinc and refractory gold cases), where a free $A$ would
 go above 100% to follow the curve. They are constrained optima and the kinetic table marks them (review of
 2026-10-04, F-07). In the seeded envelope sample of

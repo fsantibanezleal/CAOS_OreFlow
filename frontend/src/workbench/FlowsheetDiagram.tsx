@@ -74,6 +74,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const { zoom, ox, oy, cellW, cellH, width, height } = f;
   // the stage's width, or the readable width on a stage narrower than that (the host then scrolls sideways)
   const svgWidth = width * zoom > size.width + 0.5 ? width * zoom : size.width;
+  const scrollable = svgWidth > size.width + 0.5;
   const d = drawing(plan, f);
   const texts = labelTexts(plan, streams, primary, point, lang);
   const { labels, boxes } = placeLabels(plan, d, f.frame, texts.edges.map(e => e.options));
@@ -81,11 +82,21 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const missing = labels.filter((l, k) => !l && texts.edges[k].options.length).length;
   // below the desktop stages only the outlets and the feed are promised a label (D-21, flowsheet-labels.test.ts)
   const outletsMissing = labels.filter((l, k) => !l && texts.edges[k].options.length && (plan.edges[k].to === null || plan.edges[k].from === null)).length;
+  const scrollKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!scrollable || event.target !== event.currentTarget || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const host = event.currentTarget;
+    if (event.key === 'Home') host.scrollLeft = 0;
+    else if (event.key === 'End') host.scrollLeft = host.scrollWidth;
+    else host.scrollLeft += (event.key === 'ArrowRight' ? 1 : -1) * Math.max(96, host.clientWidth * 0.72);
+  };
 
   return (
-    <div className="of-flowmap-host" ref={hostRef}>
+    <div className="of-flowmap-frame">
+      <div className="of-flowmap-host" ref={hostRef} role="region" aria-label={summary}
+        aria-describedby={scrollable ? 'of-flowmap-scroll-cue' : undefined} tabIndex={scrollable ? 0 : -1} onKeyDown={scrollKeys}>
       <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
-        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing} data-outlets-missing={outletsMissing}>
+        data-zoom={String(Math.round(zoom * 1000) / 1000)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing} data-outlets-missing={outletsMissing}>
         <defs>
           {(['plain', 'recycle', 'product', 'tail'] as const).map(kind => (
             <marker key={kind} id={`of-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -121,6 +132,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
             return (
               <g key={node.unit} className={cls} role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} onClick={select} onKeyDown={onKeyDown}>
                 <title>{name}</title>
+                <rect className="of-junction-hit" x={cx - 12} y={cy - 12} width={24} height={24} />
                 <circle cx={cx} cy={cy} r={NODE_R} />
                 {caption && <text x={cx} y={caption.y} textAnchor="middle" className="of-flow-junction-name">{name}</text>}
               </g>
@@ -135,12 +147,19 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
               {lines.map((line, i) => {
                 // a single word longer than the box is condensed to fit, never clipped
                 const fitted = line.length * NAME_CHAR > d.boxW - 8 ? { textLength: d.boxW - 8, lengthAdjust: 'spacingAndGlyphs' as const } : {};
-                return <text key={i} x={d.boxW / 2} y={BOX_H / 2 + 4 + (i - (lines.length - 1) / 2) * 12} textAnchor="middle" {...fitted}>{line}</text>;
+                return <text key={i} x={d.boxW / 2} y={BOX_H / 2 + 4 + (i - (lines.length - 1) / 2) * 18} textAnchor="middle" {...fitted}>{line}</text>;
               })}
             </g>
           );
         })}
       </svg>
+      </div>
+      {scrollable && <>
+        <span className="of-flowmap-scroll-cue" id="of-flowmap-scroll-cue">
+          {lang === 'es' ? 'Desliza o usa las flechas para ver el circuito' : 'Swipe or use arrow keys to inspect the circuit'}
+        </span>
+        <span className="of-flowmap-scroll-indicator" aria-hidden="true">↔</span>
+      </>}
     </div>
   );
 }

@@ -1,127 +1,30 @@
-# CAOS OreFlow
+# OreFlow
 
-- Live: [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com/) (the site and the live API)
+[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_OreFlow/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_OreFlow/actions) [![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_OreFlow)](LICENSE)
 
-[![CI](https://img.shields.io/github/actions/workflow/status/fsantibanezleal/CAOS_OreFlow/ci.yml?branch=main&label=CI)](https://github.com/fsantibanezleal/CAOS_OreFlow/actions)
-[![License](https://img.shields.io/github/license/fsantibanezleal/CAOS_OreFlow)](LICENSE)
+OreFlow is a research workbench for mineral-processing circuits. It links comminution, classification, flotation and product streams through a steady-state mass-balance engine, then compares physical models, optimization and learned predictors on authored and measured datasets. It is a research simulator, not plant-calibrated software or operating advice.
 
-OreFlow computes how a grinding and separation circuit trades recovery, concentrate grade, energy and water,
-for twelve authored ore and plant scenarios. Every stream is carried as the mass flow of every mineral in
-63 size classes plus water; the engine crushes, grinds in a closed circuit with cyclones, and separates by
-flotation banks, a gravity bleed, magnetic drums or desliming, and closes the balance of every unit within
-1e-9. The workbench re-solves the whole circuit in your browser on every control change.
+## Areas
 
-It is written for a process metallurgist checking the direction and size of a trade-off, a student of
-mineral processing learning why recovery, grade and energy move together, and a data scientist asking how
-far a learned surrogate of a process can be trusted when the ore changes.
+| Area | Folder | Status | What it holds |
+|---|---|---|---|
+| Web | [`frontend/`](frontend/) | active | Six shell routes including the circuit workbench and Focus mode; shell 0.19.1. Run `cd frontend && npm ci && npm run build && npm test && npm run gate`. |
+| API | [`app/`](app/) | active | Bounded FastAPI simulation and validation endpoints. See [API guide](docs/frameworks/08_fastapi/03_applying.md). |
+| Core pipelines | [`data-pipeline/`](data-pipeline/) | active | Circuit bake, benchmark, uncertainty, optimization, learning, real samples, particle and iron-plant lanes. Run `scripts/precompute.ps1` on Windows or `scripts/precompute.sh` on POSIX. |
+| Packages | [NumPy](https://pypi.org/project/numpy/) 2.2.6 and [scikit-learn](https://pypi.org/project/scikit-learn/) 1.5.2 | active | Exact scientific packages consumed by the OreFlow engine and learned lane; project pins live in `requirements*.txt`. |
+| Notebooks | [`notebooks/`](notebooks/) | active | English and Spanish notebooks by topic and level, using OreFlow's committed cases and benchmark artifacts. Setup: `scripts/setup.ps1 -Notebooks` or `scripts/setup.sh --notebooks`; gates: `scripts/check_notebooks.py` and `scripts/run_notebooks.py --check --tmp <temp-root>`. |
+| Data | [`data/`](data/) | active | Authored cases, derived simulation artifacts and measured-source records with provenance. See [data README](data/README.md). |
+| Contracts | [`docs/contracts/`](docs/contracts/) | active | Schemas and the catalog of committed documents consumed by the web and scientific pipeline. |
+| Documentation | [`docs/`](docs/) | active | Design, research methodologies, frameworks, cases and operating limitations. Start at [docs README](docs/README.md) and [SDD](docs/design/SDD.md). |
+| Tests and gates | [`tests/`](tests/), [`scripts/`](scripts/) | active | Scientific, parity, artifact, content and template adoption checks. Run `python -m pytest` in the pipeline environment. |
+| Deploy | [`deploy/`](deploy/) | active | ML VPS deployment at [oreflow.ml.fasl-work.com](https://oreflow.ml.fasl-work.com); credentials are configured on the host. |
 
-## What it computes
-
-- **The engine** (`data-pipeline/pipeline/engine/`): a Whiten crusher; an energy-specific population
-  balance ball mill (three mixers, Moly-Cop form) in a closed circuit that meets the target P80 and the
-  design circulating load, at installed power when the target cannot be met, or, in the cut mode, holds the
-  cyclone's cut at installed power and lets the P80 and the load follow; Plitt hydrocyclones with water
-  bypass and density-corrected cuts per mineral; flotation banks of perfectly mixed cells, each on its own tail
-  flow, with rates from bubble surface area flux, entrainment and cleaner recycles; a gravity unit on part of the
-  cyclone underflow that recovers the gravity-recoverable gold (Laplante's GRG model); low-intensity magnetic drums;
-  a desliming cyclone at its declared underflow density; Bond, Rittinger and Kick energy; an independent audit of
-  every balance, size class by size class, with the breakage operators audited by their own steady state.
-- **Method records** for every variant: five lumped kinetic models fitted to a virtual batch test and
-  projected to the bank; a constrained optimizer (a pattern search with a progressive barrier from up to six starts,
-  its search step screened by the learned lane) that weighs recovered metal against energy under grade, power and
-  water constraints, the same in the browser, where the weight is a live control; a seeded uncertainty record over
-  four ore properties, which the browser re-runs at any seed; Sobol indices at the nominal state; mechanism
-  ablations and a seed study.
-- **A learned lane**: ridge, random forest, gradient boosting, a Gaussian process and a PyTorch MLP trained
-  on 3072 engine states, scored inside the cases and on held-out cases, with an autoencoder guard; the MLP
-  and the guard run in the browser as ONNX.
-- **Three measured lanes**, none of which calibrates the engine: the HZDR particle dataset (RODARE 336,
-  CC BY 4.0), 52 GeoMet locked-cycle tests (Zenodo 7051975, CC BY 4.0) and the iron-plant hours below.
-- **Real sources in the workbench**: the 52 GeoMet samples run on their own assays, a sulphur-limited normative
-  mineralogy (bornite and chalcocite) and their Bond work index in the soft porphyry's circuit, beside the measured
-  recovery; and hours of one iron-ore plant (Kaggle 6294, CC0) with a leakage-safe next-hour silica soft sensor.
-- **Checks against published examples**: the Moly-Cop base case, the GMG Bond worked examples, Laplante's
-  gravity example compared like for like on the gravity-recoverable gold, and the Zandrivierspoort magnetite tests;
-  each record states its miss.
-
-Twelve cases, eight variants each (six of the target mode, two of the cut mode): soft and hard copper porphyry, low-grade copper at high throughput, copper
-ore with clay, copper-molybdenum bulk flotation, oxide copper by sulphidisation, zinc sulphide, nickel
-sulphide with serpentine slimes, refractory gold in sulphides, free-milling gold with gravity, fine magnetite,
-and phosphate with clay slimes ([use cases](docs/use-cases.md)).
-
-## Quick start
-
-The workbench alone needs only Node 20 or later (22 in CI): it reads the committed records and runs the engine's
-port in the browser.
+## Run locally
 
 ```powershell
-cd frontend; npm ci; npm run dev    # the workbench on http://127.0.0.1:5914
+scripts/setup.ps1
+scripts/precompute.ps1
+cd frontend; npm ci; npm run dev
 ```
 
-The Python engine, the service and the tests also need Python 3.12:
-
-```powershell
-./scripts/setup.ps1 -NoGpu          # .venv only, never a global interpreter (bash: setup.sh --no-gpu)
-./scripts/setup.ps1                 # .venv and .venv-gpu, the CUDA build of PyTorch for training the learned lane
-```
-
-The committed records in `data/derived/` and `models/` are all the site needs; a bake is only needed after
-changing the engine, the catalog or a method ([guide 02](docs/guides/02_bake-and-gpu.md)). The service:
-
-```powershell
-.venv\Scripts\python.exe -m uvicorn app.main:app --host 127.0.0.1 --port 8146
-```
-
-Every shell script has a bash twin (`scripts/*.sh`).
-
-## Tests
-
-```powershell
-./scripts/smoke.ps1                 # guards, ruff, the Python and frontend suites, the build (counts per release in docs/release-verification.md)
-cd frontend; npm run build; cd ..
-.venv/Scripts/uvicorn app.main:app --host 127.0.0.1 --port 4914   # the service, as on the VPS; then, in another terminal:
-cd frontend; node gate.mjs          # the browser gate (OF_MATRIX=full for every viewport, theme and language)
-```
-
-## How it is built
-
-A canonical Python engine and an offline bake that writes versioned JSON records; a line-by-line
-TypeScript port that reproduces every baked variant within 1e-6 and runs in a Web Worker; a React and Vite
-interface on the shared CAOS app shell, with uPlot charts and KaTeX equations; a FastAPI service that runs
-the Python engine behind the same operating contract. See [architecture](docs/architecture.md).
-
-![What runs where: the measured lanes, the precompute, the committed records, the browser and the service](frontend/public/svg/tech/02-lanes.svg)
-
-The service's routes (the cases, a case's manifest, the contract, the benchmark, `POST /api/simulate` and the
-health checks) are in [app/README.md](app/README.md); the files of the repository in [STRUCTURE.md](STRUCTURE.md).
-
-## Documentation
-
-| Section | Contents |
-|---|---|
-| [Wiki index](docs/README.md) | every theme of the documentation and its pages |
-| [Architecture](docs/architecture.md) | the system, the bake, the browser engine, the web app, release and deployment |
-| [Methodologies](docs/methodologies.md) | every unit model and method, the real samples and the three measured lanes, with their equations, parameters, sources and tests |
-| [Data contract](docs/data-contract.md) | the operating contract, the trace, the records, and the inputs and records of the three measured lanes |
-| [Frameworks](docs/frameworks.md) | each library, how OreFlow uses it, with runnable examples |
-| [Guides](docs/guides.md) | running it locally, baking, using it on other data, adding a case, reading the workbench |
-| [Use cases](docs/use-cases.md) | the twelve cases, rendered from the committed records |
-| [Design](docs/design/SDD.md) | the software design document and the requirements with their gates |
-| [Service](app/README.md) | the FastAPI service and its routes |
-| [Structure](STRUCTURE.md) | the repository's folders and files |
-| [Changelog](CHANGELOG.md) | the releases, newest first |
-| [Release verification](docs/release-verification.md) | what was checked, where and when, for each release |
-| [Manuscript](manuscript/oreflow-digital-twin.md) | the manuscript draft (not deposited; no DOI) |
-
-## What the results are, and are not
-
-The cases are authored scenarios, each parameter and plausibility range cited or labelled authored, not calibrated plants; the directions of the
-effects are the engine's physics, their sizes depend on the authored parameters. The optimizer has no
-prices. The learned lane approximates this engine, and its scores with a whole ore group held out bound how it
-transfers to another authored plant, not to a real one. The measured lanes are separate evidence and calibrate nothing in
-the engine.
-
-## License
-
-MIT for code and authored content ([LICENSE](LICENSE)). External data stays under its source licence and
-is not redistributed in raw form. Developed by Felipe Santibáñez-Leal.
+See [the design and validation record](docs/design/SDD.md) for model assumptions, data provenance, evaluation limits and release gates.

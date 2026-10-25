@@ -37,7 +37,10 @@ function SulphurBandsFigure({ lang }: { lang: Lang }) {
         </g>
       ))}
       <text className="dg-axis-label" x={x(2)} y={158} textAnchor="middle">{es ? 'razón molar s / c en la muestra (bandas, no a escala)' : 'molar ratio s / c in the sample (bands, not to scale)'}</text>
-      <text className="dg-note" x={x(0)} y={186}>{es ? 'umbrales: S/Cu de la calcosina (0,5), la bornita (0,8) y la calcopirita (2)' : 'thresholds: the S/Cu of chalcocite (0.5), bornite (0.8) and chalcopyrite (2)'}</text>
+      <text className="dg-note" x={x(0)}>
+        <tspan x={x(0)} y={178}>{es ? 'S/Cu: calcosina 0,5; bornita 0,8;' : 'S/Cu: chalcocite 0.5; bornite 0.8;'}</tspan>
+        <tspan x={x(0)} y={192}>{es ? 'calcopirita 2' : 'chalcopyrite 2'}</tspan>
+      </text>
     </svg>
   );
 }

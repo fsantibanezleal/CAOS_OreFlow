@@ -1,0 +1,10 @@
+# Validation
+
+| requirement | adversarial check | gate |
+|---|---|---|
+| IS-01 | Challenge this invariant with an invalid or missing case, then require the pipeline record to refute it: THE pipeline SHALL pin the publisher's CC0 version-1 archive by SHA-256, read the named CSV, verify its population (737,453 rows, 24 columns) and reco | `tests/adversarial/test_oreflow_requirements.py::test_adversarial_is_01` |
+| IS-02 | Challenge this invariant with an invalid or missing case, then require the pipeline record to refute it: THE pipeline SHALL reject every hour whose nominally hourly laboratory silica label varies within the hour (an interpolated label), and SHALL NOT trea | `tests/adversarial/test_oreflow_requirements.py::test_adversarial_is_02` |
+| IS-03 | Challenge this invariant with an invalid or missing case, then require the pipeline record to refute it: THE response SHALL be the next hour's measured silica in the concentrate. The learned predictors SHALL exclude both concentrate assays, the future tar | `tests/adversarial/test_oreflow_requirements.py::test_adversarial_is_03` |
+| IS-04 | Challenge this invariant with an invalid or missing case, then require the pipeline record to refute it: THE evaluation SHALL use chronological, disjoint future windows with an expanding history and at least a 24-hour embargo between training and test, wi | `tests/adversarial/test_oreflow_requirements.py::test_adversarial_is_04` |
+| IS-05 | Challenge this invariant with an invalid or missing case, then require the pipeline record to refute it: THE Benchmark page SHALL show the observed and predicted traces, the error per window and model, the persistence baseline, the exclusions and the one- | `tests/adversarial/test_oreflow_requirements.py::test_adversarial_is_05` |
+| IS-06 | Challenge this invariant with an invalid or missing case, then require the pipeline record to refute it: THE lane SHALL stay separate from the copper locked-cycle recovery and the authored circuit's optimizer, and SHALL NOT recommend a set point. | `tests/adversarial/test_oreflow_requirements.py::test_adversarial_is_06` |

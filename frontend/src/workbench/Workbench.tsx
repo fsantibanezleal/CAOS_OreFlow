@@ -7,9 +7,9 @@
  * supersedes an evaluation still on its way. The source (RS-07) is a synthetic case, a GeoMet sample run in the
  * soft porphyry's circuit on its own ore, or an iron-plant hour, which is shown and never simulated.
  */
-import { useShellLang } from '@fasl-work/caos-app-shell';
+import { useFocusMode, WorkbenchLayout, useShellLang } from '@fasl-work/caos-app-shell';
 import { useEffect, useRef, useState } from 'react';
-import { useNavigate, useSearchParams } from 'react-router';
+import { useLocation, useNavigate, useSearchParams } from 'react-router';
 import { evaluateInWorker, RefusedState } from '../engine/client';
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
@@ -30,6 +30,7 @@ import { MethodsView } from './views/MethodsView';
 import { ResponseView } from './views/ResponseView';
 import { SeparationView } from './views/SeparationView';
 import { HourReadout, HourView, SampleView, SourceStatement } from './views/SourceViews';
+import FocusWorkbench from './FocusWorkbench';
 
 /** The case whose plant and operating point run the GeoMet samples (RS-05). */
 export const SAMPLE_CASE = 'copper_porphyry_soft';
@@ -186,8 +187,38 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
 
 export default function Workbench() {
   const lang = useShellLang() as Lang;
-  const [params, setParams] = useSearchParams();
+  const focusMode = useFocusMode({});
+  useEffect(() => {
+    if (!focusMode.show) return;
+    const background = Array.from(document.querySelectorAll<HTMLElement>('.skip-link, .site-header'));
+    const previous = background.map(node => node.hasAttribute('inert'));
+    background.forEach(node => node.setAttribute('inert', ''));
+    queueMicrotask(() => document.querySelector<HTMLElement>('[data-focus-exit]')?.focus());
+    const containTab = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') return;
+      const frame = document.querySelector<HTMLElement>('[data-focus-shell]');
+      if (!frame) return;
+      const candidates = Array.from(frame.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])'))
+        .filter(node => !node.closest('[inert]') && node.getClientRects().length > 0);
+      if (!candidates.length) return;
+      const first = candidates[0];
+      const last = candidates[candidates.length - 1];
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !frame.contains(active))) {
+        event.preventDefault(); last.focus();
+      } else if (!event.shiftKey && (active === last || !frame.contains(active))) {
+        event.preventDefault(); first.focus();
+      }
+    };
+    document.addEventListener('keydown', containTab, true);
+    return () => {
+      document.removeEventListener('keydown', containTab, true);
+      background.forEach((node, index) => { if (!previous[index]) node.removeAttribute('inert'); });
+    };
+  }, [focusMode.show]);
+  const [params] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { caseId, variantId, base, point, view, selectedUnit, source, sampleId, hourKey, setView, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
   const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample, rejected } = useCaseState(loaded, params);
@@ -196,21 +227,26 @@ export default function Workbench() {
   // the state travels in the URL (replace, so the back button leaves the page instead of undoing a slider)
   useEffect(() => {
     if (!caseId || !base) return;
-    const query = `${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`;
-    if (query !== params.toString()) setParams(query, { replace: true });
-  }, [caseId, variantId, base, point, view, source, sampleId, hourKey, params, setParams]);
+    const query = new URLSearchParams(`${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`);
+    // Keep application-owned deep-link parameters when the simulator normalizes its own state. In particular,
+    // the shell's legacy /?…#… App links must survive Landing -> /app -> state hydration unchanged.
+    const owned = new Set(['case', 'variant', 'view', 'set', 'source', 'sample', 'hour']);
+    for (const [key, value] of params) if (!owned.has(key)) query.append(key, value);
+    const search = `?${query.toString()}`;
+    if (search !== location.search) navigate({ pathname: location.pathname, search, hash: location.hash }, { replace: true });
+  }, [caseId, variantId, base, point, view, source, sampleId, hourKey, params, location.pathname, location.search, location.hash, navigate]);
   useEffect(() => setCursor(null), [view, caseId]);
   // U-15: an hour of the plant has only its Case view; the source opens it and the other views are disabled
   useEffect(() => { if (source === 'hour' && view !== 'case') setView('case'); }, [source, view, setView]);
 
   if (failure) return <div className="page-body wide of-bench"><p className="of-failure" role="alert">{failure}</p></div>;
   if (!loaded || !artifact || !variant || !point || artifact.case_id !== caseId) {
-    return <div className="page-body wide of-bench"><p className="of-hint" role="status">{t(UI.loading, lang)}</p></div>;
+    return <div className="page-body wide of-bench" data-state="loading"><p className="of-hint" role="status">{t(UI.loading, lang)}</p></div>;
   }
   const { index, contract, benchmark } = loaded;
   const primary = contract.cases[caseId].primary;
   const modified = Object.keys(changedInputs(base, point)).length > 0;
-  const openFocus = () => navigate(`/focus/${caseId}?${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`);
+  const openFocus = () => focusMode.setFocus(true);
   const names = Object.fromEntries(VIEWS.map(v => [v, t(UI.views[v], lang)])) as Record<View, string>;
 
   let body: React.ReactNode = <p className="of-hint" role="status">{t(UI.loading, lang)}</p>;
@@ -245,9 +281,12 @@ export default function Workbench() {
   }
 
   return (
-    <div className="page-body wide of-bench">
-      <Rail index={index} contract={contract} artifact={artifact} lang={lang} errors={errors} onFocus={openFocus} samples={samples} lane={lane} />
-      <section className="of-main" aria-label={artifact.title[lang]}>
+    <>
+    {focusMode.show && <FocusWorkbench focusMode={focusMode} />}
+    <div className="of-workbench-inert" inert={focusMode.show || undefined}>
+    <WorkbenchLayout className="of-bench" rail={<Rail index={index} contract={contract} artifact={artifact} lang={lang} errors={errors} onFocus={openFocus} focusRef={focusMode.enterRef} samples={samples} lane={lane} />} railLabel={{ en: 'Process controls', es: 'Controles del proceso' }}>
+      <section className="of-main" aria-label={artifact.title[lang]} data-case-workbench="" data-case={caseId}
+        data-state-key={stateQuery(caseId, variantId, base, point, view)} data-state={computing ? 'loading' : undefined}>
         {source === 'hour' && lane ? <HourReadout lane={lane} hourKey={hourKey} lang={lang} cursor={cursor} />
           : <Readout trace={trace} lang={lang} computing={computing} cursor={cursor} rejected={rejection} />}
         {/* the flags' sentences share the tabs' row where it has room: on their own line they took the instrument under
@@ -259,6 +298,8 @@ export default function Workbench() {
         </div>
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>
       </section>
+    </WorkbenchLayout>
     </div>
+    </>
   );
 }

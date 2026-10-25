@@ -1,0 +1,87 @@
+{
+  "oreflow-benchmark-v2": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-benchmark-v2.schema.json",
+    "sha256": "931e6d66f1cb8035a2aef81c4b200512047843a0676697b0b5cb6d967756df20"
+  },
+  "oreflow-case-v2": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-case-v2.schema.json",
+    "sha256": "ef77241e40dcbde0509c44862534e8ec68b9ff77823510b86e34734d5a650d91"
+  },
+  "oreflow-contract-probes-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-contract-probes-v1.schema.json",
+    "sha256": "ea89a19cf68c4ccab58a7f88b2b77764c95251442fb32ee4887b999aee62d113"
+  },
+  "oreflow-contract-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-contract-v1.schema.json",
+    "sha256": "64386b231e50e392fbf6007da9fbb2809ccd676709d91957d777b006a88554ea"
+  },
+  "oreflow-geomet-lct-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-geomet-lct-v1.schema.json",
+    "sha256": "065e2ac524c4eb9d99ce2088727c2dee97c4ac630cb7fad9329e2ae4e355c247"
+  },
+  "oreflow-hzdr-summary-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-hzdr-summary-v1.schema.json",
+    "sha256": "b413d3222f5d2008c1ad09c045dc42dc6f310ee06d4611f414c159ee4a955617"
+  },
+  "oreflow-index-v2": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-index-v2.schema.json",
+    "sha256": "f615c115b7af891acf1520cb175c604ab78338de92bd4326f9002d84aab142f4"
+  },
+  "oreflow-iron-plant-soft-sens": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-iron-plant-soft-sensor-v1.schema.json",
+    "sha256": "2e61c2c84e5232ec86bd039de4aaf8b900f6a4539c241a944fb14cfe78207efe"
+  },
+  "oreflow-learning-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-learning-v1.schema.json",
+    "sha256": "ab2dab00a43ee244dc74ef95aafcabe5480f6ed813a37926c127dc5409f17b31"
+  },
+  "oreflow-manifest-v2": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-manifest-v2.schema.json",
+    "sha256": "d7fd9cbcd611be914fdaa3fbb784d7450ede69e0d7b3a0e229a957ba49705068"
+  },
+  "oreflow-particle-benchmark-v": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-particle-benchmark-v1.schema.json",
+    "sha256": "3069435a19adcaa70e253a8a2d74f8a7655f9d5674c18a29edc6ae4f42585d29"
+  },
+  "oreflow-process-surrogate-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-process-surrogate-v1.schema.json",
+    "sha256": "0a5477ad6a7c6955d7db57f4189bfc6e8d0870a7dfaa7d9345f25bfac97b77db"
+  },
+  "oreflow-real-samples-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-real-samples-v1.schema.json",
+    "sha256": "46818ef5d09aba4e9295228aac07b443df74156a8df399e9800ff22ad68f6548"
+  },
+  "oreflow-screen-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-screen-v1.schema.json",
+    "sha256": "95e611e269fec3d747a772e29b9dd492f9b3f1f510af04d50ced744a8b78a25b"
+  },
+  "oreflow-studies-v1": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-studies-v1.schema.json",
+    "sha256": "c521175ade47f81177884ea4cb2df13574cf7f3d912661f586a4e7411b267cc5"
+  },
+  "oreflow-validation-v2": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-validation-v2.schema.json",
+    "sha256": "76251dc04e87ae9d7f092a3ad21e144ae5c2154c21ad3a944fa91c610be6ba5a"
+  },
+  "readiness": {
+    "version": "1.0.1",
+    "schema": "docs/contracts/schemas/oreflow-readiness-v1.schema.json",
+    "sha256": "3d65e8567b6d50550d0c3873a12d5388aa2b7de33720bf6d787c7259077e3ce0"
+  }
+}

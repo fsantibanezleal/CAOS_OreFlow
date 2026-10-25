@@ -16,7 +16,7 @@ export const CONTENT_CITATIONS: Citation[] = [
   { id: 'crusher2024', label: 'Rocha et al. 2024', citation: 'Rocha, B., Campos, T., Silva, J. and Tavares, L. (2024). Fit-for-purpose model of HP500 cone crusher in size reduction of itabirite iron ore. Minerals 14(9):919.', doi: '10.3390/min14090919', url: 'https://doi.org/10.3390/min14090919' },
   { id: 'syscad-crusher', label: 'SysCAD Crusher 2', citation: 'SysCAD documentation, Crusher 2 model theory (Whiten classification and breakage options).', url: 'https://help.syscad.net/Crusher_2_Model_Theory' },
   { id: 'herbst1980', label: 'Herbst and Fuerstenau 1980', citation: 'Herbst, J.A. and Fuerstenau, D.W. (1980). Scale-up procedure for continuous grinding mill design using population balance models. International Journal of Mineral Processing 7(1):1-31.', doi: '10.1016/0301-7516(80)90034-4', url: 'https://doi.org/10.1016/0301-7516(80)90034-4' },
-  { id: 'molycop', label: 'Moly-Cop Tools', citation: 'Moly-Cop Tools (Sepúlveda), BallSim_Direct and BallParam_Direct spreadsheets and their documentation (vendor software and documentation, Moly-Cop; no public link).' },
+  { id: 'molycop', label: 'Moly-Cop Tools', citation: 'Molycop Tools: ball-mill and cyclone simulations, mass-balance models and parameter-estimation routines. Official product overview; OreFlow benchmark inputs are transcribed from the vendor workbook.', url: 'https://www.molycop.com/products-and-services/measurement-and-analytics/analytics/molycop-tools' },
   // classification
   { id: 'irannajad2006', label: 'Irannajad et al. 2006', citation: 'Irannajad, M., Farzanegan, A. and Razavian, S.M. (2006). Spreadsheet-based simulation of closed ball milling circuits. Minerals Engineering 19(15):1495-1504 (closed-circuit simulation iterating the recycle for given classifier parameters).', doi: '10.1016/j.mineng.2006.08.010', url: 'https://doi.org/10.1016/j.mineng.2006.08.010' },
   { id: 'plitt1976', label: 'Plitt 1976', citation: 'Plitt, L.R. (1976). A mathematical model of the hydrocyclone classifier. CIM Bulletin 69(776):114-123; equations as documented verbatim by SysCAD.', url: 'https://help.syscad.net/index.php/Hydrocyclone' },
@@ -101,7 +101,9 @@ export function localizeCitations(items: Citation[], lang: Lang): Citation[] {
   if (lang !== 'es') return items;
   return items.map(c => ({
     ...c,
-    label: LABEL_ES[c.id] ?? c.label.replace(/ and (?=\S)/g, (match: string, at: number, whole: string) =>
-      (/^(?:[IiÍí]|[Hh][IiÍí])(?![aeiouáéíóú])/.test(whole.slice(at + match.length)) ? ' e ' : ' y ')),
+    label: typeof c.label === 'string'
+      ? (LABEL_ES[c.id] ?? c.label.replace(/ and (?=\S)/g, (match: string, at: number, whole: string) =>
+          (/^(?:[IiÍí]|[Hh][IiÍí])(?![aeiouáéíóú])/.test(whole.slice(at + match.length)) ? ' e ' : ' y ')))
+      : { en: c.label.en, es: LABEL_ES[c.id] ?? c.label.es },
   }));
 }

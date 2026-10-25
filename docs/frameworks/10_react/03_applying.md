@@ -24,7 +24,7 @@ Read order: [01 Installation](01_installation.md), [02 Usage](02_usage.md), **yo
 
 ## Adding a content topic
 
-A topic is an object, not a component (`content/doc.tsx`):
+A topic is an object, not a component (`frontend/src/content/doc.tsx`):
 
 ```ts
 const MY_TOPIC: Topic = {

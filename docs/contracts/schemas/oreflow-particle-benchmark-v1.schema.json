@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-particle-benchmark-v1",
+  "title": "oreflow-particle-benchmark-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.particle-benchmark/v1",
+      "type": "string"
+    },
+    "source": {
+      "type": "object"
+    },
+    "protocol": {
+      "type": "object"
+    },
+    "standardization": {
+      "type": "object"
+    },
+    "logistic_coefficients": {
+      "type": "object"
+    },
+    "cases": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "source",
+    "protocol",
+    "standardization",
+    "logistic_coefficients",
+    "cases"
+  ],
+  "additionalProperties": true
+}

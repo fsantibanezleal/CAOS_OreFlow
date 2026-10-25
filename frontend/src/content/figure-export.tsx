@@ -81,7 +81,7 @@ function diagramRules(css: string): string[] {
   return rules;
 }
 
-/** Every `var(--token)` given its system fallback; a token without one is an error, never a silent black. */
+/** Every shell CSS variable gets its system fallback; a missing fallback is an error, never a silent black. */
 function withFallbacks(rule: string): string {
   return rule.replace(/var\(--([\w-]+)\)/g, (_, token: string) => {
     const fallback = SYSTEM[token];

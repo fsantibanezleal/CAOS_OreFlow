@@ -6,7 +6,7 @@ particle lane, which fits a sparse logistic model to the HZDR particles; the Geo
 predicts measured locked-cycle recovery from assays; and the iron-plant lane (`run_iron_plant.py`), which forecasts
 the next hour's silica with ridge, a random forest and gradient boosting in pipelines of imputation and scaling,
 and fits the AR(1) comparator with a linear regression. joblib, which scikit-learn uses to persist models,
-stores the GeoMet checkpoint that `scripts/predict-geomet` scores new assays with.
+stores the GeoMet checkpoint that `scripts/predict-geomet.ps1` scores new assays with.
 
 ## At a glance
 

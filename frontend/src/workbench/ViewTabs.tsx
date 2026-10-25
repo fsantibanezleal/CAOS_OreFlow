@@ -1,7 +1,7 @@
 import { useId } from 'react';
 
 /**
- * A controlled tab row on the shell's own classes (`tablist`, `tab`). The shell's `Tabs` keeps its
+ * A controlled, accessible tab row owned by the workbench. The shell's `Tabs` keeps its
  * selection internally and reports no change, so a view held in the URL and the store cannot drive it;
  * this row keeps the shell's look and keyboard behaviour (arrows, Home, End, roving tabindex) and lets
  * the workbench own the state. Only the active panel is rendered by the caller (shell known defect 2).
@@ -27,10 +27,10 @@ export function ViewTabs<T extends string>({ views, active, onChange, label, nam
     document.getElementById(`${baseId}-${open[next]}`)?.focus();
   };
   return (
-    <div className="tablist of-viewbar" role="tablist" aria-label={label}>
+    <div className="of-view-tabs" role="tablist" aria-label={label}>
       {views.map(view => (
         <button key={view} id={`${baseId}-${view}`} role="tab" type="button" aria-selected={view === active}
-          tabIndex={view === active ? 0 : -1} className={view === active ? 'tab active' : 'tab'} disabled={disabled.includes(view)} aria-disabled={disabled.includes(view) || undefined}
+          tabIndex={view === active ? 0 : -1} className={['of-view-tab', view === active ? 'active' : '', disabled.includes(view) ? 'disabled' : ''].filter(Boolean).join(' ')} disabled={disabled.includes(view)} aria-disabled={disabled.includes(view) || undefined}
           onClick={() => onChange(view)} onKeyDown={onKeyDown}>
           {names[view]}
         </button>

@@ -1,6 +1,6 @@
 {
   "name": "oreflow-workbench",
-  "version": "0.7.0",
+  "version": "0.10.0",
   "private": true,
   "type": "module",
   "engines": {
@@ -13,11 +13,12 @@
     "test": "vitest run",
     "build": "npm run typecheck && node copy-data.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4914 --strictPort",
-    "gate": "node gate.mjs"
+    "gate": "node scripts/gate.mjs",
+    "gate:oreflow": "node gate.mjs"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "github:fsantibanezleal/CAOS_APP_SHELL#v0.06.011",
-    "katex": "0.16.47",
+    "@fasl-work/caos-app-shell": "0.19.1",
+    "katex": "0.19.1",
     "lucide-react": "1.43.0",
     "onnxruntime-web": "1.29.0",
     "react": "19.3.0",
@@ -33,7 +34,7 @@
     "@vitejs/plugin-react": "6.1.1",
     "playwright": "1.61.0",
     "typescript": "7.0.2",
-    "vite": "8.2.2",
+    "vite": "8.3.5",
     "vitest": "5.0.0"
   }
 }

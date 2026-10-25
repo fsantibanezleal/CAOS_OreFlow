@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-real-samples-v1",
+  "title": "oreflow-real-samples-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.real_samples/v1",
+      "type": "string"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "contract_digest": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "source": {
+      "type": "object"
+    },
+    "labels": {
+      "type": "object"
+    },
+    "floatability_ratios": {
+      "type": "object"
+    },
+    "plant": {
+      "type": "object"
+    },
+    "comminution": {
+      "type": "array"
+    },
+    "excluded": {
+      "type": "array"
+    },
+    "samples": {
+      "type": "array"
+    },
+    "sensitivity": {
+      "type": "object"
+    },
+    "summary": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "engine_version",
+    "contract_digest",
+    "case_id",
+    "source",
+    "labels",
+    "floatability_ratios",
+    "plant",
+    "comminution",
+    "excluded",
+    "samples",
+    "sensitivity",
+    "summary"
+  ],
+  "additionalProperties": true
+}
