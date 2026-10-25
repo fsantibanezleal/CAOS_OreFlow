@@ -59,7 +59,9 @@ export const useWorkbench = create<WorkbenchState>(set => ({
   setSource: source => set({ source, selectedUnit: null }),
   setSample: (sampleId, base) => set({ sampleId, base, point: { ...base } }),
   setHour: hourKey => set({ hourKey }),
-  setCase: caseId => set({ caseId, variantId: 'nominal', base: null, point: null, selectedUnit: null }),
+  // Selecting the already active case is a no-op. Clearing its point would leave Workbench waiting
+  // for the case-loading effect, which only runs when caseId changes (and therefore never fires).
+  setCase: caseId => set(state => state.caseId === caseId ? state : { caseId, variantId: 'nominal', base: null, point: null, selectedUnit: null }),
   setVariant: (variantId, base) => set({ variantId, base, point: { ...base } }),
   setValue: (name, value) => set(state => (state.point ? { point: { ...state.point, [name]: value } } : {})),
   setPoint: point => set({ point }),

@@ -11,6 +11,7 @@ import type { Trace } from '../../engine/trace';
 import { formatSignificant, formatWithUnit, type Lang } from '../../lib/format';
 import { metricLabel, mineralName } from '../../lib/i18n';
 import { Chart, type CursorReading, type Series } from '../../components/charts/Chart';
+import { ChartDeck } from '../../components/charts/ChartDeck';
 
 type Curves = {
   size_um: number[]; psd: Record<string, number[]>; partition: Record<string, Array<number | null>>;
@@ -137,20 +138,18 @@ export function GrindingView({ trace, ore, lang, onCursor }: { trace: Trace; ore
   const charts = grindingCharts(trace, ore, lang, onCursor);
   const m = trace.metrics;
   const flagged = flaggedFacts(trace);
-  return (
-    // a fourth chart when the composite scale departs from 1, else the facts, which on a large screen
-    // become a strip under the charts (of-grid-strip)
-    <div className={`of-view of-grid-2x2${charts.scale ? '' : ' of-grid-strip'}`}>
-      {charts.psd}
-      {charts.partition}
-      {charts.liberation}
-      {charts.scale ?? (
-        <dl className="of-facts of-grid-facts">
-          <div className="of-facts-wide"><dt>{TEXT.mode[lang]}</dt><dd>{m.cut_mode === 1 ? TEXT.modeCut[lang] : TEXT.modeTarget[lang]}</dd></div>
-          {['crusher_feed_f80_um', 'crusher_p80_um', 'p80_um', 'circulating_load_pct', 'cyclone_cut_um', 'cyclone_bypass_pct', 'cyclones_required', 'cyclone_pressure_kpa', 'specific_energy_grinding_kwh_t', 'operating_work_index_kwh_t']
-            .filter(k => k in m).map(k => <div key={k} className={flagged.has(k) ? 'of-fact-warn' : undefined}><dt>{metricLabel(k, lang)}</dt><dd>{formatWithUnit(m[k], trace.metric_units[k], lang)}</dd></div>)}
-        </dl>
-      )}
-    </div>
-  );
+  const views = [
+    { id: 'psd', label: GRINDING_CHARTS.psd[lang], content: charts.psd! },
+    { id: 'partition', label: GRINDING_CHARTS.partition[lang], content: charts.partition! },
+    { id: 'liberation', label: GRINDING_CHARTS.liberation[lang], content: charts.liberation! },
+    ...(charts.scale ? [{ id: 'scale', label: GRINDING_CHARTS.scale[lang], content: charts.scale }] : []),
+    { id: 'control', label: lang === 'es' ? 'Estado de molienda' : 'Grind state', content: (
+      <dl className="of-facts of-grid-facts of-chart-deck-facts">
+        <div className="of-facts-wide"><dt>{TEXT.mode[lang]}</dt><dd>{m.cut_mode === 1 ? TEXT.modeCut[lang] : TEXT.modeTarget[lang]}</dd></div>
+        {['crusher_feed_f80_um', 'crusher_p80_um', 'p80_um', 'circulating_load_pct', 'cyclone_cut_um', 'cyclone_bypass_pct', 'cyclones_required', 'cyclone_pressure_kpa', 'specific_energy_grinding_kwh_t', 'operating_work_index_kwh_t']
+          .filter(k => k in m).map(k => <div key={k} className={flagged.has(k) ? 'of-fact-warn' : undefined}><dt>{metricLabel(k, lang)}</dt><dd>{formatWithUnit(m[k], trace.metric_units[k], lang)}</dd></div>)}
+      </dl>
+    ) },
+  ];
+  return <ChartDeck views={views} label={lang === 'es' ? 'Análisis de molienda' : 'Grinding analysis'} className="of-view" />;
 }

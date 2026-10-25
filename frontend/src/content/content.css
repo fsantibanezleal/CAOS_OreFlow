@@ -4,42 +4,13 @@
  * are shell tokens; figures use the shell's diagram classes.
  */
 
-/* Shell known defect 1 (open in 0.6.11): html, body and #root at height 100% with overflow-x hidden make
- * <body> a viewport-sized scroll container, so the document itself never scrolls: scrollTo and anchors
- * do nothing, the document height reads as the viewport's, and a full-page capture is one screen. The
- * document takes its content's height again. The App route is unaffected: .app-shell.fixed sizes itself
- * with 100dvh, and .app-shell with 100vh, neither through this percentage chain. */
-html, body, #root { height: auto; min-height: 100%; }
-
-/* Shell known defect 10 (open in 0.6.11): the route links scroll inside the header only below 760 px;
- * above that the nav cannot shrink, so from 761 px to about 1060 px in Spanish it pushed the header's
- * actions (architecture, source, about, language, theme) past the right edge of the screen. The nav
- * shrinks and scrolls in its row at every width; a wide screen shows it whole, as before. */
-.main-nav { flex: 1 1 auto; min-width: 0; overflow-x: auto; overflow-y: hidden; white-space: nowrap; scrollbar-width: none; }
-.main-nav::-webkit-scrollbar { display: none; }
-.main-nav .nav-link { flex: none; }
-/* Shell known defect 11 (U-37): with the scrollbar hidden, the end of the nav that hides links fades (NavOverflow declares which), so a link
- * cut at the edge reads as more to scroll, not as a broken word */
-.main-nav[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
-.main-nav[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
-.main-nav[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
-
-/* the same for a content page's tab row wider than the page (DocPage declares which end hides tabs): in Spanish at
- * 1280 px the Implementation row was cut at "Controles y publicaci" with nothing to say a tab followed (0.08 gate) */
-.of-doc .tablist[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
-.of-doc .tablist[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
-.of-doc .tablist[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
-
-/* Shell known defect 11 (U-37): on a phone the shell keeps the workbench footer on one line that scrolls with no scrollbar, so it was cut
- * after "v0.07.000 · D"; it wraps instead, two short lines under the instrument */
-@media (max-width: 860px) {
-  .app-shell.fixed .footer-meta { flex-wrap: wrap; overflow-x: visible; white-space: normal; row-gap: 0.15rem; }
-  .app-shell.fixed .footer-meta > * { flex: 0 1 auto; }
-  .app-shell.fixed .footer-build { margin-left: 0; }
-}
-.brand, .header-actions { flex: none; white-space: nowrap; }
-
 .of-doc { min-width: 0; }
+.of-introduction-page > .page-body.wide.caos-surface { width: 100%; max-width: none; margin: 0; padding: 0; }
+.of-introduction-page .caos-surface-head, .of-introduction-page .caos-surface-heading,
+.of-introduction-page .caos-surface-lede, .of-introduction-page .caos-surface-body,
+.of-introduction-page .tabs, .of-introduction-page .tabpanel, .of-introduction-page .subtabs,
+.of-introduction-page [data-exec-section], .of-introduction-page [data-exec-section] > * { width: 100%; max-width: none; }
+.of-introduction-page .caos-surface-lede .lede { display: block; width: 100%; }
 .of-doc-head { margin-bottom: 1.2rem; }
 .of-doc-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -0.01em; }
 .of-doc-head p { margin: 0; color: var(--color-fg-subtle); line-height: 1.6; }
@@ -50,16 +21,15 @@ html, body, #root { height: auto; min-height: 100%; }
 .of-topic-text p { max-width: 78ch; line-height: 1.65; }
 .of-topic-text .katex-display { overflow-x: auto; overflow-y: hidden; }
 .of-topic-side { min-width: 0; }
-.of-topic-side .of-topic-figure .figure { margin-top: 0; }
 .of-topic-figure.wide { position: static; margin: 0.4rem auto 1.2rem; max-width: 900px; }
 .of-topic-equations .katex-display { overflow-x: auto; overflow-y: hidden; }
 /* a wide figure spans its row; a narrow one keeps the shell's figure measure (560 px), centred in its column */
-.of-topic-figure.wide .fig-svg { max-width: 100%; }
 @media (max-width: 1000px) { .of-topic-body.with-figure { grid-template-columns: minmax(0, 1fr); } }
 /* a figure keeps the width at which its smallest label reads (FigureScroll sets it) and scrolls sideways in its own row
    on a narrower screen; the hidden end fades as the route links' do, so a cut label reads as more to scroll */
 .of-figure-scroll { overflow-x: auto; overflow-y: hidden; }
-.of-figure-scroll > .fig-svg { min-width: var(--of-fig-min, 0px); }
+.of-figure-scroll { --of-fig-min: 0px; }
+.of-figure-scroll > .fig-svg { min-width: var(--of-fig-min); max-width: none; }
 .of-figure-scroll[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
 .of-figure-scroll[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
 .of-figure-scroll[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }
@@ -73,13 +43,11 @@ html, body, #root { height: auto; min-height: 100%; }
 
 /* figure frames and optional units (dashed), small labels for dense schematics */
 .of-dg-frame { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
-.dg-box.of-dg-optional { stroke-dasharray: 5 3; }
 .of-dg-optional-edge { stroke: var(--color-fg-faint); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
 .of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
 /* Shell known defect 12 (D-29): the shell draws figure notes and ticks in --color-fg-faint (4.27:1 on the light page, 3.80:1 on the dark
    surface), below WCAG AA for 11 px text; here they carry content (solve directions, legends, sample counts), so they
    take the subtle text colour (at least 5.7:1 on every page and surface, both themes) */
-.fig-svg .dg-note, .fig-svg .dg-tick { fill: var(--color-fg-subtle); }
 /* Shell known defect 13 (CAOS_APP_SHELL #29, open in 0.6.11): the architecture modal's full-size toggle is a native
    button with size styles only, so in the dark theme it keeps the browser's light face under the page's light text and
    cannot be read (found again in the 0.08 captures). It takes the theme's tokens here; the gate measures its contrast. */
@@ -101,6 +69,7 @@ html, body, #root { height: auto; min-height: 100%; }
 .of-doc-panel { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0.6rem; min-width: 0; }
 .of-doc-control { display: inline-flex; align-items: center; gap: 0.6rem; max-width: 100%; font-size: 0.86rem; color: var(--color-fg-subtle); }
 .of-doc-control select { min-width: 0; max-width: 100%; font: inherit; color: var(--color-fg); background: var(--color-surface); border: 1px solid var(--color-border); border-radius: 6px; padding: 4px 8px; }
+.of-doc-control select.of-fold-select { font-size: 0.72rem; }
 .of-doc-chart { height: 360px; min-width: 0; }
 .of-doc-chart .of-plot { height: 100%; }
 .of-doc-reading { margin: 0; min-height: 1.4em; font-size: 0.84rem; color: var(--color-fg-subtle); font-variant-numeric: tabular-nums; }

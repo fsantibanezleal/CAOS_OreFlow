@@ -4,7 +4,6 @@ from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
-import torch
 
 ROOT = Path(__file__).resolve().parents[1]
 ARTIFACT = ROOT / "data" / "derived" / "source" / "hzdr_particle_benchmark.json"
@@ -36,6 +35,8 @@ def test_exported_onnx_matches_local_pytorch_checkpoint():
         # CI validates the committed ONNX binary without requiring a local GPU checkpoint.
         assert MODEL.stat().st_size > 1000
         return
+    import torch
+
     weights = torch.load(checkpoint, map_location="cpu", weights_only=False)
     network = torch.nn.Sequential(torch.nn.Linear(4, 32), torch.nn.ReLU(), torch.nn.Linear(32, 32), torch.nn.ReLU(), torch.nn.Linear(32, 4))
     network.load_state_dict(weights["state_dict"])

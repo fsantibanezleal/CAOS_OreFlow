@@ -5,9 +5,9 @@
  * rail holding the controls with a basic and an advanced set. The state travels in the URL, so entering
  * from the workbench and leaving again keep the case, the variant, the view and every changed control.
  */
-import { FocusShell, useShellLang } from '@fasl-work/caos-app-shell';
+import { FocusShell, useShellLang, type useFocusMode } from '@fasl-work/caos-app-shell';
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams, useSearchParams } from 'react-router';
+import { useNavigate, useSearchParams } from 'react-router';
 import type { OperatingPoint } from '../engine/model';
 import type { Trace } from '../engine/trace';
 import type { CaseArtifact } from '../lib/artifacts.types';
@@ -59,16 +59,11 @@ export function circuitState(trace: Trace, artifact: CaseArtifact, lang: Lang): 
   return [...(parts.length ? parts : [TEXT.within[lang]]), ...others].join('; ');
 }
 
-export default function FocusWorkbench() {
+export default function FocusWorkbench({ focusMode }: { focusMode: ReturnType<typeof useFocusMode> }) {
   const lang = useShellLang() as Lang;
-  const { caseId: pathCase } = useParams();
   const [search] = useSearchParams();
   const navigate = useNavigate();
-  const params = useMemo(() => {
-    const merged = new URLSearchParams(search);
-    if (pathCase) merged.set('case', pathCase);
-    return merged;
-  }, [search, pathCase]);
+  const params = useMemo(() => new URLSearchParams(search), [search]);
   const { caseId, variantId, base, point, view, selectedUnit, advanced, source, sampleId, hourKey, setVariant, setAdvanced, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
   const { artifact, variant, trace, accepted, errors, sample } = useCaseState(loaded, params);
@@ -81,14 +76,15 @@ export default function FocusWorkbench() {
   useEffect(() => {
     if (!caseId || !base) return;
     const query = `${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}&stage=${stage}`;
-    if (query !== search.toString()) navigate(`/focus/${caseId}?${query}`, { replace: true });
+    const next = `${query}&focus=1`;
+    if (next !== search.toString()) navigate(`/app?${next}`, { replace: true });
   }, [caseId, variantId, base, point, view, source, sampleId, hourKey, stage, search, navigate]);
 
   if (failure) return <p className="of-failure" role="alert">{failure}</p>;
   if (!loaded || !artifact || !variant || !point || artifact.case_id !== caseId) return <p className="of-hint" role="status">{t(UI.loading, lang)}</p>;
   const contract = loaded.contract;
   const primary = contract.cases[caseId].primary;
-  const exit = () => navigate(`/?${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`);
+  const exit = () => focusMode.setFocus(false);
 
   const choices: Array<{ id: Stage; label: string; node: React.ReactNode }> = [];
   if (trace && accepted) {
@@ -132,11 +128,14 @@ export default function FocusWorkbench() {
 
   return (
     <FocusShell
+      landmark={false}
       stage={(
         <OverlayInset.Provider value={FOCUS_INSET}>
-          <div className="of-focus-body">
-            {source === 'hour' ? <SourceStatement kind="hour" lang={lang} /> : current?.node ?? <p className="of-hint" role="status">{t(UI.loading, lang)}</p>}
-            {cursor && <p className="of-focus-cursor" aria-live="polite">{cursor}</p>}
+          <div data-case-workbench="" data-case={caseId} data-focus-param="focus" data-state-key={stateQuery(caseId, variantId, base, point, view)}>
+            <div className="of-focus-body">
+              {source === 'hour' ? <SourceStatement kind="hour" lang={lang} /> : current?.node ?? <p className="of-hint" role="status">{t(UI.loading, lang)}</p>}
+              {cursor && <p className="of-focus-cursor" aria-live="polite">{cursor}</p>}
+            </div>
           </div>
         </OverlayInset.Provider>
       )}

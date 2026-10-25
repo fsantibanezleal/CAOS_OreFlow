@@ -152,7 +152,7 @@ export function sensorLabel(name: string, lang: Lang): string {
 
 export function SourceStatement({ kind, lang }: { kind: 'hour' | 'sample-methods' | 'sample-response'; lang: Lang }) {
   const text = kind === 'hour' ? SOURCE_TEXT.notEngine : kind === 'sample-methods' ? SOURCE_TEXT.sampleNoMethods : SOURCE_TEXT.sampleNoResponse;
-  return <div className="of-view of-view-statement"><p className="of-note" role="note">{text[lang]}</p></div>;
+  return <div className="of-view"><p className="of-note" role="note">{text[lang]}</p></div>;
 }
 
 /** U-07, S-01, S-03: the record's mean gap with what it depends on, every number from the record. */
@@ -317,7 +317,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
             marks={[{ x: index, label: SOURCE_TEXT.thisHour[lang] }]}
             format={(v, axis) => (v === null ? '-' : axis === 'x' ? (Number.isInteger(v) && window.trace[v] ? window.trace[v].sensor_hour.slice(5, 13).replace('T', ' ') : '') : `${formatFixed(v, lang, 2)}%`)}
             onCursor={c => onCursor(c ? `${window.trace[c.index].sensor_hour.slice(0, 16)}: ${SOURCE_TEXT.observed[lang]} ${formatFixed(window.trace[c.index].observed_pct, lang, 2)}%` : null)} />
-          <table className="of-table of-table-data">
+          <table className="of-table">
             <caption>{`${SOURCE_TEXT.hourTitle[lang]}: ${hour.sensor_hour.slice(0, 16)}`}</caption>
             <thead><tr><th scope="col">{SOURCE_TEXT.model[lang]}</th><th scope="col">%</th><th scope="col">{SOURCE_TEXT.error[lang]}</th></tr></thead>
             <tbody>
@@ -331,7 +331,7 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
           </table>
           <p className="of-footnote">{`${SOURCE_TEXT.outOfFold[lang](window.id, Math.floor(window.embargo_hours_min))} ${SOURCE_TEXT.laneNote[lang]}`}</p>
           <p className="of-footnote">{SOURCE_TEXT.heldNote[lang](lane.held_labels.run_hours_min, formatFixed(lane.held_labels.pairs_touching, lang, 0), formatFixed(lane.protocol.pair_rows, lang, 0))}</p>
-          <p className="of-footnote of-hour-statement" role="note">{SOURCE_TEXT.caseNotEngine[lang]}</p>
+          <p className="of-footnote" role="note">{SOURCE_TEXT.caseNotEngine[lang]}</p>
         </div>
         <div className="of-aside">
           <table className="of-table">

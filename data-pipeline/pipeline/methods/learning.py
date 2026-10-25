@@ -183,6 +183,7 @@ def build_design(contract: dict[str, Any], cases: tuple[CaseDef, ...] = CASES, p
             y.append(targets(metrics))
             case_of.append(case.id)
             points.append({"point": state["point"], "factors": state["factors"]})
+        print(f"learning design: {case.id} ({index + 1}/{len(cases)}, {time.perf_counter() - started:.0f}s)", flush=True)
     return {"x": np.asarray(x), "y": np.asarray(y), "case": np.asarray(case_of), "states": points,
             "per_case": per_case, "seed": seed, "seconds": time.perf_counter() - started}
 
@@ -535,6 +536,7 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
     started = time.perf_counter()
     design = build_design(contract, cases, int(s["design_points_per_case"]), seed)
     x, y, case_of = design["x"], design["y"], design["case"]
+    print(f"learning evaluation: {len(x)} rows; device={s['device']}; interpolation", flush=True)
     train, test = interpolation_split(case_of, float(s["test_fraction"]), seed)
     interpolation = fit_and_score(x, y, train, test, s, seed, case_of[test])
     hgb = interpolation.pop("_hgb")
@@ -542,6 +544,7 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
     interpolation["permutation_importance"] = importance(hgb, x, y, test, fx, s, seed, case_of)
     interpolation["case_mean_baseline"] = case_mean_baseline(y, train, test, case_of)
     guard_interp = guard(x, train, test, s, seed)
+    print(f"learning evaluation: interpolation complete ({time.perf_counter() - started:.0f}s); leave-one-case-out", flush=True)
     folds = []
     for held_out, tr, te in leave_one_case_out(case_of):
         fold = fit_and_score(x, y, tr, te, s, seed)
@@ -553,6 +556,7 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                       "equal_rows": fold.get("equal_rows", {}),
                       "mlp_training": {k: v for k, v in fold["mlp_training"].items() if k != "validation_history"},
                       "held_out_flag_rate": float(g["false_alarm_rate"])})
+        print(f"learning evaluation: held-out case {held_out} ({len(folds)}/{len(cases)}, {time.perf_counter() - started:.0f}s)", flush=True)
     # transfer: a whole ore group held out, so no sibling with the same carrier mineral stays in training (L-01)
     groups = transfer_groups(cases)
     grouped = []
@@ -564,9 +568,11 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
                         "train_rows": int(len(tr)), "test_rows": int(len(te)), "models": fold["models"],
                         "spread": {target: float(np.std(y[te, j])) for j, target in enumerate(TARGETS)},
                         "held_out_flag_rate": float(g["false_alarm_rate"])})
+        print(f"learning evaluation: held-out ore group {key} ({len(grouped)}, {time.perf_counter() - started:.0f}s)", flush=True)
     singles = [f for f in folds if sum(1 for g in groups.values() if g == groups[f["held_out"]]) == 1]
     seeds = mlp_seeds(x, y, [("interpolation", train, test)] + [(h, tr, te) for h, tr, te in leave_one_case_out(case_of)],
                       s, [seed + int(k) for k in s["mlp_seed_offsets"]])
+    print(f"learning evaluation: five-seed stability complete ({time.perf_counter() - started:.0f}s); final CUDA/CPU models and ONNX parity", flush=True)
     # the deployable surrogate and guard: every state trains them
     all_rows = np.arange(len(x))
     fx_all, fy_all = Standardizer(x), Standardizer(y)

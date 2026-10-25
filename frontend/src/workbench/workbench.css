@@ -8,23 +8,13 @@
 /* the shell resets buttons; inputs and selects inherit the interface font too */
 input, select, textarea { font: inherit; }
 
-/* ---- the App route: rail | readout, views, instrument ---- */
-.page-body.wide.of-bench {
-  display: grid;
-  /* U-24: at 250 px the case, variant and window selects cut their own text (255 px in 192 in Spanish) */
-  grid-template-columns: clamp(320px, 22vw, 360px) minmax(0, 1fr);
-  gap: 12px;
-  min-width: 0;
-  min-height: 0;
-  padding-top: 0.75rem;
-  padding-bottom: 0.75rem;
-}
+/* ---- the App route: the shell owns the rail | instrument grid ---- */
 .of-bench > .of-hint, .of-bench > .of-failure { grid-column: 1 / -1; }
 
 .of-rail {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 6px;
   min-width: 0;
   min-height: 0;
   overflow: hidden;
@@ -34,26 +24,31 @@ input, select, textarea { font: inherit; }
   background: var(--color-surface);
 }
 .of-rail .cs-select { max-width: none; }
-.of-rail select, .of-rail .select { font-size: 0.8rem; }
+.of-rail select { font-size: 0.8rem; }
+.of-workbench-inert { display: flex; flex: 1 1 auto; width: 100%; height: 100%; min-width: 0; min-height: 0; overflow: hidden; }
+.of-workbench-inert[inert] { position: fixed; inset: 0 auto auto 0; width: 0; height: 0; visibility: hidden; }
+.app-shell:has(.of-bench) > .site-footer { display: none; }
+.app-shell:has(.of-bench) > .site-header, .app-shell:has(.of-bench) > .site-header .header-inner { min-height: 46px; height: 46px; }
+.of-hour-fold { font-size: 0.72rem; }
 .of-rail-question { margin: 0; font-size: 0.8rem; line-height: 1.4; color: var(--color-fg-subtle); }
 .of-rail-question strong { color: var(--color-fg); font-weight: 600; }
 .of-rail-sections { display: flex; gap: 4px; }
 .of-rail-sections button {
   flex: 1 1 0;
   min-width: 0;
-  padding: 5px 6px;
+  padding: 5px 4px;
   border: 1px solid var(--color-border);
   border-radius: 6px;
   background: transparent;
   color: var(--color-fg-subtle);
-  font-size: 0.74rem;
+  font-size: 0.68rem;
   font-weight: 600;
   line-height: 1.15;
-  white-space: normal;
+  white-space: nowrap;
   cursor: pointer;
 }
 .of-rail-sections button:hover { color: var(--color-fg); }
-.of-rail-sections button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
+.of-rail-sections button.of-rail-section.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
 .of-rail-sections button.invalid { border-color: var(--color-bad); }
 /* one column no wider than the rail: an auto column took the longest row's width (the Spanish crusher
  * setting and its value) and the rail's overflow cut every value at its edge */
@@ -77,7 +72,9 @@ input, select, textarea { font: inherit; }
   background: transparent; color: var(--color-fg-subtle); font: inherit; font-size: 0.74rem; cursor: pointer; overflow-wrap: anywhere;
 }
 .of-segmented button:hover { color: var(--color-fg); }
-.of-segmented button.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
+.of-segmented button.of-segment-option.active { color: var(--color-accent); background: var(--color-accent-soft); border-color: color-mix(in oklab, var(--color-accent) 40%, transparent); }
+.of-source-switch .of-segmented { gap: 3px; }
+.of-source-switch .of-segmented button { padding: 4px 3px; font-size: 0.68rem; white-space: nowrap; overflow-wrap: normal; }
 .of-knob.follows label, .of-knob.follows output { color: var(--color-fg-faint); }
 .of-knob.follows input[type='range'], .of-knob.follows .of-knob-base { display: none; }
 .of-knob.fixed label, .of-knob.fixed output { color: var(--color-fg-faint); }
@@ -96,15 +93,15 @@ input, select, textarea { font: inherit; }
   cursor: pointer;
 }
 
-.of-main { display: flex; flex-direction: column; gap: 8px; min-width: 0; min-height: 0; }
+.of-main { flex: 1 1 auto; display: flex; flex-direction: column; gap: 3px; min-width: 0; min-height: 0; }
 
 .of-readout {
   flex: none;
   display: flex;
   align-items: baseline;
-  gap: 16px;
+  gap: 10px;
   min-width: 0;
-  padding: 6px 10px;
+  padding: 2px 8px;
   border: 1px solid var(--color-border);
   border-radius: 8px;
   background: var(--color-surface);
@@ -121,18 +118,30 @@ input, select, textarea { font: inherit; }
 .of-readout-flags { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; color: var(--color-good); font-size: 0.74rem; }
 .of-readout-flags.warn { color: var(--color-warn); }
 .of-flags-line { flex: none; margin: 0; padding: 0 2px; font-size: 0.74rem; line-height: 1.35; color: var(--color-warn); }
-.of-bench .of-viewrow { flex: none; display: flex; flex-wrap: wrap; align-items: center; column-gap: 14px; border-bottom: 1px solid var(--color-border); }
-.of-bench .of-viewrow > .tablist.of-viewbar { width: auto; flex: 0 1 auto; border-bottom: 0; }
+.of-bench .of-viewrow { flex: none; display: flex; flex-wrap: wrap; align-items: center; column-gap: 8px; min-width: 0; width: 100%; border-bottom: 1px solid var(--color-border); }
+.of-bench .of-viewrow > .of-view-tabs { width: auto; flex: 0 1 auto; border-bottom: 0; }
 .of-bench .of-viewrow > .of-flags-line { flex: 1 1 18rem; min-width: 0; padding-bottom: 0.35rem; }
 .of-readout-busy { flex: none; color: var(--color-accent); font-size: 0.72rem; }
 .of-readout-cursor { flex: 0 1 auto; max-width: 48%; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-mono); font-size: 0.74rem; color: var(--color-fg); }
 
-/* the shell's tab row keeps its look; its 1.5rem bottom margin is prose spacing, not instrument spacing */
-.of-bench .tablist.of-viewbar { flex: none; margin-bottom: 0; padding-bottom: 0.35rem; }
-.of-bench .tablist.of-viewbar .tab { padding: 0.35rem 0.85rem; font-size: 0.86rem; }
+.of-bench .of-view-tabs { flex: 0 1 auto; display: flex; flex-wrap: nowrap; gap: 2px; max-width: 100%; min-width: 0; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; margin: 0; padding: 0 0 0.12rem; border-bottom: 1px solid var(--color-border); }
+.of-view-tabbed > .subtabs { margin: 0; }
+.of-view-tabbed .subtablist { margin-bottom: 4px; }
+.of-bench .of-view-tabs::-webkit-scrollbar { display: none; }
+.of-view-tab { flex: none; padding: 0.16rem 0.7rem; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--color-fg-subtle); font: inherit; font-size: 0.82rem; cursor: pointer; }
+.of-view-tab.active { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.of-view-tab.disabled { opacity: 0.4; cursor: not-allowed; }
 
-.of-view-host { flex: 1 1 auto; display: flex; min-width: 0; min-height: 0; }
+.of-view-host { flex: 1 1 auto; display: flex; min-width: 0; min-height: 0; overflow: auto; }
 .of-view { flex: 1 1 auto; min-width: 0; min-height: 0; }
+.of-chart-deck { display: flex; flex-direction: column; gap: 6px; width: 100%; height: 100%; min-width: 0; min-height: 0; }
+.of-chart-deck-tabs { display: flex; flex: none; gap: 3px; max-width: 100%; min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.of-chart-deck-tabs [role="tab"] { flex: none; padding: 0.28rem 0.72rem; border: 0; border-bottom: 2px solid transparent; background: transparent; color: var(--color-fg-subtle); font: inherit; font-size: 0.8rem; cursor: pointer; }
+.of-chart-deck-tabs [role="tab"][aria-selected="true"] { color: var(--color-accent); border-bottom-color: var(--color-accent); }
+.of-chart-deck-stage { flex: 1 1 auto; min-height: 0; }
+.of-chart-deck-stage > .of-plot, .of-chart-deck-stage > .of-heatmap { flex: 1 1 auto; width: 100%; min-height: 0; height: 100%; }
+.of-chart-deck-facts { flex: 1 1 auto; align-content: start; }
+.of-context-copy { min-width: 0; }
 
 /* ---- view layouts ---- */
 .of-grid-2x2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 10px; }
@@ -158,6 +167,8 @@ input, select, textarea { font: inherit; }
 .of-view-circuit > .of-stage { flex: 1 1 auto; position: relative; padding: 0; }
 .of-view-response, .of-view-compare { display: flex; flex-direction: column; gap: 8px; }
 .of-view-tabbed { display: flex; flex-direction: column; }
+.of-view-methods.of-view-tabbed > .subtabs { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.of-view-methods.of-view-tabbed .subtabpanels, .of-view-methods.of-view-tabbed .subtabpanel { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
 /* the real sources' Case views hand the view's height to their split, so its columns scroll inside the frame; as
  * blocks they took their content's height, and an hour's 21 sensors ran past it */
 .of-view-sample, .of-view-hour { display: flex; flex-direction: column; }
@@ -207,6 +218,13 @@ input, select, textarea { font: inherit; }
 .of-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .of-unit-card-head h3 { margin: 0; font-size: 0.95rem; }
 .of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
+.of-optimizer-split { display: flex; flex-direction: column; gap: 8px; overflow: auto; }
+.of-optimizer-chart { display: flex; flex: 0 0 620px; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; }
+.of-optimizer-chart-select { flex: none; max-width: 20rem; }
+.of-optimizer-chart-select > span { display: none; }
+.of-optimizer-chart-select select { height: 30px; }
+.of-optimizer-chart > .of-plot { flex: 1 1 auto; min-height: 0; }
+.of-optimizer-split > .of-aside { flex: none; max-height: none; overflow: visible; }
 /* The Methods records' side panel filled a fifth to a third of its column at 2560x1440 (the Sobol table the
  * least): on a large screen it becomes a strip under the chart, its parts side by side, as tall as its
  * content and never more than 42% of the screen (it scrolls inside beyond that). Below 1300 px of height the learned
@@ -257,12 +275,7 @@ input, select, textarea { font: inherit; }
   font-size: 0.84rem;
 }
 
-/* sub-tabs that fill the view (Methods, Case; shell defect 2: a hidden panel must not take layout) */
-.of-view-tabbed > .subtabs { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; margin: 0; }
-.of-view-tabbed > .subtabs > .subtablist { flex: none; flex-wrap: nowrap; overflow-x: auto; margin-bottom: 8px; }
-.of-view-tabbed > .subtabs > .subtabpanels { flex: 1 1 auto; display: flex; min-height: 0; }
-.of-view-tabbed > .subtabs > .subtabpanels > .subtabpanel { flex: 1 1 auto; display: flex; min-width: 0; min-height: 0; }
-.of-view-tabbed .subtabpanel[hidden] { display: none; }
+/* Shell SubTabs owns its tab and panel layout. */
 
 /* ---- instruments ---- */
 .of-plot, .of-heatmap {
@@ -295,10 +308,10 @@ input, select, textarea { font: inherit; }
 }
 .of-legend button:hover { color: var(--color-fg); }
 .of-legend button.off { opacity: 0.45; text-decoration: line-through; }
-.of-swatch { display: inline-block; width: 14px; height: 0; border-top: 2px solid var(--swatch); }
+.of-swatch { display: inline-block; width: 14px; height: 0; border-top: 2px solid currentColor; }
 .of-swatch.dash { border-top-style: dashed; }
-.of-swatch.dot { width: 7px; height: 7px; border: 0; border-radius: 50%; background: var(--swatch); }
-.of-swatch.bar { width: 9px; height: 9px; border: 0; border-radius: 2px; background: var(--swatch); opacity: 0.8; }
+.of-swatch.dot { width: 7px; height: 7px; border: 0; border-radius: 50%; background: currentColor; }
+.of-swatch.bar { width: 9px; height: 9px; border: 0; border-radius: 2px; background: currentColor; opacity: 0.8; }
 .of-plot-area, .of-heatmap-plot { flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; border-radius: 4px; }
 .of-plot-area:focus-visible, .of-heatmap-plot:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
 .of-plot-reset {
@@ -318,8 +331,10 @@ input, select, textarea { font: inherit; }
 .of-heatmap-zlabel { font-family: var(--font-sans); }
 
 /* a stage narrower than the readable drawing (a phone) scrolls it sideways (fit in flowsheet.ts) */
-.of-flowmap-host { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: hidden; }
+.of-flowmap-host { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: hidden; pointer-events: none; }
 .of-flowmap { display: block; position: absolute; inset: 0; }
+.of-flowmap { pointer-events: none; }
+.of-flowmap .of-flow-unit { pointer-events: auto; }
 .of-flow-edge polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
 .of-flow-edge.recycle polyline { stroke: var(--color-warn); stroke-dasharray: 6 4; }
 .of-flow-edge.product polyline { stroke: var(--color-good); }
@@ -329,13 +344,14 @@ input, select, textarea { font: inherit; }
 .of-flow-edge.tail polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
 .of-flow-arrow.tail { fill: var(--color-fg-subtle); }
 .of-flow-label { fill: var(--color-fg-subtle); font: 10.5px var(--font-mono); paint-order: stroke; stroke: var(--color-surface); stroke-width: 3px; stroke-linejoin: round; }
-.of-flow-unit { cursor: pointer; outline: none; }
+.of-flow-unit { cursor: pointer; outline: none; pointer-events: bounding-box; }
 .of-flow-unit rect { fill: var(--color-surface-2); stroke: var(--color-border); stroke-width: 1.2; }
 .of-flow-unit text { fill: var(--color-fg); font: 600 11px var(--font-sans); pointer-events: none; }
 .of-flow-unit:hover rect, .of-flow-unit:focus-visible rect { stroke: var(--color-accent); }
 .of-flow-unit.selected rect { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
 /* D-20: a junction (streams join, or water is added) is a small node with its name in small type, not a unit box */
 .of-flow-junction circle { fill: var(--color-surface-2); stroke: var(--color-fg-subtle); stroke-width: 1.4; }
+.of-flow-junction .of-junction-hit { fill: transparent; stroke: none; pointer-events: all; }
 .of-flow-junction:hover circle, .of-flow-junction:focus-visible circle { stroke: var(--color-accent); }
 .of-flow-junction.selected circle { fill: var(--color-accent-soft); stroke: var(--color-accent); stroke-width: 2.2; }
 .of-flow-unit text.of-flow-junction-name { fill: var(--color-fg-subtle); font: 9.5px var(--font-sans); }
@@ -385,13 +401,21 @@ input, select, textarea { font: inherit; }
   font-size: 0.86rem;
   line-height: 1.55;
 }
+.of-context-chart { grid-column: 1 / -1; min-width: 0; min-height: 595px; }
+.of-context-chart > .of-plot { height: 595px; }
+.of-context-details { grid-column: 1 / -1; min-width: 0; }
+.of-context-details > summary { padding: 7px 10px; border: 1px solid var(--color-border); border-radius: 6px; color: var(--color-accent); font-size: 0.82rem; cursor: pointer; }
+.of-context-details[open] > summary { margin-bottom: 10px; }
+.of-context-details-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; }
+.of-context-details-grid > * { min-width: 0; }
 .of-context section + section { margin-top: 14px; }
 .of-context h3 { margin: 0 0 6px; font-size: 0.95rem; }
 .of-context p { margin: 0 0 8px; max-width: 78ch; }
 .of-context ul { margin: 0 0 8px; padding-left: 1.2rem; }
 .of-context li + li { margin-top: 3px; }
-.of-context .of-table { margin: 6px 0 10px; }
-.of-context .of-table td { white-space: normal; }
+.of-context .of-table-scroll { width: 100%; max-width: 100%; margin: 6px 0 10px; }
+.of-context .of-table { margin: 0; }
+.of-context .of-table th, .of-context .of-table td { white-space: nowrap; }
 /* a range's source sits under its row: the row above loses its rule, the note wraps across the table */
 .of-context .of-table tr:has(+ .of-kpi-source) > * { border-bottom: 0; }
 .of-context .of-table .of-kpi-source td { padding-top: 0; text-align: left; white-space: normal; font-size: 0.7rem; line-height: 1.35; color: var(--color-fg-subtle); }
@@ -399,7 +423,7 @@ input, select, textarea { font: inherit; }
 .of-context-side .of-table td:nth-child(2) { text-align: left; }
 .of-variant-notes td:nth-child(3) { text-align: left; font-variant-numeric: tabular-nums; }
 .of-context-side .katex-display { overflow-x: auto; overflow-y: hidden; }
-@media (max-width: 1100px) { .of-context { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 1100px) { .of-context-details-grid { grid-template-columns: minmax(0, 1fr); } }
 .of-tag { margin-left: 6px; padding: 1px 6px; border-radius: 999px; background: color-mix(in oklab, var(--color-warn) 18%, transparent); color: var(--color-warn); font-size: 0.66rem; font-weight: 600; }
 /* under its value, so the optimizer's table fits the aside in Spanish ('en su cota' beside 75,0 took it 7 px past) */
 .of-tag.of-tag-below { display: block; width: max-content; margin: 2px 0 0 auto; }
@@ -424,6 +448,8 @@ input, select, textarea { font: inherit; }
 .of-sample-main { display: flex; flex-direction: column; gap: 10px; min-width: 0; min-height: 0; overflow: auto; }
 /* every sample against its test: its own sub-tab, or across the view under the facts on a large screen */
 .of-sample-chart { flex: 1 1 auto; display: grid; grid-template-rows: minmax(0, 1fr); min-width: 0; min-height: 0; }
+.of-view-sample.of-view-tabbed > .subtabs { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
+.of-view-sample.of-view-tabbed .subtabpanels, .of-view-sample.of-view-tabbed .subtabpanel { flex: 1 1 auto; display: flex; flex-direction: column; min-height: 0; }
 .of-view-sample .subtabpanel > .of-split { flex: 1 1 auto; }
 /* RS-07: an hour's main column is the window's chart over the forecasts and their note. A two-row stack gave the note
  * an implicit third row that ran 60 px past the frame at 1280x800; the chart now takes what the rows leave, at least
@@ -440,11 +466,12 @@ input, select, textarea { font: inherit; }
   border: 0;
   border-radius: 6px;
   background: var(--color-accent);
-  color: var(--color-accent-fg);
+  color: #fff;
   font-weight: 650;
   font-size: 0.82rem;
   cursor: pointer;
 }
+.of-bench .of-cta, .of-bench .of-run { color: #fff; }
 .of-cta:disabled, .of-run:disabled { opacity: 0.5; cursor: not-allowed; }
 /* a method record re-run in the worker: its controls, its buttons and its progress (UQ-06) */
 .of-rerun { display: flex; flex-direction: column; gap: 6px; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
@@ -452,14 +479,17 @@ input, select, textarea { font: inherit; }
 .of-rerun input[type="number"] { width: 16ch; font-family: var(--font-mono); }
 .of-revert { flex: none; padding: 5px 10px; border: 1px solid var(--color-border); border-radius: 6px; background: transparent; color: var(--color-fg); font-size: 0.8rem; cursor: pointer; }
 
-.of-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.of-chart-data { flex: none; min-width: 0; max-width: 100%; overflow-x: auto; font-size: 0.68rem; color: var(--color-fg-subtle); }
+.of-chart-data summary { width: fit-content; cursor: pointer; }
+.of-chart-data table { width: max-content; min-width: 100%; margin-top: 6px; table-layout: auto; }
+.of-chart-data th, .of-chart-data td { white-space: nowrap; overflow-wrap: normal; }
+.of-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 /* ---- the focus route ---- */
 /* The shell's rail column, clamp(300px, 20vw, 340px), leaves the stage 76.6% of a 1280x800 viewport,
    under the ADR-0070 80% floor; a narrower lower bound keeps the floor at every gated viewport
    (80.6% at 1280x800, 81% at 1600x900, 86.7% at 2560x1440). Recorded in shell-known-defects.md. */
 @media (min-width: 861px) {
-  .caos-focus-shell { grid-template-columns: minmax(0, 1fr) clamp(248px, 19vw, 340px); }
 }
 .of-focus-body { position: absolute; inset: 0; display: flex; min-width: 0; min-height: 0; }
 .of-focus-body > .of-plot, .of-focus-body > .of-heatmap, .of-focus-body > .of-view, .of-focus-body > .of-flowmap-host { flex: 1 1 auto; border: 0; border-radius: 0; }
@@ -480,10 +510,11 @@ input, select, textarea { font: inherit; }
   pointer-events: none;
 }
 .of-focus-rail { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+.of-focus-rail .of-field { width: 100%; }
+.of-focus-rail .of-field select { width: 100%; }
 
 /* ---- narrow screens: the rail stacks above the instrument, and the page body is the one scroller ---- */
 @media (max-width: 860px) {
-  .page-body.wide.of-bench { grid-template-columns: minmax(0, 1fr); overflow-y: auto; align-content: start; }
   /* the rail's row takes its content: with min-height 0 the stacked row shrank to 61 px and the controls
      spilled over the readout and the tab row; the page body scrolls instead */
   .of-rail { overflow: visible; min-height: auto; }
@@ -495,8 +526,12 @@ input, select, textarea { font: inherit; }
      their names (0.08 gate) */
   .of-response-controls { flex-wrap: wrap; overflow: visible; }
   .of-response-controls .of-field { flex: 1 1 12rem; min-width: 0; }
+.of-response-controls .of-field { gap: 2px; font-size: 0.75rem; }
+.of-response-controls .of-field select { padding-top: 3px; padding-bottom: 3px; }
   .of-response-controls .of-field select { width: 100%; }
+.of-view-response > .of-response-controls select { padding-top: 3px; padding-bottom: 3px; }
   .of-main { min-height: 78dvh; }
+  .of-view-host { overflow: visible; }
   .of-grid-2x2, .of-split, .of-compare-charts, .of-view-circuit, .of-grid-single { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-auto-rows: minmax(260px, auto); }
   .of-stack { grid-template-rows: repeat(2, minmax(240px, auto)); }
   /* the legend under the title, across the chart: beside it, six series took six lines and left the
@@ -529,19 +564,16 @@ input, select, textarea { font: inherit; }
 /* U-18: on a phone the view chain takes its content's height; inner scroll boxes would hide rows under the frame */
 @media (max-width: 860px) {
   .of-view-host, .of-view, .of-split, .of-stack, .of-compare-charts, .of-view-sample, .of-view-hour,
-  .of-view-tabbed > .subtabs, .of-view-tabbed > .subtabs > .subtabpanels, .of-view-tabbed > .subtabs > .subtabpanels > .subtabpanel { min-height: auto; }
   .of-compare-charts { grid-auto-rows: 260px; }
   .of-hour-main, .of-sample-main, .of-split > .of-aside, .of-panel, .of-side { overflow: visible; }
   .of-hour-main { grid-template-rows: 260px auto auto; }
   .of-sample-chart { grid-template-rows: 320px; }
   .of-table-scroll { overflow-x: auto; overflow-y: visible; }
   .of-table-scroll thead th { position: static; }
-  .of-view-tabbed > .subtabs > .subtablist { flex-wrap: wrap; overflow-x: visible; }
 }
 /* U-11: a value an engine flag speaks about (power-limited P80 and power, a load outside its window) */
 .of-facts > .of-fact-warn dt, .of-facts > .of-fact-warn dd, .of-readout-item.warn strong, .of-table td.of-cell-warn { color: var(--color-warn); }
 /* U-15: a view the source has nothing for */
-.of-bench .tablist.of-viewbar .tab:disabled { opacity: 0.4; cursor: not-allowed; }
 /* U-33: the key of a category axis whose names did not fit (the Sobol factors on a phone) */
 .of-plot-key { flex: none; display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 4px 0 0; padding: 0 4px; list-style: none; font-size: 0.75rem; color: var(--color-fg-subtle); }
 .of-plot-key b { margin-right: 4px; color: var(--color-fg); font-weight: 600; }

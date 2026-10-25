@@ -2,6 +2,21 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.10.000, 2026-10-24
+
+### Local gate
+
+- The corrected 0.10.000 bake completed on the RTX 4070 Laptop workstation: learning 3590.0 s, cases 2892.7 s on 4 workers, studies 238.9 s, real samples 107.0 s; contract, benchmark, manifests and final validation completed in under one second each. `validation.json` records `passed: true`, CUDA for final MLP training and exported ONNX parity checks.
+- The new artifacts contain 12 authored cases and 96 variants. All case records, manifests, benchmark, learning, studies and measured-sample artifacts carry engine version 0.10.000 and the same contract digest. `scripts/check_readiness.py` reports current.
+- Manuscript and learned-lane findings were refreshed against the new records. `tests/test_manuscript_claims.py`, `tests/test_learning_findings.py`, `tests/test_docs_counts.py` and the nominal kinetics findings test pass after those updates.
+- The canonical `scripts/smoke.ps1` release gate passed: repository/readiness/SDD/contracts/artifact guards, the complete Python suite (877 collected), all framework examples (including PyTorch 2.12 CUDA execution on the NVIDIA RTX 4070 Laptop GPU and ONNX parity), API examples, and frontend typecheck, 52 test files / 503 tests, and production build.
+- Browser release gate passed: 1,224 desktop checks across 16 viewport/theme/language combinations; 12/12 interaction review checks; phone and tablet each passed 36 checks in both tested theme/language combinations. Focus/replay, method selection, case changes, optimizer layout, route reachability and responsive tables were included.
+
+### Remote gate
+
+- Release and promotion PRs, trunk CI, tag and VPS deployment: pending completion.
+- Public API, direct-route and browser checks: pending completion.
+
 ## 0.09.000, 2026-10-05
 
 The fixes of the adversarial validation of the implementation (issue #82): every equation, model and piece of logic

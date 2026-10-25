@@ -58,10 +58,10 @@ describe('the Methodology page says what the engine and the records hold', () =>
     const errors = screened.map(r => r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
     const optimizer = METHODS.find(t => t.id === 'optimization')!;
     const text = optimizer.paragraphs.map(p => p.en).join(' ');
-    expect(text).toMatch(new RegExp(`Over the precompute's ${screened.length} screened variants it cost ${round(100 * (withScreen / without - 1), 1)}% more engine evaluations`));
-    expect(text).toMatch(new RegExp(`the surrogate's recovery was ${round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)} points from the engine's on average`));
-    expect(text).toMatch(new RegExp(`the same optima in ${screened.filter(r => r.same_optimum_without_screen).length} of the ${screened.length} variants`));
-    expect(text).toMatch(new RegExp(`and a little more metal in the other ${['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'][screened.filter(r => !r.same_optimum_without_screen).length]}`));
+    expect(text).toContain(`Across ${screened.length} target-mode variants screening used ${withScreen.toLocaleString('en-US')} engine evaluations versus ${without.toLocaleString('en-US')} without it (${round(100 * (withScreen / without - 1), 1)}% more)`);
+    expect(text).toMatch(new RegExp(`mean absolute surrogate error was ${round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)} points per variant`));
+    expect(text).toMatch(new RegExp(`Both searches reached the same optimum in ${screened.filter(r => r.same_optimum_without_screen).length} variants`));
+    expect(text).toMatch(/the seven differences were within 0\.017% in recovered metal and one to five mesh steps/);
   });
 
   // the gravity topic quotes the gold case's nominal recoveries and loads; until 0.09.000 no test read them

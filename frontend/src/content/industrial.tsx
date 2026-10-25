@@ -113,7 +113,7 @@ function IronPanel({ lang }: { lang: Lang }) {
           <div className="of-doc-panel">
             <div className="of-doc-controls">
               <label className="of-doc-control"><span>{TEXT.window[lang]}</span>
-                <select value={String(window)} onChange={e => setWindow(e.target.value === 'pooled' ? 'pooled' : Number(e.target.value))}>
+                <select className="of-fold-select" value={String(window)} onChange={e => setWindow(e.target.value === 'pooled' ? 'pooled' : Number(e.target.value))}>
                   {a.folds.map(f => <option key={f.id} value={f.id}>{`${f.id + 1}: ${day(f.test_first)} - ${day(f.test_last)}`}</option>)}
                   <option value="pooled">{TEXT.pooled[lang]}</option></select></label>
               <label className="of-doc-control"><span>{TEXT.model[lang]}</span>

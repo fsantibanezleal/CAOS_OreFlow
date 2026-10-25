@@ -130,10 +130,10 @@ languages. A narrow figure sits beside the prose with the limitations under it; 
 
 | Page | Tabs |
 |---|---|
-| Introduction | What it is, Approach, The cases, Scope and evidence, Using it |
+| Introduction | What it is, Approach, Mathematics, The cases, Scope and evidence, Using it |
 | Methodology | Streams and conservation, Comminution, Classification and separation, Method records, Measured data |
-| Implementation | The system, Engine and port, The precompute, Contracts and artifacts, What runs where, Model registry, The GPU lane, Gates and release, Deployment |
-| Experiments | Design and coverage, Data, Splits, Metrics, What the variants did, Uncertainty, Ablations |
+| Implementation | System, Engine and browser model, Offline pipeline, Data and execution, Models and GPU, Release and deployment |
+| Experiments | Design and source data, Splits, Metrics, What the variants did, Uncertainty, Ablations |
 | Benchmark | Published examples, Method records, Learned lane, Measured lanes, Industrial quality |
 
 `frontend/src/test/pages.test.ts` holds this table to the pages' tab arrays.

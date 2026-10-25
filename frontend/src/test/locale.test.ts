@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { formulaText, metricLabel, provenanceText } from '../lib/i18n';
 import { CONTENT_CITATIONS, localizeCitations } from '../content/citations';
+import { APP_VERSION } from '../lib/version';
 
 // PE-35: every number is formatted with the active locale (the document-language half of PE-35 is
 // checked by the browser gate on every route in both languages).
@@ -65,7 +66,8 @@ describe('locale formatting', () => {
     // lists without decimals keep their commas; identifiers, versions and DOIs are not numbers
     expect(localizeAuthored('12 - 60, 40 - 1500 g/t', 'es')).toBe('12 - 60, 40 - 1500 g/t');
     expect(localizeAuthored('β0, β1, β2', 'es')).toBe('β0, β1, β2');
-    expect(localizeAuthored('v0.05.000, PE-31, doi:10.1016/j.minpro', 'es')).toBe('v0.05.000, PE-31, doi:10.1016/j.minpro');
+    const versioned = `v${APP_VERSION}, PE-31, doi:10.1016/j.minpro`;
+    expect(localizeAuthored(versioned, 'es')).toBe(versioned);
   });
 
   it('sets decimals inside TeX with a braced comma in Spanish', () => {

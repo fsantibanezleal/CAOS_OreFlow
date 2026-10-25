@@ -1,0 +1,80 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-case-v2",
+  "title": "oreflow-case-v2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.case/v2",
+      "type": "string"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "contract_digest": {
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "family": {
+      "type": "string"
+    },
+    "title": {
+      "type": "object"
+    },
+    "description": {
+      "type": "object"
+    },
+    "question": {
+      "type": "object"
+    },
+    "provenance": {
+      "type": "string"
+    },
+    "notes": {
+      "type": "array"
+    },
+    "sources": {
+      "type": "object"
+    },
+    "kpi_ranges": {
+      "type": "object"
+    },
+    "kpi_sources": {
+      "type": "object"
+    },
+    "definition": {
+      "type": "object"
+    },
+    "nominal": {
+      "type": "object"
+    },
+    "variants": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "engine_version",
+    "contract_digest",
+    "case_id",
+    "category",
+    "family",
+    "title",
+    "description",
+    "question",
+    "provenance",
+    "notes",
+    "sources",
+    "kpi_ranges",
+    "kpi_sources",
+    "definition",
+    "nominal",
+    "variants"
+  ],
+  "additionalProperties": true
+}

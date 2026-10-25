@@ -759,7 +759,7 @@
    }
   },
   "nickel_sulphide": {
-   "family": "rougher",
+   "family": "deslime_rougher",
    "primary": {
     "species": "Ni",
     "unit": "%"
@@ -776,7 +776,7 @@
     "jg_cm_s": 1.3,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0,
+    "deslime_cut_um": 16.0,
     "d50c_um": 0.0
    },
    "inputs": {
@@ -839,6 +839,12 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "deslime_cut_um": {
+     "min": 8.0,
+     "max": 45.0,
+     "step": 0.5,
+     "unit": "um"
     },
     "d50c_um": {
      "min": 102.511820033,
@@ -1225,7 +1231,7 @@
    }
   },
   "mixed_ore_high_clay": {
-   "family": "rougher",
+   "family": "deslime_rougher",
    "primary": {
     "species": "Cu",
     "unit": "%"
@@ -1242,7 +1248,7 @@
     "jg_cm_s": 1.4,
     "rougher_cells": 8,
     "gravity_bleed": 0.0,
-    "deslime_cut_um": 0.0,
+    "deslime_cut_um": 20.0,
     "d50c_um": 0.0
    },
    "inputs": {
@@ -1305,6 +1311,12 @@
      "max": 12,
      "step": 1,
      "unit": "1"
+    },
+    "deslime_cut_um": {
+     "min": 8.0,
+     "max": 45.0,
+     "step": 0.5,
+     "unit": "um"
     },
     "d50c_um": {
      "min": 143.243216364,
@@ -1817,5 +1829,5 @@
    2.089063508436509e-101
   ]
  },
- "digest": "1cfa2df0d46d7432d225d479703daec964e55031aa0ac39b5476c784426a93fa"
+ "digest": "0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7"
 }

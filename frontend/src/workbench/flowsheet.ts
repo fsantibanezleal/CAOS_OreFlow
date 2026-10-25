@@ -237,6 +237,16 @@ function toBox(b: Box, path: Array<[number, number]>): number {
   const xs = [b.x0, (b.x0 + b.x1) / 2, b.x1], ys = [b.y0, (b.y0 + b.y1) / 2, b.y1];
   return Math.min(...xs.flatMap(x => ys.map(y => toPath([x, y], path))));
 }
+/** Orthogonal streams must not cross the text box, even when its sampled corners are far from the crossing. */
+function crossesBox(b: Box, path: Array<[number, number]>, pad = 2): boolean {
+  const x0 = b.x0 - pad, x1 = b.x1 + pad, y0 = b.y0 - pad, y1 = b.y1 + pad;
+  return path.slice(1).some(([x, y], i) => {
+    const [px, py] = path[i];
+    if (Math.abs(y - py) < 1e-6) return y >= y0 && y <= y1 && Math.max(px, x) >= x0 && Math.min(px, x) <= x1;
+    if (Math.abs(x - px) < 1e-6) return x >= x0 && x <= x1 && Math.max(py, y) >= y0 && Math.min(py, y) <= y1;
+    return false;
+  });
+}
 
 /** Every unit box and edge polyline in the drawing's px. */
 export function drawing(plan: Layout, f: Fit): Drawing {
@@ -341,14 +351,28 @@ export function placeLabels(plan: Layout, d: Drawing, frame: Fit['frame'], optio
     // the first candidate, over every form, that fits and that no other stream is clearly nearer (D-21: a label
     // reads as the stream nearest to it), else the first that fits
     let fallback: { label: Label; box: Box } | null = null;
+    const relaxedCandidates: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = [];
     for (const lines of options[k]) {
       const w = Math.max(...lines.map(l => l.length)) * LABEL_CHAR;
       const up = LINE * (lines.length - 1);
       // above the row of units first (a short edge between two units has no room of its own), then just
       // above or below the line; a product's label may also end at its arrow and a feed's start at its
       // tail, on the line or above the row
-      const candidates: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = horizontal
+    const extended: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = [];
+    if (horizontal) for (const lift of [0, 12, 24, 36]) {
+      const above = my - BOX_H / 2 - 5 - up - lift;
+      const below = my + BOX_H / 2 + 13 + lift;
+      extended.push(
+        { x: mx, y: above, anchor: 'middle' }, { x: mx, y: below, anchor: 'middle' },
+        { x: Math.min(ax, bx) - 8, y: above, anchor: 'end' }, { x: Math.min(ax, bx) - 8, y: below, anchor: 'end' },
+        { x: Math.max(ax, bx) + 8, y: above, anchor: 'start' }, { x: Math.max(ax, bx) + 8, y: below, anchor: 'start' },
+      );
+    }
+    const candidates: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = horizontal
         ? [
+          // Short transfers between a junction and a unit cannot hold a numeric label over their own segment.
+          // Search adjacent open rows, extending beyond either endpoint before dropping a stream label.
+          ...extended,
           ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my - 6 - up, anchor: 'end' as const }, { x: Math.max(ax, bx), y: my - BOX_H / 2 - 5 - up, anchor: 'end' as const }] : []),
           ...(edge.from === null ? [{ x: Math.min(ax, bx), y: my - 6 - up, anchor: 'start' as const }, { x: Math.min(ax, bx), y: my - BOX_H / 2 - 5 - up, anchor: 'start' as const }] : []),
           { x: mx, y: my - BOX_H / 2 - 5 - up, anchor: 'middle' },
@@ -357,11 +381,28 @@ export function placeLabels(plan: Layout, d: Drawing, frame: Fit['frame'], optio
           ...(edge.to === null ? [{ x: Math.max(ax, bx), y: my + 14, anchor: 'end' as const }, { x: Math.max(ax, bx), y: my + BOX_H / 2 + 13, anchor: 'end' as const }] : []),
         ]
         : [{ x: mx + 6, y: my + 3 - up / 2, anchor: 'start' }, { x: mx - 6, y: my + 3 - up / 2, anchor: 'end' }];
-      for (const c of candidates) {
+      // A routed stream can have a long segment whose midpoint is occluded by a unit or another stream.
+      // Try additional positions along every segment before declaring its label unavailable; this matters
+      // for short recleaner returns in compact desktop layouts.
+      const alternatives: Array<{ x: number; y: number; anchor: 'middle' | 'start' | 'end' }> = [];
+      for (let i = 0; i + 1 < path.length; i += 1) {
+        const [[sx, sy], [ex, ey]] = [path[i], path[i + 1]];
+        const isHorizontal = Math.abs(ey - sy) < 1e-6;
+        for (const t of [0.25, 0.5, 0.75]) {
+          const px = sx + (ex - sx) * t;
+          const py = sy + (ey - sy) * t;
+          alternatives.push(...(isHorizontal
+            ? [{ x: px, y: py - BOX_H / 2 - 5 - up, anchor: 'middle' as const }, { x: px, y: py + BOX_H / 2 + 13, anchor: 'middle' as const }]
+            : [{ x: px + 6, y: py + 3 - up / 2, anchor: 'start' as const }, { x: px - 6, y: py + 3 - up / 2, anchor: 'end' as const }]));
+        }
+      }
+      relaxedCandidates.push(...candidates, ...alternatives);
+      for (const c of [...candidates, ...alternatives]) {
         const bx0 = c.anchor === 'middle' ? c.x - w / 2 : c.anchor === 'start' ? c.x : c.x - w;
         const box = { x0: bx0 - 2, y0: c.y - 10, x1: bx0 + w + 2, y1: c.y + 3 + up };
         // inside the frame, so no label sits under an overlay (the focus route's readouts)
         if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...obstacles, ...placed].some(b => overlaps(b, box))) continue;
+        if (crossesBox(box, path) || d.paths.some((other, j) => j !== k && crossesBox(box, other))) continue;
         const own = toBox(box, path);
         if (d.paths.some((other, j) => j !== k && plan.edges[j].stream !== edge.stream && toBox(box, other) + NEARER < own)) {
           fallback ??= { label: { ...c, lines }, box };
@@ -372,6 +413,23 @@ export function placeLabels(plan: Layout, d: Drawing, frame: Fit['frame'], optio
       }
     }
     if (fallback) placed.push(fallback.box);
-    return fallback?.label ?? null;
+    if (fallback) return fallback.label;
+    // Preserve the stream label if the routed line is boxed in by other edges. These final candidates
+    // still have to fit inside the drawing, stay clear of units and avoid every placed label; edge
+    // crossings may sit behind the text, which is preferable to silently omitting a stream.
+    const lastChance = relaxedCandidates;
+    for (const lines of options[k]) {
+      const w = Math.max(...lines.map(l => l.length)) * LABEL_CHAR;
+      const up = LINE * (lines.length - 1);
+      for (const c of lastChance) {
+        const bx0 = c.anchor === 'middle' ? c.x - w / 2 : c.anchor === 'start' ? c.x : c.x - w;
+        const box = { x0: bx0 - 2, y0: c.y - 10, x1: bx0 + w + 2, y1: c.y + 3 + up };
+        if (box.x0 < frame.x0 || box.x1 > frame.x1 || box.y0 < frame.y0 || box.y1 > frame.y1 || [...d.units, ...placed].some(b => overlaps(b, box))) continue;
+        if (crossesBox(box, path) || d.paths.some((other, j) => j !== k && crossesBox(box, other))) continue;
+        placed.push(box);
+        return { ...c, lines };
+      }
+    }
+    return null;
   }
 }

@@ -53,11 +53,11 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
         if (bounds.off !== undefined) {
           const on = value !== bounds.off;
           return (
-            <div key={name} className={`of-knob${error ? ' invalid' : ''}`}>
+            <div key={name} className={`of-knob${error ? ' invalid' : ''}`} data-control={name}>
               <span className="of-knob-title" title={spec.help[lang]}>{t(UI.grindControl, lang)}</span>
               <div className="of-segmented" role="group" aria-label={t(UI.grindControl, lang)}>
-                <button type="button" aria-pressed={!on} className={on ? '' : 'active'} onClick={() => setValue(name, bounds.off!)}>{t(UI.grindTarget, lang)}</button>
-                <button type="button" aria-pressed={on} className={on ? 'active' : ''}
+                <button type="button" aria-pressed={!on} className={on ? 'of-segment-option' : 'of-segment-option active'} onClick={() => setValue(name, bounds.off!)}>{t(UI.grindTarget, lang)}</button>
+                <button type="button" aria-pressed={on} className={on ? 'of-segment-option active' : 'of-segment-option'}
                   onClick={() => { if (!on) setValue(name, Math.min(bounds.max, Math.max(bounds.min, bounds.reference ?? bounds.min))); }}>{t(UI.grindCut, lang)}</button>
               </div>
               {on && (
@@ -79,7 +79,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
         const fixedBy = fixed[name];
         if (fixedBy) {
           return (
-            <div key={name} className="of-knob fixed">
+            <div key={name} className="of-knob fixed" data-control={name}>
               <label htmlFor={id} title={spec.help[lang]}>
                 <span>{spec.label[lang]}</span>
                 <output htmlFor={id}>{shown}</output>
@@ -90,7 +90,7 @@ export function ControlList({ contract, caseId, names, variantPoint, errors, lan
           );
         }
         return (
-          <div key={name} className={`of-knob${error ? ' invalid' : ''}${follows ? ' follows' : ''}`}>
+          <div key={name} className={`of-knob${error ? ' invalid' : ''}${follows ? ' follows' : ''}`} data-control={name}>
             <label htmlFor={id} title={spec.help[lang]}>
               <span>{spec.label[lang]}</span>
               <output htmlFor={id}>{follows ? t(UI.follows, lang) : shown}</output>

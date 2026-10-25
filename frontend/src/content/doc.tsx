@@ -6,7 +6,7 @@
  * the pages share one layout and a fix lands once.
  */
 import { Callout, Equation, Figure, Refs, SubTabs, Tabs } from '@fasl-work/caos-app-shell';
-import { useEffect, useRef, type ReactNode, type RefObject } from 'react';
+import { Fragment, useEffect, useRef, type ReactNode, type RefObject } from 'react';
 import { localizeAuthored, localizeTex, type Lang } from '../lib/format';
 import { withMath } from '../lib/math';
 
@@ -14,6 +14,7 @@ export type Bi = { en: string; es: string };
 export type Topic = {
   id: string;
   title: Bi;
+  area?: string;
   /** Substantial paragraphs, in order. */
   paragraphs: Bi[];
   /** A formula with words in it (an operator name, a condition) carries its TeX in both languages. */
@@ -27,6 +28,8 @@ export type Topic = {
   /** Content read from the committed artifacts at run time (a results table, an interactive chart),
    * drawn at full width after the prose, so a number on a page is the artifact's and never retyped. */
   data?: (lang: Lang) => ReactNode;
+  glossary?: Array<{ term: Bi; definition: Bi }>;
+  steps?: Bi[];
   refs: string[];
 };
 
@@ -57,11 +60,16 @@ function FigureScroll({ children }: { children: ReactNode }) {
     if (!box || !svg) return undefined;
     const sizes = [...svg.querySelectorAll('text')].map(t => parseFloat(getComputedStyle(t).fontSize)).filter(v => v > 0);
     const width = svg.viewBox.baseVal?.width ?? 0;
-    if (sizes.length && width > 0) box.style.setProperty('--of-fig-min', `${Math.ceil((width * FIGURE_TEXT_FLOOR_PX) / Math.min(...sizes))}px`);
+    if (sizes.length && width > 0) {
+      const min = `${Math.ceil((width * FIGURE_TEXT_FLOOR_PX) / Math.min(...sizes))}px`;
+      if (box.style.getPropertyValue('--of-fig-min') !== min) box.style.setProperty('--of-fig-min', min);
+    }
     const update = () => {
       const hidden = box.scrollWidth - box.clientWidth;
-      box.dataset.fadeStart = hidden > 1 && box.scrollLeft > 1 ? '1' : '0';
-      box.dataset.fadeEnd = hidden > 1 && box.scrollLeft < hidden - 1 ? '1' : '0';
+      const start = hidden > 1 && box.scrollLeft > 1 ? '1' : '0';
+      const end = hidden > 1 && box.scrollLeft < hidden - 1 ? '1' : '0';
+      if (box.dataset.fadeStart !== start) box.dataset.fadeStart = start;
+      if (box.dataset.fadeEnd !== end) box.dataset.fadeEnd = end;
     };
     update();
     box.addEventListener('scroll', update, { passive: true });
@@ -79,7 +87,7 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
     </Callout>
   );
   return (
-    <article className="prose of-topic">
+    <section className="prose of-topic" data-doc-section="" data-area={topic.area}>
       <h2>{topic.title[lang]}</h2>
       {topic.figure?.wide ? (
         <>
@@ -116,6 +124,8 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
         </div>
       )}
       {topic.data && <div className="of-topic-data">{topic.data(lang)}</div>}
+      {topic.glossary && <dl data-glossary="">{topic.glossary.map(item => <Fragment key={item.term.en}><dt>{item.term[lang]}</dt><dd>{item.definition[lang]}</dd></Fragment>)}</dl>}
+      {topic.steps && <ol>{topic.steps.map((step, index) => <li key={index}>{step[lang]}</li>)}</ol>}
       {topic.table && (
         <table className="of-doc-table">
           <thead><tr>{topic.table.head.map((h, i) => <th scope="col" key={i}>{h[lang]}</th>)}</tr></thead>
@@ -127,7 +137,7 @@ export function TopicView({ topic, lang }: { topic: Topic; lang: Lang }) {
       )}
       {!(topic.figure && !topic.figure.wide) && limits}
       {topic.refs.length > 0 && <Refs ids={topic.refs} label={T.refs[lang]} />}
-    </article>
+    </section>
   );
 }
 
@@ -157,8 +167,10 @@ function useTabRowFade(root: RefObject<HTMLDivElement | null>) {
     if (!row) return undefined;
     const update = () => {
       const hidden = row.scrollWidth - row.clientWidth;
-      row.dataset.fadeStart = hidden > 1 && row.scrollLeft > 1 ? '1' : '0';
-      row.dataset.fadeEnd = hidden > 1 && row.scrollLeft < hidden - 1 ? '1' : '0';
+      const start = hidden > 1 && row.scrollLeft > 1 ? '1' : '0';
+      const end = hidden > 1 && row.scrollLeft < hidden - 1 ? '1' : '0';
+      if (row.dataset.fadeStart !== start) row.dataset.fadeStart = start;
+      if (row.dataset.fadeEnd !== end) row.dataset.fadeEnd = end;
     };
     update();
     row.addEventListener('scroll', update, { passive: true });

@@ -28,7 +28,7 @@
  *   the data for screen readers.
  */
 import { useShellLang, useThemeStore } from '@fasl-work/caos-app-shell';
-import { useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useId, useMemo, useRef, useState } from 'react';
 import uPlot from 'uplot';
 import 'uplot/dist/uPlot.min.css';
 import { formatTick, type Lang } from '../../lib/format';
@@ -123,6 +123,7 @@ type Box = { x0: number; y0: number; x1: number; y1: number };
 const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 
 export function Chart({ data, series, xLabel, yLabel, title, summary, marks, levels, categories, pointLabels, pointLabelFirst, logX, logY, yRange, onCursor, format }: ChartProps) {
+  const tableId = `chart-data-${useId().replace(/:/g, '')}`;
   const hostRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
   const cursorRef = useRef<number | null>(null);
@@ -482,7 +483,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
               {shown.map(({ s, i }) => (
                 <button key={s.label} type="button" aria-pressed={!hidden.has(s.label)} className={hidden.has(s.label) ? 'off' : undefined}
                   onClick={() => toggle(i, s.label)}>
-                  <i className={`of-swatch${s.bars ? ' bar' : s.points ? ' dot' : s.dash ? ' dash' : ''}`} style={{ ['--swatch' as string]: `var(${TOKEN[s.colour ?? 'accent']})` }} />
+                  <i className={`of-swatch${s.bars ? ' bar' : s.points ? ' dot' : s.dash ? ' dash' : ''}`} style={{ color: `var(${TOKEN[s.colour ?? 'accent']})` }} />
                   {s.label}
                 </button>
               ))}
@@ -490,7 +491,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
           )}
         </div>
       )}
-      <div className="of-plot-area" ref={hostRef} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
+      <div className="of-plot-area" ref={hostRef} data-plot="" data-state-key={dataKey} aria-details={tableId} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
       {keyed && categories && (
         <ol className="of-plot-key" aria-hidden="true">
           {categories.map((c, i) => <li key={i}><b>{i + 1}</b>{c}</li>)}
@@ -502,10 +503,9 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         </ol>
       )}
       {zoomed && <button type="button" className="of-plot-reset" onClick={reset}>{t(UI.resetZoom, lang)}</button>}
-      {/* a table ignores the 1 px width of the hidden class and would widen the page's scroll area, so a
-          block holds it */}
-      <div className="of-sr-only">
-        <table>
+      <details className="of-chart-data">
+        <summary>{lang === 'es' ? 'Tabla de datos' : 'Data table'}</summary>
+        <table id={tableId}>
           <caption>{summary}</caption>
           <thead><tr><th scope="col">{xLabel}</th>{series.map(s => <th scope="col" key={s.label}>{s.label}</th>)}</tr></thead>
           <tbody>
@@ -514,7 +514,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
             ))}
           </tbody>
         </table>
-      </div>
+      </details>
     </figure>
   );
 }

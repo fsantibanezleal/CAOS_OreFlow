@@ -1,0 +1,16 @@
+{
+  "name": "OreFlow",
+  "slug": "oreflow",
+  "tagline": {
+    "en": "A research workbench for mineral processing circuits, physical models and data-driven validation.",
+    "es": "Un entorno de investigación para circuitos de procesamiento mineral, modelos físicos y validación basada en datos."
+  },
+  "repo": "https://github.com/fsantibanezleal/CAOS_OreFlow",
+  "visibility": "public",
+  "license": "MIT",
+  "holder": "Felipe Santibáñez-Leal",
+  "year": 2026,
+  "app": "workbench",
+  "focus": true,
+  "method_packages": []
+}

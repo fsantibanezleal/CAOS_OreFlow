@@ -31,15 +31,15 @@ describe('content-bearing small text meets WCAG AA', () => {
     }
   });
 
-  it('the faint colour, which fails AA, is the reason: under 4.5:1 somewhere', () => {
+  it('the shell keeps even its faint text colour at 4.5:1 on page surfaces', () => {
     const faint = token('fg-faint');
     const worst = Math.min(...['bg', 'surface', 'surface-2'].flatMap(b => [0, 1].map(theme => contrast(faint[theme], token(b)[theme]))));
-    expect(worst).toBeLessThan(4.5);
+    expect(worst).toBeGreaterThanOrEqual(4.5);
   });
 
   it('figure notes and ticks take the subtle colour, and no product text rule uses the faint one', () => {
     const content = read('../content/content.css');
-    expect(content).toMatch(/\.fig-svg \.dg-note, \.fig-svg \.dg-tick \{ fill: var\(--color-fg-subtle\); \}/);
+    expect(content).not.toMatch(/\.fig-svg\s+\.dg-(?:note|tick)/);
     // an inactive control's label is exempt (WCAG 1.4.3): the rail's following and fixed knobs keep the faint colour
     const faintText = [content, read('../workbench/workbench.css')].flatMap(css => css.split('\n'))
       .filter(line => /(?:^|[\s;{])(?:color|fill):\s*var\(--color-fg-faint\)/.test(line))

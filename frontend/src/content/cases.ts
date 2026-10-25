@@ -135,10 +135,10 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   nickel_sulphide: {
     problem: [
-      { en: 'Fine pentlandite also floats slowly, so grinding finer to liberate it produces more of the slimes that dilute the concentrate.',
-        es: 'La pentlandita fina además flota lento, por lo que moler más fino para liberarla produce más de las lamas que diluyen el concentrado.' },
-      { en: 'Plants of this type make concentrates of about 20% Ni with MgO rejection above 99.5%, and serpentine slimes impair both grade and recovery. The case asks how the slimes set the grade-recovery compromise.',
-        es: 'Las plantas de este tipo producen concentrados de unos 20% Ni con rechazo de MgO sobre 99,5%, y las lamas de serpentina afectan tanto la ley como la recuperación. El caso pregunta cómo las lamas fijan el compromiso ley-recuperación.' },
+      { en: 'A desliming cyclone rejects fine serpentine before flotation, but fine pentlandite can leave with those slimes. The cut therefore trades MgO rejection against nickel recovery.',
+        es: 'Un ciclón de deslamado rechaza serpentina fina antes de la flotación, pero la pentlandita fina puede salir con esas lamas. El corte intercambia así rechazo de MgO por recuperación de níquel.' },
+      { en: 'The case exposes the cut, regrind and cleaning stages as separate choices; its model does not simulate dispersant chemistry or plant calibration.',
+        es: 'El caso expone el corte, la remolienda y las etapas de limpieza como decisiones separadas; su modelo no simula química de dispersantes ni calibración de planta.' },
     ],
     scope: [
       { en: 'Entrainment follows Savassi\'s size-dependent degree of entrainment with a coarser entrainment size than a clean ore.', es: 'El arrastre sigue el grado de arrastre por tamaño de Savassi, con un tamaño de arrastre mayor que en un mineral limpio.' },
@@ -188,15 +188,15 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
   },
   copper_oxide: {
     problem: [
-      { en: 'Chrysocolla behaves like quartz in flotation. Reported studies reach 15 to 21% Cu at 77 to 86% recovery on malachite ores.',
-        es: 'La crisocola se comporta como cuarzo en flotación. Los estudios reportados alcanzan 15 a 21% Cu con 77 a 86% de recuperación en minerales de malaquita.' },
+      { en: 'The case assigns ten percent of its copper to poorly floating chrysocolla. Published malachite sulphidisation results are context only: reagent activation is not modelled here.',
+        es: 'El caso asigna diez por ciento de su cobre a crisocola de baja flotabilidad. Los resultados publicados de sulfidización de malaquita son solo contexto: aquí no se modela la activación del reactivo.' },
       { en: 'The case asks what limits recovery when reagent is not the constraint: here the ceiling is mineralogical, set by the copper held in chrysocolla.',
         es: 'El caso pregunta qué limita la recuperación cuando el reactivo no es la restricción: aquí el techo es mineralógico, fijado por el cobre contenido en crisocola.' },
     ],
     scope: [
       { en: 'Sulphidisation is folded into malachite\'s floatability and collector response; the reagent chemistry is not modelled.', es: 'La sulfidización se incorpora en la flotabilidad y la respuesta al colector de la malaquita; la química del reactivo no se modela.' },
       { en: 'Chrysocolla is a copper carrier with a gangue-like floatability, so it is counted in the head grade and mostly lost.', es: 'La crisocola es un portador de cobre con flotabilidad de ganga, por lo que cuenta en la ley de cabeza y se pierde en su mayoría.' },
-      { en: 'With a fifth of the copper in chrysocolla, the nominal state sits at a higher grade and a lower recovery than the malachite studies: the recoverable copper is malachite\'s, cleaned to a high grade.', es: 'Con un quinto del cobre en crisocola, el estado nominal queda con más ley y menos recuperación que los estudios de malaquita: el cobre recuperable es el de la malaquita, limpiado a alta ley.' },
+      { en: 'With one tenth of the copper in chrysocolla, the authored model assigns most lost copper to that low-floatability carrier. This is an assumed response, not a simulated sulphidisation circuit.', es: 'Con una décima parte del cobre en crisocola, el modelo de autor atribuye la mayor parte del cobre perdido a ese portador de baja flotabilidad. Es una respuesta supuesta, no un circuito de sulfidización simulado.' },
     ],
     read: [
       { en: 'Response: collector against recovery flattens early; more reagent does not reach the chrysocolla copper.', es: 'Respuesta: el colector contra la recuperación se aplana pronto; más reactivo no alcanza el cobre de la crisocola.' },
@@ -217,27 +217,25 @@ export const CASE_CONTEXT: Record<string, CaseContext> = {
     ],
     read: [
       { en: 'Separation: the bank profile shows the grade falling cell by cell as recovery accumulates.', es: 'Separación: el perfil del banco muestra la ley cayendo celda a celda a medida que se acumula la recuperación.' },
-      { en: 'Case, variants and cases: more collector raises recovery at a lower grade, while more air raises both, because the extra bubble surface floats sphalerite faster than the extra water entrains gangue.', es: 'Caso, variantes y casos: más colector sube la recuperación con menor ley, mientras más aire sube ambas, porque la superficie adicional de burbujas flota la esfalerita más rápido de lo que el agua adicional arrastra ganga.' },
+      { en: 'Case, variants and cases: more collector raises recovery at a lower grade, while more air raises recovery but lowers final grade in this circuit as entrainment and cleaner loading offset the added bubble surface.', es: 'Caso, variantes y casos: más colector sube la recuperación con menor ley, mientras más aire sube ambas, porque la superficie adicional de burbujas flota la esfalerita más rápido de lo que el agua adicional arrastra ganga.' },
     ],
     refs: ['gorain1997', 'savassi1998', 'collector2022'],
   },
   mixed_ore_high_clay: {
     problem: [
-      { en: 'Clay reports almost entirely by entrainment with the water the froth recovers, so the froth washing in the cleaners and the gas velocity decide how much of it reaches the concentrate.',
-        es: 'La arcilla reporta casi por completo por arrastre con el agua que recupera la espuma, por lo que el lavado de espuma en la limpieza y la velocidad de gas deciden cuánta llega al concentrado.' },
-      { en: 'The case asks how much grade the clay entrainment takes, and what the circuit can do about it without losing copper.',
-        es: 'El caso pregunta cuánta ley se lleva el arrastre de arcilla y qué puede hacer el circuito sin perder cobre.' },
+      { en: 'A desliming cyclone removes clay-rich fines ahead of flotation, while some liberated copper also leaves in the slime stream. The cut is an operating trade-off between lower clay carryover and copper loss.',
+        es: 'Un ciclón de deslamado elimina finos ricos en arcilla antes de la flotación, mientras parte del cobre liberado también sale con las lamas. El corte es un compromiso operativo entre menor arrastre de arcilla y pérdida de cobre.' },
+      { en: 'The case asks whether desliming plus regrind and two cleaning banks improves the product enough to justify the metal sent to slimes.',
+        es: 'El caso pregunta si el deslamado, la remolienda y dos bancos de limpieza mejoran el producto lo suficiente para justificar el metal enviado a las lamas.' },
     ],
     scope: [
-      { en: 'Clay is soft, fine and barely floatable, so it reports almost entirely by entrainment with the recovered water.', es: 'La arcilla es blanda, fina y casi no flota, por lo que reporta casi por completo por arrastre con el agua recuperada.' },
-      { en: 'The engine\'s answer is small: the three cleaning stages leave about 75 ppm of the flotation-feed clay in the final concentrate, the clay costs about 0.2 points of Cu grade, and froth washing and air move grade and recovery by the same amounts with or without it.',
-        es: 'La respuesta del motor es pequeña: las tres etapas de limpieza dejan unas 75 ppm de la arcilla de alimentación a flotación en el concentrado final, la arcilla cuesta unos 0,2 puntos de ley de Cu, y el lavado de espuma y el aire mueven la ley y la recuperación en lo mismo con o sin ella.' },
-      { en: 'Pulp rheology (the viscosity clay adds), slime coating, reagent consumption by fines and froth stability are outside the model, so the case shows the dilution by entrainment and nothing else clay does in a plant.',
-        es: 'La reología de la pulpa (la viscosidad que agrega la arcilla), el recubrimiento por lamas, el consumo de reactivos por los finos y la estabilidad de la espuma quedan fuera del modelo, así que el caso muestra la dilución por arrastre y nada más de lo que la arcilla hace en una planta.' },
+      { en: 'The desliming partition uses the declared cut and sharpness; the model sends copper-bearing solids below that cut to the slime tail.', es: 'La partición de deslamado usa el corte y la nitidez declarados; el modelo envía al relave de lamas los sólidos con cobre que quedan bajo ese corte.' },
+      { en: 'Slime coating, clay-driven rheology, reagent demand and froth stability are outside this model; the calculation isolates size partition, flotation, regrind and cleaning.',
+        es: 'El recubrimiento por lamas, la reología inducida por arcilla, la demanda de reactivo y la estabilidad de espuma quedan fuera del modelo; el cálculo aísla partición por tamaño, flotación, remolienda y limpieza.' },
     ],
     read: [
       { en: 'Separation: the entrained share of gangue by size and the rougher water recovery.', es: 'Separación: la fracción arrastrada de la ganga por tamaño y la recuperación de agua rougher.' },
-      { en: 'Case, variants and cases: more air raises recovery and the water recovered, while more collector raises recovery at a lower grade.', es: 'Caso, variantes y casos: más aire sube la recuperación y el agua recuperada, mientras más colector sube la recuperación con menor ley.' },
+      { en: 'Case, variants and cases: more air raises recovery and water recovery in seven authored circuits; final grade rises in four and falls in three, and this mixed-ore case does not carry that variant.', es: 'Caso, variantes y casos: más aire sube la recuperación y la recuperación de agua en siete circuitos de autor; la ley final sube en cuatro y baja en tres, y este caso de mineral mixto no lleva esa variante.' },
     ],
     refs: ['savassi1998', 'hoang2019', 'trahar1981'],
   },

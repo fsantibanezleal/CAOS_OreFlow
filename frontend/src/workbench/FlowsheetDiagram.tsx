@@ -85,7 +85,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   return (
     <div className="of-flowmap-host" ref={hostRef}>
       <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
-        data-zoom={zoom.toFixed(3)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing} data-outlets-missing={outletsMissing}>
+        data-zoom={String(Math.round(zoom * 1000) / 1000)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing} data-outlets-missing={outletsMissing}>
         <defs>
           {(['plain', 'recycle', 'product', 'tail'] as const).map(kind => (
             <marker key={kind} id={`of-arrow-${kind}`} viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -121,6 +121,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
             return (
               <g key={node.unit} className={cls} role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} onClick={select} onKeyDown={onKeyDown}>
                 <title>{name}</title>
+                <rect className="of-junction-hit" x={cx - 12} y={cy - 12} width={24} height={24} />
                 <circle cx={cx} cy={cy} r={NODE_R} />
                 {caption && <text x={cx} y={caption.y} textAnchor="middle" className="of-flow-junction-name">{name}</text>}
               </g>
@@ -135,7 +136,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
               {lines.map((line, i) => {
                 // a single word longer than the box is condensed to fit, never clipped
                 const fitted = line.length * NAME_CHAR > d.boxW - 8 ? { textLength: d.boxW - 8, lengthAdjust: 'spacingAndGlyphs' as const } : {};
-                return <text key={i} x={d.boxW / 2} y={BOX_H / 2 + 4 + (i - (lines.length - 1) / 2) * 12} textAnchor="middle" {...fitted}>{line}</text>;
+                return <text key={i} x={d.boxW / 2} y={BOX_H / 2 + 4 + (i - (lines.length - 1) / 2) * 18} textAnchor="middle" {...fitted}>{line}</text>;
               })}
             </g>
           );

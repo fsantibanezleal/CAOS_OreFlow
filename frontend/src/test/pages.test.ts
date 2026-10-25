@@ -1,16 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { EXPERIMENTS } from '../content/experiments';
 import { IMPLEMENTATION } from '../content/implementation';
+import { EXPERIMENT_GROUPS } from '../pages/Experiments';
+import { IMPLEMENTATION_GROUPS } from '../pages/Implementation';
 
-// PG-01 and PG-02: the planned tab census of the two pages 0.07.000 extends (the plan of 2026-09-13, fixed in
-// plan-0.07.md item 6). The browser gate counts the same tabs on the built site (TAB_CENSUS in gate.mjs).
-describe('the planned page tabs', () => {
-  it('Implementation has the nine planned tabs, with the model registry, the GPU lane and deployment', () => {
+// PG-01 and PG-02 retain all planned topics while the shell ADR caps peer tabs at six; the browser gate
+// checks the same visible group count and enters every nested topic.
+describe('the planned page sections', () => {
+  it('Implementation exposes nine topics in six shell-compliant groups', () => {
     expect(IMPLEMENTATION.map(t => t.id)).toEqual(['system', 'engine', 'bake', 'contracts', 'lanes', 'models', 'gpu', 'release', 'deploy']);
+    expect(IMPLEMENTATION_GROUPS).toHaveLength(6);
+    expect(IMPLEMENTATION_GROUPS.flatMap(g => g.topics.map(t => t.id))).toEqual(IMPLEMENTATION.map(g => g.topics[0].id));
   });
 
-  it('Experiments has the seven planned tabs', () => {
+  it('Experiments exposes seven topics in six shell-compliant groups', () => {
     expect(EXPERIMENTS.map(t => t.id)).toEqual(['design', 'data', 'splits', 'metrics', 'responses', 'uncertainty', 'ablations']);
+    expect(EXPERIMENT_GROUPS).toHaveLength(6);
+    expect(EXPERIMENT_GROUPS.flatMap(g => g.topics.map(t => t.id))).toEqual(EXPERIMENTS.map(g => g.topics[0].id));
   });
 
   it('every tab carries a bilingual label and at least one topic with a figure or data', () => {
@@ -42,8 +48,8 @@ describe('architecture 04 lists every page tab', () => {
     const methodology = order.map(key => methodologyText.match(new RegExp(`  ${key}: \{ en: '([^']+)'`))![1]);
     expect(row('Introduction')).toEqual(INTRODUCTION.map(t => t.label.en));
     expect(row('Methodology')).toEqual(methodology);
-    expect(row('Implementation')).toEqual(IMPLEMENTATION.map(t => t.label.en));
-    expect(row('Experiments')).toEqual(EXPERIMENTS.map(t => t.label.en));
+    expect(row('Implementation')).toEqual(IMPLEMENTATION_GROUPS.map(t => t.label.en));
+    expect(row('Experiments')).toEqual(EXPERIMENT_GROUPS.map(t => t.label.en));
     expect(row('Benchmark')).toEqual(groupLabels('../pages/Benchmark.tsx', /const GROUPS = \[[\s\S]*?\n\];/));
   });
 });

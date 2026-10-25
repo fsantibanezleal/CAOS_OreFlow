@@ -20,10 +20,10 @@ export function Arrow({ id }: { id: string }) {
 
 /** One box with a title and sub lines; `lines` start 16 px under the title, `step` px apart. */
 export function Box({ x, y, w, h, title, lines = [], kind, step = 14 }: { x: number; y: number; w: number; h: number; title: string; lines?: string[]; kind?: 'accent' | 'good' | 'optional'; step?: number }) {
-  const cls = kind === 'accent' ? 'dg-box accent' : kind === 'good' ? 'dg-box good' : kind === 'optional' ? 'dg-box of-dg-optional' : 'dg-box';
+  const cls = kind === 'accent' ? 'dg-box accent' : kind === 'good' ? 'dg-box good' : 'dg-box';
   return (
     <g>
-      <rect className={cls} x={x} y={y} width={w} height={h} rx="7" />
+      <rect className={cls} strokeDasharray={kind === 'optional' ? '5 3' : undefined} x={x} y={y} width={w} height={h} rx="7" />
       <text className="dg-box-title" x={x + 12} y={y + 20}>{title}</text>
       {lines.map((line, i) => <text key={i} className="dg-box-sub" x={x + 12} y={y + 36 + step * i}>{line}</text>)}
     </g>

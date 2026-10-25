@@ -35,7 +35,7 @@ describe('the interface names the precompute, the simulator and the port in plai
     expect(hits).toEqual([]);
   });
 
-  // the architecture modal's diagrams are read too (review of 0.07.000, D items): their text nodes, both languages
+  // the architecture modal diagrams are part of the terminology audit: their text nodes, both languages
   it('the modal diagrams use the same words', () => {
     const tech = fileURLToPath(new URL('../../public/svg/tech/', import.meta.url));
     const nodes = readdirSync(tech).filter(f => f.endsWith('.svg')).flatMap(f =>
@@ -53,7 +53,7 @@ describe('the interface names the precompute, the simulator and the port in plai
   });
 });
 
-describe('the review of 0.07.000 disclosures stay on the pages', () => {
+describe('scientific disclosures stay on the pages', () => {
   // E-06: 9 of the 29 plausibility ranges are authored and 10 more carry an authored bound, so no page calls the
   // ranges published or the literature's
   it('no plausibility range is called published', () => {
