@@ -148,7 +148,7 @@ function GpuFigure({ lang }: { lang: Lang }) {
       <Arrow id="of-gpu-arrow" />
       <Box x={10} y={12} w={200} h={58} title={p('CPU: scikit-learn', 'CPU: scikit-learn')} lines={[p('ridge, forest, boosting,', 'ridge, bosque, boosting,'), p('Gaussian process', 'proceso gaussiano')]} />
       <Box x={230} y={12} w={200} h={58} title={p('GPU: PyTorch, CUDA', 'GPU: PyTorch, CUDA')} kind="accent" lines={[p('surrogate, guard;', 'sustituto, guardia;'), p('particle net (its script)', 'red de partículas (su script)')]} />
-      <Box x={230} y={92} w={200} h={58} title={p('14 fits per process network', '14 ajustes por red de proceso')} lines={[p('interpolation, 12 folds,', 'interpolación, 12 particiones,'), p('then the final fit', 'luego el ajuste final')]} />
+      <Box x={230} y={92} w={200} h={58} title={p('14 fits per process network', '14 ajustes por red')} lines={[p('interpolation, 12 folds,', 'interpolación, 12 particiones,'), p('then the final fit', 'luego el ajuste final')]} />
       <line className="dg-edge" x1={330} y1={70} x2={330} y2={90} markerEnd={arrow} />
       <Box x={230} y={172} w={200} h={44} title={p('ONNX export', 'Exportación ONNX')} lines={[p('checked against PyTorch', 'verificada frente a PyTorch')]} />
       <line className="dg-edge" x1={330} y1={150} x2={330} y2={170} markerEnd={arrow} />

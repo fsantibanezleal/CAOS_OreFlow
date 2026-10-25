@@ -188,7 +188,7 @@ export function DocPage({ title, lede, children }: { title: string; lede: string
     <div ref={root} className="page-body wide of-doc">
       <header className="of-doc-head">
         <h1>{title}</h1>
-        <p className="measure">{lede}</p>
+        <p className="measure of-doc-lede">{lede}</p>
       </header>
       {children}
     </div>
