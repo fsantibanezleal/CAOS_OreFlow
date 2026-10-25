@@ -26,7 +26,7 @@ input, select, textarea { font: inherit; }
   background: var(--color-surface);
 }
 .of-rail .cs-select { max-width: none; }
-.of-rail .cs-select-display { padding-right: 1.4rem; }
+.of-rail-case-selector > div > div > div:first-child { padding-right: 1.4rem; }
 .of-rail select { font-size: 0.76rem; }
 .of-rail .of-field select { font-size: 0.72rem; }
 .of-rail-modified { display: flex; align-items: center; justify-content: space-between; gap: 6px; min-width: 0; font-size: 0.68rem; line-height: 1.25; color: var(--color-accent); }
@@ -198,7 +198,7 @@ input, select, textarea { font: inherit; }
   background: var(--color-surface);
 }
 @media (min-width: 901px) {
-  .page-body.wide.caos-wb { padding-block: 4px; }
+  .of-bench { padding-block: 4px; }
   .of-view-response > .of-stage { margin: 0; padding: 0; }
   .of-context-chart > .of-plot { height: 640px; }
 }

@@ -23,7 +23,7 @@ export default function Introduction() {
   const lang = useShellLang() as Lang;
   return (
     <div className="page-body wide of-introduction-page" data-doc-page>
-    <SurfacePage title={T.title[lang]} lede={<span className="lede">{T.lede[lang]}</span>} ariaLabel={T.views[lang]} instrument focus tabs={[
+    <SurfacePage title={T.title[lang]} lede={<span className="of-intro-lede">{T.lede[lang]}</span>} ariaLabel={T.views[lang]} instrument focus tabs={[
         { id: 'executive', label: T.executive[lang], content: <ExecutiveView data={executive} base={import.meta.env.BASE_URL} />, focus: true },
         { id: 'technical', label: T.technical[lang], content: <TopicGroups lang={lang} label={T.views} groups={INTRODUCTION} /> },
       ]} />
