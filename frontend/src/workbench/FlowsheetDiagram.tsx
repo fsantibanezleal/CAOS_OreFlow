@@ -74,6 +74,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const { zoom, ox, oy, cellW, cellH, width, height } = f;
   // the stage's width, or the readable width on a stage narrower than that (the host then scrolls sideways)
   const svgWidth = width * zoom > size.width + 0.5 ? width * zoom : size.width;
+  const scrollable = svgWidth > size.width + 0.5;
   const d = drawing(plan, f);
   const texts = labelTexts(plan, streams, primary, point, lang);
   const { labels, boxes } = placeLabels(plan, d, f.frame, texts.edges.map(e => e.options));
@@ -81,9 +82,19 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
   const missing = labels.filter((l, k) => !l && texts.edges[k].options.length).length;
   // below the desktop stages only the outlets and the feed are promised a label (D-21, flowsheet-labels.test.ts)
   const outletsMissing = labels.filter((l, k) => !l && texts.edges[k].options.length && (plan.edges[k].to === null || plan.edges[k].from === null)).length;
+  const scrollKeys = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (!scrollable || event.target !== event.currentTarget || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const host = event.currentTarget;
+    if (event.key === 'Home') host.scrollLeft = 0;
+    else if (event.key === 'End') host.scrollLeft = host.scrollWidth;
+    else host.scrollLeft += (event.key === 'ArrowRight' ? 1 : -1) * Math.max(96, host.clientWidth * 0.72);
+  };
 
   return (
-    <div className="of-flowmap-host" ref={hostRef}>
+    <div className="of-flowmap-frame">
+      <div className="of-flowmap-host" ref={hostRef} role="region" aria-label={summary}
+        aria-describedby={scrollable ? 'of-flowmap-scroll-cue' : undefined} tabIndex={scrollable ? 0 : -1} onKeyDown={scrollKeys}>
       <svg className="of-flowmap" viewBox={`0 0 ${width} ${height}`} width={svgWidth} height={size.height} role="img" aria-label={summary}
         data-zoom={String(Math.round(zoom * 1000) / 1000)} data-inset={`${top} ${right} ${bottom} ${left}`} data-labels-missing={missing} data-outlets-missing={outletsMissing}>
         <defs>
@@ -142,6 +153,13 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
           );
         })}
       </svg>
+      </div>
+      {scrollable && <>
+        <span className="of-flowmap-scroll-cue" id="of-flowmap-scroll-cue">
+          {lang === 'es' ? 'Desliza o usa las flechas para ver el circuito' : 'Swipe or use arrow keys to inspect the circuit'}
+        </span>
+        <span className="of-flowmap-scroll-indicator" aria-hidden="true">↔</span>
+      </>}
     </div>
   );
 }

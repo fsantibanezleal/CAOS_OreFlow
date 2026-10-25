@@ -336,11 +336,15 @@ input, select, textarea { font: inherit; }
 .of-heatmap-ramp { display: inline-block; width: 160px; height: 10px; border-radius: 3px; }
 .of-heatmap-zlabel { font-family: var(--font-sans); }
 
-/* a stage narrower than the readable drawing (a phone) scrolls it sideways (fit in flowsheet.ts) */
-.of-flowmap-host { flex: 1 1 auto; position: relative; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: hidden; pointer-events: none; }
+/* A narrow stage keeps legible unit labels and exposes the drawing through a focusable horizontal scroller. */
+.of-flowmap-frame { position: relative; flex: 1 1 auto; min-width: 0; min-height: 0; overflow: hidden; }
+.of-flowmap-host { position: absolute; inset: 0; min-width: 0; min-height: 0; overflow-x: auto; overflow-y: hidden; pointer-events: auto; }
+.of-flowmap-host:focus-visible { outline: 2px solid var(--color-accent); outline-offset: -2px; }
 .of-flowmap { display: block; position: absolute; inset: 0; }
 .of-flowmap { pointer-events: none; }
 .of-flowmap .of-flow-unit { pointer-events: auto; }
+.of-flowmap-scroll-cue { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; clip-path: inset(50%); }
+.of-flowmap-scroll-indicator { position: absolute; right: 8px; top: 50%; z-index: 2; display: grid; width: 25px; height: 36px; place-items: center; transform: translateY(-50%); border: 1px solid var(--color-border); border-radius: 6px; background: color-mix(in srgb, var(--color-surface) 92%, transparent); color: var(--color-fg-subtle); font-size: 1rem; pointer-events: none; }
 .of-flow-edge polyline { stroke: var(--color-fg-subtle); stroke-width: 1.6; }
 .of-flow-edge.recycle polyline { stroke: var(--color-warn); stroke-dasharray: 6 4; }
 .of-flow-edge.product polyline { stroke: var(--color-good); }
@@ -495,7 +499,7 @@ input, select, textarea { font: inherit; }
 @media (min-width: 861px) {
 }
 .of-focus-body { position: absolute; inset: 0; display: flex; min-width: 0; min-height: 0; }
-.of-focus-body > .of-plot, .of-focus-body > .of-heatmap, .of-focus-body > .of-view, .of-focus-body > .of-flowmap-host { flex: 1 1 auto; border: 0; border-radius: 0; }
+.of-focus-body > .of-plot, .of-focus-body > .of-heatmap, .of-focus-body > .of-view, .of-focus-body > .of-flowmap-frame { flex: 1 1 auto; border: 0; border-radius: 0; }
 .of-focus-body > .of-view > .of-stage { border: 0; }
 .of-focus-cursor {
   position: absolute;

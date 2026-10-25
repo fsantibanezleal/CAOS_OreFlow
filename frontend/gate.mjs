@@ -531,7 +531,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
       await page.waitForFunction(() => { const p = document.querySelector('.of-progress'); if (!p) return false; const [a, b] = p.textContent.split('/').map(s => parseInt(s, 10)); return a === b; }, null, { timeout: 120000 });
     }
     if (view === 'case') {
-      const subtabs = page.locator('.of-view-case .subtablist [role=tab]');
+      const subtabs = page.locator('.of-view-case .of-workbench-subtablist [role=tab]');
       for (let k = 0; k < await subtabs.count(); k += 1) {
         await subtabs.nth(k).click();
         const name = (await subtabs.nth(k).textContent()).trim();
@@ -1006,13 +1006,30 @@ for (const tag of SMALL) {
     });
     const review = await page.evaluate(REVIEW_PROBE, false);
     record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && review.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText, review });
+    if (view === 'circuit') {
+      const flowHost = page.locator('.of-flowmap-host');
+      const access = await flowHost.evaluate(e => ({
+        overflow: e.scrollWidth > e.clientWidth + 1,
+        tabIndex: e.tabIndex,
+        region: e.getAttribute('role') === 'region',
+        cue: Boolean(e.getAttribute('aria-describedby') && document.getElementById(e.getAttribute('aria-describedby'))?.textContent.trim()),
+      }));
+      let keyboardMoves = true;
+      if (access.overflow) {
+        await flowHost.focus();
+        await page.keyboard.press('ArrowRight');
+        keyboardMoves = await flowHost.evaluate(e => e.scrollLeft > 0);
+        await flowHost.evaluate(e => { e.scrollLeft = 0; });
+      }
+      record(`${tag} flowsheet scroll access`, !access.overflow || (access.tabIndex >= 0 && access.region && access.cue && keyboardMoves), { ...access, keyboardMoves });
+    }
     // the capture shows the view, not wherever the stacked page was left scrolled (0.08: some showed only the rail)
     await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
     // U-18, U-33: every sub-tab of the Case and Methods views, not only the first: no block over another, every
     // chart's text declared clear, and the sub-tab row inside the screen (the fourth Methods tab was a sliver)
     if (view === 'case' || view === 'methods') {
-      const subtabs = page.locator(`.of-view-${view} .subtablist [role=tab]`);
+      const subtabs = page.locator(`.of-view-${view} .of-workbench-subtablist [role=tab]`);
       for (let k = 0; k < await subtabs.count(); k += 1) {
         await subtabs.nth(k).click();
         await page.waitForTimeout(600);
