@@ -136,4 +136,6 @@ def main() -> int:
 
 
 if __name__ == "__main__":
+    # A Windows pipe may default to cp1252; diagnostics include the offending glyph, so keep output readable.
+    sys.stdout.reconfigure(encoding="utf-8", errors="backslashreplace")
     sys.exit(main())

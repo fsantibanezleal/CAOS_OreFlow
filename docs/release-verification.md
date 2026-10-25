@@ -6,6 +6,7 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Local gate
 
+- Shared-base review: OreFlow already pins the latest published shell, `@fasl-work/caos-app-shell` 0.19.1, and contains the template 0.11.001 lazy routes, shared vendor chunks, chart interaction work and Vite 8.3.5. Adopted template 0.11.002's UTF-8 guard diagnostics and recorded `.template-version`; the adversarial Windows `cp1252` pipe regression check passes.
 - The corrected 0.10.000 bake completed on the RTX 4070 Laptop workstation: learning 3590.0 s, cases 2892.7 s on 4 workers, studies 238.9 s, real samples 107.0 s; contract, benchmark, manifests and final validation completed in under one second each. `validation.json` records `passed: true`, CUDA for final MLP training and exported ONNX parity checks.
 - The new artifacts contain 12 authored cases and 96 variants. All case records, manifests, benchmark, learning, studies and measured-sample artifacts carry engine version 0.10.000 and the same contract digest. `scripts/check_readiness.py` reports current.
 - Manuscript and learned-lane findings were refreshed against the new records. `tests/test_manuscript_claims.py`, `tests/test_learning_findings.py`, `tests/test_docs_counts.py` and the nominal kinetics findings test pass after those updates.

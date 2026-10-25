@@ -33,6 +33,25 @@ def test_the_template_itself_passes_the_content_standards_guard() -> None:
     assert r.returncode == 0 and "check_content_standards: OK" in r.stdout, r.stdout
 
 
+def test_emoji_diagnostic_survives_a_windows_ansi_pipe(tree: Path) -> None:
+    plant(tree, "README.md", "emoji \U0001f600\n")
+    track(tree)
+    env = os.environ.copy()
+    env["PYTHONIOENCODING"] = "cp1252"
+    result = subprocess.run(
+        [sys.executable, str(tree / "scripts" / "check_content_standards.py")],
+        cwd=tree,
+        env=env,
+        capture_output=True,
+        encoding="utf-8",
+        errors="replace",
+        timeout=30,
+    )
+    assert result.returncode == 1
+    assert "README.md:1:7" in result.stdout
+    assert "emoji (U+1F600" in result.stdout
+
+
 # ---------------------------------------------------------------- B2: a declared file is exempt from the model rule only
 
 def test_a_declared_heavy_parquet_is_refused(tree: Path) -> None:
