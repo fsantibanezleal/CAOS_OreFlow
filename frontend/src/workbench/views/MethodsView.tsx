@@ -5,7 +5,7 @@
  * panel is keyed by the case, so a choice that only makes sense for one case (a factor, an input) never
  * carries over to another.
  */
-import { SubTabs } from '@fasl-work/caos-app-shell';
+import { WorkbenchSubTabs } from '../WorkbenchSubTabs';
 import type { OperatingContract } from '../../engine/contract';
 import type { OperatingPoint } from '../../engine/model';
 import type { Trace } from '../../engine/trace';
@@ -46,7 +46,7 @@ export function MethodsView({ contract, artifact, variant, point, trace, modifie
   ];
   return (
     <div className="of-view of-view-methods of-view-tabbed">
-      <SubTabs tabs={tabs} ariaLabel={TEXT.label[lang]} />
+      <WorkbenchSubTabs tabs={tabs} label={TEXT.label[lang]} />
     </div>
   );
 }

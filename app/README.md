@@ -11,7 +11,7 @@ an artifact.
 | `main.py` | `create_app()`: compression, CORS, the API router, `/health` and `/healthz`, the site from `frontend/dist` with `index.html` for document routes |
 | `routers/content.py` | `/api/cases`, `/api/cases/{case_id}`, `/api/cases/{case_id}/manifest`, `/api/contract`, `/api/benchmark`, `POST /api/simulate` |
 | `services/content.py` | reads the derived artifacts, refusing any path outside the derived folder |
-| `models/schemas.py` | the request model: types and sizes only; the operating envelope is the contract's |
+| `app/models/schemas.py` | the request model: types and sizes only; the operating envelope is the contract's |
 | `config.py` | settings from the environment: `APP_ENV`, `APP_HOST`, `APP_PORT`, `DEV_ORIGINS`, `PROD_ORIGINS`, `DATA_DIR` |
 
 Run it locally from the repository root (build the site first if you want it served too):

@@ -70,7 +70,7 @@ the learning record by their byte counts. `scripts/check_artifacts.py` recompute
 checks that the probes were built from the same contract, and rejects an index, a case artifact, a
 learning record or a benchmark from another release or another contract instead of reading it. The
 three measured lanes are not engine outputs; they carry their own schema and their source record.
-`scripts/precompute` runs them before the bake, so its validation stage checks their records.
+`scripts/precompute.ps1` runs them before the bake, so its validation stage checks their records.
 
 ## Nothing is computed twice in different ways
 

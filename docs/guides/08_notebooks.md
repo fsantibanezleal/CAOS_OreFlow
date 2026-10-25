@@ -85,7 +85,7 @@ sections, in this order, named in the tree's language:
   product reads its notebooks' outputs for them before a release.
 - **Method:** each equation in markdown with its source (DOI or URL), then run through the product's package, one step per
   cell. A method is imported and never defined in a notebook, an oracle included: the example's final-size solver is
-  `final_size` of `data-pipeline/pipeline/oracles.py`, which shares no code with the engine, and the check refuses a cell that
+  `final_size` of `data-pipeline/pipeline/engine/`, which shares no code with the engine, and the check refuses a cell that
   defines a name the engine (`model/`) or the oracles module already define. The example imports the pipeline by path (`data-pipeline/`) because it publishes no package; a product imports its
   own PyPI package.
 - **Step by step:** every code cell is directly preceded by a markdown cell that says what it does and why, and carries at

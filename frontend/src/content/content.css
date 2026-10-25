@@ -5,12 +5,7 @@
  */
 
 .of-doc { min-width: 0; }
-.of-introduction-page > .page-body.wide.caos-surface { width: 100%; max-width: none; margin: 0; padding: 0; }
-.of-introduction-page .caos-surface-head, .of-introduction-page .caos-surface-heading,
-.of-introduction-page .caos-surface-lede, .of-introduction-page .caos-surface-body,
-.of-introduction-page .tabs, .of-introduction-page .tabpanel, .of-introduction-page .subtabs,
-.of-introduction-page [data-exec-section], .of-introduction-page [data-exec-section] > * { width: 100%; max-width: none; }
-.of-introduction-page .caos-surface-lede .lede { display: block; width: 100%; }
+.of-introduction-page { min-width: 0; }
 .of-doc-head { margin-bottom: 1.2rem; }
 .of-doc-head h1 { margin: 0 0 0.4rem; font-size: clamp(1.5rem, 2.4vw, 2.1rem); letter-spacing: -0.01em; }
 .of-doc-head p { margin: 0; color: var(--color-fg-subtle); line-height: 1.6; }
@@ -29,7 +24,7 @@
    on a narrower screen; the hidden end fades as the route links' do, so a cut label reads as more to scroll */
 .of-figure-scroll { overflow-x: auto; overflow-y: hidden; }
 .of-figure-scroll { --of-fig-min: 0px; }
-.of-figure-scroll > .fig-svg { min-width: var(--of-fig-min); max-width: none; }
+.of-figure-scroll > svg { min-width: var(--of-fig-min); max-width: none; }
 .of-figure-scroll[data-fade-end="1"] { mask-image: linear-gradient(to right, #000 calc(100% - 28px), transparent); }
 .of-figure-scroll[data-fade-start="1"] { mask-image: linear-gradient(to left, #000 calc(100% - 28px), transparent); }
 .of-figure-scroll[data-fade-start="1"][data-fade-end="1"] { mask-image: linear-gradient(to right, transparent, #000 28px, #000 calc(100% - 28px), transparent); }

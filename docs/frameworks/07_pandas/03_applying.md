@@ -53,7 +53,7 @@ prepared.to_csv("my_assays.csv", index=False)
 ```
 
 A laboratory that reports silica and alumina as oxides needs the element conversion above, or the
-model reads the wrong quantity with no error. Then run `scripts/predict-geomet` as
+model reads the wrong quantity with no error. Then run `scripts/predict-geomet.ps1` as
 [04 scikit-learn](../04_scikit-learn/03_applying.md) describes.
 
 ## Traps

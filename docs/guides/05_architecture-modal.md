@@ -1,8 +1,8 @@
 # Guide: the architecture modal (ADR-0058)
 
 Every product carries the "How it works" modal: at least five tabs, each a hand-authored diagram and a short body,
-in both languages. The configuration is `frontend/src/architecture/index.ts`, passed to the shell as
-`architecture` in `frontend/src/App.tsx`.
+in both languages. The configuration is `frontend/src/content/architecture.ts`, passed to the shell as
+`architecture` in `frontend/src/main.tsx`.
 
 ## The five tabs
 

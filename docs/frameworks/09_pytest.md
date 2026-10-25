@@ -4,7 +4,7 @@ pytest runs OreFlow's Python suite: the tests over the engine, the contract, the
 and measured lanes, the service and the documents' quoted numbers, each named after the requirement it verifies.
 How many there are, and how long they took, is recorded per release in `docs/release-verification.md`. ruff lints the Python
 code. httpx is there for FastAPI's `TestClient`. By the CI budget rule (ADR-0074) the suite runs on the
-workstation before a pull request, through `scripts/smoke`, and CI runs only ruff and the
+workstation before a pull request, through `scripts/smoke.ps1`, and CI runs only ruff and the
 standard-library guards.
 
 ## At a glance

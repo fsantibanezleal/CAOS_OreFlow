@@ -131,7 +131,7 @@ Pinned versions are read from the committed requirement files and npm lock. Shel
 
 - **Offline (canonical).** The Python engine computes every variant, every method record, the
   uncertainty and sensitivity runs, the design matrix and every learned model. It is the only lane
-  that writes artifacts. `scripts/precompute` runs the three measured lanes first, each from its own
+  that writes artifacts. `scripts/precompute.ps1` runs the three measured lanes first, each from its own
   script, then the eight stages of `data-pipeline/run.py`: contract, learning, cases, benchmark, studies,
   real samples, manifests, validation. Learning runs before the cases because the cases' optimizer screens
   its search with the networks the learning stage exports.
@@ -153,7 +153,7 @@ feature extraction, train, infer, evaluate, export, validate). OreFlow is a simu
 ingested dataset: its engine reads no dataset, and its learned lane trains on the engine's own states. Its
 orchestrator (`data-pipeline/pipeline/pipeline.py`) therefore runs the eight stages above, each with typed inputs and
 outputs and none a no-op (ADR-0069). The measured lanes, which do ingest datasets, keep their own scripts with
-their pinned sources, preprocessing, splits and evaluation (`docs/data-contract/04` to `06`). This deviation is
+their pinned sources, preprocessing, splits and evaluation (`docs/data-contract/04_particle-lane.md` to `06`). This deviation is
 deliberate and recorded here.
 
 ### Response lane

@@ -8,7 +8,7 @@ RODARE particle workbook (DOI 10.14278/rodare.336, CC BY 4.0), the GeoMet v4 CSV
 
 `data/derived/` holds the compact, reviewable JSON artifacts the public app and the API serve. They
 are rebuilt by the bake (`data-pipeline/run.py`) and by the three measured lanes
-(`data-pipeline/run_particles.py`, `run_geomet.py`, `run_iron_plant.py`), which `scripts/precompute`
+(`data-pipeline/run_particles.py`, `run_geomet.py`, `run_iron_plant.py`), which `scripts/precompute.ps1`
 runs first; see `data/derived/README.md`.
 
 The contracts are documented in `docs/data-contract/`:

@@ -531,7 +531,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
       await page.waitForFunction(() => { const p = document.querySelector('.of-progress'); if (!p) return false; const [a, b] = p.textContent.split('/').map(s => parseInt(s, 10)); return a === b; }, null, { timeout: 120000 });
     }
     if (view === 'case') {
-      const subtabs = page.locator('.of-view-case .subtablist [role=tab]');
+      const subtabs = page.locator('.of-view-case .of-workbench-subtablist [role=tab]');
       for (let k = 0; k < await subtabs.count(); k += 1) {
         await subtabs.nth(k).click();
         const name = (await subtabs.nth(k).textContent()).trim();
@@ -545,7 +545,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
       continue;
     }
     if (view === 'methods') {
-      const subtabs = page.locator('.of-view-methods .subtablist [role=tab]');
+      const subtabs = page.locator('.of-view-methods .of-workbench-subtablist [role=tab]');
       const count = await subtabs.count();
       for (let k = 0; k < count; k += 1) {
         await subtabs.nth(k).click();
@@ -663,7 +663,7 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForSelector('.of-view-sample table.of-table', { timeout: 90000 });
   await page.waitForFunction(() => !document.querySelector('.of-readout-busy'), null, { timeout: 90000 }).catch(() => undefined);
   // the chart is on this screen only in the large layout; below it, it waits in its own sub-tab
-  if (!(await page.locator('.of-view-sample .subtablist').count())) await settleCharts(page, 1);
+  if (!(await page.locator('.of-view-sample .of-workbench-subtablist').count())) await settleCharts(page, 1);
   else await page.waitForTimeout(250);
   const sampleCheck = await page.evaluate(() => ({
     fixed: document.querySelectorAll('.of-rail .of-knob.fixed input[disabled]').length,
@@ -690,14 +690,14 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.screenshot({ path: join(OUT, `source-sample-${tag}.png`) });
   // below the large layout the chart of every sample has its own sub-tab: under the facts it got a 60 px plot at
   // 1280x800 in Spanish (0.08 gate); there it is held to the view rules like any chart
-  const sampleTabs = page.locator('.of-view-sample .subtablist [role=tab]');
+  const sampleTabs = page.locator('.of-view-sample .of-workbench-subtablist [role=tab]');
   const tabbed = await sampleTabs.count() === 2;
   record(`${tag} source sample`, sampleCheck.fixed === 2 && sampleCheck.tables === 2 && (tabbed || sampleCheck.chart >= 1) && sampleCheck.url && sampleCheck.engineAgrees && sampleCheck.beside && viewOk(sampleView, lang), { ...sampleCheck, tabbed, ...sampleView });
   if (tabbed) {
     await sampleTabs.nth(1).click();
     await settleCharts(page, 1);
     const chartView = await measure(page);
-    const drawn = await page.evaluate(() => document.querySelectorAll('.of-view-sample .subtabpanel:not([hidden]) .of-plot canvas').length);
+    const drawn = await page.evaluate(() => document.querySelectorAll('.of-view-sample .of-workbench-subtabpanel .of-plot canvas').length);
     await page.screenshot({ path: join(OUT, `source-sample-chart-${tag}.png`) });
     record(`${tag} source sample chart`, drawn >= 1 && chartView.largestViz >= 0.3 && viewOk(chartView, lang), { drawn, ...chartView });
     await sampleTabs.nth(0).click();
@@ -826,7 +826,7 @@ if (REVIEW) {
     if (view) await page.locator('.of-view-tabs [role=tab]').nth(VIEWS.indexOf(view)).click();
   };
   const methodsTab = async pattern => {
-    const subtabs = page.locator('.of-view-methods .subtablist [role=tab]');
+    const subtabs = page.locator('.of-view-methods .of-workbench-subtablist [role=tab]');
     for (let k = 0; k < await subtabs.count(); k += 1) if (pattern.test((await subtabs.nth(k).textContent()).trim())) { await subtabs.nth(k).click(); return true; }
     return false;
   };
@@ -851,7 +851,7 @@ if (REVIEW) {
   const learnedBefore = await page.evaluate(() => document.querySelectorAll('.of-view-methods canvas').length);
   const moved = await setControl(page, 'throughput_tph', 1080);
   await page.waitForTimeout(800);
-  const learnedAfter = await page.evaluate(() => ({ canvases: document.querySelectorAll('.of-view-methods .subtabpanel:not([hidden]) canvas').length, hint: document.querySelector('.of-view-methods .subtabpanel:not([hidden]) .of-hint')?.textContent ?? null }));
+  const learnedAfter = await page.evaluate(() => ({ canvases: document.querySelectorAll('.of-view-methods .of-workbench-subtabpanel canvas').length, hint: document.querySelector('.of-view-methods .of-workbench-subtabpanel .of-hint')?.textContent ?? null }));
   record(`${tag} U-02 learned sweep cleared on a state change`, learned && moved && learnedBefore > 0 && learnedAfter.canvases === 0 && !!learnedAfter.hint, { learned, moved, learnedBefore, ...learnedAfter });
 
   // U-03: a rejected state shows the rejection at the top of the rail and in place of the views, and the readout no
@@ -1006,13 +1006,30 @@ for (const tag of SMALL) {
     });
     const review = await page.evaluate(REVIEW_PROBE, false);
     record(`${tag} ${view}`, m.railClear && m.railWhole && !m.overX && outside.length === 0 && railCut.length === 0 && ellipsis.length === 0 && canvasText.ok && review.ok && (m.overlaps ?? 0) === 0 && m.lang === lang, { ...m, outside, railCut, ellipsis, canvasText, review });
+    if (view === 'circuit') {
+      const flowHost = page.locator('.of-flowmap-host');
+      const access = await flowHost.evaluate(e => ({
+        overflow: e.scrollWidth > e.clientWidth + 1,
+        tabIndex: e.tabIndex,
+        region: e.getAttribute('role') === 'region',
+        cue: Boolean(e.getAttribute('aria-describedby') && document.getElementById(e.getAttribute('aria-describedby'))?.textContent.trim()),
+      }));
+      let keyboardMoves = true;
+      if (access.overflow) {
+        await flowHost.focus();
+        await page.keyboard.press('ArrowRight');
+        keyboardMoves = await flowHost.evaluate(e => e.scrollLeft > 0);
+        await flowHost.evaluate(e => { e.scrollLeft = 0; });
+      }
+      record(`${tag} flowsheet scroll access`, !access.overflow || (access.tabIndex >= 0 && access.region && access.cue && keyboardMoves), { ...access, keyboardMoves });
+    }
     // the capture shows the view, not wherever the stacked page was left scrolled (0.08: some showed only the rail)
     await page.evaluate(() => document.querySelector('.of-view-host')?.scrollIntoView({ block: 'start' }));
     await page.screenshot({ path: join(OUT, `${view}-${tag}.png`) });
     // U-18, U-33: every sub-tab of the Case and Methods views, not only the first: no block over another, every
     // chart's text declared clear, and the sub-tab row inside the screen (the fourth Methods tab was a sliver)
     if (view === 'case' || view === 'methods') {
-      const subtabs = page.locator(`.of-view-${view} .subtablist [role=tab]`);
+      const subtabs = page.locator(`.of-view-${view} .of-workbench-subtablist [role=tab]`);
       for (let k = 0; k < await subtabs.count(); k += 1) {
         await subtabs.nth(k).click();
         await page.waitForTimeout(600);
@@ -1049,14 +1066,16 @@ for (const tag of SMALL) {
   await page.screenshot({ path: join(OUT, `source-hour-${tag}.png`), fullPage: true });
   await page.locator('.of-rail .of-source-switch .of-segmented button').nth(0).click();
   await page.waitForSelector('.of-readout-item strong', { timeout: 90000 });
-  // U-37: the route links show that they scroll (the end hiding links fades), and the footer is not cut
+  // U-37: the route links and compact footer show that they scroll (hidden ends fade, per the shell contract).
   const chrome = await page.evaluate(() => {
     const nav = document.querySelector('.site-header .main-nav');
     const meta = document.querySelector('.site-footer .footer-meta');
     const hides = nav ? nav.scrollWidth > nav.clientWidth + 1 : false;
-    return { hides, fades: nav ? nav.dataset.fadeEnd === '1' || nav.dataset.fadeStart === '1' : false, footerCut: meta ? meta.scrollWidth > meta.clientWidth + 1 : null };
+    const footerOverflow = meta ? meta.scrollWidth > meta.clientWidth + 1 : false;
+    const footerFades = meta ? meta.dataset.fadeEnd === '1' || meta.dataset.fadeStart === '1' : false;
+    return { hides, fades: nav ? nav.dataset.fadeEnd === '1' || nav.dataset.fadeStart === '1' : false, footerOverflow, footerFades };
   });
-  record(`${tag} header and footer`, (!chrome.hides || chrome.fades) && chrome.footerCut === false, chrome);
+  record(`${tag} header and footer`, (!chrome.hides || chrome.fades) && (!chrome.footerOverflow || chrome.footerFades), chrome);
   // the content pages at a phone's and a tablet's width (ADR-0071): no tab or sub-tab scrolls the document
   // sideways. Until 0.07.000 this pass visited the App route only, and 16 content tabs overflowed a phone, their
   // wide tables and the charts beside them past the edge; a wide table now scrolls inside its own box
