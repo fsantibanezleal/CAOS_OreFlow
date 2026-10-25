@@ -15,7 +15,10 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-- Release and promotion PRs, trunk CI, tag, VPS deployment, and public-host verification: pending.
+- Release PR #96 merged to `develop` at `1724669bdce199fb67cdcfbb3da7a62c52d0489e`; develop CI run `40205279623` passed. Promotion PR #97 merged to `main` at `db94f4b6f1abdd985005f297ca9293ddebce48ae`; main CI run `40205616785` passed.
+- Immutable tag `v0.10.002` and the GitHub release were created at the main release commit. The ML VPS deployment script fast-forwarded `/opt/fasl-apps/CAOS_OreFlow`, rebuilt the frontend, validated nginx configuration, restarted the service, and passed its retrying health check. Public `/healthz` reports version 0.10.002; public `/api/cases` reports 12 cases, 96 variants, and the expected contract digest.
+- Public `/`, `/introduction`, `/methodology`, `/benchmark`, `/implementation`, `/experiments`, and `/focus/copper_porphyry_soft` all returned HTTP 200. Public nominal simulations for soft porphyry, fine magnetite, and free-milling gold returned HTTP 200.
+- The full public browser gate passed 1,312 checks across desktop, phone and tablet, both themes and languages, all five content routes, Focus, optimizer, uncertainty, source selection, and browser-console checks. The previously clipped Spanish GeoMet selector passes on the deployed site.
 
 ## 0.10.000, 2026-10-24
 
