@@ -16,12 +16,17 @@ const T = {
   },
   sections: { en: 'Experiment sections', es: 'Secciones de los experimentos' },
 };
+const byId = new Map(EXPERIMENTS.map(group => [group.id, group]));
+export const EXPERIMENT_GROUPS = [
+  { id: 'design', label: { en: 'Design and source data', es: 'Diseño y datos fuente' }, topics: [...byId.get('design')!.topics, ...byId.get('data')!.topics] },
+  ...EXPERIMENTS.filter(group => group.id !== 'design' && group.id !== 'data'),
+];
 
 export default function Experiments() {
   const lang = useShellLang() as Lang;
   return (
     <DocPage title={T.title[lang]} lede={T.lede[lang]}>
-      <TopicGroups lang={lang} label={T.sections} groups={EXPERIMENTS} />
+      <TopicGroups lang={lang} label={T.sections} groups={EXPERIMENT_GROUPS} />
     </DocPage>
   );
 }

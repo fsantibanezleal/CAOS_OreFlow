@@ -45,7 +45,7 @@ export function MethodsView({ contract, artifact, variant, point, trace, modifie
       content: <Learned key={caseId} contract={contract} artifact={artifact} point={point} trace={trace} lang={lang} onCursor={onCursor} /> },
   ];
   return (
-    <div className="of-view of-view-tabbed of-view-methods">
+    <div className="of-view of-view-methods of-view-tabbed">
       <SubTabs tabs={tabs} ariaLabel={TEXT.label[lang]} />
     </div>
   );

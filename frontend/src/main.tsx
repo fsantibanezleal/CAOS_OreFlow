@@ -1,8 +1,9 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router";
+import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
 import {
   AppShell,
+  Landing,
   applyTheme,
   CitationsProvider,
   readTheme,
@@ -14,13 +15,13 @@ import "./workbench/workbench.css";
 import "./content/content.css";
 import { ARCHITECTURE } from "./content/architecture";
 import { CONTENT_CITATIONS, localizeCitations } from "./content/citations";
-import Workbench from "./workbench/Workbench";
 import { Pickaxe } from "lucide-react";
 import { APP_VERSION } from "./lib/version";
 import { DocumentLanguage } from "./lib/DocumentLanguage";
 import { NavOverflow } from "./lib/NavOverflow";
 
 // the workbench is the landing route; the focus route and the content pages load when first opened
+const Workbench = React.lazy(() => import("./workbench/Workbench"));
 const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
 const Introduction = React.lazy(() => import("./pages/Introduction"));
 const Methodology = React.lazy(() => import("./pages/Methodology"));
@@ -32,11 +33,14 @@ applyTheme(readTheme());
 const config: ShellConfig = {
   product: { name: "OreFlow", mark: <Pickaxe size={18} /> },
   version: APP_VERSION,
+  license: { en: "MIT", es: "MIT" },
+  visibility: "public",
+  contain: true,
   // only the workbench is a viewport-sized surface; the content pages keep the document scroll (ADR-0071)
-  fixedRoutes: ["/"],
+  fixedRoutes: ["/app"],
   architecture: ARCHITECTURE,
   routes: [
-    { path: "/", en: "Workbench", es: "Simulador" },
+    { path: "/app", en: "Workbench", es: "Simulador" },
     { path: "/introduction", en: "Introduction", es: "Introducción" },
     { path: "/methodology", en: "Methodology", es: "Metodología" },
     { path: "/implementation", en: "Implementation", es: "Implementación" },
@@ -52,7 +56,7 @@ const config: ShellConfig = {
     license: { en: "MIT", es: "MIT" },
     provenance: {
       en: "Particle reference: HZDR RODARE 336 (CC BY 4.0); authored circuits",
-      es: "Referencia de partículas: HZDR RODARE 336 (CC BY 4.0); circuitos de autor",
+      es: "Referencia de partículas: HZDR RODARE 336 (licencia CC BY); circuitos de autor",
     },
     disclaimer: {
       en: "Simulator only; not plant-calibrated",
@@ -65,7 +69,7 @@ function Boundary({ children }: { children: React.ReactNode }) {
   return (
     <React.Suspense
       fallback={
-        <div className="page-body" role="status">
+        <div className="page-body" role="status" data-state="loading">
           Loading / Cargando...
         </div>
       }
@@ -82,20 +86,27 @@ function Citations({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const { pathname } = useLocation();
-  if (pathname.startsWith('/focus/')) return <><DocumentLanguage /><Boundary><Routes><Route path="/focus/:caseId" element={<FocusWorkbench />} /></Routes></Boundary></>;
+  const { pathname, search, hash } = useLocation();
+  if (pathname.startsWith('/focus/')) {
+    const params = new URLSearchParams(search);
+    params.set('case', decodeURIComponent(pathname.slice('/focus/'.length)));
+    params.set('focus', '1');
+    return <Navigate to={`/app?${params}`} replace />;
+  }
+  if (pathname === '/') return <Navigate to={search || hash ? `/app${search}${hash}` : '/introduction?view=executive'} replace />;
   return <AppShell config={config}>
         <DocumentLanguage />
         <NavOverflow />
         <Boundary>
           <Routes>
-            <Route path="/" element={<Workbench />} />
+            <Route path="/" element={<Navigate to="/introduction?view=executive" replace />} />
+            <Route path="/app" element={<Workbench />} />
             <Route path="/introduction" element={<Introduction />} />
             <Route path="/methodology" element={<Methodology />} />
             <Route path="/implementation" element={<Implementation />} />
             <Route path="/experiments" element={<Experiments />} />
             <Route path="/benchmark" element={<Benchmark />} />
-            <Route path="*" element={<Workbench />} />
+            <Route path="*" element={<Navigate to="/introduction?view=executive" replace />} />
           </Routes>
         </Boundary>
       </AppShell>;

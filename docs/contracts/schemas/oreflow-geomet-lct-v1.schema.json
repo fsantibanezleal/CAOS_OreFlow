@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-geomet-lct-v1",
+  "title": "oreflow-geomet-lct-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.geomet-lct/v1",
+      "type": "string"
+    },
+    "source": {
+      "type": "object"
+    },
+    "protocol": {
+      "type": "object"
+    },
+    "protocols": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "source",
+    "protocol",
+    "protocols"
+  ],
+  "additionalProperties": true
+}

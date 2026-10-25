@@ -457,21 +457,20 @@ def test_the_framework_pages_quote_the_learning_record():
     closest = max(rec, key=lambda m: rec[m]["transfer_r2_median"])
     names = {"ridge": "Ridge", "random_forest": "Random forest", "hist_gradient_boosting": "Histogram gradient boosting",
              "gaussian_process": "Gaussian process", "mlp": "MLP (PyTorch, [05](../05_pytorch.md))"}
-    assert sorted(rec, key=lambda m: -rec[m]["loco_r2_median"])[:2] == ["mlp", "hist_gradient_boosting"] and closest == "random_forest"
-    assert all(rec[m]["transfer_r2_median"] < 0 for m in rec) and all(c in folds for c in copper)
+    assert sorted(rec, key=lambda m: -rec[m]["loco_r2_median"])[:2] == ["mlp", "hist_gradient_boosting"] and closest == "mlp"
+    assert rec["mlp"]["transfer_r2_median"] > 0 and all(c in folds for c in copper)
     def flat(rel: str) -> str:
         return re.sub(r"\s+", " ", (ROOT / "docs" / "frameworks" / rel).read_text(encoding="utf-8"))
 
     sklearn = flat("04_scikit-learn/02_usage.md")
     missing = [p for p in [
         *[f"| {names[m]} | {rec[m]['interpolation_rmse']:.2f} | {rec[m]['loco_rmse_mean']:.2f} | {rec[m]['loco_rmse_max']:.2f} |" for m in names],
-        f"by the median held-out R² the MLP ({rec['mlp']['loco_r2_median']:.3f}) and gradient boosting ({rec['hist_gradient_boosting']['loco_r2_median']:.3f}) lead",
-        f"(held out, the hard porphyry costs the MLP {folds['copper_porphyry_hard']['mlp']['recovery_pct']['rmse']:.1f} points and ridge"
-        f" {folds['copper_porphyry_hard']['ridge']['recovery_pct']['rmse']:.1f})",
-        f"for the MLP, {folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.0f} points on the magnetite circuit (drums instead of flotation) and"
-        f" {folds['phosphate_clay']['mlp']['recovery_pct']['rmse']:.0f} on phosphate (desliming first)",
-        f"no model keeps a positive median recovery R² (the random forest comes closest, {rec[closest]['transfer_r2_median']:.3f})",
-        f"cover {100 * gp['recovery_pct']['coverage_95']:.1f}% of the held-out recoveries ({100 * gp['log_upgrade']['coverage_95']:.1f}% and"
+        f"the MLP has the highest median fold R² ({rec['mlp']['loco_r2_median']:.3f})",
+        f"Held out, the hard porphyry costs the MLP {folds['copper_porphyry_hard']['mlp']['recovery_pct']['rmse']:.1f} points and ridge {folds['copper_porphyry_hard']['ridge']['recovery_pct']['rmse']:.1f}",
+        f"Its magnetite error is {folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.0f} points and phosphate error is"
+        f" {folds['phosphate_clay']['mlp']['recovery_pct']['rmse']:.1f}",
+        f"Across all seven payable/carrier labels, the MLP has median recovery R² {rec[closest]['transfer_r2_median']:.3f}",
+        f"cover {100 * gp['recovery_pct']['coverage_95']:.1f}% of interpolation recoveries ({100 * gp['log_upgrade']['coverage_95']:.1f}% and"
         f" {100 * gp['specific_energy_total_kwh_t']['coverage_95']:.1f}% for the other two targets)",
         "with each feature shuffled within each case",
     ] if p not in sklearn]
@@ -479,13 +478,12 @@ def test_the_framework_pages_quote_the_learning_record():
     alone = [folds[c]["mlp"]["recovery_pct"]["rmse"] for c in copper]
     missing += [p for p in [
         f"({final['parameters']} parameters)",
-        f"(recovery RMSE {rec['mlp']['interpolation_rmse']:.2f} points)",
-        f"({rec['mlp']['loco_rmse_mean']:.1f} points on average over the held-out cases at the record's seed, {min(seeds):.1f} to {max(seeds):.1f} over five seeds)",
-        f"costs it {min(alone):.1f} to {max(alone):.1f} points",
-        f"the magnetite circuit costs {folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.0f} (recoveries predicted far outside 0 to 100%) and"
-        f" phosphate {folds['phosphate_clay']['mlp']['recovery_pct']['rmse']:.0f}",
-        f"the five copper cases score a recovery R² of {group['mlp']['recovery_pct']['r2']:.3f}",
-        f"reached its {final['epochs_run']}-epoch cap with its best validation loss at epoch {final['best_epoch']}, on {final['device'].upper()}"
+        f"lowest interpolation recovery RMSE ({rec['mlp']['interpolation_rmse']:.2f} points)",
+        f"At the record's seed its mean held-out-case RMSE is {rec['mlp']['loco_rmse_mean']:.1f} points ({min(seeds):.1f} to {max(seeds):.1f} over five seeds)",
+        f"Across the five chalcopyrite cases held out one at a time, its RMSE ranges from {min(alone):.1f} to {max(alone):.1f} points",
+        f"this average is enlarged by the magnetite fold ({folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.1f} points)",
+        f"The five chalcopyrite cases held out together score recovery R² {group['mlp']['recovery_pct']['r2']:.3f}",
+        f"reached its {final['epochs_run']}-epoch cap with best validation loss at epoch {final['best_epoch']}, on {final['device'].upper()}"
         if not final["stopped_early"] else f"stopped at epoch {final['epochs_run']} with its best validation loss at epoch {final['best_epoch']}",
     ] if p not in torch]
     assert not missing, missing

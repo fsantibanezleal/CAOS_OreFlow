@@ -39,28 +39,9 @@ Full batch is a deliberate choice: the design has at most 3072 rows and the netw
 thousand parameters, so one step over all rows is cheap and makes the loss curve deterministic for a
 given seed and device.
 
-**The surrogate** is two hidden layers of 64 with SiLU, 22 standardized features in and three
-standardized targets out (5827 parameters). It is scored under the same protocols as the
-scikit-learn models ([04](../04_scikit-learn.md)): it interpolates best of all five (recovery RMSE 3.70
-points) and has the largest one-case-out errors (60.1 points on average over the held-out cases at the
-record's seed, 26.7 to 60.1 over five seeds). The average hides where it fails: held out, each of the five
-copper sulphide cases, which have neighbours on the same mineral in the training set, costs it 1.9 to 3.0
-points, less than any other model, while the magnetite circuit costs 172 (recoveries predicted far outside
-0 to 100%) and phosphate 472. Held out together, the five copper cases score a recovery R² of 0.572. The
-final surrogate is trained on all 3072 states; the committed run reached its 3000-epoch cap with its best
-validation loss at epoch 2950, on CUDA.
+**The surrogate** is two hidden layers of 64 with SiLU, 22 standardized features in and three standardized targets out (5827 parameters). It has the lowest interpolation recovery RMSE (3.38 points). Across the five chalcopyrite cases held out one at a time, its RMSE ranges from 1.7 to 6.6 points. At the record's seed its mean held-out-case RMSE is 26.2 points (25.0 to 30.1 over five seeds); this average is enlarged by the magnetite fold (239.5 points). The five chalcopyrite cases held out together score recovery R² 0.795, while the two gold-in-pyrite cases score -10.2. These simulator results are split-specific and are not evidence of field transfer. The final surrogate is trained on all 3072 states; it reached its 3000-epoch cap with best validation loss at epoch 2992, on CUDA.
 
-**The guard** is an autoencoder: hidden layers of 16, 6 and 16 with tanh, trained to reproduce its
-own standardized input (956 parameters). Its reconstruction error is small for states like the
-training design and grows for states unlike it. The threshold is the 99th percentile
-(`learning.guard_quantile`) of the reconstruction errors on the validation rows, which only selected
-the best epoch and were never fitted. On the interpolation protocol it flags 0.5% of the held-out
-in-envelope states (false alarms) and accepts 18.1% of 11 016 probes pushed half a training range
-past the maximum of one continuous feature at a time (false accepts). The accepts concentrate in
-three features: shifted water (98%), circulating load (97%) and crusher setting (95%) pass almost
-always, because a single input that moves without its correlates is exactly what an autoencoder of
-correlated features cannot see. The record keeps the rate per feature, and the Benchmark page prints
-it.
+**The guard** is an autoencoder: hidden layers of 16, 6 and 16 with tanh, trained to reproduce its own standardized input (956 parameters). The threshold is computed from validation reconstruction errors. On held-out in-envelope rows it flags 1.47%; on shifted probes it accepts 15.5%. For shifts of half a range it accepts 15.5% above and 19.9% below the envelope. Acceptance is feature-dependent: crusher setting 95.4%, water 68.8% and circulating load 41.8%. A low reconstruction error does not establish that a state is physically safe; contract checks remain authoritative.
 
 ## The particle network (`stages/particle_experiment.py`)
 

@@ -92,7 +92,7 @@ and the uncertainty seed study of `docs/design/features/ablation-and-pages/`, at
 | `cases.<case>.ablations.<switch>` | `status`: `not_applicable` when the case has no such mechanism, and then nothing else; or `computed`, with `on` and `off` (recovery, concentrate grade, total specific energy, recovered primary metal), `delta` (off minus on), `detail` (rougher mass pull, cleaner recycle, cleaner residence and cleaner recovery, on and off), the `flags` of the off state and its `balance` |
 | `cases.<case>.seed_study` | `seeds` (101 to 808 in steps of 101), `samples` (128 per seed), `design` (Latin hypercube), `generator` (SplitMix64), `per_seed` (each seed's recovery and concentrate-grade quantiles at 5, 50 and 95%, and the probability that every constraint holds) and `spread` (the range of each across the seeds) |
 
-17 of the 60 case-switch pairs are not applicable.
+19 of the 60 case-switch pairs are not applicable.
 
 ## Real samples: `data/derived/real_samples.json`
 

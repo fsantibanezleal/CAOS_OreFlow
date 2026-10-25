@@ -37,7 +37,7 @@ function OverviewFigure({ lang }: { lang: Lang }) {
       {/* underflow recycle through the optional gravity unit */}
       <path className="dg-edge" d="M 590 104 L 590 84 L 558 84" markerEnd={arrow} />
       <path className="dg-edge" d="M 466 84 L 432 84 L 432 102" markerEnd={arrow} />
-      <rect className="dg-box of-dg-optional" x="466" y="68" width="90" height="32" rx="6" />
+      <rect className="dg-box" strokeDasharray="5 3" x="466" y="68" width="90" height="32" rx="6" />
       <text className="dg-box-sub" x="511" y="81" textAnchor="middle">{p('gravity', 'gravimetría')}</text>
       <text className="dg-note" x="511" y="94" textAnchor="middle">{p('gold only', 'solo oro')}</text>
       <text className="dg-edge-label" x="596" y="96">{p('underflow', 'descarga')}</text>
@@ -52,7 +52,7 @@ function OverviewFigure({ lang }: { lang: Lang }) {
         [584, p('Recleaner', 'Relimpieza'), p('optional', 'opcional'), true],
       ] as Array<[number, string, string, boolean]>).map(([x, title, sub, optional], k) => (
         <g key={title}>
-          <rect className={optional ? 'dg-box of-dg-optional' : 'dg-box'} x={x} y="226" width="80" height="50" rx="7" />
+          <rect className="dg-box" strokeDasharray={optional ? '5 3' : undefined} x={x} y="226" width="80" height="50" rx="7" />
           <text className="dg-box-title" x={x + 40} y="246" textAnchor="middle">{title}</text>
           <text className="dg-box-sub" x={x + 40} y="263" textAnchor="middle">{sub}</text>
           {k < 4 && <line className="dg-edge" x1={x + 80} y1="251" x2={x + 92} y2="251" markerEnd={arrow} />}
@@ -278,6 +278,7 @@ function CaseCatalog({ lang }: { lang: Lang }) {
 
 const WHAT: Topic = {
   id: 'what',
+  area: 'problem',
   title: { en: 'What OreFlow is', es: 'Qué es OreFlow' },
   paragraphs: [
     { en: 'A concentrator is a chain of transformations. The ore is crushed and ground until its valuable grains are free enough to separate, classified so that only material at the target size leaves the grinding circuit, and then separated by flotation, gravity or magnetism. Every lever pulls on several results at once: a finer grind frees more of the valuable mineral but costs energy and makes slimes; more collector recovers more metal but floats more gangue; more tonnes leave less mill energy for each tonne and less time in each flotation cell. OreFlow is a workbench for seeing those trade-offs as numbers (recovery, concentrate grade, energy and water) for a stated ore and plant at an operating point of your choosing.',
@@ -304,6 +305,7 @@ const WHAT: Topic = {
 
 const APPROACH: Topic = {
   id: 'approach',
+  area: 'principles',
   title: { en: 'The approach', es: 'El enfoque' },
   paragraphs: [
     { en: 'The engine is a steady-state mass balance by size and mineral. A stream is a matrix: the mass flow of every mineral in each of 63 size classes, in t/h, and a water flow. Units transform streams: the crusher and the ball mill move mass between size classes without changing any mineral\'s total, while the cyclone, the gravity unit, the desliming cyclone, the flotation banks and the magnetic drums split each particle class (liberated valuable grains, composites and free gangue) between two products. Grades are computed, never stored, from mineral masses and element contents derived from standard atomic weights.',
@@ -334,8 +336,8 @@ const CASES: Topic = {
   paragraphs: [
     { en: 'Twelve authored cases span four circuit families and four teaching categories. Every case declares an ore (its minerals with their densities, the head grade of each payable, liberation sizes, composite contents, floatabilities and the Bond work index) and a plant (installed mill power, cyclone cluster, flotation cells or magnetic drums). Every value carries its unit and either a source or the label authored.',
       es: 'Doce casos de autor cubren cuatro familias de circuito y cuatro categorías de enseñanza. Cada caso declara un mineral (sus minerales con sus densidades, la ley de cabeza de cada pagable, tamaños de liberación, contenidos de los mixtos, flotabilidades y el índice de trabajo de Bond) y una planta (potencia instalada del molino, batería de ciclones, celdas de flotación o tambores magnéticos). Cada valor lleva su unidad y una fuente o la marca de autor.' },
-    { en: 'The liberation cases (two copper porphyries and a fine magnetite) are about the grind: how far to grind before energy stops buying recovery or grade. The classification cases (free-milling gold with gravity recovery inside the grinding loop, nickel sulphide with serpentine slimes, phosphate with clay slimes) are about what the cyclone and the fines do. The flotation cases (bulk copper-molybdenum, oxide copper by sulphidisation, zinc sulphide) are about floatability and the grade-recovery trade. The integration cases (copper ore with clay, low-grade copper at high throughput, refractory gold in sulphides) combine several of these effects at once.',
-      es: 'Los casos de liberación (dos pórfidos de cobre y una magnetita fina) tratan de la molienda: hasta dónde moler antes de que la energía deje de rendir en recuperación o ley. Los casos de clasificación (oro de molienda libre con recuperación gravimétrica dentro del circuito de molienda, sulfuro de níquel con lamas de serpentina, fosfato con lamas de arcilla) tratan de lo que hacen el ciclón y los finos. Los casos de flotación (cobre-molibdeno en flotación colectiva, cobre oxidado por sulfidización, sulfuro de zinc) tratan de la flotabilidad y del compromiso entre ley y recuperación. Los casos de integración (mineral de cobre con arcilla, cobre de baja ley a alto tratamiento, oro refractario en sulfuros) combinan varios de estos efectos a la vez.' },
+    { en: 'The liberation cases (two copper porphyries and a fine magnetite) are about the grind: how far to grind before energy stops buying recovery or grade. The classification cases (free-milling gold with gravity recovery inside the grinding loop, nickel sulphide with serpentine slimes, phosphate with clay slimes) are about what the cyclone and the fines do. The flotation cases (bulk copper-molybdenum, oxide copper with an explicitly assumed sulphidized response, zinc sulphide) compare floatability and the grade-recovery trade; the oxide case does not simulate reagent activation. The integration cases (copper ore with clay, low-grade copper at high throughput, refractory gold in sulphides) combine several of these effects at once.',
+      es: 'Los casos de liberación (dos pórfidos de cobre y una magnetita fina) tratan de la molienda: hasta dónde moler antes de que la energía deje de rendir en recuperación o ley. Los casos de clasificación (oro de molienda libre con recuperación gravimétrica dentro del circuito de molienda, sulfuro de níquel con lamas de serpentina, fosfato con lamas de arcilla) tratan de lo que hacen el ciclón y los finos. Los casos de flotación (cobre-molibdeno en flotación colectiva, cobre oxidado con respuesta sulfidizada supuesta de forma explícita, sulfuro de zinc) comparan flotabilidad y compromiso entre ley y recuperación; el caso de cobre oxidado no simula la activación del reactivo. Los casos de integración (mineral de cobre con arcilla, cobre de baja ley a alto tratamiento, oro refractario en sulfuros) combinan varios de estos efectos a la vez.' },
     { en: 'Each case carries eight variants. The nominal state and five that each change exactly one input by a declared factor: harder ore, a coarser grind, higher throughput, more collector and more air, and where the family has them a larger gravity bleed, a finer grind, a finer crusher setting or a coarser desliming cut. Because only one input moves, the difference between a variant and its nominal is the effect of that input at that state. The last two run the circuit the plant\'s way round, with the classifier cut held (at the nominal state\'s own cut, and at 0.8 of it) and the mill at installed power, so that the grind and the circulating load follow.',
       es: 'Cada caso lleva ocho variantes. El estado nominal y cinco que cambian exactamente una entrada por un factor declarado: mineral más duro, molienda más gruesa, más tratamiento, más colector y más aire, y donde la familia los tiene una purga gravimétrica mayor, una molienda más fina, una abertura de chancador menor o un corte de deslamado más grueso. Como solo se mueve una entrada, la diferencia entre una variante y su nominal es el efecto de esa entrada en ese estado. Las dos últimas corren el circuito en el sentido de la planta, con el corte del clasificador fijo (en el corte propio del estado nominal y en 0,8 de él) y el molino a potencia instalada, de modo que la molienda y la carga circulante resultan.' },
     { en: 'The nominal results of each case are checked against plausibility ranges for its ore type. Each range names its source, and a bound with no source is labelled authored: for the soft porphyry, 90 to 96% recovery (above 90% in porphyry practice, the 96% ceiling authored) at 25 to 34.6% Cu (from the floor of the grades copper concentrates are bought at to chalcopyrite\'s stoichiometric limit). A case that falls inside its ranges is plausible, not validated: the cases were authored to fall there. The table below reads the nominal state of every case and its checks from the precomputed results.',
@@ -351,6 +353,7 @@ const CASES: Topic = {
 
 const SCOPE: Topic = {
   id: 'scope',
+  area: 'honesty',
   title: { en: 'Scope and evidence', es: 'Alcance y evidencia' },
   paragraphs: [
     { en: 'OreFlow simulates authored plants. The research behind it found no open dataset that joins grinding, classification and flotation states with measured metallurgy under a clear license, so the cases are scenarios built inside sourced ranges, with some bounds authored where no source gives one, and the results are statements about those scenarios, not about any operating plant.',
@@ -375,6 +378,7 @@ const SCOPE: Topic = {
 
 const USE: Topic = {
   id: 'use',
+  area: 'pipeline',
   title: { en: 'Using the workbench', es: 'Cómo usar el simulador' },
   paragraphs: [
     { en: 'The rail on the left holds the source (a synthetic case, a GeoMet ore sample run through the soft porphyry\'s circuit, or an iron-plant hour shown as recorded), the case, its variant, the case\'s question and the controls of its circuit family, grouped as feed and grind, classification, and separation. Every control shows its value and unit; its help appears on hover, and its bounds for this case are the slider\'s ends and are listed in the Case view. A value outside the bounds is refused with the reason and the limits, and a changed control marks the state as modified from the variant, with a reset.',
@@ -385,6 +389,12 @@ const USE: Topic = {
       es: 'Cada gráfico lee sus valores en el cursor, hace zoom al arrastrar sobre él y oculta una serie al hacer clic en su entrada de la leyenda. La vista de foco pone un instrumento (el diagrama de flujo, cualquier gráfico o el barrido de respuesta) en un escenario completo con los controles al lado, y vuelve al mismo estado.' },
     { en: 'Flags are results, not errors. Power-limited means the mill runs at installed power and the grind is coarser than the target. The response surfaces draw the grade specification and the installed power as boundaries, so the feasible region is visible.',
       es: 'Los avisos son resultados, no errores. Limitado por potencia significa que el molino opera a potencia instalada y la molienda es más gruesa que el objetivo. Las superficies de respuesta dibujan la especificación de ley y la potencia instalada como fronteras, para que la región factible quede a la vista.' },
+  ],
+  steps: [
+    { en: 'Choose a synthetic process case, a measured GeoMet sample, or a recorded iron-plant hour; keep those evidence lanes distinct.', es: 'Elija un caso de proceso sintético, una muestra medida de GeoMet o una hora registrada de la planta de hierro; mantenga separadas esas vías de evidencia.' },
+    { en: 'Inspect the circuit, feed, model assumptions and validation record before changing the operating point.', es: 'Inspeccione el circuito, la alimentación, los supuestos del modelo y el registro de validación antes de cambiar el punto de operación.' },
+    { en: 'Change a bounded control or select a declared variant, then compare the recomputed stream balances and process outcomes.', es: 'Cambie un control acotado o seleccione una variante declarada; luego compare los balances de corrientes y resultados recalculados.' },
+    { en: 'Use a chart cursor, its data table, or Focus mode to inspect the selected instrument; return to the same case and state.', es: 'Use el cursor del gráfico, su tabla de datos o el modo Focus para inspeccionar el instrumento; vuelva al mismo caso y estado.' },
   ],
   equations: [
     { tex: r`E_{req}\,F > P_{inst}\ \Rightarrow\ E = \frac{P_{inst}}{F},\quad P_{80} > P_{80}^{*}`, caption: { en: 'The power-limited state: the mill runs at installed power and the achieved P80 exceeds the target.', es: 'El estado limitado por potencia: el molino opera a potencia instalada y el P80 logrado supera el objetivo.' } },
@@ -398,9 +408,37 @@ const USE: Topic = {
   refs: ['plitt1976'],
 };
 
+const MATH: Topic = {
+  id: 'math',
+  area: 'math',
+  title: { en: 'Governing balances and response', es: 'Balances y respuesta que gobiernan' },
+  paragraphs: [
+    { en: 'The state is a vector of non-negative mineral mass flows over size classes, together with water. Each unit maps its incoming streams to outgoing streams while conserving each mineral and water to the declared tolerance. Circuit recycles are solved to a steady state, and grades are derived from elemental composition rather than fitted as independent outputs.', es: 'El estado es un vector de flujos másicos minerales no negativos por clase de tamaño, junto con el agua. Cada unidad transforma sus corrientes de entrada en corrientes de salida conservando cada mineral y el agua dentro de la tolerancia declarada. Las recirculaciones se resuelven en estado estacionario y las leyes se derivan de la composición elemental, no se ajustan como resultados independientes.' },
+    { en: 'The model connects particle breakage and classification to liberation and separation. Kinetic and partition functions determine how each class divides; the resulting product streams then determine recovery, concentrate grade, mass pull, energy and water. The equations define the implemented relationships, while the adjacent assumptions and evidence determine how far those relationships may be interpreted.', es: 'El modelo conecta la fractura y clasificación de partículas con la liberación y separación. Las funciones cinéticas y de partición determinan cómo se divide cada clase; las corrientes resultantes determinan recuperación, ley de concentrado, extracción másica, energía y agua. Las ecuaciones definen las relaciones implementadas, mientras que los supuestos y la evidencia delimitan hasta dónde pueden interpretarse.' },
+  ],
+  equations: [
+    { tex: r`m^{(s)}_{i,k} \ge 0,\qquad i=1,\ldots,n_s,\quad k\in\mathcal{M}`, caption: { en: 'State variable: mass flow of mineral k in size class i of stream s.', es: 'Variable de estado: flujo másico del mineral k en la clase de tamaño i de la corriente s.' } },
+    { tex: r`\sum_{s\in\mathcal{I}(u)}\sum_i m^{(s)}_{i,k}=\sum_{s\in\mathcal{O}(u)}\sum_i m^{(s)}_{i,k}`, caption: { en: 'Mineral conservation across every unit u, audited independently for all products.', es: 'Conservación mineral en cada unidad u, auditada de forma independiente para todos sus productos.' } },
+  ],
+  glossary: [
+    { term: { en: 's', es: 's' }, definition: { en: 'A process stream.', es: 'Una corriente de proceso.' } },
+    { term: { en: 'i', es: 'i' }, definition: { en: 'Particle-size class.', es: 'Clase de tamaño de partícula.' } },
+    { term: { en: 'k', es: 'k' }, definition: { en: 'Mineral species carried in the stream.', es: 'Especie mineral transportada en la corriente.' } },
+    { term: { en: 'mᵢ,ₖ⁽ˢ⁾', es: 'mᵢ,ₖ⁽ˢ⁾' }, definition: { en: 'Mass flow of mineral k in size class i of stream s.', es: 'Flujo másico del mineral k en la clase i de la corriente s.' } },
+    { term: { en: 'M', es: 'M' }, definition: { en: 'The minerals represented in the case artifact.', es: 'Los minerales representados en el artefacto del caso.' } },
+    { term: { en: 'I(u)', es: 'I(u)' }, definition: { en: 'Input streams to unit u.', es: 'Corrientes de entrada a la unidad u.' } },
+    { term: { en: 'O(u)', es: 'O(u)' }, definition: { en: 'Output streams from unit u.', es: 'Corrientes de salida de la unidad u.' } },
+    { term: { en: 'P80', es: 'P80' }, definition: { en: 'Size at which 80% of the mass passes.', es: 'Tamaño por el que pasa el 80% de la masa.' } },
+    { term: { en: 'd₅₀c', es: 'd₅₀c' }, definition: { en: 'Corrected classifier cut size.', es: 'Tamaño de corte corregido del clasificador.' } },
+    { term: { en: 'CL', es: 'CL' }, definition: { en: 'Circulating load relative to fresh feed.', es: 'Carga circulante relativa a la alimentación fresca.' } },
+  ],
+  refs: ['herbst1980', 'bond1952'],
+};
+
 export const INTRODUCTION: Array<{ id: string; label: Bi; topics: Topic[] }> = [
   { id: 'what', label: { en: 'What it is', es: 'Qué es' }, topics: [WHAT] },
   { id: 'approach', label: { en: 'Approach', es: 'Enfoque' }, topics: [APPROACH] },
+  { id: 'mathematics', label: { en: 'Mathematics', es: 'Matemática' }, topics: [MATH] },
   { id: 'cases', label: { en: 'The cases', es: 'Los casos' }, topics: [CASES] },
   { id: 'scope', label: { en: 'Scope and evidence', es: 'Alcance y evidencia' }, topics: [SCOPE] },
   { id: 'use', label: { en: 'Using it', es: 'Cómo usarlo' }, topics: [USE] },

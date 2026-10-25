@@ -13,8 +13,8 @@ with the landing page of the theme you need.
 | Use cases | [use-cases.md](use-cases.md) | the twelve cases, rendered from the committed records by `scripts/render_use_cases.mjs` |
 | Design | [design/SDD.md](design/SDD.md) | the software design document; its section 11 links each feature's requirements (with the test or check that gates each), design and tasks in `design/features/` |
 
-The repository itself: [`../README.md`](../README.md), [`../STRUCTURE.md`](../STRUCTURE.md) (the folders and files)
-and [`../app/README.md`](../app/README.md) (the service and its routes).
+The repository itself: [`../README.md`](../README.md), [`architecture/01-oreflow-system.md`](architecture/01-oreflow-system.md)
+(the system and its source of truth), and [`../app/README.md`](../app/README.md) (the service and its routes).
 
 Records of past work:
 

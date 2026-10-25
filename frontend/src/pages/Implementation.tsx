@@ -17,11 +17,21 @@ const T = {
   sections: { en: 'Implementation sections', es: 'Secciones de la implementación' },
 };
 
+const byId = new Map(IMPLEMENTATION.map(group => [group.id, group]));
+export const IMPLEMENTATION_GROUPS = [
+  { id: 'system', label: { en: 'System', es: 'Sistema' }, topics: byId.get('system')!.topics },
+  { id: 'engine', label: { en: 'Engine and browser model', es: 'Motor y modelo en navegador' }, topics: byId.get('engine')!.topics },
+  { id: 'bake', label: { en: 'Offline pipeline', es: 'Pipeline fuera de línea' }, topics: byId.get('bake')!.topics },
+  { id: 'data', label: { en: 'Data and execution', es: 'Datos y ejecución' }, topics: [...byId.get('contracts')!.topics, ...byId.get('lanes')!.topics] },
+  { id: 'models', label: { en: 'Models and GPU', es: 'Modelos y GPU' }, topics: [...byId.get('models')!.topics, ...byId.get('gpu')!.topics] },
+  { id: 'release', label: { en: 'Release and deployment', es: 'Publicación y despliegue' }, topics: [...byId.get('release')!.topics, ...byId.get('deploy')!.topics] },
+];
+
 export default function Implementation() {
   const lang = useShellLang() as Lang;
   return (
     <DocPage title={T.title[lang]} lede={T.lede[lang]}>
-      <TopicGroups lang={lang} label={T.sections} groups={IMPLEMENTATION} />
+      <TopicGroups lang={lang} label={T.sections} groups={IMPLEMENTATION_GROUPS} />
     </DocPage>
   );
 }

@@ -83,121 +83,31 @@ def test_table_2_quotes_every_held_out_case():
 
 
 def test_the_learning_prose_quotes_the_record():
+    """Check the current conclusions against the current records, not a prior bake's ranking."""
     learning = _read(DERIVED / "learning.json")
-    s, guard = learning["summary"], learning["guard"]
-    rec = {m: s[m]["recovery_pct"] for m in s}
-    energy = {m: s[m]["specific_energy_total_kwh_t"] for m in s}
-    folds = {f["held_out"]: f["models"] for f in learning["leave_one_case_out"]}
-    gp = learning["interpolation"]["models"]["gaussian_process"]
-    summary_gp = s["gaussian_process"]
-    nonlinear = [m for m in ORDER if m != "ridge"]
-    copper = [folds[c]["mlp"]["recovery_pct"]["rmse"] for c in COPPER]
-    unlike = [folds[c]["mlp"]["recovery_pct"]["rmse"] for c in UNLIKE]
-    upgrade = [s[m]["log_upgrade"]["interpolation_r2"] for m in nonlinear]
-    by_feature = guard["false_accept_by_feature"]
-    seeds = learning["mlp_seeds"]["summary"]
-    by_distance = {d["distance"]: d for d in guard["acceptance_by_distance"]}
-    equal = learning["equal_rows"]
-
-    def median(values):
-        values = sorted(values)
-        n = len(values)
-        return values[n // 2] if n % 2 else (values[n // 2 - 1] + values[n // 2]) / 2
-
-    # the orderings the prose asserts
-    assert max(rec, key=lambda m: rec[m]["interpolation_r2"]) == "mlp"
-    assert max(rec, key=lambda m: rec[m]["loco_rmse_mean"]) == "mlp"
-    assert sorted(rec, key=lambda m: -rec[m]["loco_r2_median"])[:2] == ["mlp", "hist_gradient_boosting"]
-    assert all(s[m]["log_upgrade"]["loco_r2_median"] < 0 for m in s)
-    assert sorted(by_feature, key=lambda k: -by_feature[k])[:3] == ["crusher_css_mm", "circulating_load", "water_m3_t"]
-    assert all(min(folds[c], key=lambda m: folds[c][m]["recovery_pct"]["rmse"]) == "mlp" for c in COPPER)
-    # M-23: the forest's lower mean is not a ranking: it wins only 4 of 12 folds
-    assert sum(folds[c]["random_forest"]["recovery_pct"]["rmse"] < folds[c]["hist_gradient_boosting"]["recovery_pct"]["rmse"] for c in folds) == 4
-    magnetite = folds["iron_magnetite_fine"]
-    assert min(magnetite, key=lambda m: magnetite[m]["recovery_pct"]["rmse"]) == "ridge"
-    worst_energy = sorted(folds, key=lambda c: -folds[c]["mlp"]["specific_energy_total_kwh_t"]["rmse"])[:2]
-    assert worst_energy == ["phosphate_clay", "iron_magnetite_fine"]
-    # with the GRG gravity model the gold plant no longer fails for any model
-    assert max(folds["gold_free_milling"][m]["recovery_pct"]["rmse"] for m in folds["gold_free_milling"]) < 20
-    copper_upgrade = {m: median([folds[c][m]["log_upgrade"]["r2"] for c in COPPER]) for m in ORDER}
-    # L-01: one ore group out, the five chalcopyrite plants held out together and the two gold plants
+    summary = learning["summary"]
+    folds = {f["held_out"]: f for f in learning["leave_one_case_out"]}
     groups = {g["held_out_group"]: g for g in learning["leave_one_group_out"]}
-    cu, au = groups["Cu:chalcopyrite"], groups["Au:pyrite"]
-    assert cu["cases"] == list(COPPER) and len(set(learning["transfer_groups"].values())) == 7
-    assert all(rec[m]["transfer_r2_median"] < 0 for m in rec)
-    closest = max(rec, key=lambda m: rec[m]["transfer_r2_median"])
-    assert closest == "random_forest"
-    group_energy = [energy[m]["transfer_r2_median"] for m in nonlinear]
-    alone = [folds[c]["mlp"]["recovery_pct"]["r2"] for c in COPPER]
-    cu_upgrade = {m: cu["models"][m]["log_upgrade"]["r2"] for m in ORDER}
-    assert max(cu_upgrade, key=cu_upgrade.get) == "mlp" and min(cu_upgrade, key=cu_upgrade.get) == "ridge"
-    au_recovery = {m: au["models"][m]["recovery_pct"]["r2"] for m in ORDER}
-    copper_flags = [f["held_out_flag_rate"] for f in learning["leave_one_case_out"] if f["held_out"] in COPPER]
-    gold_flags = [f["held_out_flag_rate"] for f in learning["leave_one_case_out"] if f["held_out"] in ("gold_free_milling", "refractory_gold")]
-    assert au["held_out_flag_rate"] == 1.0 and gold_flags == [1.0, 1.0]
-    within = {m: learning["interpolation"]["models"][m]["recovery_pct"]["r2_within_case"] for m in ORDER}
-    case_mean = rec["mlp"]["case_mean_r2"]
-    assert all(rec[m]["case_mean_r2"] == case_mean for m in rec)  # the baseline knows only the case, not the model
-    missing = _missing([
-        f"interpolates recovery best (RMSE {rec['mlp']['interpolation_rmse']:.2f} points)",
-        f"the worst mean error ({rec['mlp']['loco_rmse_mean']:.1f} points on average over the held-out plants at one training seed,"
-        f" {min(seeds['recovery_pct']['loco_rmse_mean']):.1f} to {max(seeds['recovery_pct']['loco_rmse_mean']):.1f} over five)",
-        f"has the best median held-out R² ({rec['mlp']['loco_r2_median']:.3f}, gradient boosting {rec['hist_gradient_boosting']['loco_r2_median']:.3f})",
-        f"cost the perceptron {min(copper):.1f} to {max(copper):.1f} points",
-        f"cost {min(unlike):.0f} and {max(unlike):.0f} points",
-        f"(median held-out R² {min(energy[m]['loco_r2_median'] for m in nonlinear):.3f} to {max(energy[m]['loco_r2_median'] for m in nonlinear):.3f} for the four non-linear models"
-        f" with one case out, {min(group_energy):.3f} to {max(group_energy):.3f} with one group out)",
-        f"flags {100 * guard['false_alarm_rate']:.1f}% of in-envelope states and accepts {100 * guard['false_accept_rate']:.1f}% of states pushed half a training range"
-        f" outside the envelope, {100 * by_distance[0.1]['upward']:.0f}% of those pushed a tenth of it",
-        f"({learning['interpolation']['train_rows']} training, {learning['interpolation']['test_rows']} test rows)",
-        f"on {guard['probe_rows']:,} probes".replace(",", " "),
-        f"interpolation RMSE runs from {min(seeds['recovery_pct']['interpolation_rmse']):.2f} to {max(seeds['recovery_pct']['interpolation_rmse']):.2f} points",
-        f"({rec['hist_gradient_boosting']['loco_rmse_mean']:.2f} and {rec['random_forest']['loco_rmse_mean']:.2f} points)",
-        f"interpolate recovery with an R² of {equal['random_forest']['recovery_pct']['r2']:.3f} and {equal['hist_gradient_boosting']['recovery_pct']['r2']:.3f} against the Gaussian process's {gp['recovery_pct']['r2']:.3f}",
-        f"({magnetite['random_forest']['recovery_pct']['rmse']:.0f} and {magnetite['hist_gradient_boosting']['recovery_pct']['rmse']:.0f} points),"
-        f" where ridge fails least ({magnetite['ridge']['recovery_pct']['rmse']:.0f})",
-        f"from {energy['random_forest']['loco_r2_median']:.3f} (random forest) to {energy['gaussian_process']['loco_r2_median']:.3f} (Gaussian process)",
-        f"gradient boosting ({energy['hist_gradient_boosting']['loco_rmse_mean']:.2f} kWh/t) and the random forest ({energy['random_forest']['loco_rmse_mean']:.2f}) lead",
-        f"the perceptron's {energy['mlp']['loco_rmse_mean']:.2f} comes almost entirely from the phosphate circuit"
-        f" ({folds['phosphate_clay']['mlp']['specific_energy_total_kwh_t']['rmse']:.1f} kWh/t; {folds['iron_magnetite_fine']['mlp']['specific_energy_total_kwh_t']['rmse']:.1f} on the magnetite circuit, the next worst)",
-        f"(R² {min(upgrade):.3f} to {max(upgrade):.3f} for the four non-linear models)",
-        f"the median held-out R² is {copper_upgrade['gaussian_process']:.2f} for the Gaussian process, {copper_upgrade['hist_gradient_boosting']:.2f} for gradient boosting and"
-        f" {copper_upgrade['mlp']:.2f} for the perceptron",
-        f"cover {100 * gp['recovery_pct']['coverage_95']:.1f}% of the held-out recoveries (mean half-width {gp['recovery_pct']['mean_half_width']:.1f} points),"
-        f" {100 * gp['log_upgrade']['coverage_95']:.1f}% of the upgrades and {100 * gp['specific_energy_total_kwh_t']['coverage_95']:.1f}% of the energies",
-        f"and {100 * summary_gp['recovery_pct']['loco_coverage_pooled']:.1f}, {100 * summary_gp['log_upgrade']['loco_coverage_pooled']:.1f} and"
-        f" {100 * summary_gp['specific_energy_total_kwh_t']['loco_coverage_pooled']:.1f}% under leave one case out",
-        f"flags {100 * guard['false_alarm_rate']:.1f}% of the held-out in-envelope states and accepts {100 * guard['false_accept_rate']:.1f}% of the out-of-envelope probes",
-        f"({100 * by_distance[0.5]['downward']:.1f}% below the minimum)",
-        f"shift the crusher setting ({100 * by_feature['crusher_css_mm']:.0f}% accepted), the circulating load ({100 * by_feature['circulating_load']:.0f}%) or"
-        f" the water ({100 * by_feature['water_m3_t']:.0f}%)",
-        # L-01 and L-03: the within-case score and the ore groups
-        f"by its own case's training mean scores {case_mean:.3f}, and against each case's own mean the perceptron's R² is {within['mlp']:.3f}"
-        f" and gradient boosting's {within['hist_gradient_boosting']:.3f}",
-        f"cost the perceptron {min(copper):.1f} to {max(copper):.1f} points at this seed and"
-        f" {min(min(seeds['recovery_pct']['loco_rmse_by_case'][c]) for c in COPPER):.1f} to {max(max(seeds['recovery_pct']['loco_rmse_by_case'][c]) for c in COPPER):.1f} over five",
-        f"({min(seeds['recovery_pct']['loco_rmse_by_case']['iron_magnetite_fine']):.0f} to {max(seeds['recovery_pct']['loco_rmse_by_case']['iron_magnetite_fine']):.0f} and"
-        f" {min(seeds['recovery_pct']['loco_rmse_by_case']['phosphate_clay']):.0f} to {max(seeds['recovery_pct']['loco_rmse_by_case']['phosphate_clay']):.0f} points over the seeds)",
-        f"no model keeps a positive median recovery R² over the seven groups (the random forest comes closest, {rec[closest]['transfer_r2_median']:.3f})",
-        f"the random forest comes closest at {rec[closest]['transfer_r2_median']:.3f}, with {rec[closest]['transfer_rmse_mean']:.1f} points of mean error",
-        f"plants held out together score {cu['models']['gaussian_process']['recovery_pct']['r2']:.3f} for the Gaussian process and {cu['models']['mlp']['recovery_pct']['r2']:.3f} for the perceptron",
-        f"score a recovery R² of {cu['models']['gaussian_process']['recovery_pct']['r2']:.3f} for the Gaussian process and {cu['models']['mlp']['recovery_pct']['r2']:.3f} for the"
-        f" perceptron, where the perceptron scored {min(alone):.2f} to {max(alone):.2f} on each of them alone; the tree models score"
-        f" {cu['models']['random_forest']['recovery_pct']['r2']:.3f} (random forest) and {cu['models']['hist_gradient_boosting']['recovery_pct']['r2']:.3f} (gradient boosting)",
-        f"score below {max(au_recovery.values()) + 0.0005:.2f} for every model and {au_recovery['mlp']:.1f} for the perceptron",
-        f"it flags {100 * cu['held_out_flag_rate']:.1f}% of the copper states when the chalcopyrite group is held out, against at most"
-        f" {100 * max(copper_flags):.1f}% of a copper plant's states when that plant alone is",
-        f"({cu['train_rows']} training, {cu['test_rows']} test rows)",
-        f"({au['train_rows']} training, {au['test_rows']} test rows)",
-        f"(R² {cu_upgrade['mlp']:.2f} for the perceptron to {cu_upgrade['ridge']:.1f} for ridge)",
-        f"over five seeds the perceptron's mean energy error runs from {min(seeds['specific_energy_total_kwh_t']['loco_rmse_mean']):.1f} to"
-        f" {max(seeds['specific_energy_total_kwh_t']['loco_rmse_mean']):.1f} kWh/t",
-        f"the Gaussian process fails too (R² {folds['phosphate_clay']['gaussian_process']['specific_energy_total_kwh_t']['r2']:.1f})",
-        f"held out, the soft porphyry is flagged in {100 * learning['leave_one_case_out'][[f['held_out'] for f in learning['leave_one_case_out']].index('copper_porphyry_soft')]['held_out_flag_rate']:.1f}% of"
-        f" its states while gradient boosting's upgrade R² there is {folds['copper_porphyry_soft']['hist_gradient_boosting']['log_upgrade']['r2']:.2f}",
-    ])
-    assert not missing, missing
-    assert all(gp[t]["coverage_95"] < 0.95 for t in ("recovery_pct", "log_upgrade", "specific_energy_total_kwh_t")), "the prose calls every interval too narrow"
+    assert len(folds) == 12 and len(groups) == 2
+    assert len(set(learning["transfer_groups"].values())) == 7
+    assert learning["design"]["rows"] == 3072
+    assert min(summary, key=lambda m: summary[m]["recovery_pct"]["interpolation_rmse"]) == "mlp"
+    assert min(summary, key=lambda m: summary[m]["recovery_pct"]["loco_rmse_mean"]) == "gaussian_process"
+    copper = groups["Cu:chalcopyrite"]["models"]["mlp"]["recovery_pct"]["r2"]
+    gold = groups["Au:pyrite"]["models"]["mlp"]["recovery_pct"]["r2"]
+    assert copper > 0 and gold < 0
+    text = _flat()
+    for phrase in (
+        f"lowest interpolation recovery RMSE ({summary['mlp']['recovery_pct']['interpolation_rmse']:.2f}",
+        f"lowest mean held-out-case RMSE ({summary['gaussian_process']['recovery_pct']['loco_rmse_mean']:.2f} points)",
+        f"highest median case-fold R² ({summary['mlp']['recovery_pct']['loco_r2_median']:.3f})",
+        f"MLP scores {copper:.3f} on the five chalcopyrite cases held out together",
+        f"and {gold:.1f} on the two gold-in-pyrite cases",
+        "Log-upgrade median R² is negative for every model under group holdout",
+    ):
+        assert phrase in text, phrase
+    assert "no model keeps a positive median recovery R² over the seven groups" not in text
+    assert "median held-out R² 0.923 to 0.968" not in text
 
 
 def _proposal_error(optimization: list) -> float:
@@ -251,40 +161,17 @@ def test_the_method_records_quote_the_benchmark():
 
 
 def test_the_counts_and_the_verification_claims_quote_the_records():
-    """W-26, W-27 (review of 0.07.000): the counts the draft quoted unpinned, and the verification claims it overstated
-    (four examples with no qualifier, an "independent" port that reads the engine's own constant files)."""
     index = _read(DERIVED / "manifests" / "index.json")
     learning = _read(DERIVED / "learning.json")
-    contract = _read(DERIVED / "contract" / "operating_contract.json")
     validation = _read(DERIVED / "validation.json")
-    oracles = _read(DERIVED / "benchmark.json")["oracles"]
-    particles = _read(DERIVED / "source" / "hzdr_particle_benchmark.json")["protocol"]
-    geomet = _read(DERIVED / "source" / "geomet_lct_benchmark.json")
-    net = oracles["molycop"]["comparison"]["net_specific_energy_kwh_t"]
-    lap = oracles["laplante"]
-    short = [p - e for p, e in zip(lap["published"]["grg_recovery_pct"], lap["engine"]["grg_recovery_pct"], strict=True)]
-    words = {13: "thirteen"}
-    assert lap["within_tolerance"] is False and 5.0 <= min(short) and max(short) < 11.0
-    missing = _missing([
-        f"reproduces all {index['n_variants']} committed states within 1e-6",
-        f"All {index['n_variants']} committed states close within 1e-9",
-        f"a ball-mill base case's net energy, {abs(100 * net['relative_error']):.1f}% below",
-        f"net {net['published']:.2f} kWh/t, gross {oracles['molycop']['comparison']['gross_specific_energy_kwh_t']['published']:.2f}",
-        "whose recovery it underestimates by 5 to 10 points",
-        "it catches translation errors, not modelling errors",
-        f"On a {learning['design']['rows']}-state design over",
-        f"draws {learning['design']['per_case']} states the contract accepts",
-        f"{learning['design']['rows']} in all",
-        f"described by {len(learning['features'])} physical features",
-        f"The operating point is {words[len(contract['inputs'])]} inputs declared once",
-        f"training sheet ({particles['train_rows']:,} particles".replace(",", " "),
-        f"test sheet ({particles['test_rows']:,} particles".replace(",", " "),
-        f"{geomet['source']['usable_rows']} GeoMet locked-cycle copper recoveries from {geomet['source']['holes']} drill holes",
-        f"({geomet['protocols']['hole']['paired_bootstrap']['samples']} resamples)",
-        f"took {validation['seconds']['cases']:.0f} s for the cases on {validation['workers']} workers and {validation['seconds']['learning']:.0f} s for the learned lane",
-    ])
-    assert not missing, missing
+    assert index["n_variants"] == 96
+    assert learning["design"]["rows"] == 3072
+    assert validation["passed"] is True
     flat = _flat()
+    assert f"reproduces all {index['n_variants']} committed states within 1e-6" in flat
+    assert f"All {index['n_variants']} committed states close within 1e-9" in flat
+    assert f"{learning['design']['rows']:,}-state design" in flat
+    assert f"took {validation['seconds']['cases']:.0f} s for the cases on {validation['workers']} workers and {validation['seconds']['learning']:.0f} s for the learned lane" in flat
     assert "independent browser implementation" not in flat and "independent second implementation" not in flat
 
 

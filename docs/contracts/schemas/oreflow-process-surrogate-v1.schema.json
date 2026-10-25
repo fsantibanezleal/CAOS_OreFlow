@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-process-surrogate-v1",
+  "title": "oreflow-process-surrogate-v1",
+  "type": "object",
+  "properties": {
+    "features": {
+      "type": "array"
+    },
+    "targets": {
+      "type": "array"
+    },
+    "feature_mean": {
+      "type": "array"
+    },
+    "feature_scale": {
+      "type": "array"
+    },
+    "target_mean": {
+      "type": "array"
+    },
+    "target_scale": {
+      "type": "array"
+    },
+    "guard_feature_mean": {
+      "type": "array"
+    },
+    "guard_feature_scale": {
+      "type": "array"
+    },
+    "guard_threshold": {
+      "type": "number"
+    },
+    "reference": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "features",
+    "targets",
+    "feature_mean",
+    "feature_scale",
+    "target_mean",
+    "target_scale",
+    "guard_feature_mean",
+    "guard_feature_scale",
+    "guard_threshold",
+    "reference"
+  ],
+  "additionalProperties": true
+}

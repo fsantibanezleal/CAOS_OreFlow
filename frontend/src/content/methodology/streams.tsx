@@ -69,7 +69,10 @@ function AuditFigure({ lang }: { lang: Lang }) {
       <line className="dg-edge" x1="388" y1="93" x2="400" y2="93" markerEnd="url(#of-doc-arrow)" />
       <path className="dg-edge" d="M 338 116 L 338 142 L 218 142 L 218 118" markerEnd="url(#of-doc-arrow)" />
       <text className="dg-edge-label" x="278" y="156" textAnchor="middle">{es ? 'recirculación' : 'recycle'}</text>
-      <text className="dg-note" x="210" y="196" textAnchor="middle">{es ? 'por mineral, por elemento u óxido, y agua; error relativo máximo reportado' : 'per mineral, per element or oxide, and water; largest relative error reported'}</text>
+      <text className="dg-note" x="210" textAnchor="middle">
+        <tspan x="210" y="190">{es ? 'por mineral, elemento u óxido, y agua;' : 'per mineral, element or oxide, and water;'}</tspan>
+        <tspan x="210" y="204">{es ? 'mayor error relativo reportado' : 'largest relative error reported'}</tspan>
+      </text>
     </svg>
   );
 }

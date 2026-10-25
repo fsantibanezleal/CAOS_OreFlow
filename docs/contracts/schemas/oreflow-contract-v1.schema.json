@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-contract-v1",
+  "title": "oreflow-contract-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.contract/v1",
+      "type": "string"
+    },
+    "fields": {
+      "type": "array"
+    },
+    "families": {
+      "type": "array"
+    },
+    "inputs": {
+      "type": "array"
+    },
+    "rules": {
+      "type": "array"
+    },
+    "messages": {
+      "type": "object"
+    },
+    "cases": {
+      "type": "object"
+    },
+    "controls": {
+      "type": "object"
+    },
+    "grid": {
+      "type": "object"
+    },
+    "laguerre": {
+      "type": "object"
+    },
+    "digest": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "schema",
+    "fields",
+    "families",
+    "inputs",
+    "rules",
+    "messages",
+    "cases",
+    "controls",
+    "grid",
+    "laguerre",
+    "digest"
+  ],
+  "additionalProperties": true
+}

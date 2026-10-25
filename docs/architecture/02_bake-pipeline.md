@@ -53,8 +53,7 @@ workers and the learning stage about an hour on an idle machine since 0.09.000, 
 doubled the engine's cost (every target-mode optimizer has run twice, with and without the screen, and along the
 weight path since 0.07.000); both run several times longer when another job holds the machine's cores. The
 measurements (cases, then learning):
-- 5388 s and 7843 s for the committed 0.09.000 bake of 2026-10-05, with the studies in 409 s and the
-  real samples in 352 s, while another session's job held part of the machine;
+- 2893 s and 3590 s for the committed 0.10.000 bake of 2026-10-24, with studies in 239 s and real samples in 107 s on 4 workers;
 - 1849 s and 3610 s for the first 0.09.000 bake of 2026-10-05, on an otherwise idle machine, superseded the same
   day when five water capacities were re-authored;
 - 905 s and 2646 s for the committed 0.08.001 bake of 2026-10-04, with the studies in 68 s and the real

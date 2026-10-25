@@ -123,7 +123,18 @@ export function ResponseView({ contract, artifact, optimization, point, lang, on
   const matches = (onAxes: string[]) => Object.entries(optimum).every(([name, value]) => onAxes.includes(name)
     || Math.abs((point[name as keyof OperatingPoint] as number) - value) <= 1e-6 * Math.max(1, Math.abs(value)));
 
-  let body: React.ReactNode = <p className="of-hint">{changed ? TEXT.changed[lang] : TEXT.hint[lang]}</p>;
+  // The baked optimizer path is already an evaluated trade-off curve. Show it immediately so opening
+  // Response always presents evidence; the control below then computes the selected live input sweep.
+  const recordedPath = (optimization.path ?? []).filter(step => Number.isFinite(step.weight) && Number.isFinite(step.recovered_tph));
+  let body: React.ReactNode = !changed && recordedPath.length >= 2 ? (
+    <Chart data={[recordedPath.map(step => step.weight), recordedPath.map(step => step.recovered_tph)] as uPlot.AlignedData}
+      title={lang === 'es' ? 'Recuperación frente al peso del objetivo' : 'Recovered metal against objective weight'}
+      xLabel={lang === 'es' ? 'Peso del metal recuperado' : 'Recovered-metal objective weight'}
+      yLabel={lang === 'es' ? 'Metal recuperado (t/h)' : 'Recovered metal (t/h)'}
+      series={[{ label: lang === 'es' ? 'Metal recuperado' : 'Recovered metal', colour: 'good' }]}
+      summary={lang === 'es' ? 'Metal recuperado por el optimizador al cambiar el peso del objetivo; son resultados registrados, no una planta.' : 'Metal recovered by the optimizer as the objective weight changes; these are recorded model results, not plant data.'}
+      format={(v, axis) => axis === 'x' ? formatFixed(v, lang, 2) : formatWithUnit(v, 't/h', lang)} />
+  ) : <p className="of-hint">{changed ? TEXT.changed[lang] : TEXT.hint[lang]}</p>;
   if (cells.length > 0 && axes.length === 1) {
     const xs = axes[0].values;
     const ys = xs.map((_, i) => { const c = cells.find(cc => cc.index[0] === i); return c && c.accepted ? c.metrics[metric] ?? null : null; });
@@ -174,7 +185,7 @@ export function ResponseView({ contract, artifact, optimization, point, lang, on
         {busy && <button type="button" className="of-revert" onClick={cancel}>{t(UI.cancel, lang)}</button>}
         {progress && <span className="of-progress" role="status">{`${progress[0]} / ${progress[1]} ${TEXT.progress[lang]}`}</span>}
       </div>
-      <div className="of-stage">{body}</div>
+      <div className="of-stage" data-state={busy ? 'loading' : undefined}>{body}</div>
     </div>
   );
 }

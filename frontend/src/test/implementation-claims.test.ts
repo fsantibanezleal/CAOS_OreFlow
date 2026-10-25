@@ -61,8 +61,8 @@ describe('the Implementation page says what the records and environments hold', 
     const bake = IMPLEMENTATION.find(g => g.id === 'bake')!.topics[0];
     const t = text(bake);
     const n = (v: number) => v.toLocaleString('en-US');
-    expect(t).toMatch(new RegExp(`the screened searches spent ${n(withScreen)} engine evaluations against ${n(without)} without the screen, ${Number((100 * (withScreen / without - 1)).toFixed(1))}% more`));
-    expect(t).toMatch(new RegExp(`the surrogate's recovery was ${Number((errors.reduce((a, e) => a + e, 0) / errors.length).toFixed(2))} points from the engine's on average`));
+    expect(t).toMatch(new RegExp(`The screened runs used ${n(withScreen)} engine evaluations against ${n(without)} without screening, ${Number((100 * (withScreen / without - 1)).toFixed(1))}% more`));
+    expect(t).toMatch(new RegExp(`mean absolute surrogate error was ${Number((errors.reduce((a, e) => a + e, 0) / errors.length).toFixed(2))} recovery points`));
   });
 
   // T-07: a stage the validation record lists without a text printed its raw id with empty cells

@@ -14,6 +14,11 @@ export const SOURCE_NAME: Record<Source, { en: string; es: string }> = {
   sample: { en: 'GeoMet ore sample', es: 'Muestra de mineral GeoMet' },
   hour: { en: 'Iron-plant hour', es: 'Hora de la planta de hierro' },
 };
+const SOURCE_SHORT: Record<Source, { en: string; es: string }> = {
+  case: { en: 'Case', es: 'Caso' },
+  sample: { en: 'Samples', es: 'Muestras' },
+  hour: { en: 'Plant data', es: 'Planta' },
+};
 const TEXT = {
   source: { en: 'Source', es: 'Fuente' },
   sample: { en: 'Sample', es: 'Muestra' },
@@ -27,15 +32,24 @@ const TEXT = {
     es: 'Una hora de la planta es un registro, no un estado que cambiar: cada valor fue medido, así que no hay controles.',
   },
 };
+const MONTHS: Record<Lang, string[]> = {
+  en: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+  es: ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'],
+};
+function windowLabel(id: number, first: string, last: string, lang: Lang) {
+  const day = (date: string) => `${Number(date.slice(8, 10))} ${MONTHS[lang][Number(date.slice(5, 7)) - 1]}`;
+  const years = first.slice(0, 4) === last.slice(0, 4) ? '' : ` ${last.slice(0, 4)}`;
+  return `${id + 1}: ${day(first)}–${day(last)}${years}`;
+}
 
 export function SourceSwitch({ lang }: { lang: Lang }) {
   const { source, setSource } = useWorkbench();
   return (
-    <div className="of-knob">
+    <div className="of-knob of-source-switch">
       <span className="of-knob-title">{TEXT.source[lang]}</span>
-      <div className="of-segmented of-segmented-3" role="group" aria-label={TEXT.source[lang]}>
+      <div className="of-segmented" role="group" aria-label={TEXT.source[lang]}>
         {SOURCES.map(s => (
-          <button key={s} type="button" aria-pressed={s === source} className={s === source ? 'active' : ''} onClick={() => setSource(s)}>{SOURCE_NAME[s][lang]}</button>
+          <button key={s} type="button" title={SOURCE_NAME[s][lang]} aria-label={SOURCE_NAME[s][lang]} aria-pressed={s === source} className={`of-segment-option${s === source ? ' active' : ''}`} onClick={() => setSource(s)}>{SOURCE_SHORT[s][lang]}</button>
         ))}
       </div>
     </div>
@@ -82,8 +96,8 @@ export function HourPicker({ lane, lang }: { lane: IronPlant; lang: Lang }) {
   return (
     <div className="of-knob">
       <label className="of-field"><span>{TEXT.window[lang]}</span>
-        <select value={window.id} onChange={e => setHour(`${e.target.value}-0`)}>
-          {lane.folds.map(f => <option key={f.id} value={f.id}>{`${f.id + 1}: ${f.test_first.slice(0, 10)} - ${f.test_last.slice(0, 10)}`}</option>)}
+        <select className="of-hour-fold" value={window.id} title={`${window.test_first.slice(0, 10)} – ${window.test_last.slice(0, 10)}`} onChange={e => setHour(`${e.target.value}-0`)}>
+          {lane.folds.map(f => <option key={f.id} value={f.id}>{windowLabel(f.id, f.test_first, f.test_last, lang)}</option>)}
         </select></label>
       <label className="of-field"><span>{TEXT.hour[lang]}</span>
         <select value={Math.min(index, window.trace.length - 1)} onChange={e => setHour(`${window.id}-${e.target.value}`)}>

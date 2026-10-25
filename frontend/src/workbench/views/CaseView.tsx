@@ -7,6 +7,8 @@
  */
 import { Callout, Equation, Refs, SubTabs } from '@fasl-work/caos-app-shell';
 import { Fragment } from 'react';
+import type uPlot from 'uplot';
+import { Chart } from '../../components/charts/Chart';
 import { mineralTable } from '../../engine/constants';
 import type { OperatingContract } from '../../engine/contract';
 import type { OperatingPoint } from '../../engine/model';
@@ -68,8 +70,16 @@ const TEXT = {
   changes: { en: 'What it changes', es: 'Qué cambia' },
   result: { en: 'Result', es: 'Resultado' },
   nominalState: { en: 'nominal', es: 'nominal' },
+  detailSummary: { en: 'Case definition, assumptions and evidence', es: 'Definición del caso, supuestos y evidencia' },
   provenance: { en: 'Provenance', es: 'Procedencia' },
   noFlags: { en: 'no flags', es: 'sin avisos' },
+  tradeoff: { en: 'Recorded variant trade-off', es: 'Compromiso de las variantes registradas' },
+  tradeoffSummary: {
+    en: 'Each point is one precomputed operating variant. Energy is the x-axis and valuable-mineral recovery is the y-axis; the nominal state is highlighted. The points are discrete scenarios, not an interpolated plant response.',
+    es: 'Cada punto es una variante operativa precalculada. La energía está en el eje x y la recuperación del mineral valioso en el eje y; se destaca el estado nominal. Son escenarios discretos, no una respuesta interpolada de planta.',
+  },
+  energy: { en: 'Specific energy (kWh/t)', es: 'Energía específica (kWh/t)' },
+  recovery: { en: 'Recovery (%)', es: 'Recuperación (%)' },
 };
 
 export function CaseView(props: {
@@ -82,7 +92,7 @@ export function CaseView(props: {
     { id: 'compare', label: TEXT.compare[lang], content: <CompareView {...props} /> },
   ];
   return (
-    <div className="of-view of-view-tabbed of-view-case">
+    <div className="of-view of-view-tabbed">
       <SubTabs tabs={tabs} ariaLabel={TEXT.label[lang]} />
     </div>
   );
@@ -95,6 +105,9 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
   const declared = Object.fromEntries(contract.inputs.map(s => [s.name, s]));
   const unitOf = (name: string) => (declared[name].unit === 'case' ? entry.primary.unit : declared[name].unit);
   const nominal = artifact.variants.find(v => v.id === 'nominal') ?? artifact.variants[0];
+  const nominalIndex = artifact.variants.findIndex(v => v.id === 'nominal');
+  const energy = artifact.variants.map(v => v.trace.metrics.specific_energy_total_kwh_t);
+  const recovery = artifact.variants.map(v => v.trace.metrics.recovery_pct);
   const m = nominal.trace.metrics;
   const units = nominal.trace.metric_units;
 
@@ -143,7 +156,19 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
 
   return (
     <div className="of-context">
-      <div className="of-context-text">
+      <div className="of-context-chart">
+        <Chart
+          data={[energy, recovery, recovery.map((v, i) => i === nominalIndex ? v : null)] as uPlot.AlignedData}
+          series={[{ label: TEXT.variants[lang], colour: 'accent-2', points: true, width: 0 },
+            { label: TEXT.nominal[lang], colour: 'warn', points: true, width: 0 }]}
+          title={TEXT.tradeoff[lang]} summary={TEXT.tradeoffSummary[lang]}
+          xLabel={TEXT.energy[lang]} yLabel={TEXT.recovery[lang]}
+          format={(v, axis) => formatValue(v, axis === 'x' ? 'kWh/t' : '%', lang)} />
+      </div>
+      <details className="of-context-details">
+      <summary>{TEXT.detailSummary[lang]}</summary>
+      <div className="of-context-details-grid">
+      <div className="of-context-copy">
         <section>
           <h3>{TEXT.problem[lang]}</h3>
           <p>{artifact.description[lang]}</p>
@@ -195,6 +220,7 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
       <div className="of-context-side">
         <section>
           <h3>{TEXT.components[lang]}</h3>
+          <div className="of-table-scroll">
           <table className="of-table">
             <thead><tr><th scope="col">{TEXT.mineral[lang]}</th><th scope="col">{TEXT.role[lang]}</th><th scope="col">{TEXT.liberation[lang]}</th>
               <th scope="col">{TEXT.composites[lang]}</th><th scope="col">{TEXT.density[lang]}</th></tr></thead>
@@ -205,11 +231,15 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
                 <td>{`${formatSignificant(mineralTable[x.id]?.density, lang, 3)} t/m³`}</td></tr>
             ))}</tbody>
           </table>
+          </div>
           <p className="of-footnote">{ore.payables.map(p => `${TEXT.head[lang]} ${formulaText(p.species)} ${formatWithUnit(p.head_grade, p.unit, lang)}`).join('; ')}</p>
+          <div className="of-table-scroll">
           <table className="of-table">
             <thead><tr><th scope="col">{TEXT.unit[lang]}</th><th scope="col">{TEXT.parameter[lang]}</th></tr></thead>
             <tbody>{plantRows.map(([name, value]) => <tr key={name}><th scope="row">{name}</th><td>{value}</td></tr>)}</tbody>
           </table>
+          </div>
+          <div className="of-table-scroll">
           <table className="of-table">
             <thead><tr><th scope="col">{TEXT.input[lang]}</th><th scope="col">{TEXT.nominal[lang]}</th><th scope="col">{TEXT.bounds[lang]}</th></tr></thead>
             <tbody>{Object.keys(entry.inputs).map(name => (
@@ -219,12 +249,15 @@ function CaseContextPanel({ contract, artifact, lang }: { contract: OperatingCon
                 <td>{shownRange(name, entry.inputs[name].min, entry.inputs[name].max)}</td></tr>
             ))}</tbody>
           </table>
+          </div>
         </section>
         <section>
           <h3>{TEXT.formalization[lang]}</h3>
           {familyFormulas(artifact.family).map(f => <Equation key={f.tex} tex={localizeTex(f.tex, lang)} caption={withMath(f.caption[lang], lang)} />)}
         </section>
       </div>
+      </div>
+      </details>
     </div>
   );
 }

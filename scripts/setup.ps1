@@ -2,8 +2,14 @@
 # training, the tests, the service); .venv-gpu is the accelerator environment the learned lane trains in.
 # -NoGpu skips .venv-gpu: its torch wheel is the CUDA 12.6 build, a large download that only Windows and
 # Linux get. The workbench itself needs only Node (cd frontend; npm ci; npm run dev).
-param([switch]$NoGpu)
+param([switch]$NoGpu, [switch]$Notebooks)
 $ErrorActionPreference = "Stop"
+if ($Notebooks) {
+  Set-Location (Join-Path $PSScriptRoot "..")
+  if (-not (Test-Path ".venv-notebooks\Scripts\python.exe")) { python -m venv .venv-notebooks }
+  & .venv-notebooks\Scripts\python.exe -m pip install -r notebooks/requirements.txt
+  exit $LASTEXITCODE
+}
 Set-Location (Join-Path $PSScriptRoot "..")
 $py = if ($env:PYTHON) { $env:PYTHON } else { "python" }
 function Vpy($dir) { $p = Join-Path $dir "Scripts\python.exe"; if (-not (Test-Path $p)) { $p = Join-Path $dir "bin/python" }; return $p }

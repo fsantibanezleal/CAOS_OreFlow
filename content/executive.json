@@ -1,0 +1,803 @@
+{
+  "title": {
+    "en": "Mineral processing as one connected circuit",
+    "es": "El procesamiento mineral como un circuito integrado"
+  },
+  "key_statement": {
+    "en": "A change in crushing, grind, classification or flotation propagates through the whole circuit. OreFlow makes those dependencies inspectable, then tests models and data against explicit balances and validation splits.",
+    "es": "Un cambio en chancado, molienda, clasificación o flotación se propaga por todo el circuito. OreFlow permite inspeccionar esas dependencias y luego contrasta modelos y datos con balances y particiones de validación explícitos."
+  },
+  "headline_figures": [
+    {
+      "heading": {
+        "en": "Authored circuits",
+        "es": "Circuitos definidos"
+      },
+      "value": {
+        "en": "12",
+        "es": "12"
+      },
+      "unit": {
+        "en": "ore and flowsheet scenarios in the committed research set; not plant calibration",
+        "es": "escenarios de mineral y diagrama de flujo; no son una calibración de planta"
+      },
+      "source": "oreflow-record"
+    },
+    {
+      "heading": {
+        "en": "Variant runs",
+        "es": "Corridas por variante"
+      },
+      "value": {
+        "en": "96",
+        "es": "96"
+      },
+      "unit": {
+        "en": "nominal and controlled variants recomputed by the released engine",
+        "es": "estados nominales y variantes controladas recalculados por el motor publicado"
+      },
+      "source": "oreflow-record"
+    },
+    {
+      "heading": {
+        "en": "Measured-data lanes",
+        "es": "Líneas con datos medidos"
+      },
+      "value": {
+        "en": "3",
+        "es": "3"
+      },
+      "unit": {
+        "en": "GeoMet locked-cycle, HZDR particle and iron-plant soft-sensor studies, each with its own split protocol",
+        "es": "estudios GeoMet de ciclo cerrado, partículas HZDR y sensor virtual de planta de hierro, cada uno con su protocolo de partición"
+      },
+      "source": "oreflow-record"
+    }
+  ],
+  "pain": {
+    "key_message": {
+      "en": "A flowsheet decision shifts several outcomes at once: recovery, grade, throughput, energy, water and circulating load.",
+      "es": "Una decisión de proceso modifica varios resultados a la vez: recuperación, ley, tratamiento, energía, agua y carga circulante."
+    },
+    "paragraphs": [
+      {
+        "en": "Mineral processors must choose a grind and separation strategy while balancing recovery, concentrate quality, energy, water and reagent use across equipment that interacts through circulating loads.",
+        "es": "Las plantas deben elegir una estrategia de molienda y separación equilibrando recuperación, calidad del concentrado, energía, agua y reactivos entre equipos conectados por cargas circulantes."
+      },
+      {
+        "en": "These trade-offs are difficult to inspect when each unit operation is studied separately, especially when ore texture, liberation and mineral associations change the response of the circuit.",
+        "es": "Estos compromisos son difíciles de analizar cuando cada operación unitaria se estudia por separado, sobre todo cuando la textura, liberación y asociación mineral cambian la respuesta del circuito."
+      }
+    ],
+    "bearers": [
+      {
+        "who": {
+          "en": "Process metallurgist",
+          "es": "Metalurgista de procesos"
+        },
+        "cost": {
+          "en": "A recovery gain can lower concentrate grade or increase water and reagent demand.",
+          "es": "Una mejora de recuperación puede reducir la ley del concentrado o elevar el consumo de agua y reactivos."
+        },
+        "measure": {
+          "en": "Compare recovery, grade, mass pull and balance by stream.",
+          "es": "Comparar recuperación, ley, extracción másica y balance por corriente."
+        }
+      },
+      {
+        "who": {
+          "en": "Comminution engineer",
+          "es": "Ingeniero de conminución"
+        },
+        "cost": {
+          "en": "A finer target may exceed installed power or reduce throughput.",
+          "es": "Un objetivo de molienda más fina puede superar la potencia instalada o reducir el tratamiento."
+        },
+        "measure": {
+          "en": "Inspect size distributions, achieved P80, specific energy and mill power.",
+          "es": "Inspeccionar tamaños, P80 alcanzado, energía específica y potencia del molino."
+        }
+      },
+      {
+        "who": {
+          "en": "Plant operations lead",
+          "es": "Jefe de operaciones"
+        },
+        "cost": {
+          "en": "A change in one unit can shift circulating load and constrain another unit.",
+          "es": "Un cambio en una unidad puede modificar la carga circulante y limitar otra unidad."
+        },
+        "measure": {
+          "en": "Follow recycles, water additions, equipment limits and unit balances.",
+          "es": "Seguir recirculaciones, adiciones de agua, límites y balances por unidad."
+        }
+      },
+      {
+        "who": {
+          "en": "Data scientist",
+          "es": "Científico de datos"
+        },
+        "cost": {
+          "en": "Random row splits can make correlated records appear more generalizable than they are.",
+          "es": "Las particiones aleatorias por fila pueden exagerar la generalización de registros correlacionados."
+        },
+        "measure": {
+          "en": "Review time, hole and ore-group splits, calibration and baseline skill.",
+          "es": "Revisar particiones temporales, por sondaje y grupo, calibración y desempeño base."
+        }
+      },
+      {
+        "who": {
+          "en": "Research reviewer",
+          "es": "Revisor de investigación"
+        },
+        "cost": {
+          "en": "A model score is hard to interpret without provenance, a target and a reproducible protocol.",
+          "es": "Una métrica es difícil de interpretar sin procedencia, objetivo y protocolo reproducible."
+        },
+        "measure": {
+          "en": "Trace claims to sources, implementation, validation and stated limits.",
+          "es": "Rastrear afirmaciones a fuentes, implementación, validación y límites declarados."
+        }
+      }
+    ],
+    "figures": [
+      {
+        "heading": {
+          "en": "Authored circuits",
+          "es": "Circuitos definidos"
+        },
+        "value": {
+          "en": "12",
+          "es": "12"
+        },
+        "unit": {
+          "en": "ore and process scenarios, not plant calibrations",
+          "es": "escenarios de mineral y proceso, no calibraciones de planta"
+        },
+        "source": "oreflow-record"
+      },
+      {
+        "heading": {
+          "en": "Controlled states",
+          "es": "Estados controlados"
+        },
+        "value": {
+          "en": "96",
+          "es": "96"
+        },
+        "unit": {
+          "en": "nominal and one-factor variants in the released record",
+          "es": "estados nominales y variantes de un factor en el registro publicado"
+        },
+        "source": "oreflow-record"
+      },
+      {
+        "heading": {
+          "en": "Balance basis",
+          "es": "Base del balance"
+        },
+        "value": {
+          "en": "Every unit",
+          "es": "Cada unidad"
+        },
+        "unit": {
+          "en": "solids, tracked species and water are independently audited",
+          "es": "sólidos, especies y agua se auditan de forma independiente"
+        },
+        "source": "herbst1980"
+      }
+    ],
+    "causes": [
+      {
+        "cause": {
+          "en": "Coupled unit operations",
+          "es": "Operaciones unitarias acopladas"
+        },
+        "weight": 30
+      },
+      {
+        "cause": {
+          "en": "Ore texture and liberation",
+          "es": "Textura y liberación del mineral"
+        },
+        "weight": 25
+      },
+      {
+        "cause": {
+          "en": "Power, water and quality limits",
+          "es": "Límites de potencia, agua y calidad"
+        },
+        "weight": 25
+      },
+      {
+        "cause": {
+          "en": "Evidence and validation gaps",
+          "es": "Brechas de evidencia y validación"
+        },
+        "weight": 20
+      }
+    ]
+  },
+  "context": {
+    "key_message": {
+      "en": "The relevant question is a constrained, circuit-wide trade-off, not the isolated response of one machine.",
+      "es": "La pregunta relevante es un compromiso del circuito bajo restricciones, no la respuesta aislada de una máquina."
+    },
+    "paragraphs": [
+      {
+        "en": "A flowsheet is a coupled system: feed properties and operating choices alter particle size, mineral liberation, classification, flotation response, product grades and the energy and water required to sustain throughput.",
+        "es": "Un diagrama de flujo conecta propiedades del mineral y decisiones operativas con tamaños, liberación, clasificación, flotación, leyes de producto y consumo de agua y energía."
+      }
+    ],
+    "setting": {
+      "en": "OreFlow is a research workbench for authored scenarios and bounded data studies; it is not a digital twin or a plant-calibrated operating model.",
+      "es": "OreFlow es un entorno de investigación para escenarios definidos y estudios acotados; no es un gemelo digital ni un modelo operacional calibrado con planta."
+    },
+    "forces": [
+      {
+        "force": {
+          "en": "Energy and installed mill power constrain the grind sustainable at a given feed rate.",
+          "es": "La energía y la potencia instalada limitan la molienda sostenible para un tratamiento dado."
+        },
+        "direction": "steady"
+      },
+      {
+        "force": {
+          "en": "Classification sends size fractions to product and recycle, changing the mill load.",
+          "es": "La clasificación distribuye tamaños entre producto y recirculación, modificando la carga del molino."
+        },
+        "direction": "steady"
+      },
+      {
+        "force": {
+          "en": "Liberation and mineral associations shape recovery and grade across particle sizes.",
+          "es": "La liberación y las asociaciones minerales determinan recuperación y ley según el tamaño."
+        },
+        "direction": "steady"
+      },
+      {
+        "force": {
+          "en": "Measured-data modelling needs splits that respect time, location and ore-group dependence.",
+          "es": "El modelado medido requiere particiones que respeten dependencias temporales, espaciales y por mineral."
+        },
+        "direction": "rising"
+      }
+    ],
+    "evidence": [
+      {
+        "statement": {
+          "en": "Population-balance methods link breakage functions and continuous mill scale-up; implementations must declare their simplifications.",
+          "es": "Los balances poblacionales conectan funciones de fractura y escalamiento de molinos; las implementaciones deben declarar sus simplificaciones."
+        },
+        "source": "herbst1980"
+      },
+      {
+        "statement": {
+          "en": "Industrial guidance treats Bond efficiency as a circuit measurement under defined feed and product conditions.",
+          "es": "La guía industrial trata la eficiencia Bond como medición del circuito bajo condiciones definidas de alimentación y producto."
+        },
+        "source": "gmg2021"
+      },
+      {
+        "statement": {
+          "en": "OreFlow separates authored circuit scenarios from measured-data evaluations; measured scores do not calibrate the simulator.",
+          "es": "OreFlow separa escenarios de circuito definidos de evaluaciones con datos medidos; esas métricas no calibran el simulador."
+        },
+        "source": "oreflow-record"
+      }
+    ]
+  },
+  "situation": {
+    "key_message": {
+      "en": "A useful research system presents the model, data protocol and result together, while keeping unsupported plant claims distinct from evidence.",
+      "es": "Un sistema de investigación útil presenta juntos modelo, protocolo y resultado, y distingue las afirmaciones de planta sin respaldo."
+    },
+    "roles": [
+      {
+        "role": {
+          "en": "Metallurgist",
+          "es": "Metalurgista"
+        },
+        "decides": {
+          "en": "Which recovery and grade trade-off to investigate.",
+          "es": "Qué compromiso entre recuperación y ley investigar."
+        },
+        "needs": {
+          "en": "Mineral-specific outputs, assumptions and stream balances.",
+          "es": "Resultados por mineral, supuestos y balances por corriente."
+        }
+      },
+      {
+        "role": {
+          "en": "Process engineer",
+          "es": "Ingeniero de procesos"
+        },
+        "decides": {
+          "en": "Whether a grind and circuit configuration fit equipment constraints.",
+          "es": "Si molienda y configuración respetan restricciones de equipos."
+        },
+        "needs": {
+          "en": "Power, throughput, size distribution and recycle response.",
+          "es": "Potencia, tratamiento, tamaños y respuesta de recirculación."
+        }
+      },
+      {
+        "role": {
+          "en": "Data scientist",
+          "es": "Científico de datos"
+        },
+        "decides": {
+          "en": "Which predictor and validation split answer the study question.",
+          "es": "Qué predictor y partición responden la pregunta."
+        },
+        "needs": {
+          "en": "Baselines, held-out groups, uncertainty and leakage checks.",
+          "es": "Líneas base, grupos reservados, incertidumbre y controles de fuga."
+        }
+      },
+      {
+        "role": {
+          "en": "Research reviewer",
+          "es": "Revisor de investigación"
+        },
+        "decides": {
+          "en": "Whether a claim is supported by a reproducible result.",
+          "es": "Si un resultado reproducible respalda la afirmación."
+        },
+        "needs": {
+          "en": "Sources, code, data lineage and explicit limitations.",
+          "es": "Fuentes, código, trazabilidad y limitaciones explícitas."
+        }
+      }
+    ],
+    "interaction": {
+      "en": "Each case links a flowsheet, operating point, stream results, model comparisons and evidence, while controls recompute the selected state and replay identifies the change and its consequences.",
+      "es": "Cada caso enlaza diagrama, punto operacional, corrientes, comparación de modelos y evidencia, mientras los controles recalculan el estado y la reproducción identifica el cambio y sus consecuencias."
+    },
+    "state_of_the_art": [
+      {
+        "approach": {
+          "en": "Population-balance comminution",
+          "es": "Conminución por balance poblacional"
+        },
+        "achieves": {
+          "en": "Represents size-class breakage and energy-dependent mill response.",
+          "es": "Representa fractura por tamaño y respuesta del molino dependiente de energía."
+        },
+        "falls_short": {
+          "en": "Needs ore-specific functions and calibration for plant prediction.",
+          "es": "Requiere funciones del mineral y calibración para predecir una planta."
+        },
+        "source": "herbst1980"
+      },
+      {
+        "approach": {
+          "en": "Cyclone partition models",
+          "es": "Modelos de partición de ciclones"
+        },
+        "achieves": {
+          "en": "Describe size-dependent split and circulating load in closed circuits.",
+          "es": "Describe separación por tamaño y carga circulante en circuitos cerrados."
+        },
+        "falls_short": {
+          "en": "Empirical sizing and coefficients remain uncertain beyond calibration.",
+          "es": "El dimensionamiento empírico y coeficientes son inciertos fuera de calibración."
+        },
+        "source": "molycop"
+      },
+      {
+        "approach": {
+          "en": "Flotation kinetics and banks",
+          "es": "Cinética y bancos de flotación"
+        },
+        "achieves": {
+          "en": "Connects rate distributions and residence time to recovery response.",
+          "es": "Conecta distribución de tasas y residencia con respuesta de recuperación."
+        },
+        "falls_short": {
+          "en": "Laboratory kinetics may not transfer; entrainment and froth need evidence.",
+          "es": "La cinética de laboratorio puede no transferirse; arrastre y espuma requieren evidencia."
+        },
+        "source": "herbst1980"
+      },
+      {
+        "approach": {
+          "en": "Supervised learning",
+          "es": "Aprendizaje supervisado"
+        },
+        "achieves": {
+          "en": "Compares predictors with explicit baselines on observed records.",
+          "es": "Compara predictores con líneas base explícitas sobre registros observados."
+        },
+        "falls_short": {
+          "en": "Held-out ore groups can reveal transfer failure hidden by random splits.",
+          "es": "Grupos de mineral reservados pueden revelar fallas que ocultan particiones aleatorias."
+        },
+        "source": "geomet-paper"
+      }
+    ],
+    "status": {
+      "heading": {
+        "en": "Evidence status",
+        "es": "Estado de evidencia"
+      },
+      "value": {
+        "en": "Research system",
+        "es": "Sistema de investigación"
+      },
+      "unit": {
+        "en": "authored simulations and separate measured-data studies",
+        "es": "simulaciones definidas y estudios independientes con datos medidos"
+      },
+      "date": {
+        "en": "24 October 2026",
+        "es": "24 de octubre de 2026"
+      },
+      "source": "oreflow-record"
+    }
+  },
+  "trends": {
+    "key_message": {
+      "en": "Prediction improves only when process models, data quality and validation design fit the decision being studied.",
+      "es": "La predicción mejora solo cuando modelos, calidad de datos y validación responden a la decisión estudiada."
+    },
+    "items": [
+      {
+        "trend": {
+          "en": "Circuit-wide process models",
+          "es": "Modelos de proceso de circuito"
+        },
+        "kind": "practice",
+        "direction": "steady",
+        "horizon": "now",
+        "signal": {
+          "statement": {
+            "en": "OreFlow records unit equations, streams and balance closure in one inspectable simulation.",
+            "es": "OreFlow registra ecuaciones por unidad, corrientes y cierre de balance en una simulación inspeccionable."
+          },
+          "source": "oreflow-record"
+        },
+        "effect": {
+          "en": "Supports controlled comparisons; plant use still requires calibration and validation.",
+          "es": "Permite comparaciones controladas; el uso en planta aún requiere calibración y validación."
+        },
+        "confidence": "high"
+      },
+      {
+        "trend": {
+          "en": "Data-driven mineral characterization",
+          "es": "Caracterización mineralógica basada en datos"
+        },
+        "kind": "technological",
+        "direction": "rising",
+        "horizon": "two_years",
+        "signal": {
+          "statement": {
+            "en": "Open particle-tracking research data support reproducible method evaluation.",
+            "es": "Los datos abiertos de seguimiento de partículas permiten evaluar métodos de forma reproducible."
+          },
+          "source": "hzdr"
+        },
+        "effect": {
+          "en": "Adds measured-data studies while keeping them separate from plant calibration.",
+          "es": "Añade estudios medidos y los mantiene separados de la calibración de planta."
+        },
+        "confidence": "medium"
+      },
+      {
+        "trend": {
+          "en": "Plant soft sensors",
+          "es": "Sensores virtuales de planta"
+        },
+        "kind": "technological",
+        "direction": "rising",
+        "horizon": "now",
+        "signal": {
+          "statement": {
+            "en": "The iron-plant study uses forward windows and held-out time periods for next-hour prediction.",
+            "es": "El estudio de planta de hierro usa ventanas futuras y periodos reservados para predecir la hora siguiente."
+          },
+          "source": "oreflow-record"
+        },
+        "effect": {
+          "en": "Makes temporal validation and persistence baselines explicit in the comparison.",
+          "es": "Hace explícitas la validación temporal y las líneas base de persistencia."
+        },
+        "confidence": "medium"
+      },
+      {
+        "trend": {
+          "en": "Transfer across ore groups",
+          "es": "Transferencia entre minerales"
+        },
+        "kind": "practice",
+        "direction": "steady",
+        "horizon": "now",
+        "signal": {
+          "statement": {
+            "en": "GeoMet evaluation reports spatial and hole holdouts alongside within-domain scores.",
+            "es": "La evaluación GeoMet informa reservas espaciales y por sondaje junto con métricas del dominio."
+          },
+          "source": "geomet-paper"
+        },
+        "effect": {
+          "en": "Tests whether learned relationships extend beyond nearby samples.",
+          "es": "Evalúa si las relaciones aprendidas se extienden más allá de muestras cercanas."
+        },
+        "confidence": "medium"
+      }
+    ]
+  },
+  "proposal": {
+    "key_message": {
+      "en": "Investigate process mechanisms and methods with explicit assumptions, reproducible states and separate evidence lanes.",
+      "es": "Investigue mecanismos y métodos con supuestos explícitos, estados reproducibles y líneas de evidencia separadas."
+    },
+    "paragraphs": [
+      {
+        "en": "A transparent research workbench links unit operations through mass balance, exposes the physical assumptions and allows readers to vary one declared input or compare a defined set of alternatives.",
+        "es": "Un entorno de investigación transparente conecta las operaciones mediante balances, expone los supuestos físicos y permite variar una entrada declarada o comparar un conjunto definido de alternativas."
+      },
+      {
+        "en": "The workbench places classical process models beside statistical and machine-learning methods, then reports the data split, validation metric and domain limits needed to interpret each result responsibly.",
+        "es": "El entorno sitúa modelos clásicos junto a métodos estadísticos y de aprendizaje automático. También informa particiones, métricas y límites documentados que ayudan a interpretar cada resultado."
+      }
+    ],
+    "four_cs": [
+      {
+        "c": {
+          "en": "Choice",
+          "es": "Elección"
+        },
+        "applies": {
+          "en": "Which operating variable or model assumption is being tested?",
+          "es": "¿Qué variable operacional o supuesto se está probando?"
+        }
+      },
+      {
+        "c": {
+          "en": "Context",
+          "es": "Contexto"
+        },
+        "applies": {
+          "en": "Which ore, circuit family, data source and constraints define the question?",
+          "es": "¿Qué mineral, familia de circuito, fuente y restricciones definen la pregunta?"
+        }
+      },
+      {
+        "c": {
+          "en": "Cost",
+          "es": "Costo"
+        },
+        "applies": {
+          "en": "What recovery, grade, power, water or transfer cost accompanies the result?",
+          "es": "¿Qué costo de recuperación, ley, potencia, agua o transferencia acompaña el resultado?"
+        }
+      },
+      {
+        "c": {
+          "en": "Control",
+          "es": "Control"
+        },
+        "applies": {
+          "en": "Which balance, baseline, split and acceptance check makes the comparison credible?",
+          "es": "¿Qué balance, línea base, partición y control hacen creíble la comparación?"
+        }
+      }
+    ],
+    "actions": [
+      {
+        "action": {
+          "en": "Inspect the process case and flowsheet before changing a control.",
+          "es": "Inspeccione el caso y su diagrama antes de cambiar un control."
+        },
+        "owner": {
+          "en": "Metallurgist",
+          "es": "Metalurgista"
+        },
+        "horizon": {
+          "en": "Now",
+          "es": "Ahora"
+        },
+        "check": {
+          "en": "The selected case, units and stream values are visible.",
+          "es": "Se ven el caso, sus unidades y valores de corrientes."
+        }
+      },
+      {
+        "action": {
+          "en": "Change one operating variable and compare recovery, grade and energy.",
+          "es": "Cambie una variable y compare recuperación, ley y energía."
+        },
+        "owner": {
+          "en": "Process engineer",
+          "es": "Ingeniero de procesos"
+        },
+        "horizon": {
+          "en": "Now",
+          "es": "Ahora"
+        },
+        "check": {
+          "en": "Replay names the input change and recomputed outputs.",
+          "es": "La reproducción identifica el cambio y los resultados recalculados."
+        }
+      },
+      {
+        "action": {
+          "en": "Read the assumptions and applicability limits of the selected method.",
+          "es": "Revise supuestos y límites de aplicabilidad del método."
+        },
+        "owner": {
+          "en": "Research reviewer",
+          "es": "Revisor de investigación"
+        },
+        "horizon": {
+          "en": "Now",
+          "es": "Ahora"
+        },
+        "check": {
+          "en": "Source, equation, validation and limitation are linked.",
+          "es": "Fuente, ecuación, validación y limitación están vinculadas."
+        }
+      },
+      {
+        "action": {
+          "en": "Compare learned predictors with baselines on grouped held-out data.",
+          "es": "Compare predictores con líneas base en datos agrupados reservados."
+        },
+        "owner": {
+          "en": "Data scientist",
+          "es": "Científico de datos"
+        },
+        "horizon": {
+          "en": "Two years",
+          "es": "Dos años"
+        },
+        "check": {
+          "en": "Splits, metrics, calibration and transfer limits are reported.",
+          "es": "Se informan particiones, métricas, calibración y límites de transferencia."
+        }
+      },
+      {
+        "action": {
+          "en": "Replace authored assumptions only when traceable testwork and plant data are available.",
+          "es": "Reemplace supuestos definidos solo con datos trazables de pruebas y planta."
+        },
+        "owner": {
+          "en": "Process engineer",
+          "es": "Ingeniero de procesos"
+        },
+        "horizon": {
+          "en": "Two years",
+          "es": "Dos años"
+        },
+        "check": {
+          "en": "Calibration and independent validation are recorded separately.",
+          "es": "Calibración y validación independiente se registran por separado."
+        }
+      }
+    ],
+    "risks": [
+      {
+        "en": "An internally balanced model can still be wrong if its parameters, mineralogy or unit assumptions do not describe the target ore.",
+        "es": "Un modelo balanceado puede ser incorrecto si sus parámetros, mineralogía o supuestos no describen el mineral objetivo."
+      },
+      {
+        "en": "Performance on synthetic states or one measured dataset does not establish plant transfer, causality or an operating recommendation.",
+        "es": "El desempeño sintético o en un conjunto medido no demuestra transferencia a planta, causalidad ni recomendación operacional."
+      }
+    ],
+    "unknowns": [
+      {
+        "en": "How would conclusions change with calibrated mineral-specific breakage, liberation and flotation testwork?",
+        "es": "¿Cómo cambiarían las conclusiones con ensayos calibrados de fractura, liberación y flotación por mineral?"
+      },
+      {
+        "en": "Which process families and sensor histories support validation at an independent operating site?",
+        "es": "¿Qué familias de proceso e historiales de sensores respaldan validación en otra operación?"
+      }
+    ],
+    "handoff": {
+      "en": "Begin with the case matching the mechanism of interest, then review its assumptions and evidence lane before interpreting a result.",
+      "es": "Comience con el caso que representa el mecanismo de interés y revise supuestos y evidencia antes de interpretar resultados."
+    }
+  },
+  "illustrations": {
+    "pain": {
+      "file": "executive/pain.svg",
+      "caption": {
+        "en": "The decision links feed, circulating load, grind, separation and final product quality.",
+        "es": "La decisión enlaza alimentación, carga circulante, molienda, separación y calidad final."
+      }
+    },
+    "situation": {
+      "file": "executive/situation.svg",
+      "caption": {
+        "en": "Process simulations and measured-data studies answer different questions and retain separate validation records.",
+        "es": "Las simulaciones y estudios medidos responden preguntas distintas y conservan validaciones separadas."
+      }
+    },
+    "proposal": {
+      "file": "executive/proposal.svg",
+      "caption": {
+        "en": "A controlled comparison traces each operating change through the circuit and its evidence.",
+        "es": "Una comparación controlada sigue cada cambio operacional por el circuito y su evidencia."
+      }
+    }
+  },
+  "sources": [
+    {
+      "id": "oreflow-record",
+      "title": {
+        "en": "OreFlow pipeline, case and validation records",
+        "es": "Registros de tubería, casos y validación de OreFlow"
+      },
+      "url": "https://github.com/fsantibanezleal/CAOS_OreFlow/tree/develop/data/derived",
+      "note": {
+        "en": "The records distinguish authored simulations, controlled states and measured-data studies; they are not independent plant validation.",
+        "es": "Los registros distinguen simulaciones definidas, estados controlados y estudios medidos; no son validación independiente de planta."
+      }
+    },
+    {
+      "id": "herbst1980",
+      "title": {
+        "en": "Herbst and Fuerstenau, population-balance mill scale-up",
+        "es": "Herbst y Fuerstenau, escalamiento por balance poblacional"
+      },
+      "url": "https://doi.org/10.1016/0301-7516(80)90034-4",
+      "note": {
+        "en": "Foundational treatment of continuous grinding mill design and scale-up with population-balance models.",
+        "es": "Tratamiento fundacional del diseño y escalamiento de molinos continuos con balances poblacionales."
+      }
+    },
+    {
+      "id": "gmg2021",
+      "title": {
+        "en": "GMG, Bond efficiency of industrial grinding circuits",
+        "es": "GMG, eficiencia Bond de circuitos industriales"
+      },
+      "url": "https://gmggroup.org/determining-the-bond-efficiency-of-industrial-grinding-circuits/",
+      "note": {
+        "en": "Defines a circuit-level procedure and measurements for interpreting Bond efficiency.",
+        "es": "Define un procedimiento de circuito y mediciones para interpretar la eficiencia Bond."
+      }
+    },
+    {
+      "id": "molycop",
+      "title": {
+        "en": "Moly-Cop Tools, mill and cyclone simulations",
+        "es": "Moly-Cop Tools, simulaciones de molino y ciclón"
+      },
+      "url": "https://www.molycop.com/products-and-services/measurement-and-analytics/analytics/molycop-tools",
+      "note": {
+        "en": "Vendor documentation describes ball-mill and cyclone simulation and mass-balance routines.",
+        "es": "La documentación describe simulaciones de molino de bolas, ciclones y rutinas de balance."
+      }
+    },
+    {
+      "id": "geomet-paper",
+      "title": {
+        "en": "Hoffimann et al., geometallurgical spatial uncertainty",
+        "es": "Hoffimann et al., incertidumbre espacial geometalúrgica"
+      },
+      "url": "https://doi.org/10.1007/s11004-022-10013-1",
+      "note": {
+        "en": "Discusses uncertainty and spatial validation for limited geometallurgical samples.",
+        "es": "Analiza incertidumbre y validación espacial para muestras geometalúrgicas limitadas."
+      }
+    },
+    {
+      "id": "hzdr",
+      "title": {
+        "en": "HZDR RODARE 336 particle mineralogy dataset",
+        "es": "Conjunto de mineralogía de partículas HZDR RODARE 336"
+      },
+      "url": "https://doi.org/10.14278/rodare.336",
+      "note": {
+        "en": "Open particle-level mineralogy data used in a separate particle-method evaluation.",
+        "es": "Datos abiertos de mineralogía por partícula usados en evaluación independiente."
+      }
+    }
+  ]
+}

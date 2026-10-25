@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-iron-plant-soft-sensor-v1",
+  "title": "oreflow-iron-plant-soft-sensor-v1",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.iron-plant-soft-sensor/v1",
+      "type": "string"
+    },
+    "source": {
+      "type": "object"
+    },
+    "quality": {
+      "type": "object"
+    },
+    "protocol": {
+      "type": "object"
+    },
+    "pooled_scores": {
+      "type": "object"
+    },
+    "comparisons": {
+      "type": "array"
+    },
+    "repeated_assay_share": {
+      "type": "number"
+    },
+    "held_labels": {
+      "type": "object"
+    },
+    "folds": {
+      "type": "array"
+    }
+  },
+  "required": [
+    "schema",
+    "source",
+    "quality",
+    "protocol",
+    "pooled_scores",
+    "comparisons",
+    "repeated_assay_share",
+    "held_labels",
+    "folds"
+  ],
+  "additionalProperties": true
+}

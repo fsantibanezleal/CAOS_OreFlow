@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "oreflow-manifest-v2",
+  "title": "oreflow-manifest-v2",
+  "type": "object",
+  "properties": {
+    "schema": {
+      "const": "oreflow.manifest/v2",
+      "type": "string"
+    },
+    "case_id": {
+      "type": "string"
+    },
+    "category": {
+      "type": "string"
+    },
+    "family": {
+      "type": "string"
+    },
+    "title": {
+      "type": "object"
+    },
+    "engine_version": {
+      "type": "string"
+    },
+    "contract_digest": {
+      "type": "string"
+    },
+    "artifact": {
+      "type": "object"
+    },
+    "variants": {
+      "type": "array"
+    },
+    "nominal": {
+      "type": "object"
+    },
+    "kpis": {
+      "type": "object"
+    }
+  },
+  "required": [
+    "schema",
+    "case_id",
+    "category",
+    "family",
+    "title",
+    "engine_version",
+    "contract_digest",
+    "artifact",
+    "variants",
+    "nominal",
+    "kpis"
+  ],
+  "additionalProperties": true
+}

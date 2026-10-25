@@ -111,128 +111,72 @@ one.
 
 ## Findings
 
-The precompute of release 0.09.000 trained and scored every model on 3072 engine states (256 per case, CUDA for
-the networks). The tables are transcribed from `data/derived/learning.json`, and `tests/test_learning_findings.py`
-fails if a number here and the record disagree.
+The release 0.10.000 precompute generated the record from 3,072 engine states (256 per case). The tables below are checked against `data/derived/learning.json` by `tests/test_learning_findings.py`.
 
 | Model | Recovery: interpolation R² | Recovery: LOCO median R² | Recovery: LOCO mean RMSE (pts) | Log upgrade: interpolation R² | Log upgrade: LOCO median R² | Log upgrade: LOCO mean RMSE | Energy: interpolation R² | Energy: LOCO median R² | Energy: LOCO mean RMSE (kWh/t) |
-|---|---|---|---|---|---|---|---|---|---|
-| Ridge | 0.643 | 0.348 | 16.1 | 0.884 | -5.693 | 0.655 | 0.784 | 0.598 | 2.44 |
-| Random forest | 0.828 | 0.310 | 13.6 | 0.996 | -3.438 | 0.223 | 0.961 | 0.923 | 1.14 |
-| Gradient boosting | 0.917 | 0.581 | 13.9 | 0.997 | -1.566 | 0.177 | 0.978 | 0.955 | 0.94 |
-| Gaussian process | 0.838 | 0.435 | 14.2 | 0.997 | -0.808 | 0.296 | 0.979 | 0.968 | 1.69 |
-| MLP | 0.946 | 0.694 | 60.1 | 0.997 | -1.619 | 0.459 | 0.993 | 0.963 | 4.60 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Ridge | 0.617 | -0.13 | 13.68 | 0.761 | -7.09 | 0.83 | 0.794 | 0.65 | 2.19 |
+| Random forest | 0.820 | 0.36 | 13.16 | 0.995 | -4.05 | 0.28 | 0.964 | 0.90 | 1.13 |
+| Gradient boosting | 0.909 | 0.51 | 12.66 | 0.996 | -1.12 | 0.27 | 0.978 | 0.95 | 0.92 |
+| Gaussian process | 0.878 | 0.48 | 10.95 | 0.998 | -0.77 | 0.30 | 0.982 | 0.93 | 1.35 |
+| MLP | 0.951 | 0.55 | 26.24 | 0.997 | 0.24 | 0.43 | 0.992 | 0.94 | 0.85 |
 
-LOCO is one case out. The second table scores the same models within each case (R² against each case's own mean on
-the interpolation split) and with a whole ore group held out (median over the seven groups; mean RMSE).
+LOCO means leave one authored case out. The model with the lowest pooled interpolation recovery error is MLP (3.38 points); the Gaussian process has the lowest mean LOCO error (10.95 points). The MLP has the largest mean and worst-fold LOCO errors because the magnetite case is far outside the other cases' response. Across five MLP seeds, interpolation RMSE ranges 3.00 to 3.54 points and mean LOCO RMSE ranges 25.0 to 30.1 points. No model ranking should be collapsed across these distinct metrics.
+
+The second table reports within-case interpolation and the record's group transfer summary across seven payable/carrier labels:
 
 | Model, within case and one group out | Recovery: within-case R² | Recovery: group median R² | Recovery: group mean RMSE (pts) | Log upgrade: within-case R² | Log upgrade: group median R² | Log upgrade: group mean RMSE | Energy: within-case R² | Energy: group median R² | Energy: group mean RMSE (kWh/t) |
-|---|---|---|---|---|---|---|---|---|---|
-| Ridge | 0.537 | -0.891 | 21.1 | -0.974 | -27.694 | 1.10 | 0.582 | 0.538 | 2.87 |
-| Random forest | 0.777 | -0.004 | 17.7 | 0.932 | -6.848 | 0.422 | 0.925 | 0.851 | 1.35 |
-| Gradient boosting | 0.893 | -0.208 | 20.3 | 0.949 | -2.432 | 0.333 | 0.958 | 0.911 | 1.18 |
-| Gaussian process | 0.790 | -1.535 | 19.9 | 0.941 | -1.746 | 0.431 | 0.960 | 0.907 | 2.43 |
-| MLP | 0.930 | -0.974 | 107 | 0.941 | -16.083 | 0.880 | 0.986 | 0.934 | 7.98 |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Ridge | 0.50 | -0.77 | 15.99 | -3.07 | -76.91 | 1.27 | 0.60 | 0.62 | 2.42 |
+| Random forest | 0.76 | 0.13 | 16.86 | 0.91 | -6.80 | 0.50 | 0.93 | 0.88 | 1.36 |
+| Gradient boosting | 0.88 | 0.29 | 17.40 | 0.94 | -6.37 | 0.49 | 0.96 | 0.90 | 1.18 |
+| Gaussian process | 0.84 | 0.17 | 13.37 | 0.96 | -10.85 | 0.52 | 0.97 | 0.91 | 1.78 |
+| MLP | 0.94 | 0.44 | 46.73 | 0.96 | -13.62 | 0.79 | 0.99 | 0.89 | 1.22 |
 
-The MLP's figures are one training seed's. The record also retrains it with four more seeds on every one-case
-split (`mlp_seeds`); over the five, its interpolation RMSE of recovery runs from 2.7 to 4.2 points and its mean
-one-case-out RMSE from 26.7 to 60.1 points, so the MLP row above is the worst of its five seeds by that statistic.
-The Gaussian process is fitted on a seeded 500-state subsample of the 2,460 interpolation training states; on the
-same 500 states (`equal_rows`) the random forest and gradient boosting interpolate recovery with an R² of 0.700 and
-0.820, against the Gaussian process's 0.838, so part of the ranking above is training-set size.
+Only the two multi-case ore labels can be held out as a group in a separate fold. The other five labels each contain one authored case and are represented by their case-held-out fold; the transfer summary therefore uses all seven labels without pretending that five singleton labels form additional multi-case folds. On the five chalcopyrite cases held out together, MLP recovery R² is 0.795; on the two gold-in-pyrite cases it is -10.200. Their contrast prevents the group median from being read as a universal transfer guarantee. Group-held-out log-upgrade median R² is negative for each model.
 
-- **Most of the interpolation score is knowing the case.** A predictor that returns each case's training mean
-  reaches a pooled R² of 0.200 for recovery, 0.938 for the log upgrade and 0.475 for energy: the case alone explains
-  94% of the upgrade's test variance. Against each case's own mean, ridge's upgrade R² is -0.974, so its pooled 0.884
-  is below the predictor that knows only the case, while the tree models and the networks keep 0.93 to 0.95; for
-  recovery the MLP keeps 0.930 within case and gradient boosting 0.893. Until 0.09.000 only the pooled figures were
-  recorded (review of 2026-10-04, L-03).
-- **One case out is a near-neighbour test for the copper plants; one ore group out is transfer.** Held out one at a
-  time, each chalcopyrite plant is predicted from its four siblings, and the MLP's recovery R² there is 0.96 to 0.99
-  (RMSE 1.7 to 3.5 points over its five seeds). Held out together, with no chalcopyrite plant left in training, the
-  Gaussian process scores R² 0.665 (9.1 points) and the MLP 0.572 (10.3 points); for the two gold-in-pyrite plants
-  held out together gradient boosting and the forest score 0.37 and 0.35 (about 11 points) and the MLP fails (R²
-  -16.3). Over the seven ore groups no model keeps a positive median recovery R², the random forest coming closest
-  (-0.004, mean error 17.7 points). Those are the transfer figures; the one-case-out medians (0.31 to 0.69) describe
-  a new plant on an ore the lane already knows (L-01).
-- **On the plants unlike the rest the networks leave 0 to 100%:** the MLP's recovery RMSE is 172 to 223 points on the
-  magnetite plant and 20 to 472 on the phosphate plant over its seeds. The MLP has the best one-case-out median R²
-  (0.694); by mean error the random forest and gradient boosting cannot be told apart (13.6 and 13.9 points): the
-  forest is better in 4 of the 12 folds, the magnetite, nickel, phosphate and oxide copper plants.
-- **The upgrade ratio transfers between siblings and not across ores.** Every model's median R² over the twelve
-  one-case folds is below zero, because R² on one held-out case divides by that case's own spread and the two gold
-  plants' upgrade barely varies. Over the five chalcopyrite plants held out one at a time the median R² is 0.95 for
-  the MLP, 0.94 for gradient boosting and 0.91 for the Gaussian process (0.65 for the forest, -0.38 for ridge); held
-  out as a group it does not transfer, with R² from -0.15 (MLP) and -0.24 (Gaussian process) to -20 (ridge).
-- **Energy transfers for most models and folds.** Every model but ridge keeps a median R² above 0.9 with one case out
-  (gradient boosting 0.955, mean error 0.94 kWh/t) and 0.85 to 0.93 with a whole ore group out: specific energy
-  follows throughput per megawatt, work index and grind, which the features carry directly. The exception is the
-  held-out phosphate circuit, where the Gaussian process's R² is -16.7 and the MLP's -699 at the record's seed; the
-  MLP's mean energy error over its five seeds runs from 0.9 to 4.6 kWh/t.
-- **The exported surrogate is the MLP**, trained on every state after evaluation (early stopping restored epoch 2950
-  of 3000). It suits fast interpolation inside the trained envelopes and not a new plant, and the target mode only;
-  the workbench's Methods view shows its answer beside the engine's, with these results and the guard's verdict, and
-  declines a cut-mode state.
+The Gaussian process 95% intervals cover 90.7% of interpolation recovery, 91.3% of upgrades and 93.8% of energy rows. Pooled LOCO coverage is 82.9%, 68.1% and 86.9%, respectively. These are empirical coverages of nominal 95% intervals and are below nominal; the artifacts do not establish calibration on measured plant data.
 
-| Gaussian process, interpolation split | Recovery | Log upgrade | Energy |
-|---|---|---|---|
-| Coverage of the nominal 95% interval | 86.1% | 89.7% | 91.3% |
+The reconstruction guard's held-out false-alarm rate is 1.47% and its false-accept rate over shifted probes is 15.5%. At +0.5 input ranges, it accepts 15.5%; at -0.5, 19.9%. Accepted shifts vary by feature: crusher CSS 95.4%, water 68.8%, and circulating load 41.8%. It is a diagnostic signal, not an operating constraint.
 
-The Gaussian process's nominal 95% intervals are overconfident under interpolation, and more so under one case out,
-where they cover 76.6, 64.2 and 94.3% of the held-out states (2.0%, 0.4% and 70.3% in the worst fold). Its
-fitted noise level sits at its lower bound for recovery only (1e-9); for the upgrade and the energy it is five to
-seven orders of magnitude above it.
+The exported MLP is finally fitted on the full design and trained on CUDA. ONNX parity remains bounded by the record's maximum absolute differences; the learned outputs screen or illustrate an engine result and do not replace it. In particular, the tests do not validate transfer to an operating plant.
 
 | Guard | Value |
-|---|---|
-| Threshold of the interpolation-split guard (mean squared error) | 0.387 |
-| Threshold of the exported guard, fitted on every state | 0.348 |
-| False alarms on held-out in-envelope states | 2.3% |
-| False accepts on shifted probes | 17.7% |
-| States of the held-out case flagged (mean over folds) | 51.5% |
+|---|---:|
+| Threshold of the interpolation-split guard (mean squared error) | 0.392 |
+| Threshold of the exported guard, fitted on every state | 0.372 |
+| False alarms on held-out in-envelope states | 1.5% |
+| False accepts on shifted probes | 15.5% |
+| States of the held-out case flagged (mean over folds) | 55.0% |
 
 | Held-out case | Flagged by the guard |
-|---|---|
-| Soft copper porphyry | 3.9% |
-| Hard copper porphyry | 6.6% |
-| Free-milling gold with gravity | 100.0% |
+|---|---:|
+| Soft copper porphyry | 16.0% |
+| Hard copper porphyry | 3.1% |
+| Free-milling gold with gravity | 63.7% |
 | Fine magnetite concentration | 100.0% |
-| Nickel sulphide with serpentine slimes | 90.2% |
+| Nickel sulphide with serpentine slimes | 70.7% |
 | Phosphate with clay slimes | 100.0% |
 | Copper-molybdenum bulk flotation | 0.0% |
-| Oxide copper by sulphidisation | 100.0% |
-| Zinc sulphide | 17.2% |
-| Copper ore with clay | 0.4% |
-| Low-grade copper at high throughput | 0.0% |
+| Oxide copper: assumed sulphidized response | 100.0% |
+| Zinc sulphide | 9.4% |
+| Copper ore with clay | 95.3% |
+| Low-grade copper at high throughput | 1.6% |
 | Refractory gold in sulphides | 100.0% |
 
-**The guard detects unfamiliar features, and how often it accepts a state outside the envelope depends on how far
-outside it is.** The false-accept rate in the table is one probe distance, one feature moved half its training range
-past the maximum; the record's `acceptance_by_distance` gives the curve: 52.9% of the probes are accepted at 0.02 of
-the range above the maximum (73.9% below the minimum), 45.4% at 0.1 (60.3%), 31.0% at 0.25 (38.2%), 17.7% at 0.5
-(20.4%) and 14.0% at the full range (14.0%). At half the range 88% of the accepts step out along the crusher
-setting, the circulating load or the overflow water, the inputs it barely sees. On an unseen case its verdict is
-mostly bimodal: it flags every state of the oxide copper, gravity gold, magnetite, phosphate and refractory gold
-plants, and at most 6.6% of the five copper sulphide plants', whose features lie among each other's; nickel (90%)
-and zinc (17%) sit between. The flag tracks the circuit family, not the surrogate's error: held out, the soft
-porphyry is flagged in 3.9% of its states while gradient boosting's upgrade R² there is -2.05. The mean over folds
-averages those answers; it is not a detection rate.
+| Gaussian process, interpolation split | Recovery | Log upgrade | Energy |
+|---|---:|---:|---:|---:|
+| Coverage of the nominal 95% interval | 90.7% | 91.3% | 93.8% |
 
-| Feature (gradient boosting, recovery) | RMSE increase when permuted within each case (pts) |
-|---|---|
-| `dose_ratio` | 6.49 |
-| `specific_throughput_t_h_mw` | 4.98 |
-| `work_index_kwh_t` | 3.52 |
-| `rougher_volume_m3_per_tph` | 3.13 |
-| `grind_to_liberation` | 1.16 |
+| Feature (gradient boosting, recovery) | Permutation importance |
+|---|---:|
+| `dose_ratio` | 6.0671 |
+| `specific_throughput_t_h_mw` | 4.4982 |
+| `work_index_kwh_t` | 2.9978 |
+| `rougher_volume_m3_per_tph` | 2.5465 |
+| `crusher_css_mm` | 1.1307 |
 
-The importance is the RMSE increase when a feature's values are shuffled within each case. A feature that takes one
-value per case, the payable carrier's composite content and density and the circuit descriptors, is constant within
-every case and scores exactly 0: the surrogate never saw the engine respond to it, and shuffling it across the cases,
-as the record did until 0.09.000, measured which case a row came from and read it as liberation (review of
-2026-10-04, L-04). Within the cases the surrogate leans on the collector dose ratio and throughput per installed
-megawatt, then on work index, rougher volume per t/h and the grind relative to the liberation size: the reagent
-kinetics, grinding capacity, residence and liberation the engine's recovery responds to.
+The guard fit ran to the 3000-epoch cap (best epoch 3000).
 
 ## Verification
 

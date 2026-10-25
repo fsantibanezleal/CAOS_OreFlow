@@ -46,13 +46,14 @@ describe('the case contexts say what the engine computes', () => {
     }
   });
 
-  it('more air raises both recovery and grade where the text says so', () => {
-    for (const id of ['zinc_sulfide', 'mixed_ore_high_clay']) {
+  it('more air raises recovery and water recovery in cases that carry it; grade follows the circuit', () => {
+    for (const id of ['copper_porphyry_soft', 'copper_porphyry_hard', 'copper_molybdenum', 'copper_oxide', 'zinc_sulfide', 'low_grade_copper', 'refractory_gold']) {
       const v = variants(id);
       expect(v.more_air.metrics.recovery_pct, id).toBeGreaterThan(v.nominal.metrics.recovery_pct);
-      expect(v.more_air.metrics.concentrate_grade, id).toBeGreaterThan(v.nominal.metrics.concentrate_grade);
       expect(v.more_air.metrics.rougher_water_recovery_pct, id).toBeGreaterThan(v.nominal.metrics.rougher_water_recovery_pct);
     }
+    expect(variants('zinc_sulfide').more_air.metrics.concentrate_grade).toBeLessThan(variants('zinc_sulfide').nominal.metrics.concentrate_grade);
+    expect(variants('mixed_ore_high_clay').more_air).toBeUndefined();
   });
 
   it('magnetite grade rises with a finer grind', () => {

@@ -16,8 +16,10 @@ export function NavOverflow(): null {
     if (!nav) return undefined;
     const update = () => {
       const hidden = nav.scrollWidth - nav.clientWidth;
-      nav.dataset.fadeStart = hidden > 1 && nav.scrollLeft > 1 ? '1' : '0';
-      nav.dataset.fadeEnd = hidden > 1 && nav.scrollLeft < hidden - 1 ? '1' : '0';
+      const start = hidden > 1 && nav.scrollLeft > 1 ? '1' : '0';
+      const end = hidden > 1 && nav.scrollLeft < hidden - 1 ? '1' : '0';
+      if (nav.dataset.fadeStart !== start) nav.dataset.fadeStart = start;
+      if (nav.dataset.fadeEnd !== end) nav.dataset.fadeEnd = end;
     };
     const active = nav.querySelector<HTMLElement>('.nav-link.active');
     if (active) {

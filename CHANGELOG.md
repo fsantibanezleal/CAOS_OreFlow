@@ -1,6 +1,15 @@
 # Changelog
 
-## [Unreleased]
+## [0.10.000] - 2026-10-24
+
+### Changed
+- Rebuild and publish the workbench on CAOS App Shell 0.19.1 and CAOS Product Template 0.11.000, with focused route-state handling, lazy workbench loading and the release guard set.
+- Correct five authored circuit designs and regenerate all twelve case records, 96 operating variants, model evaluations, optimization studies and measured-sample comparisons.
+- Export the final process surrogate and guard from CUDA training, validate ONNX parity, and bind the learning manuscript and methodology findings to the new records.
+- Add route, contract, case-topology, Focus-mode and repository-integrity requirements with executable validation evidence.
+
+- Correct the oxide-copper case boundary: sulphidized floatability is an explicit assumption, reagent activation is not simulated, and the carrier split is ten percent chrysocolla.
+- Regenerate the methodology SVGs from live figure components so app figures and documentation agree byte-for-byte.
 
 ## [0.09.000] - 2026-10-05
 

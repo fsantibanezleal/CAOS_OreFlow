@@ -286,8 +286,13 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
   const meanError = proposals.length ? proposals.reduce((s, p) => s + Math.abs(p.surrogate - p.engine), 0) / proposals.length : null;
 
   return (
-    <div className="of-split">
-      {chart}
+    <div className="of-split of-optimizer-split">
+      <div className="of-optimizer-chart">
+        <label className="of-field of-optimizer-chart-select"><span>{TEXT.chart[lang]}</span>
+          <select value={shown} onChange={e => setView(e.target.value as View)}>
+            {(['starts', 'trace', 'path', 'screen'] as View[]).map(v => <option key={v} value={v}>{TEXT.views[v][lang]}</option>)}</select></label>
+        {chart}
+      </div>
       <div className="of-aside">
         {control && (
           <div className="of-rerun">
@@ -312,11 +317,6 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
           </div>
         )}
         {modified && !live && <p className="of-note">{TEXT.baked[lang]}</p>}
-        <div className="of-fields">
-          <label className="of-field"><span>{TEXT.chart[lang]}</span>
-            <select value={shown} onChange={e => setView(e.target.value as View)}>
-              {(['starts', 'trace', 'path', 'screen'] as View[]).map(v => <option key={v} value={v}>{TEXT.views[v][lang]}</option>)}</select></label>
-        </div>
         {view === 'screen' && !proposals.length && <p className="of-note">{record.screened ? TEXT.noProposals[lang] : TEXT.unscreened[lang]}</p>}
         {/* a gain is good news; a loss at a partial weight is a trade the weight asked for, shown neutral, never green */}
         {/* U-35: while a re-run is on its way, the previous record's status is not shown under its progress */}
@@ -369,7 +369,7 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
           </tbody>
         </table>
         {record.screened && record.without_screen && (
-          <table className="of-table of-table-data of-table-wraphead">
+          <table className="of-table of-table-wraphead">
             <caption>{TEXT.startsCaption[lang]}</caption>
             <thead><tr><th scope="col">{TEXT.screenCol[lang]}</th><th scope="col">{TEXT.withCol[lang]}</th><th scope="col">{TEXT.withoutCol[lang]}</th>
               <th scope="col">{TEXT.proposedCol[lang]}</th><th scope="col">{TEXT.improvedCol[lang]}</th></tr></thead>

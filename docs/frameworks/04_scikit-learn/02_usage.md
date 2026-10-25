@@ -43,25 +43,14 @@ does, a feature that takes one value per case measures which case a row came fro
 **What the record shows** (`data/derived/learning.json`, recovery, RMSE in percentage points):
 
 | Model | Interpolation | Leave one case out, mean | Worst held-out case |
-|---|---|---|---|
-| Ridge | 9.56 | 16.10 | 34.40 |
-| Random forest | 6.64 | 13.61 | 48.35 |
-| Histogram gradient boosting | 4.60 | 13.89 | 60.42 |
-| Gaussian process | 6.43 | 14.20 | 43.00 |
-| MLP (PyTorch, [05](../05_pytorch.md)) | 3.70 | 60.11 | 471.75 |
+|---|---:|---:|---:|
+| Ridge | 9.46 | 13.68 | 23.05 |
+| Random forest | 6.49 | 13.16 | 48.86 |
+| Histogram gradient boosting | 4.60 | 12.66 | 56.61 |
+| Gaussian process | 5.34 | 10.95 | 27.91 |
+| MLP (PyTorch, [05](../05_pytorch.md)) | 3.38 | 26.24 | 239.51 |
 
-On average every model is worse on an unseen case than inside the cases it trained on, and the
-ranking changes between the protocols: the MLP interpolates best and has the largest one-case-out errors,
-while by the median held-out R² the MLP (0.694) and gradient boosting (0.581) lead. The loss is
-concentrated, not uniform. A copper sulphide case, with four neighbours on the same mineral in the training set,
-transfers about as well as the pooled interpolation (held out, the hard porphyry costs the MLP 2.1 points and ridge
-9.1), while the two circuits unlike the others fail: for the MLP, 172 points on the magnetite circuit (drums instead
-of flotation) and 472 on phosphate (desliming first). One case out is therefore a near-neighbour test for the copper
-plants; holding a whole ore group out (the five chalcopyrite plants together, the two gold plants together), no model
-keeps a positive median recovery R² (the random forest comes closest, -0.004). The Gaussian process's 95% intervals
-cover 86.1% of the held-out recoveries (89.7% and 91.3% for the other two targets), so they are too narrow for every
-target. The Benchmark page's Learned lane tab shows the full tables and
-charts.
+On the interpolation split the MLP has the lowest recovery RMSE (3.38 points). On held-out cases the Gaussian process has the lowest mean error (10.95); the MLP has the highest median fold R² (0.547) but also the largest mean and worst-fold RMSE. Held out, the hard porphyry costs the MLP 1.7 points and ridge 9.6. Its magnetite error is 240 points and phosphate error is 8.9. The five chalcopyrite cases held out together score 0.795 R² for the MLP; the two gold-in-pyrite cases score -10.2. Across all seven payable/carrier labels, the MLP has median recovery R² 0.437; log-upgrade transfer is negative for all models. The held-out cases and group folds expose different limits, so none of these results establishes plant performance. The Gaussian process intervals cover 90.7% of interpolation recoveries (91.3% and 93.8% for the other two targets); group-aware calibration remains unestablished. The Benchmark page's Learned lane tab shows the full tables and charts.
 
 ## 2. The particle lane (`stages/particle_experiment.py`)
 
