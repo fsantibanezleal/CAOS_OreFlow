@@ -161,8 +161,8 @@ export function extent(plan: Layout): Extent {
 }
 
 /** The widest and tallest cell, in px at the drawing's own scale, where the 11 px unit names read well. */
-export const CELL_W = 210;
-export const CELL_H = 150;
+export const CELL_W = 290;
+export const CELL_H = 280;
 /** The narrowest cell that holds a 64 px unit box (a name on two lines) and 24 px for the stream and its
  * arrow to the next box: a stage narrower than that (a phone) keeps this width and scrolls sideways. */
 export const MIN_CELL_W = 88;

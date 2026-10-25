@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.000, 2026-10-24. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.001, 2026-10-25. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -73,11 +73,11 @@ OreFlow currently contains six public routes, twelve authored cases and eight co
 
 ## Technology and versions
 
-Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.1 is the published package release.
+Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.2 is the published package release.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
-| web | @fasl-work/caos-app-shell | 0.19.1 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | @fasl-work/caos-app-shell | 0.19.2 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/node | 24.13.4 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react-dom | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |

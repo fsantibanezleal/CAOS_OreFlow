@@ -89,7 +89,7 @@ function UncertaintyFigure({ lang }: { lang: Lang }) {
   const es = lang === 'es';
   const bars = [4, 9, 16, 24, 30, 26, 18, 10, 5];
   return (
-    <svg className="fig-svg" viewBox="0 0 420 220" role="img" aria-label={es ? 'Hipercubo latino, distribución de una salida e índices de Sobol' : 'Latin hypercube, the distribution of one output and Sobol indices'}>
+    <svg className="fig-svg" viewBox="0 0 480 220" role="img" aria-label={es ? 'Hipercubo latino, distribución de una salida e índices de Sobol' : 'Latin hypercube, the distribution of one output and Sobol indices'}>
       <g transform="translate(20 20)">
         <rect className="dg-box" x="0" y="0" width="120" height="120" />
         {Array.from({ length: 8 }, (_, i) => <line key={`h${i}`} className="dg-grid" x1="0" y1={15 * i} x2="120" y2={15 * i} />)}
@@ -118,7 +118,7 @@ function UncertaintyFigure({ lang }: { lang: Lang }) {
         ))}
         <text className="dg-box-sub" x="50" y="152" textAnchor="middle">{es ? 'S1 · ST por entrada' : 'S1 · ST per input'}</text>
       </g>
-      <text className="dg-note" x="210" y="196" textAnchor="middle">{es ? '128 muestras para los cuantiles; N = 256 en el diseño de Saltelli para los índices' : '128 samples for the quantiles; N = 256 in the Saltelli design for the indices'}</text>
+      <text className="dg-note" x="240" y="196" textAnchor="middle">{es ? '128 muestras para los cuantiles; N = 256 en el diseño de Saltelli para los índices' : '128 samples for the quantiles; N = 256 in the Saltelli design for the indices'}</text>
     </svg>
   );
 }
@@ -189,7 +189,7 @@ export const METHODS: Topic[] = [
     ],
     limits: [
       { en: 'A steady-state optimum of an authored plant model. It knows nothing about froth stability, reagent cost, concentrate payability or the value of energy beyond the declared weight; with all the weight on metal it spends every kilowatt the mill has, and the gas velocity tends to its upper bound because the engine has no froth-stability penalty.', es: 'Un óptimo de estado estacionario de un modelo de planta de autor. No sabe nada de estabilidad de espuma, costo de reactivos ni condiciones comerciales del concentrado, ni del valor de la energía más allá del peso declarado; con todo el peso en el metal gasta cada kilowatt que tiene el molino, y la velocidad de gas tiende a su límite superior porque el motor no penaliza la estabilidad de la espuma.' },
-      { en: 'A pattern search converges to a local optimum on its mesh; the starts are the safeguard against a poor one. The barrier update ($h_{max}$ set to the infeasible incumbent\'s h after every iteration) is a declared simplification of the progressive barrier of Audet and Dennis (2009) as Hallé-Hannan and Tribes (2026, section 2.3) state it; the exact update rules, which that section defers to Audet and Hare (2017, chapter 12), were not consulted; it never rises, as the progressive barrier requires.', es: 'Una búsqueda por patrones converge a un óptimo local en su malla; los inicios son la salvaguarda contra uno malo. La actualización de la barrera ($h_{max}$ igual al h del incumbente infactible tras cada iteración) es una simplificación declarada de la barrera progresiva de Audet y Dennis (2009) tal como la enuncian Hallé-Hannan y Tribes (2026, sección 2.3); las reglas exactas de actualización, que esa sección remite a Audet y Hare (2017, capítulo 12), no se consultaron; nunca sube, como exige la barrera progresiva.' },
+      { en: 'A pattern search converges to a local optimum on its mesh; the starts are the safeguard against a poor one. The barrier update ($h_{max}$ set to the infeasible incumbent\'s h after every iteration) is a declared simplification of the progressive barrier of Audet and Dennis (2009) as Hallé-Hannan and Tribes (2026, section 2.3) state it; the exact update rules, which that section defers to Audet and Hare (2017, chapter 12), were not consulted; it never rises, as the progressive barrier requires.', es: 'Una búsqueda por patrones converge a un óptimo local en su malla; los inicios son la salvaguarda contra uno malo. La actualización de la barrera ($h_{max}$ igual al h del incumbente infactible tras cada iteración) es una simplificación declarada de la barrera progresiva de Audet y Dennis (2009) tal como la enuncian Hallé-Hannan y Tribes (2026, sección 2,3); las reglas exactas de actualización, que esa sección remite a Audet y Hare (2017, capítulo 12), no se consultaron; nunca sube, como exige la barrera progresiva.' },
     ],
     figure: { caption: { en: 'One iteration: the poll one mesh step from the feasible incumbent, the screen\'s candidates one and two steps away, and the one it proposes to the engine.', es: 'Una iteración: el sondeo a un paso de malla del incumbente factible, los candidatos del filtro a uno y dos pasos, y el que propone al motor.' }, render: lang => <OptimizerFigure lang={lang} /> },
     refs: ['torczon1997', 'audet2009', 'halle2026', 'booker1999', 'rasmussen2006', 'audet2017', 'larson2019', 'powell1994'],

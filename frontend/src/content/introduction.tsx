@@ -126,7 +126,7 @@ function StreamFigure({ lang }: { lang: Lang }) {
 
 function VariantFigure({ lang }: { lang: Lang }) {
   const p = (en: string, es: string) => pick(lang, en, es);
-  const cx = 220, cy = 132, R = 80;
+  const cx = 250, cy = 132, R = 80;
   const spokes: Array<[string, string]> = [
     [p('harder ore', 'mineral más duro'), p('Wi × 1.25', 'Wi × 1,25')],
     [p('coarser grind', 'molienda más gruesa'), p('P80 × 1.35', 'P80 × 1,35')],
@@ -135,7 +135,7 @@ function VariantFigure({ lang }: { lang: Lang }) {
     [p('more air', 'más aire'), p('Jg × 1.4', 'Jg × 1,4')],
   ];
   return (
-    <svg className="fig-svg" viewBox="0 0 440 384" role="img" aria-label={p('Every variant changes one input of the nominal state by a declared factor; two run the circuit in the cut mode', 'Cada variante cambia una entrada del estado nominal por un factor declarado; dos corren el circuito en el modo de corte')}>
+    <svg className="fig-svg" viewBox="0 0 500 384" role="img" aria-label={p('Every variant changes one input of the nominal state by a declared factor; two run the circuit in the cut mode', 'Cada variante cambia una entrada del estado nominal por un factor declarado; dos corren el circuito en el modo de corte')}>
       {spokes.map(([name, factor], k) => {
         const a = -Math.PI / 2 + (2 * Math.PI * k) / spokes.length;
         const x = cx + R * Math.cos(a), y = cy + R * Math.sin(a);
@@ -154,10 +154,10 @@ function VariantFigure({ lang }: { lang: Lang }) {
       })}
       <circle cx={cx} cy={cy} r="26" className="dg-fill-accent" />
       <text className="dg-box-title" x={cx} y={cy + 4} textAnchor="middle">nominal</text>
-      <rect className="of-dg-frame" x="20" y="246" width="400" height="80" rx="8" />
-      <text className="dg-box-title" x="32" y="266">{p('Levers of their own', 'Palancas propias')}</text>
-      <text className="dg-box-sub" x="32" y="284">{p('gold: bleed × 2 instead of more air', 'oro: purga × 2 en lugar de más aire')}</text>
-      <text className="dg-box-sub" x="32" y="300">{p('magnetite: P80 × 0.75, CSS × 0.8 (no flotation)', 'magnetita: P80 × 0,75, CSS × 0,8 (sin flotación)')}</text>
+      <rect className="of-dg-frame" x="50" y="246" width="400" height="80" rx="8" />
+      <text className="dg-box-title" x="62" y="266">{p('Levers of their own', 'Palancas propias')}</text>
+      <text className="dg-box-sub" x="62" y="284">{p('gold: bleed × 2 instead of more air', 'oro: purga × 2 en lugar de más aire')}</text>
+      <text className="dg-box-sub" x="62" y="300">{p('magnetite: P80 × 0.75, CSS × 0.8 (no flotation)', 'magnetita: P80 × 0,75, CSS × 0,8 (sin flotación)')}</text>
       <text className="dg-box-sub" x="32" y="316">{p('phosphate: cut × 1.5 instead of air; collector × 1.4', 'fosfato: corte × 1,5 en lugar de aire; colector × 1,4')}</text>
       <rect className="of-dg-frame" x="20" y="334" width="400" height="42" rx="8" />
       <text className="dg-box-title" x="32" y="352">{p('Cut mode, every case', 'Modo de corte, cada caso')}</text>

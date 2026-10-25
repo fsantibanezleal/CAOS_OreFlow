@@ -55,8 +55,8 @@ const config: ShellConfig = {
     },
     license: { en: "MIT", es: "MIT" },
     provenance: {
-      en: "HZDR 336 · CC BY 4.0",
-      es: "HZDR 336 · CC BY 4.0",
+      en: "HZDR record 336",
+      es: "Registro HZDR 336",
     },
     disclaimer: {
       en: "Research only; not plant-calibrated",
