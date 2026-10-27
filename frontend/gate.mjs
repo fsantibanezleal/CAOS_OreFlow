@@ -744,12 +744,65 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   await page.waitForTimeout(300);
   const focus = await measure(page, '.caos-focus-stage');
   record(`${tag} focus`, focus.stage >= 0.8 && focus.largestViz >= 0.8 && !focus.overX && focus.fits && focus.filled && !focus.overY && focus.lang === lang, focus);
+  // WB-016: exercise the rendered sequence against the solved unit topology; stepping changes the active
+  // flowsheet unit and its measured stream ledger, and autoplay advances before pause is accepted.
+  if (tag === '1280x800-dark-en') {
+    const tour = page.locator('.of-walkthrough');
+    const initial = await tour.locator('.of-walkthrough-unit').textContent();
+    const initialSelected = await page.locator('.caos-focus-stage .of-flow-unit.selected').getAttribute('aria-label');
+    await tour.locator('button').filter({ hasText: 'Next operation' }).click();
+    const stepped = await tour.locator('.of-walkthrough-unit').textContent();
+    const selected = await page.locator('.caos-focus-stage .of-flow-unit.selected').getAttribute('aria-label');
+    const ledger = await tour.locator('.of-walkthrough-streams li').count();
+    await tour.locator('input[type=range]').fill('700');
+    await tour.locator('button').filter({ hasText: 'Play walkthrough' }).click();
+    await page.waitForTimeout(850);
+    const advanced = await tour.locator('.of-walkthrough-heading > span').textContent();
+    await tour.locator('button').filter({ hasText: 'Pause walkthrough' }).click();
+    await page.waitForTimeout(800);
+    const pausedAt = await tour.locator('.of-walkthrough-heading > span').textContent();
+    record(`${tag} WB-016 calculated unit walkthrough`, initial !== stepped && stepped === selected && initialSelected !== selected && ledger > 0 && Number(advanced.split('/')[0].trim()) > 2 && pausedAt === advanced,
+      { initial, stepped, selected, ledger, advanced, pausedAt });
+  }
   await page.screenshot({ path: join(OUT, `focus-${tag}.png`) });
   await page.locator('.caos-focus-actions button').last().click();
   await page.waitForSelector('.of-bench .of-readout-item strong', { timeout: 60000 });
   const after = new URL(page.url()).searchParams;
   const same = ['case', 'variant', 'set'].every(key => (before.get(key) ?? '') === (after.get(key) ?? ''));
   record(`${tag} focus round trip`, same, { before: before.toString(), after: after.toString() });
+
+  // VR-09: change every authored case in the live selector and inspect the solved topology, controls and
+  // readout. Four real process families must appear; the magnetic and desliming cases cannot inherit flotation.
+  if (tag === '1280x800-dark-en') {
+    const picker = page.locator('.of-rail-case-selector select');
+    const ids = await picker.locator('option').evaluateAll(options => options.map(option => option.value).filter(Boolean));
+    const records = [];
+    for (const id of ids) {
+      await picker.selectOption(id);
+      await page.waitForFunction(expected => {
+        const main = document.querySelector('.of-main');
+        return main?.getAttribute('data-case') === expected && !main.hasAttribute('data-state');
+      }, id, { timeout: 60000 });
+      await page.waitForSelector('.of-view-host svg.of-flowmap .of-flow-unit', { timeout: 60000 });
+      records.push(await page.evaluate(() => ({
+        id: document.querySelector('.of-main')?.getAttribute('data-case'),
+        units: [...document.querySelectorAll('.of-view-host svg.of-flowmap .of-flow-unit')].map(node => node.getAttribute('aria-label')),
+        controls: [...document.querySelectorAll('.of-rail input[type=range]')].map(node => node.id),
+        metrics: [...document.querySelectorAll('.of-readout-item strong')].map(node => node.textContent.trim()),
+      })));
+    }
+    const signatures = new Set(records.map(item => item.units.join('|')));
+    const magnetite = records.find(item => item.id === 'iron_magnetite_fine');
+    const desliming = records.find(item => item.id === 'phosphate_clay');
+    const gravity = records.find(item => item.id === 'gold_free_milling');
+    const all = records.length === 12 && records.every(item => item.units.length >= 4 && item.controls.length > 0 && item.metrics.length >= 4);
+    const distinct = signatures.size >= 4 && magnetite?.units.some(name => /LIMS cleaner/i.test(name)) &&
+      !magnetite.units.some(name => /^Rougher$/i.test(name)) && desliming?.units.some(name => /Desliming/i.test(name)) &&
+      gravity?.units.some(name => /Gravity bleed/i.test(name));
+    record(`${tag} VR-09 all authored case topologies`, all && distinct, { cases: records.length, topologyFamilies: signatures.size,
+      magnetite: magnetite?.units, desliming: desliming?.units, gravity: gravity?.units,
+      missing: records.filter(item => item.units.length < 4 || !item.controls.length || item.metrics.length < 4).map(item => item.id) });
+  }
 
   // the content pages keep the document scroll (ADR-0071 rule 1 binds the App route); every tab and
   // sub-tab of every page must not scroll sideways, must carry the interface language, must render its

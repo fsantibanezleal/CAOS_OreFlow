@@ -23,6 +23,7 @@ import { useCaseState, useLoaded } from './Workbench';
 import { GRINDING_CHARTS, grindingCharts, type GrindingChart } from './views/GrindingView';
 import { ResponseView } from './views/ResponseView';
 import { SEPARATION_CHARTS, separationCharts, type SeparationChart } from './views/SeparationView';
+import { FocusWalkthrough } from './FocusWalkthrough';
 
 type Stage = 'flowsheet' | GrindingChart | SeparationChart | 'response';
 
@@ -116,6 +117,8 @@ export default function FocusWorkbench({ focusMode }: { focusMode: ReturnType<ty
           if (next) setVariant(next.id, next.point);
         }}>{artifact.variants.map(v => <option key={v.id} value={v.id}>{v.label[lang]}</option>)}</select></label>}
       {source === 'sample' && sample && <p className="of-rail-question">{sample.id}</p>}
+      {stage === 'flowsheet' && trace && <FocusWalkthrough key={`${caseId}:${variantId}:${source}:${sampleId ?? ''}:${hourKey ?? ''}`}
+        trace={trace} primary={primary} lang={lang} caseId={caseId} selected={selectedUnit} onSelect={selectUnit} />}
       <div className="of-rail-sections" role="group" aria-label={TEXT.controls[lang]}>
         <button type="button" className={advanced ? '' : 'active'} aria-pressed={!advanced} onClick={() => setAdvanced(false)}>{t(UI.basic, lang)}</button>
         <button type="button" className={advanced ? 'active' : ''} aria-pressed={advanced} onClick={() => setAdvanced(true)}>{t(UI.advanced, lang)}</button>
