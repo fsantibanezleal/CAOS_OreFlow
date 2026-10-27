@@ -1,6 +1,6 @@
 {
   "name": "oreflow-workbench",
-  "version": "0.10.2",
+  "version": "0.10.3",
   "private": true,
   "type": "module",
   "engines": {
@@ -14,7 +14,8 @@
     "build": "npm run typecheck && node copy-data.mjs && vite build",
     "preview": "vite preview --host 127.0.0.1 --port 4914 --strictPort",
     "gate": "node scripts/gate.mjs",
-    "gate:oreflow": "node gate.mjs"
+    "gate:oreflow": "node gate.mjs",
+    "gate:walkthrough": "node walkthrough-gate.mjs"
   },
   "dependencies": {
     "@fasl-work/caos-app-shell": "0.19.2",
