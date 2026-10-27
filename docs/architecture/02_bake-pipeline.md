@@ -53,6 +53,7 @@ workers and the learning stage about an hour on an idle machine since 0.09.000, 
 doubled the engine's cost (every target-mode optimizer has run twice, with and without the screen, and along the
 weight path since 0.07.000); both run several times longer when another job holds the machine's cores. The
 measurements (cases, then learning):
+- 5787 s and 11397 s for the committed 0.10.004 bake, with studies in 536 s and real samples in 145 s on 12 workers;
 - 3517 s and 3577 s for the committed 0.10.002 bake, with studies in 316 s and real samples in 124 s on 4 workers;
 - 7611 s and 6901 s for the committed 0.10.001 bake (cases and learning respectively), with studies in 623 s and real samples in 320 s on 4 workers;
 - 1849 s and 3610 s for the first 0.09.000 bake of 2026-10-05, on an otherwise idle machine, superseded the same
