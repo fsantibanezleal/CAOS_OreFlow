@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.004] - 2026-10-27
+
+### Changed
+- Expand the bilingual research notebook curriculum to five topics and three levels: comminution, flotation kinetics, machine-learning validation, constrained optimization, and uncertainty/sensitivity analysis.
+- Correct reversed English and Spanish lesson explanations and add regression coverage for notebook language pairing.
+- Add executed lessons that call OreFlow production optimization and uncertainty/sensitivity APIs, compare search effort and weight paths, and run seeded Saltelli/Sobol analysis with explicit interpretation limits.
+- Pin SALib 1.6.0 and add optimization and uncertainty research references to the SDD.
+
 ## [0.10.003] - 2026-10-26
 
 ### Changed

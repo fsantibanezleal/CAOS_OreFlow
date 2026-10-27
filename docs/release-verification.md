@@ -2,6 +2,21 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.10.004, 2026-10-27
+
+### Local gate
+
+- Expanded the applied notebook curriculum to 30 lessons: five topics (comminution, flotation kinetics, ML validation, constrained optimization, uncertainty and sensitivity), three levels, and English/Spanish mirrors. The notebooks use OreFlow's production APIs and records, carry sourced explanations and limitations, and include seeded SALib Sobol studies. Fixed the generator's reversed language-specific instructions.
+- `scripts/check_notebooks.py` passes; all 30 notebooks execute in place and in fresh kernels from a clean temporary copy.
+- Rebuilt all release artifacts for engine 0.10.004 on an RTX 4070 Laptop GPU. Validation passed for 12 cases / 96 variants, learning, benchmark, studies and measured-sample lanes; CUDA training/export and ONNX parity completed. Bake timings: learning 11397.0 s, cases 5786.6 s on 12 workers, studies 536.4 s and real samples 145.1 s. Contract digest `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`.
+- Regenerated all 13 use-case pages and refreshed the manuscript and bake guides from the 0.10.004 records. Updated benchmark claims and record-derived assertions to the new deterministic bake.
+- The complete `scripts/smoke.ps1` gate passed: repository guards, SDD (124 requirements), artifact and generated-page checks, Ruff, full Python suite, nine framework/API examples including CUDA and ONNX, frontend typecheck, 53 files / 505 tests, and production build. The standalone notebook runner also passed all 30 notebooks in fresh kernels.
+- The full local browser gate passed 1,314 checks across 1280x800, 1600x900 and 2560x1440 desktop sizes, 390x844 phone and 768x1024 tablet; both themes and languages; every content tab; workbench, Focus, optimizer, uncertainty, data sources and the calculated Focus walkthrough. No layout, data-load, equation, interaction or browser-console failures were recorded. The first run exposed a gate locator using visible text for accessible-name-only icon buttons; the locator was corrected, and the complete rerun passed.
+
+### Remote gate
+
+- Release PR #104 is open toward `develop`; CI, develop-to-main promotion, immutable tag, VPS deployment and public-host verification are pending. Local validation is not a live release.
+
 ## 0.10.002, 2026-10-25
 
 ### Local gate

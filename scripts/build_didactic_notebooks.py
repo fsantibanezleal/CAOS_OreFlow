@@ -6,7 +6,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PINS = ["numpy==2.2.6", "scipy==1.17.1", "pandas==2.2.3", "matplotlib==3.11.2",
-        "nbclient==0.11.0", "nbformat==5.11.1", "ipykernel==7.4.0"]
+        "nbclient==0.11.0", "nbformat==5.11.1", "ipykernel==7.4.0", "SALib==1.6.0"]
 
 # Each lesson is intentionally authored by topic and level. The same APIs, cells and evidence are mirrored
 # in Spanish; only language-facing prose, labels and comments change.
@@ -168,7 +168,8 @@ def lesson_doc(language: str, topic: str, number: int, lesson: dict) -> dict:
         cells.append(md(f"## Estado del arte\n\n{lesson['sota']}"))
     lesson_cells = lesson["cells"] or (LESSONS[topic]["en"][number - 1]["cells"] if es else [])
     for instruction, program in lesson_cells:
-        explanation = instruction[0] if es else instruction[1]
+        # Instruction pairs are authored in (English, Spanish) order.
+        explanation = instruction[1] if es else instruction[0]
         if es:
             program = spanish_code(program)
         if not any(line.lstrip().startswith("#") for line in program.splitlines()):
@@ -200,6 +201,23 @@ def main() -> None:
                 path.write_text(json.dumps(lesson_doc(language, topic, level, lesson), ensure_ascii=False, indent=1) + "\n", encoding="utf-8")
                 what = lesson["objective"]
                 sections.append(f"- [{lesson['title']}]({topic}/{slug}.ipynb), level {level}: {what}\n")
+            sections.append("\n")
+        # Preserve separately authored advanced topics (for example optimization and uncertainty) when the
+        # core lesson generator is rerun; notebooks remain the source of truth for those curriculum entries.
+        extra_topics = sorted(p for p in (ROOT / "notebooks" / language).iterdir()
+                              if p.is_dir() and p.name not in LESSONS)
+        for extra_number, folder in enumerate(extra_topics, len(LESSONS) + 1):
+            sections.append(f"## {extra_number:02d} {folder.name}\n")
+            for path in sorted(folder.glob("*.ipynb")):
+                notebook = json.loads(path.read_text(encoding="utf-8"))
+                level = int(notebook["metadata"]["caos"]["level"])
+                title = notebook["metadata"]["caos"]["title"]
+                objective_heading = "## Objetivos" if language == "es" else "## Objectives"
+                objective = next("".join(cell["source"]).split("\n\n", 1)[1]
+                                 for cell in notebook["cells"]
+                                 if cell["cell_type"] == "markdown"
+                                 and "".join(cell["source"]).startswith(objective_heading))
+                sections.append(f"- [{title}]({folder.name}/{path.name}), level {level}: {objective.strip()}\n")
             sections.append("\n")
         (ROOT / "notebooks" / language / "README.md").write_text("\n".join(sections).rstrip() + "\n", encoding="utf-8")
 

@@ -46,6 +46,12 @@ Data file: content/executive.json
 - Kingma and Ba (2015), Adam optimization. https://doi.org/10.48550/arXiv.1412.6980. The learned-lane MLP uses Adam; the notebook compares established estimators and makes no algorithm novelty claim.
 - Rasmussen and Williams (2006), *Gaussian Processes for Machine Learning*. https://doi.org/10.1017/CBO9780511790423. The learned lane reports empirical interval coverage for its Gaussian-process model.
 - Global Mining Guidelines Group (2021), *Determining the Bond Efficiency of Industrial Grinding Circuits*, GMG01-MP-2021. https://www.globalminingguidelines.org/guidelines/bond-efficiency/. OreFlow documents its Bond-method applicability and fineness caveats.
+- Torczon (1997), pattern search methods for nonlinear optimization. https://doi.org/10.1137/S1052623493250780. OreFlow uses a generalized pattern search over the declared operating bounds.
+- Audet and Dennis (2009), mesh adaptive direct search algorithms for constrained optimization. https://doi.org/10.1137/070692662. OreFlow uses a declared progressive-barrier simplification and records its limits in `docs/methodologies/12_optimization.md`.
+- Booker et al. (1999), managing the evaluation of engineering design problems with surrogate models. https://doi.org/10.1007/BF01197708. OreFlow's optimizer uses a guarded surrogate to order search proposals while the process engine remains the objective evaluator.
+- Saltelli et al. (2010), variance-based sensitivity analysis of model output. https://doi.org/10.1016/j.cpc.2009.09.018. OreFlow estimates first-order and total Sobol indices and documents sampling limitations in `docs/methodologies/13_uncertainty-sensitivity.md`.
+- Herman and Usher (2017), SALib: an open-source Python library for sensitivity analysis. https://doi.org/10.21105/joss.00097. OreFlow uses SALib for its scrambled Sobol design and index estimation.
+- McKay, Beckman and Conover (1979), comparison of three methods for selecting values of input variables in the analysis of output from a computer code. https://doi.org/10.1080/00401706.1979.10489755. OreFlow uses a seeded Latin-hypercube design for uncertainty propagation.
 
 UNVERIFIED: authored circuit parameter ranges are scenario assumptions, not plant measurements or calibration. The iron-plant dataset's measurements are kept in a separate predictive lane and do not validate the simulator.
 - OreFlow source and derived records: https://github.com/fsantibanezleal/CAOS_OreFlow/tree/develop/data/derived. Authored scenarios and measured-data lanes are distinguished in every artifact.

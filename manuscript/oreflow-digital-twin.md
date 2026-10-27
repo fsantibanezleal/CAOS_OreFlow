@@ -2,7 +2,7 @@
 
 Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research programme, Santiago, Chile
 
-Draft of 2026-10-25, written against OreFlow 0.10.002. Not deposited; no DOI. Every number below is read
+Draft of 2026-10-27, written against OreFlow 0.10.004. Not deposited; no DOI. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
 `data/derived/source/*.json`, the twelve case artifacts, the operating contract and the validation record), and
 `tests/test_manuscript_claims.py` fails if one of them and the records disagree. The test counts of section 9 are
@@ -340,9 +340,9 @@ surrogate preserves the ranking of operating decisions.
 ## 9. Reproducibility
 
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
-the browser port, the service and the documentation are versioned together; this draft describes 0.10.002.
+the browser port, the service and the documentation are versioned together; this draft describes 0.10.004.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
-workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed 0.10.002 precompute took 3517 s for the cases on 4 workers and 3577 s for the learned lane. The MLP final fit used CUDA; this is a simulator precompute over authored cases, not a plant deployment.
+workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed 0.10.004 precompute took 5787 s for the cases on 12 workers and 11397 s for the learned lane. The MLP final fit used CUDA; this is a simulator precompute over authored cases, not a plant deployment.
 `./scripts/smoke.ps1` runs the checks: the guards, the Python and frontend suites and the build, with the counts
 of each release in `docs/release-verification.md`. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.

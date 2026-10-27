@@ -30,3 +30,23 @@ Bilingual practical lessons grounded in OreFlow's committed process cases and im
 - [Trace the design and leakage-safe validation splits](03-learning/02-the-method.ipynb), level 2: Generate a small deterministic design through OreFlow's pipeline, inspect its within-case interpolation and whole-case holdout indices, and relate these protocols to the committed full-size validation.
 
 - [Compare surrogates and transfer to unseen ores](03-learning/03-research-comparison.ipynb), level 3: Compare model families on identical targets and interpolation rows, inspect whole-case transfer and Gaussian-process coverage, and assess what the evidence says about generalization limits.
+
+
+
+## 04 04-optimization
+
+- [Read an operating-point optimization record](04-optimization/01-the-record.ipynb), level 1: Separate the operating decisions, objective, feasibility constraints and measured search effort in the committed optimizer result. Explain why an optimum is conditional on the authored case and its contract.
+
+- [Run and inspect the pattern search](04-optimization/02-the-method.ipynb), level 2: Run OreFlow's production optimizer on the soft porphyry case, inspect its actual evaluation trace and test whether the final point satisfies each declared physical constraint.
+
+- [Evaluate surrogate-screened search](04-optimization/03-research-comparison.ipynb), level 3: Compare the screened and unscreened search evidence in the same committed benchmark row, then interpret how the objective weight changes recovery-energy trade-offs.
+
+
+
+## 05 05-uncertainty
+
+- [Distinguish process variation from uncertainty](05-uncertainty/01-the-record.ipynb), level 1: Read the committed uncertainty record, identify its uncertain ore inputs and output quantiles, and explain why an interval around one simulated state is not a plant confidence interval.
+
+- [Propagate a seeded uncertainty design](05-uncertainty/02-the-method.ipynb), level 2: Run OreFlow's uncertainty function on a teaching-sized seeded design, inspect the simulated recovery distribution and compare the nominal point with its sampled range.
+
+- [Estimate variance-based input sensitivity](05-uncertainty/03-research-comparison.ipynb), level 3: Run the production Saltelli-Sobol sensitivity method on a bounded teaching design, rank first-order and total effects, and explain why small-design indices are exploratory estimates.

@@ -169,7 +169,7 @@ describe('the Benchmark page says what the records hold', () => {
     expect([withScreen, without, round(100 * (withScreen / without - 1), 1)]).toEqual([26367, 22487, 17.3]);
     const change = screened.map(x => x.r.evaluations - x.r.evaluations_without_screen!);
     expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([0, 68, 4]);
-    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5811, 79034, 901]);
+    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5811, 79035, 901]);
     // the rejections by reason are in the case records' per-start screen counts
     const rejected = { guard: 0, interval: 0 };
     for (const x of screened) {
@@ -177,7 +177,7 @@ describe('the Benchmark page says what the records hold', () => {
         .variants.find(v => v.id === x.v)!.methods.optimization.starts;
       for (const s of starts) { rejected.guard += s.screen.rejected.guard; rejected.interval += s.screen.rejected.interval; }
     }
-    expect([rejected.guard, rejected.interval]).toEqual([19, 48268]);
+    expect([rejected.guard, rejected.interval]).toEqual([19, 48266]);
     const errors = screened.map(x => x.r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
     expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.66);
     const differ = screened.filter(x => !x.r.same_optimum_without_screen);
@@ -280,7 +280,7 @@ describe('the Benchmark page says what the records hold', () => {
     expect(round(s.mlp.log_upgrade.loco_r2_median, 3)).toBe(0.243);
     const gp = learning.interpolation.models.gaussian_process;
     const coverage = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'].map(t => 100 * gp[t].coverage_95);
-    expect(coverage.map(c => round(c, 1))).toEqual([90.7, 91.3, 93.6]);
+    expect(coverage.map(c => round(c, 1))).toEqual([90.7, 91.3, 93.8]);
     expect(coverage.every(c => c < 95)).toBe(true);
     expect(round(100 * learning.guard.false_alarm_rate, 1)).toBe(1.5);
     expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(15.5);
@@ -414,15 +414,15 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
 
   it('M-07, M-08, M-12: the upgrade among the copper plants, the coverage under both protocols, the energy failures', () => {
     const med = (m: string) => round(median(copper.map(c => fold(c).models[m].log_upgrade.r2)), 2);
-    expect([med('gaussian_process'), med('mlp'), med('hist_gradient_boosting'), med('random_forest'), med('ridge')]).toEqual([0.93, 0.95, 0.11, 0.23, -5.88]);
+    expect([med('gaussian_process'), med('mlp'), med('hist_gradient_boosting'), med('random_forest'), med('ridge')]).toEqual([0.92, 0.95, 0.11, 0.23, -5.88]);
     const gp = learning.summary.gaussian_process, targets = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'];
-    expect(targets.map(t => round(100 * gp[t].loco_coverage_pooled, 1))).toEqual([82.9, 67.8, 86.8]);
+    expect(targets.map(t => round(100 * gp[t].loco_coverage_pooled, 1))).toEqual([82.9, 68.1, 86.9]);
     expect(targets.map(t => round(100 * gp[t].loco_coverage_worst, 1))).toEqual([35.5, 0.0, 43.8]);
     const phosphate = fold('phosphate_clay').models;
     expect([round(phosphate.gaussian_process.specific_energy_total_kwh_t.r2, 1), Math.round(phosphate.mlp.specific_energy_total_kwh_t.r2)]).toEqual([-0.9, 0]);
     const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/copper-group median upgrade R² is 0\.93 for the Gaussian process, 0\.95 for the MLP, 0\.11 for gradient boosting, 0\.23 for the forest and -5\.88 for ridge/);
-    expect(text).toMatch(/coverage is 90\.7, 91\.3 and 93\.6% under interpolation and 82\.9, 67\.8 and 86\.8% with one case out/);
+    expect(text).toMatch(/copper-group median upgrade R² is 0\.92 for the Gaussian process, 0\.95 for the MLP, 0\.11 for gradient boosting, 0\.23 for the forest and -5\.88 for ridge/);
+    expect(text).toMatch(/coverage is 90\.7, 91\.3 and 93\.8% under interpolation and 82\.9, 68\.1 and 86\.9% with one case out/);
     expect(text).toMatch(/on phosphate the Gaussian process and MLP score -0\.9 and 0\.0/);
   });
 
