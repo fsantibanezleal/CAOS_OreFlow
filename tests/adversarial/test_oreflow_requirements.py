@@ -401,9 +401,25 @@ def test_adversarial_vr_08():
 
 def test_adversarial_vr_09():
     _check("web")
+    browser_gate = (ROOT / "frontend/gate.mjs").read_text(encoding="utf-8")
+    focused_gate = (ROOT / "frontend/walkthrough-gate.mjs").read_text(encoding="utf-8")
+    assert "VR-09 all authored case topologies" in browser_gate
+    assert "VR-09 all 12 case circuits, controls and results" in focused_gate
 
 def test_adversarial_vr_10():
     _check("web")
 
 def test_adversarial_vr_11():
     _check("web")
+
+def test_adversarial_wb_016():
+    _check("web")
+    workbench = (ROOT / "frontend/src/workbench/FocusWorkbench.tsx").read_text(encoding="utf-8")
+    tour = (ROOT / "frontend/src/workbench/FocusWalkthrough.tsx").read_text(encoding="utf-8")
+    browser_gate = (ROOT / "frontend/gate.mjs").read_text(encoding="utf-8")
+    focused_gate = (ROOT / "frontend/walkthrough-gate.mjs").read_text(encoding="utf-8")
+    assert "<FocusWalkthrough" in workbench
+    for required in ("walkthroughUnits", "Play walkthrough", "Pause walkthrough", "Step interval", "Feed to this operation", "Products from this operation", "Balance closure error", "not elapsed plant time"):
+        assert required in tour, f"Focus walkthrough is missing {required!r}"
+    assert "WB-016 calculated unit walkthrough" in browser_gate
+    assert "WB-016 step/play/pause" in focused_gate and "narrow viewport reachability" in focused_gate

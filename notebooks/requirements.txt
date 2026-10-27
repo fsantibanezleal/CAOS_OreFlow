@@ -1,5 +1,6 @@
-# Exact pins used by the bilingual didactic notebooks.
+# Exact pins for OreFlow's pipeline-backed bilingual lessons.
 numpy==2.2.6
+scipy==1.17.1
 pandas==2.2.3
 matplotlib==3.11.2
 nbclient==0.11.0

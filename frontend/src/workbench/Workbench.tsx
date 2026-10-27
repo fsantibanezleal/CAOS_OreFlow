@@ -67,7 +67,7 @@ function useRecord<T>(wanted: boolean, load: () => Promise<T>): T | null {
  * engine runs the sample's ore; the sample's head grade and work index are validated apart from the synthetic
  * envelope, which the samples' assays lie outside (RS-08). An iron-plant hour is never simulated.
  */
-export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
+export function useCaseState(loaded: Loaded | null, params: URLSearchParams, enabled = true) {
   const { caseId, variantId, point, source, sampleId, setCase, setVariant, setPoint, setView, setSource, setSample, setHour } = useWorkbench();
   const samples = useRecord<RealSamples>(source === 'sample', loadRealSamples);
   const lane = useRecord<IronPlant>(source === 'hour', loadIronPlant);
@@ -157,6 +157,7 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
 
   // validate, then evaluate in the worker; only the newest state's trace is kept
   useEffect(() => {
+    if (!enabled) { setComputing(false); return; }
     if (!loaded || !artifact || !point || artifact.case_id !== caseId || source === 'hour') return;
     if (source === 'sample' && (!sample || appliedSample.current !== sample.id)) return;
     const nominal = loaded.contract.cases[caseId].nominal;
@@ -178,7 +179,7 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams) {
         if (String(error?.message ?? error) !== 'superseded') setComputing(false);
       },
     );
-  }, [loaded, artifact, point, caseId, source, sample]);
+  }, [enabled, loaded, artifact, point, caseId, source, sample]);
 
   const variant = artifact?.variants.find(v => v.id === variantId) ?? null;
   return { artifact, variant, trace: source === 'hour' || traceSubject !== subject ? null : trace, accepted, errors, computing, samples, lane, sample,
@@ -221,7 +222,7 @@ export default function Workbench() {
   const location = useLocation();
   const { caseId, variantId, base, point, view, selectedUnit, source, sampleId, hourKey, setView, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
-  const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample, rejected } = useCaseState(loaded, params);
+  const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample, rejected } = useCaseState(loaded, params, !focusMode.show);
   const [cursor, setCursor] = useState<string | null>(null);
 
   // the state travels in the URL (replace, so the back button leaves the page instead of undoing a slider)

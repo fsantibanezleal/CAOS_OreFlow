@@ -542,6 +542,26 @@ input, select, textarea { font: inherit; }
 .of-focus-rail { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
 .of-focus-rail .of-field { width: 100%; }
 .of-focus-rail .of-field select { width: 100%; }
+.of-walkthrough { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
+.of-walkthrough-heading, .of-walkthrough-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.of-walkthrough-heading h3 { margin: 0; font-size: 0.9rem; font-weight: 650; }
+.of-walkthrough-heading > span { color: var(--color-fg-subtle); font: 0.72rem var(--font-mono); }
+.of-walkthrough-unit { margin: 0; font-size: 1rem; font-weight: 650; }
+.of-walkthrough-actions button { min-height: 34px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface-2); color: var(--color-fg); cursor: pointer; }
+.of-walkthrough-step { width: 36px; font-size: 1.1rem; }
+.of-walkthrough-play { flex: 1; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.78rem; }
+.of-walkthrough-actions button:disabled { opacity: 0.45; cursor: default; }
+.of-walkthrough-interval { display: grid; gap: 3px; color: var(--color-fg-subtle); font-size: 0.72rem; }
+.of-walkthrough-interval input { width: 100%; accent-color: var(--color-accent); }
+.of-walkthrough-streams h4 { margin: 7px 0 3px; color: var(--color-fg-subtle); font-size: 0.69rem; font-weight: 650; text-transform: uppercase; letter-spacing: 0.035em; }
+.of-walkthrough-streams ul { display: grid; gap: 3px; margin: 0; padding: 0; list-style: none; }
+.of-walkthrough-streams li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 0 7px; font-size: 0.72rem; }
+.of-walkthrough-streams li > span { overflow-wrap: anywhere; }
+.of-walkthrough-streams li > strong, .of-walkthrough-streams li > small { font-family: var(--font-mono); font-size: 0.68rem; text-align: right; }
+.of-walkthrough-streams li > small { grid-column: 1 / -1; color: var(--color-fg-subtle); }
+.of-walkthrough-closure, .of-walkthrough-note { margin: 0; color: var(--color-fg-subtle); font-size: 0.7rem; line-height: 1.35; }
+.of-walkthrough-closure { display: flex; justify-content: space-between; gap: 8px; }
+.of-walkthrough-closure strong { color: var(--color-fg); font-family: var(--font-mono); }
 
 /* ---- narrow screens: the rail stacks above the instrument, and the page body is the one scroller ---- */
 @media (max-width: 860px) {

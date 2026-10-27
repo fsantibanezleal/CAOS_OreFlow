@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.001, 2026-10-25. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.003, 2026-10-26. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -40,6 +40,12 @@ Data file: content/executive.json
 - Kelsall (1961), flotation kinetics and perfect mixing, *Journal of the South African Institute of Mining and Metallurgy*. https://doi.org/10.1016/0301-7516(81)90019-3. OreFlow compares first-order and distributed-rate models; its rates are not calibrated plant constants.
 - Breiman (2001), random forests, *Machine Learning* 45, 5-32. https://doi.org/10.1023/A:1010933404324. The learned lane includes this estimator, alongside linear, boosting, Gaussian-process and neural models.
 - Friedman (2001), greedy function approximation, *Annals of Statistics* 29(5), 1189-1232. https://doi.org/10.1214/aos/1013203451. The learned lane's histogram-gradient model is compared under interpolation, leave-one-case-out and grouped ore transfer.
+- Polat and Chander (2000), rate distributions in flotation kinetics, *International Journal of Mineral Processing*. https://doi.org/10.1016/S0301-7516(99)00069-1. The kinetic comparison includes distributed-rate fits.
+- Bu et al. (2017), flotation kinetic model comparison, *Physicochemical Problems of Mineral Processing*. https://doi.org/10.5277/ppmp170128. The kinetic comparison evaluates the published model families on one generated record.
+- Vinnett and Waters (2025), flotation kinetics, *Minerals Engineering*. https://doi.org/10.1016/j.mineng.2025.109246. This recent work informs the documented limitations of rate-distributed fits.
+- Kingma and Ba (2015), Adam optimization. https://doi.org/10.48550/arXiv.1412.6980. The learned-lane MLP uses Adam; the notebook compares established estimators and makes no algorithm novelty claim.
+- Rasmussen and Williams (2006), *Gaussian Processes for Machine Learning*. https://doi.org/10.1017/CBO9780511790423. The learned lane reports empirical interval coverage for its Gaussian-process model.
+- Global Mining Guidelines Group (2021), *Determining the Bond Efficiency of Industrial Grinding Circuits*, GMG01-MP-2021. https://www.globalminingguidelines.org/guidelines/bond-efficiency/. OreFlow documents its Bond-method applicability and fineness caveats.
 
 UNVERIFIED: authored circuit parameter ranges are scenario assumptions, not plant measurements or calibration. The iron-plant dataset's measurements are kept in a separate predictive lane and do not validate the simulator.
 - OreFlow source and derived records: https://github.com/fsantibanezleal/CAOS_OreFlow/tree/develop/data/derived. Authored scenarios and measured-data lanes are distinguished in every artifact.
@@ -307,7 +313,7 @@ verdict (ADR-0075). `scripts/check_sdd.py` checks that every live requirement na
 | Real samples | live since 0.07.000 | RS-01 to RS-10 | [requirements](features/real-samples/requirements.md), [design](features/real-samples/design.md), [tasks and verdict](features/real-samples/tasks.md) |
 | Iron-plant soft sensor | live since 0.07.000 | IS-01 to IS-06 | [requirements](features/industrial-soft-sensor/requirements.md), [design](features/industrial-soft-sensor/design.md), [tasks and verdict](features/industrial-soft-sensor/tasks.md) |
 | Ablations and page tabs | live since 0.07.000 | AB-01 to AB-04, PG-01 to PG-04 | [requirements](features/ablation-and-pages/requirements.md), [design](features/ablation-and-pages/design.md), [tasks and verdict](features/ablation-and-pages/tasks.md) |
-| Workbench shell and focus route | live since 0.10.000 | WB-014 to WB-015 | [requirements](features/web/requirements.md), [design](features/web/design.md), [validation](features/web/validation.md) |
+| Workbench shell and focus route | live since 0.10.000; topology walkthrough in 0.10.003 | WB-014 to WB-016 | [requirements](features/web/requirements.md), [design](features/web/design.md), [validation](features/web/validation.md) |
 | Operating envelope | superseded in 0.05.000 by the Response view and the optimizer | OE-01 to OE-07 | [requirements](features/operating-envelope/requirements.md), [design](features/operating-envelope/design.md), [tasks](features/operating-envelope/tasks.md) |
 | Visual rebuild | superseded in 0.05.000 by process engine v2, section 12 | VR-01 to VR-11 | [requirements](features/visual-rebuild/requirements.md), [design](features/visual-rebuild/design.md), [tasks](features/visual-rebuild/tasks.md) |
 

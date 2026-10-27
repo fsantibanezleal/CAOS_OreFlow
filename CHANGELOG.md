@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.003] - 2026-10-26
+
+### Changed
+- Add a Focus-mode process walkthrough that steps through the active case's solved unit topology and exposes the computed stream flows, payable grades and audited unit balance for each operation.
+- Add previous/next and play/pause controls with an adjustable inspection interval; state clearly that the sequence inspects a steady-state solution and does not represent elapsed plant time.
+- Add the WB-016 browser interaction gate and topology selection tests.
+- Write `.template-version` in the `CAOS_PRODUCT_TEMPLATE <version> (tag v<version>)` format so the CAOS base fleet survey recognizes the adopted 0.11.002 template.
+
 ## [0.10.002] - 2026-10-25
 
 ### Fixed
