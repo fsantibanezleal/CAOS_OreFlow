@@ -15,7 +15,10 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-- Release PR #104 is open toward `develop`; CI, develop-to-main promotion, immutable tag, VPS deployment and public-host verification are pending. Local validation is not a live release.
+- Release PR #104 merged to `develop` at `a700d67121bca75fa25c823895ff8b9f5bef8b0f`; develop CI run `40499568969` passed. Promotion PR #105 merged to `main` at `f1ee2339d8fb4ac31879909f64a6bde47fb514c7`; main CI run `40499951157` passed. Immutable tag `v0.10.004` and the GitHub Release were created at that main commit.
+- The VPS deployment script fast-forwarded `/opt/fasl-apps/CAOS_OreFlow` from `c2cee174e04066d5e3b02c3f76760b7db96a6629` to the tagged commit, installed runtime requirements, rebuilt the frontend, passed `nginx -t`, restarted `oreflow.service` and passed the retrying local health and catalog checks. The brief connection-refused retry after restart recovered; the service then reported 0.10.004. The checkout and build are owned by `fasl:fasl`, the checkout is clean and the temporary deployment script was removed.
+- External HTTPS verification: public `/healthz` reports 0.10.004; `/api/cases` reports 12 cases / 96 variants and the expected contract digest; nominal `POST /api/simulate` for soft copper porphyry, fine magnetite, free-milling gold and phosphate matches each baked recovery within `1.8e-13` absolute. Phosphate is served by the deslime-rougher family. A 50,000 t/h request returns HTTP 422. `/`, all five content routes and `/focus/copper_porphyry_soft` return HTTP 200.
+- The public browser gate (`OF_BASE=https://oreflow.ml.fasl-work.com`) passed 244 checks covering its desktop smoke combinations, content tabs, phone and tablet layouts, Focus, live optimizer and uncertainty reruns, source records, walkthrough, language/theme rendering and browser console. The 1,314-check full matrix passed against the same production bundle locally before release.
 
 ## 0.10.002, 2026-10-25
 
