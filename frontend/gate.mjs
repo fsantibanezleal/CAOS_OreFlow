@@ -750,15 +750,15 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
     const tour = page.locator('.of-walkthrough');
     const initial = await tour.locator('.of-walkthrough-unit').textContent();
     const initialSelected = await page.locator('.caos-focus-stage .of-flow-unit.selected').getAttribute('aria-label');
-    await tour.locator('button').filter({ hasText: 'Next operation' }).click();
+    await tour.getByRole('button', { name: 'Next operation' }).click();
     const stepped = await tour.locator('.of-walkthrough-unit').textContent();
     const selected = await page.locator('.caos-focus-stage .of-flow-unit.selected').getAttribute('aria-label');
     const ledger = await tour.locator('.of-walkthrough-streams li').count();
     await tour.locator('input[type=range]').fill('700');
-    await tour.locator('button').filter({ hasText: 'Play walkthrough' }).click();
+    await tour.getByRole('button', { name: 'Play walkthrough' }).click();
     await page.waitForTimeout(850);
     const advanced = await tour.locator('.of-walkthrough-heading > span').textContent();
-    await tour.locator('button').filter({ hasText: 'Pause walkthrough' }).click();
+    await tour.getByRole('button', { name: 'Pause walkthrough' }).click();
     await page.waitForTimeout(800);
     const pausedAt = await tour.locator('.of-walkthrough-heading > span').textContent();
     record(`${tag} WB-016 calculated unit walkthrough`, initial !== stepped && stepped === selected && initialSelected !== selected && ledger > 0 && Number(advanced.split('/')[0].trim()) > 2 && pausedAt === advanced,
