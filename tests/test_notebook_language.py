@@ -45,3 +45,22 @@ def test_every_curriculum_pair_has_distinct_language_facing_steps() -> None:
         assert en_steps != es_steps, f"{path}: English and Spanish step prose is identical"
         assert not any(text.startswith(("Carga ", "Ejecuta ", "Inspecciona ", "Compara ")) for text in en_steps), path
         assert not any(text.startswith(("Load ", "Run ", "Inspect ", "Compare ")) for text in es_steps), counterpart
+
+
+def test_internal_method_tiers_never_appear_as_notebook_headings() -> None:
+    forbidden = (
+        "state of the art",
+        "beyond the state of the art",
+        "estado del arte",
+        "más allá del estado del arte",
+    )
+    for path in sorted((ROOT / "notebooks").glob("*/*/*.ipynb")):
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+        headings = [
+            "".join(cell["source"]) if isinstance(cell["source"], list) else cell["source"]
+            for cell in notebook["cells"]
+            if cell["cell_type"] == "markdown"
+        ]
+        for heading in headings:
+            first_lines = [line.strip().lower() for line in heading.splitlines() if line.lstrip().startswith("#")]
+            assert not any(term in line for line in first_lines for term in forbidden), path

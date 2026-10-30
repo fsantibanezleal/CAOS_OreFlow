@@ -1,7 +1,7 @@
 # Guide: write the product's notebooks
 
 The notebooks are the product's didactic layer: they teach a reader, step by step and on the product's own data, how
-its methods work, where each method stands against the state of the art, and what the product adds beyond it. They
+its methods work, how published methods compare on shared evidence, and what the product contributes. They
 import the product's methods and never re-implement them; logic that exists only in a notebook is incomplete. The
 rule is CAOS_MANAGE `conventions/product-notebooks.md`; this guide is how a product applies it. The template ships an
 example set on the OreFlow process model, which a product replaces (`scripts/check_template_residue.py` lists it).
@@ -31,14 +31,14 @@ notebooks/
 |---|---|---|
 | 1 | Fundamentals | the problem in its context, the data, the idea of the method, a first run on a small real slice |
 | 2 | The method in practice | the full algorithm step by step on the data, every intermediate shown, the product's validation of the result |
-| 3 | State of the art | the current methods the product's research found, with sources, run or reproduced and compared with level 2 on the same data |
-| 4 | Beyond the state of the art | the product's own components that go further, with the evidence |
+| 3 | Current methods and evidence | published methods, sourced and run or reproduced, compared with level 2 on the same data |
+| 4 | OreFlow contributions and evidence | product components with measured evidence and clearly stated limits |
 
 - Every topic has levels 1 and 2. The level never decreases with the notebook number.
 - A topic whose method has state-of-the-art research in the product's dossiers has a level 3 notebook. A topic without
   one says why on its row of each language's index, as `No level 3: <reason>` (`Sin nivel 3: <motivo>` in Spanish),
   four words or more.
-- Every component the SDD claims beyond the state of the art has a level 4 notebook (next section).
+- Every component listed in the SDD's internal contribution ledger has a level 4 notebook (next section).
 
 ## 3. Claim and cover a component beyond the state of the art
 
@@ -48,8 +48,8 @@ each claim:
 
 1. State it in the SDD section with its identifier, what it adds, the measured evidence and the source it goes beyond.
 2. Write a level 4 notebook in each language whose `caos.beyond` lists the identifier, with the sections
-   `State of the art` and `Beyond the state of the art` and the evidence: measured size and power, a reconciliation, a
-   case the state of the art gets wrong.
+   `Current methods and evidence` and `OreFlow contributions and evidence`. Compare against published methods on
+   shared evidence, report measured size and power, reconcile results, and state limitations.
 3. `scripts/check_notebooks.py` fails an identifier no level 4 notebook covers in each language, and a notebook that
    claims one the SDD does not list.
 
@@ -64,8 +64,8 @@ sections, in this order, named in the tree's language:
 | Setup | Preparación | always |
 | Data | Datos | always |
 | Method | Método | always |
-| State of the art | Estado del arte | level 3 and 4 |
-| Beyond the state of the art | Más allá del estado del arte | level 4 |
+| Current methods and evidence | Métodos actuales y evidencia | level 3 and 4 |
+| OreFlow contributions and evidence | Aportes de OreFlow y evidencia | level 4 |
 | Results | Resultados | always |
 | Summary | Resumen | always |
 | References | Referencias | always |
@@ -92,7 +92,7 @@ sections, in this order, named in the tree's language:
   least one comment line. One idea per cell.
 - **Results** interprets every figure and table: what it shows, what a validator concludes, what it does not show.
 - **References** lists every source cited with its DOI or URL, and every link of `caos.sources` appears in it (checked). Content comes from the persisted research (the dossiers,
-  addenda and SDD), never from memory; each state-of-the-art claim carries its source line.
+  addenda and SDD), never from memory; each claim about published methods carries its source line.
 - Every random draw is seeded.
 
 ### The metadata
