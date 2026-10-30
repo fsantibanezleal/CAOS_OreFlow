@@ -163,9 +163,9 @@ def lesson_doc(language: str, topic: str, number: int, lesson: dict) -> dict:
     refs_h = "Referencias" if es else "References"
     cells = [md(opening), md(f"## {objective_h}\n\n{lesson['objective']}"), md(f"## {setup_heading}\n\n{install}"), md("Configura las importaciones y registra versiones. Este paso hace reproducible la ejecución del método." if es else "Configure imports and record versions. This makes the method run reproducible."), code(imports), md(f"## {data_h}\n\n{lesson['data']}"), md(f"## {method_h}\n\n{lesson['method']}")]
     if "sota" in lesson and not es:
-        cells.append(md(f"## State of the art\n\n{lesson['sota']}"))
+        cells.append(md(f"## Current methods and evidence\n\n{lesson['sota']}"))
     if "sota" in lesson and es:
-        cells.append(md(f"## Estado del arte\n\n{lesson['sota']}"))
+        cells.append(md(f"## Métodos actuales y evidencia\n\n{lesson['sota']}"))
     lesson_cells = lesson["cells"] or (LESSONS[topic]["en"][number - 1]["cells"] if es else [])
     for instruction, program in lesson_cells:
         # Instruction pairs are authored in (English, Spanish) order.
