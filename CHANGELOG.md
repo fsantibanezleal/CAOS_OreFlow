@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.006] - 2026-10-30
+
+### Changed
+- Expand and execute the bilingual optimization and uncertainty lessons; qualify search evidence by case, objective and plant-calibration limits.
+- Adopt CAOS Product Template 0.14.000, add the Zenodo technical-report record and expose the report from the technical introduction.
+- Document the current CAOS App Shell pin and align the versioned research artifacts.
+
 ## [0.10.004] - 2026-10-27
 
 ### Changed

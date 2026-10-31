@@ -540,8 +540,8 @@
         "es": "Un entorno de investigación transparente conecta las operaciones mediante balances, expone los supuestos físicos y permite variar una entrada declarada o comparar un conjunto definido de alternativas."
       },
       {
-        "en": "The workbench places classical process models beside statistical and machine-learning methods, then reports the data split, validation metric and domain limits needed to interpret each result responsibly.",
-        "es": "El entorno sitúa modelos clásicos junto a métodos estadísticos y de aprendizaje automático. También informa particiones, métricas y límites documentados que ayudan a interpretar cada resultado."
+        "en": "The workbench places mechanistic process models beside statistical and machine-learning methods, then reports the data split, validation metric and domain limits needed to interpret each result responsibly.",
+        "es": "El entorno sitúa modelos de proceso basados en mecanismos junto a métodos estadísticos y de aprendizaje automático. También informa particiones, métricas y límites documentados para interpretar cada resultado."
       }
     ],
     "four_cs": [

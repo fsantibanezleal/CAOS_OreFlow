@@ -24,7 +24,8 @@ def test_each_notebook_step_uses_its_tree_language() -> None:
                 cells = notebook["cells"]
                 code_indices = [i for i, cell in enumerate(cells) if cell["cell_type"] == "code"]
                 steps = ["".join(cells[i - 1]["source"]).strip() for i in code_indices[1:]]
-                assert steps == expected, f"{path}: step explanations do not match the {language} authoring"
+                assert len(steps) >= len(expected), f"{path}: one or more authored lesson steps are missing"
+                assert steps[:len(expected)] == expected, f"{path}: step explanations do not match the {language} authoring"
 
 
 def test_every_curriculum_pair_has_distinct_language_facing_steps() -> None:
@@ -61,6 +62,58 @@ def test_internal_method_tiers_never_appear_as_notebook_headings() -> None:
             for cell in notebook["cells"]
             if cell["cell_type"] == "markdown"
         ]
+        level = int(notebook["metadata"]["caos"]["level"])
+        language = notebook["metadata"]["caos"]["language"]
+        heading_lines = [
+            line.strip().removeprefix("## ")
+            for heading in headings
+            for line in heading.splitlines()
+            if line.startswith("## ")
+        ]
+        comparison = "Comparison" if language == "en" else "Comparación"
+        evidence = "Evidence" if language == "en" else "Evidencia"
+        if level >= 3:
+            assert comparison in heading_lines, path
+        if level >= 4:
+            assert evidence in heading_lines, path
         for heading in headings:
             first_lines = [line.strip().lower() for line in heading.splitlines() if line.lstrip().startswith("#")]
             assert not any(term in line for line in first_lines for term in forbidden), path
+
+
+def test_research_comparison_generator_uses_the_required_heading() -> None:
+    topic = "01-comminution"
+    for language in ("en", "es"):
+        lesson = dict(AUTHORING.LESSONS[topic][language][2])
+        lesson["data_files"] = AUTHORING.LESSONS[topic]["files"]
+        notebook = AUTHORING.lesson_doc(language, topic, 3, lesson)
+        headings = [
+            line
+            for cell in notebook["cells"]
+            if cell["cell_type"] == "markdown"
+            for line in ("".join(cell["source"]) if isinstance(cell["source"], list) else cell["source"]).splitlines()
+            if line.startswith("## ")
+        ]
+        expected = "## Comparison" if language == "en" else "## Comparación"
+        assert expected in headings
+
+
+def test_notebook_indexes_use_reader_facing_level_names() -> None:
+    expected = {
+        "en": ("comparison with published methods", "proposed methods"),
+        "es": ("comparación con métodos publicados", "métodos propuestos"),
+    }
+    for language, labels in expected.items():
+        tree = ROOT / "notebooks" / language
+        index = (tree / "README.md").read_text(encoding="utf-8").lower()
+        level_three = False
+        level_four = False
+        for path in tree.glob("*/*.ipynb"):
+            notebook = json.loads(path.read_text(encoding="utf-8"))
+            level = int(notebook["metadata"]["caos"]["level"])
+            level_three |= level == 3
+            level_four |= level == 4
+        if level_three:
+            assert labels[0] in index
+        if level_four:
+            assert labels[1] in index

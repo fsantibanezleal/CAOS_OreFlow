@@ -8,7 +8,7 @@ OreFlow is a research workbench for mineral-processing circuits. It links commin
 
 | Area | Folder | Status | What it holds |
 |---|---|---|---|
-| Web | [`frontend/`](frontend/) | active | Six shell routes including the circuit workbench and Focus mode; shell 0.19.1. Run `cd frontend && npm ci && npm run build && npm test && npm run gate`. |
+| Web | [`frontend/`](frontend/) | active | Six shell routes including the circuit workbench and Focus mode; shell 0.19.9. Run `cd frontend && npm ci && npm run build && npm test && npm run gate`. |
 | API | [`app/`](app/) | active | Bounded FastAPI simulation and validation endpoints. See [API guide](docs/frameworks/08_fastapi/03_applying.md). |
 | Core pipelines | [`data-pipeline/`](data-pipeline/) | active | Circuit bake, benchmark, uncertainty, optimization, learning, real samples, particle and iron-plant lanes. Run `scripts/precompute.ps1` on Windows or `scripts/precompute.sh` on POSIX. |
 | Packages | [NumPy](https://pypi.org/project/numpy/) 2.2.6 and [scikit-learn](https://pypi.org/project/scikit-learn/) 1.5.2 | active | Exact scientific packages consumed by the OreFlow engine and learned lane; project pins live in `requirements*.txt`. |
@@ -28,3 +28,7 @@ cd frontend; npm ci; npm run dev
 ```
 
 See [the design and validation record](docs/design/SDD.md) for model assumptions, data provenance, evaluation limits and release gates.
+
+## Technical report
+
+The versioned research report, including the engine, methods, validation protocol, results and limitations, is archived on Zenodo under [concept DOI 10.5281/zenodo.23783845](https://doi.org/10.5281/zenodo.23783845) (CC BY 4.0).

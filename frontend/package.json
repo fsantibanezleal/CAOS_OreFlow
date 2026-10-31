@@ -1,6 +1,6 @@
 {
   "name": "oreflow-workbench",
-  "version": "0.10.4",
+  "version": "0.10.6",
   "private": true,
   "type": "module",
   "engines": {
@@ -18,7 +18,7 @@
     "gate:walkthrough": "node walkthrough-gate.mjs"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "0.19.2",
+    "@fasl-work/caos-app-shell": "0.19.9",
     "katex": "0.19.1",
     "lucide-react": "1.43.0",
     "onnxruntime-web": "1.29.0",

@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.003, 2026-10-26. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.006, 2026-10-30. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -85,11 +85,11 @@ OreFlow currently contains six public routes, twelve authored cases and eight co
 
 ## Technology and versions
 
-Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.2 is the published package release.
+Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.9 is the published package release.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
-| web | @fasl-work/caos-app-shell | 0.19.2 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | @fasl-work/caos-app-shell | 0.19.9 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/node | 24.13.4 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react-dom | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
@@ -193,29 +193,17 @@ the point estimates do not rank the models: on the five fixed hole folds ridge b
 Each method is accepted only when it has an engine, a configuration with units, a result in every
 applicable variant, tests, documentation and an honest lane label.
 
-| Method | Accepted when |
-|---|---|
-| Bond energy and operating work index | The GMG worked example is reproduced; the record reports required energy, operating work index and efficiency ratio for the achieved reduction. |
-| Rittinger and Kick | Calibrated to Bond at the declared reference reduction; they diverge away from it and are never summed. |
-| Whiten matrix crusher | `p = (I - C)(I - BC)^-1 f` with a CSS-driven classification function; mass is conserved; a smaller CSS gives a finer product. |
-| Energy-specific population balance (ball mill) | The closed circuit meets the target P80 and design circulating load; the Moly-Cop base case is reproduced within the declared tolerance. |
-| Hydrocyclone partition | Plitt/Rosin-Rammler partition with water bypass from the water balance and density-corrected cuts per particle class. |
-| Plitt cyclone sizing | Number of cyclones, pressure and Plitt cut for the required cut, sized again for every state. The equations are uncalibrated, and at Moly-Cop's published classifier states the sizing misses; the count and pressure are an estimate, never a result or a flag (0.08.000). |
-| Gravity concentration (gold) | The gravity-recoverable gold classifies at a density-corrected cut (exponent fitted to measured partitions) and the unit recovers it by size on its bleed; its circulating load exceeds the ore's, and recovery rises with the bleed with diminishing returns. The like-for-like Laplante example is run with its published inputs, and its miss is recorded, not tuned away (0.08.000). |
-| Low-intensity magnetic separation | Liberated magnetite recovery above 90%; concentrate Fe grade rises with finer grind. |
-| Flotation banks (rougher and cleaner) | Perfect mixers in series with k from bubble surface area flux, Savassi entrainment, cleaner recycle to the rougher; reduces to the tanks-in-series formula with no entrainment. |
-| First-order, Kelsall, Klimpel, gamma and compressed/stretched exponential kinetics | Fitted by least squares to the engine's batch curve; each reports parameters, fit error and the plant-bank projection under the same residence distribution. |
-| Circuit balance | Solids, each element and water close at every unit and for the circuit, computed from the output streams, not from the solver. |
-| Constrained optimization | Maximizes recovered primary element subject to grade, power and water constraints; never returns an infeasible point. |
-| Uncertainty and sensitivity | Seeded Monte Carlo quantiles, constraint probabilities and Sobol indices for nominal variants. |
-| Ridge, random forest, histogram gradient boosting, Gaussian process, MLP | Evaluated on interpolation (pooled and within each case), leave-one-case-out and leave-one-ore-group-out splits on recovery, grade and energy; the GP reports interval coverage; the MLP stops on validation loss; ONNX parity for the MLP. |
-| Autoencoder guard | A threshold from validation reconstruction error; false-alarm rate in distribution and false-accept rate on held-out cases are reported. |
-| Pattern search with a progressive barrier and a surrogate-screened search step (0.07.000) | The same evaluation sequence and optimum in Python and the browser within 1e-6 at every recorded weight; every reported optimum is an engine result; the saving in engine evaluations and the surrogate's disagreement are records (`features/live-optimizer/`). |
-| SplitMix64 Latin hypercube (0.07.000) | The published SplitMix64 vector in both languages; bit-identical factors in the browser; one sample per stratum per input (`features/live-uncertainty/`). |
-| Classifier-cut mode (0.07.000) | At a given cut the mill draws the installed power; the two modes agree at the same state within 0.5%; balances close within 1e-9 (`features/cut-mode/`). |
-| Real-sample runs (0.07.000) | Pinned sources with a row ledger; the Bond work index reproduced from the BWI columns (15.2 to 26.1 kWh/t); the engine's recovery beside the measured locked-cycle one, labelled a comparison and not a calibration (`features/real-samples/`). |
-| Mechanism ablations (0.07.000) | Each switch, declared in the study (`methods/ablations.py`), inert when on; balances close with each switch off; a case without the mechanism is not applicable, never zero (`features/ablation-and-pages/`). |
-| Iron-plant soft sensor (0.07.000) | Pinned archive; interpolated hours dropped and held laboratory values scored apart (0.08.000); forward windows with an embargo; persistence and the fitted last assay as the comparators (`features/industrial-soft-sensor/`). |
+| id | tier | method | acceptance criterion | gate |
+|---|---|---|---|---|
+| M-1 | classical | Bond work-index energy with the declared fineness and applicability limits | Reproduce the published worked example and report required energy, operating work index and efficiency from the solved size distributions. | `tests/test_real_samples.py::test_bond_work_index` |
+| M-2 | sota | Random-forest surrogate evaluated against the case-aware learning protocol | Report held-out-case and held-out-ore-group errors beside interpolation results, with group identity kept out of the features. | `tests/test_learning.py::test_protocols_and_model_identity` |
+| M-3 | sota | Bond standard-circuit energy compared with Rittinger and Kick on shared size ranges | Run the same feed and work index through the implemented energy relations and report the calibrated point and divergence away from it. | `tests/test_real_samples.py::test_bond_work_index` |
+| M-4 | sota | Five fitted flotation kinetic forms projected through a tanks-in-series bank | Compare batch fit error and bank projection against the exact rate-distributed reference on the same virtual batch record. | `tests/test_kinetics.py::test_fits_and_bank_projection` |
+| M-5 | sota | Generalized pattern search with a progressive feasibility barrier | Verify feasible optima, stopping behaviour and exact process-engine reevaluation for each accepted operating decision. | `tests/test_optimization.py::test_progressive_barrier` |
+| M-6 | sota | Saltelli-Sobol variance decomposition over contract-bounded operating inputs | Report seeded first-order and total effects with bootstrap intervals, refused draws and the declared sample design. | `tests/test_uncertainty.py::test_seeded_quantiles_and_sobol` |
+| BS-1 | beyond | Surrogate-screened generalized pattern search, with every accepted proposal evaluated by the process engine | Test whether screening lowers engine evaluations while preserving the unscreened optimum; publish the measured cost and any refutation. | `tests/test_optimization.py::test_record_fields` |
+
+The detailed method inventory and its acceptance evidence follow this ladder. The proposal is not treated as a proven accelerator: the current 72-variant record shows 17.3% more engine evaluations with the screen, so the hypothesis that it saves evaluations is refuted on this suite.
 
 | Class | OreFlow method | Acceptance evidence |
 |---|---|---|
@@ -325,4 +313,10 @@ verdict (ADR-0075). `scripts/check_sdd.py` checks that every live requirement na
 
 ## Beyond the state of the art
 
-None claimed. The product combines established models and does not claim a new algorithm or plant-validated improvement over published work.
+### BS-1: Surrogate-screened generalized pattern search
+
+**Hypothesis.** A surrogate trained on the authored process records can order promising points in the constrained pattern search and reduce calls to the exact circuit engine without changing the resulting optimum materially.
+
+**Method.** Keep the existing progressive-barrier pattern search and its bounds, starts, constraints and stopping rules fixed. At each iteration, use the guarded surrogate only to rank the candidate proposals; the circuit engine evaluates every proposal that can become an incumbent. Run a matched search without screening from the same starts and with the same objective weights. Compare engine evaluations, the final decisions and recovered metal. The surrogate never supplies a reported process result.
+
+**Evaluation and result.** Evaluate the paired procedures over all 72 committed screened variants, retaining the 12 authored ores and their six target-mode variants. The acceptance hypothesis is refuted for this suite: screening used 26,367 engine evaluations versus 22,487 without it (17.3% more), saving evaluations in zero variants and costing more in 68. It reached the same terminal decisions in 65 variants; the remaining recorded differences are within 0.02% in recovered metal. These cases are authored scenarios, not plant measurements. The result supports keeping the method as a measured research path, not presenting it as a faster optimizer. The executable comparison is in `data/derived/cases/<case_id>.json` (`variants[].methods.optimization`) and `tests/test_optimization.py::test_record_fields`.

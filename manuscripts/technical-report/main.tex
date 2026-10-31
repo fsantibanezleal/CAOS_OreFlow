@@ -1,0 +1,799 @@
+\documentclass[10pt]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{amsmath,booktabs,longtable,array,graphicx,xurl}
+\usepackage{calc}
+\usepackage{microtype}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\real}[1]{#1}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{3em}
+\newcommand{\doctype}{Technical report}
+\newcommand{\docversion}{v0.10.006}
+\newcommand{\docdate}{30 October 2026}
+\newcommand{\versiondoi}{10.5281/zenodo.23826265}
+\newcommand{\conceptdoi}{10.5281/zenodo.23783845}
+\newcommand{\docrepo}{https://github.com/fsantibanezleal/CAOS\_OreFlow}
+\newcommand{\headerblock}{%
+\begin{center}
+\fbox{\parbox{0.94\textwidth}{\small\raggedright
+\textbf{\doctype} \quad$\cdot$\quad \docversion, \docdate \quad$\cdot$\quad Licence CC BY 4.0\\[2pt]
+CAOS open-research programme \quad$\cdot$\quad mineral-processing simulator\\[2pt]
+Version DOI \href{https://doi.org/\versiondoi}{\texttt{\versiondoi}} \quad$\cdot$\quad
+concept DOI (always latest) \href{https://doi.org/\conceptdoi}{\texttt{\conceptdoi}}\\[2pt]
+Not peer reviewed. Source code, data and computational records: \href{https://github.com/fsantibanezleal/CAOS_OreFlow}{\texttt{github.com/fsantibanezleal/CAOS\_OreFlow}}
+}}
+\end{center}
+\vspace{4pt}}
+\title{How far does a learned surrogate of a flowsheet simulator transfer across ores? A closed-circuit, size-by-mineral engine, with cases and ore groups held out}
+\author{Felipe Santibáñez-Leal, ORCID 0000-0002-0150-3246}
+\date{}
+\begin{document}
+\maketitle
+\headerblock
+\section*{Abstract}
+
+Learned surrogates of process simulators are often evaluated on random
+states from plants they have already seen. We compare that interpolation
+setting with leave-one-case-out and leave-one-ore-group-out evaluation
+for five models trained on a steady-state mineral-processing simulator.
+The simulator tracks mineral mass over 63 size classes, water, closed
+grinding circuits and unit-level balance closure; its limitations
+against published examples are reported alongside the comparisons. On a
+3,072-state design over twelve authored cases, the multilayer perceptron
+gives the lowest interpolation recovery RMSE (3.38 percentage points),
+but has a 26.24-point mean RMSE when each case is held out. The Gaussian
+process has the lowest mean held-out-case RMSE (10.95 points), while the
+perceptron has the highest median case-fold R² (0.547). Under ore-group
+holdout, the perceptron's median recovery R² is 0.437 across seven
+groups, but varies from 0.795 for the five chalcopyrite cases to -10.2
+for the two gold-in-pyrite cases. Log-upgrade transfer is poor for every
+model. Thus interpolation, case holdout and ore-group holdout answer
+different questions, and their results depend on both target and ore
+family. The records and tests bind every reported score to the bake. The
+cases are authored; these results do not establish performance on
+operating plants.
+
+\section{Introduction}\label{introduction}
+
+A surrogate of a flowsheet simulator is attractive for the same reason
+as any surrogate: the simulator is slow and the surrogate is fast, so it
+can sit inside an optimizer, a sweep or an interactive tool. Whether it
+can stand in for the simulator depends on the question it is asked.
+Inside the envelope it was trained on, an interpolation score answers
+that question. A digital twin is asked something harder: what happens
+with a different ore, a harder or finer feed, another plant. That is
+transfer, and an interpolation score says nothing about it.
+
+This work measures both on the same models, with a simulator whose
+answers are known exactly and can be reproduced. Its contributions are
+three:
+
+\begin{enumerate}
+\def\labelenumi{\arabic{enumi}.}
+\tightlist
+\item
+  an open flowsheet engine that represents streams by size and mineral,
+  solves closed circuits, audits every balance from its output streams,
+  is checked against published examples with every miss stated, and is
+  reproduced by a line-by-line second implementation;
+\item
+  a test protocol that scores learned surrogates of it by interpolation,
+  by leaving one case out and by leaving one ore group out over twelve
+  authored plants in four circuit families, with interval coverage and
+  an out-of-envelope guard;
+\item
+  the findings that holding out one plant is not a transfer test when
+  other plants share its ore, that transfer failure is concentrated in
+  the plants unlike the others, that the ranking of models changes
+  between the protocols and with the statistic that summarizes them, and
+  that the guard misses shifts of inputs its training features do not
+  correlate with.
+\end{enumerate}
+
+\section{The engine}\label{the-engine}
+
+The record reproduces all 96 committed states within 1e-6 in the browser
+port and all 96 committed states close within 1e-9 at every unit in the
+Python engine. The port shares constants and is a translation check, not
+an independent validation of physical assumptions.
+
+\subsection{Representation}\label{representation}
+
+Every stream holds, for each mineral, a vector of mass flows (t/h) over
+one grid of 63 size classes on a fourth-root-of-two progression from 150
+mm to a pan below 3.24 µm, and a water flow. Assays are computed from
+mineral masses and the minerals' element contents (from their formulas
+and the IUPAC atomic weights); no grade is stored, so a grade changes
+only when a mass does. Liberation is described per valuable mineral by
+size (King 1979): a liberated fraction, and composites whose content and
+host are declared.
+
+\subsection{Comminution}\label{comminution}
+
+The crusher is the Whiten form (Duarte et al.~2021), with a strictly
+lower-triangular breakage matrix \texttt{B} and a classification
+function \texttt{C} set by the closed-side setting:
+
+\begin{verbatim}
+p = (I - C)(I - B C)^-1 f
+\end{verbatim}
+
+The ball mill is an energy-specific population balance (Herbst and
+Fuerstenau 1980) in the form of the Moly-Cop tools: three perfect mixers
+of volume fractions 0.70, 0.15 and 0.15 share the breakage operator
+\texttt{D\ =\ (I\ -\ B)\ diag(S\^{}E)}, so the mill's inverse transfer
+at an energy per pass \texttt{e} is a cubic polynomial in \texttt{D},
+and the closed circuit with the cyclone returning a fraction
+\texttt{C\_i} of each class solves
+
+\begin{verbatim}
+(T^-1(e) - diag(C)) p = f,        T^-1(e) = I + c1 e D + c2 e^2 D^2 + c3 e^3 D^3
+\end{verbatim}
+
+per mineral. Two scalar unknowns, the energy per pass that meets the
+target P80 and the host cut that holds the design circulating load, are
+found by the Illinois method. The energy per pass is per tonne of mill
+feed, so the mill draws \texttt{e\ m}, with \texttt{m} the fresh feed
+plus the cyclone underflow (less what a gravity bleed takes from it);
+when that exceeds the installed power, the circuit runs at installed
+power, \texttt{e\ m(e)\ =\ P\_inst} solved as a fixed point, with a
+coarser product, and says so. The reported grinding energy is that net
+energy per tonne of fresh feed, \texttt{e\ m\ /\ F}; the crushing energy
+is Bond's with the crushing work index, and the Bond requirement
+\texttt{E\ =\ 10\ W\_i\ (P\^{}-1/2\ -\ F\^{}-1/2)} gives the operating
+work index and the efficiency ratio beside it, with Rittinger and Kick
+calibrated to agree with Bond at a reference reduction and never added
+to it (Bond 1952; GMG 2021).
+
+\subsection{Classification and
+separation}\label{classification-and-separation}
+
+Hydrocyclones follow Plitt (1976): a Rosin-Rammler partition
+\texttt{y(d)\ =\ R\_f\ +\ (1\ -\ R\_f)(1\ -\ exp(-ln\ 2\ (d/d50c)\^{}m))}
+with a water bypass \texttt{R\_f} from the water balance and a cut
+corrected for each mineral's density, so dense minerals classify as
+coarser particles and circulate. Plitt's sizing of the cyclone cluster
+is uncalibrated and fails its published check (section 3), so the
+cluster's count and pressure are reported as an estimate, never as a
+result. Flotation banks are perfect mixers in series; the rate constant
+of each particle class follows from the bubble surface area flux
+\texttt{S\_b\ =\ 6\ J\_g\ /\ D\_32} (Gorain et al.~1997, 1999) and a
+size window (Trahar 1981), a composite floats at the liberated rate
+scaled by its exposed surface, \texttt{P\_comp\ =\ P\_V\ phi\^{}(2/3)}
+with \texttt{phi} the valuable mineral's volume share, entrainment
+follows Savassi et al.~(1998), and cleaner and recleaner tails return to
+the preceding bank. Each cell's residence is its pulp volume, less the
+gas hold-up, over the flow that leaves it as tail, which depends on what
+the cell floats, so it is solved per cell as a fixed point:
+
+\begin{verbatim}
+r_j = (k tau_j + ENT w_j) / (1 + k tau_j + ENT w_j)
+tau_j = V (1 - eps_g) / Q_tail,j
+R_N = 1 - prod_j (1 - r_j)
+\end{verbatim}
+
+Gold follows the gravity-recoverable gold (GRG) model of Laplante,
+Woodcock and Noaparast as Vincent (1997) states it: the gold is a GRG
+component with its own size distribution, from a GRG test, plus a
+non-GRG component; the GRG's cyclone cut takes a density correction with
+an exponent of 1.0, fitted to measured GRG partitions where Stokes would
+give 0.5; the gravity unit on a bleed of the cyclone underflow, or of
+the mill discharge, recovers GRG by size at a per-pass recovery
+\texttt{R(d)\ =\ R\_max\ (1\ -\ exp(-(d/x\_g)\^{}2))}; and grinding
+moves GRG to non-GRG at a slowed breakage rate (Banisi et al.).
+Low-intensity magnetic drums capture liberated magnetite and composites
+by their magnetite content; desliming cyclones discard slimes ahead of
+flotation, with the water split following the solids sent down at a
+declared underflow density.
+
+\subsection{Balance closure and the
+contract}\label{balance-closure-and-the-contract}
+
+An independent recomputation calculates, from the output streams alone,
+the closure of every mineral, every species and the water at every unit
+and for the circuit, and of every size class at the units that do not
+break particles. The operating point is thirteen inputs declared once,
+with units, per-case bounds, steps, the families they apply to, a
+cross-field rule and bilingual messages; the exported declaration is
+interpreted identically by the engine's validator, the web service and
+the browser, so a state is accepted or rejected with the same code
+everywhere. A state the engine cannot solve, such as a classifier cut at
+which the mill cannot draw its installed power, is refused with a reason
+rather than answered.
+
+\section{Verification}\label{verification}
+
+\textbf{Balances.} All 96 committed states close within 1e-9 relative at
+every unit and for the circuit, as recomputed from the stored streams by
+the artifact checks.
+
+\textbf{The second implementation.} A line-by-line TypeScript port runs
+the engine in the browser. Re-simulating every committed state from its
+own definition, it matches every metric, stream record, curve and
+kinetic record within 1e-6 relative, with the same flags. It is a
+translation by the same author that reads the same constant,
+atomic-weight and mineral files, so it catches translation errors and
+not modelling errors. An independent verification of the 0.08.001
+implementation against its equations, one reviewer per part of the
+engine and every finding verified, found defects in both engines, among
+them the composite rate, the cell residence, the mill power basis and
+the desliming water split; each was fixed, the engine's in both
+languages, with a test that fails on the earlier code, and every number
+below is from the fixed engine.
+
+\textbf{Published examples.} Each is labelled as a published example,
+not as plant data:
+
+{\def\LTcaptype{none} % do not increment counter
+\small
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Example
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Published
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Engine
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Moly-Cop BallSim base case (504 t/h, every published input) & net 7.71
+kWh/t, gross 8.56; cut 183.3 µm; 6 cyclones at 53 kPa & net 7.30 kWh/t,
+5.2\% below, inside the 20\% tolerance set before the first run; cut 188
+µm; Plitt's uncalibrated sizing asks for 2 cyclones at 816 kPa \\
+GMG worked examples of the operating work index & 14.4 and 11.7 kWh/t &
+14.38 and 11.71 kWh/t \\
+Laplante and Staunton gravity example, run like for like (80.4\% GRG,
+the unit on 10 to 60\% of the mill discharge) & GRG recovery 79.8 to
+95.9\%, GRG circulating load 2016 to 413\% & GRG recovery 69.5 to
+90.7\%, GRG circulating load 696 to 84\%: outside the 5-point and 35\%
+tolerances \\
+Zandrivierspoort magnetite (a different ore; the 45 µm product is a
+regrind) & 64.9 and 69.0\% Fe at 75 and 45 µm & 63.8 and 67.8\% Fe: a
+step of 4.0 points against 4.1, at levels 1.1 and 1.2 points below \\
+\end{longtable}
+}
+
+The gravity example misses because the measured GRG of the case's ore
+(Snip) is very fine: 9 to 31\% of the GRG, almost all finer than about
+37 µm, leaves by the overflow; without the GRG finer than 25 µm the GRG
+recovery comes within 1.1 points from the 20\% row on, and the
+circulating load stays 50 to 69\% low. The magnetite example checks a
+direction and a proportion, not a level, because its ore is not the
+engine's case.
+
+\section{The test}\label{the-test}
+
+\subsection{The plants}\label{the-plants}
+
+Twelve authored cases in four circuit families: nine copper, nickel,
+zinc and refractory-gold rougher-cleaner flotation circuits
+(\texttt{rougher}), free-milling gold with a gravity bleed
+(\texttt{gravity\_rougher}), fine magnetite with magnetic drums instead
+of flotation (\texttt{magnetic}), and phosphate with desliming ahead of
+flotation (\texttt{deslime\_rougher}). Every parameter carries its unit
+and either a source or the label authored; none is fitted to a plant.
+Five of the twelve are copper sulphide plants on chalcopyrite, and the
+two gold plants carry most of their gold in pyrite (55\%, beside
+electrum in the free-milling ore and arsenopyrite in the refractory
+one); the other five each have a payable and dominant carrier no other
+case shares.
+
+\subsection{The design, the features and the
+targets}\label{the-design-the-features-and-the-targets}
+
+For each case a scrambled Sobol sequence draws 256 states the contract
+accepts over the case's whole envelope and two ore factors (liberation
+size and floatability within their uncertainty half-widths), 3072 in
+all; the engine simulates every state. Each state is described by 22
+physical features computed before simulation: the payable fraction,
+throughput per installed megawatt, the grind, circulating load, water,
+crusher setting and work index, the payable carriers' share-weighted
+liberation size, composite content, density, floatability and dose
+ratio, the rougher gas velocity, cells and volume per t/h, the gravity
+bleed, the desliming cut and four circuit descriptors. The case identity
+is never a feature. The targets are recovery (\%), the log10 upgrade
+ratio (concentrate over head grade) and the total specific energy
+(kWh/t).
+
+\subsection{The models and the
+protocols}\label{the-models-and-the-protocols}
+
+Ridge (alpha 1); a random forest (300 trees; Breiman 2001); histogram
+gradient boosting (300 iterations; Friedman 2001); a Gaussian process
+with a squared-exponential kernel with one length scale per feature and
+a noise term, on a seeded subsample of 500 training rows (Rasmussen and
+Williams 2006); and a perceptron of two hidden layers of 64 units,
+trained by full-batch AdamW with early stopping on a 15\% validation
+split (Loshchilov and Hutter 2019). Features and targets are
+standardized on the training rows of each split. Because the Gaussian
+process sees fewer rows, the other models are also refitted on the same
+500 rows; and because one training seed is one draw, the perceptron is
+retrained with four more seeds on every split.
+
+\emph{Interpolation} holds out 20\% of the states inside every case
+(2460 training, 612 test rows). \emph{Leave one case out} holds out each
+case in turn; the models that predict a case never saw any of its
+states, but they may have seen plants on the same ore. \emph{Leave one
+ore group out} holds out every plant that shares the held-out plant's
+payable and dominant carrier mineral: the five chalcopyrite plants
+together (1792 training, 1280 test rows), the two gold plants together
+(2560 training, 512 test rows), and each of the other five alone, where
+it is the same fold as leaving one case out; seven groups in all. An
+autoencoder (16, 6 and 16 units) trained on the features gives a guard:
+its threshold is the 99th percentile of the reconstruction errors of its
+validation rows; its false-alarm rate is measured on the 612 held-out
+in-envelope states, and its false-accept rate on 11 016 probes, each a
+held-out state pushed past the training range of one continuous feature,
+at six distances from 0.02 to 1.0 of the range, above the maximum and
+below the minimum.
+
+\section{Results}\label{results}
+
+\subsection{Interpolation and held-out cases answer different
+questions}\label{interpolation-and-held-out-cases-answer-different-questions}
+
+\textbf{Table 1.} Recovery, RMSE in percentage points. The last column
+is the median R² over seven held-out ore groups.
+
+{\def\LTcaptype{none} % do not increment counter
+\small
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1111}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1481}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1481}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1481}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1481}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1481}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1481}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Model
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Interpolation RMSE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Interpolation R²
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Leave one case out: mean RMSE
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+worst case
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+median R²
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Leave one ore group out: median R²
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Ridge & 9.46 & 0.617 & 13.68 & 23.05 & -0.127 & -0.774 \\
+Random forest & 6.49 & 0.820 & 13.16 & 48.86 & 0.359 & 0.129 \\
+Histogram gradient boosting & 4.60 & 0.909 & 12.66 & 56.61 & 0.512 &
+0.287 \\
+Gaussian process & 5.34 & 0.878 & 10.95 & 27.91 & 0.481 & 0.171 \\
+Perceptron & 3.38 & 0.951 & 26.24 & 239.51 & 0.547 & 0.437 \\
+\end{longtable}
+}
+
+The perceptron has the lowest interpolation RMSE (3.38 points) and
+highest pooled interpolation R² (0.951), while its mean
+leave-one-case-out RMSE is highest (26.24 points) because the magnetite
+fold is difficult. The Gaussian process has the lowest mean
+leave-one-case-out error (10.95 points); the perceptron has the highest
+median fold R² (0.547). The five-seed record gives the MLP interpolation
+RMSE range of 3.00 to 3.54 points and mean held-out-case RMSE of 25.05
+to 30.10 points. These are different summaries and support no single
+model ranking for every use.
+
+\subsection{Case-level errors identify where interpolation
+fails}\label{case-level-errors-identify-where-interpolation-fails}
+
+\textbf{Table 2.} Recovery RMSE (points) on each held-out case.
+
+{\def\LTcaptype{none} % do not increment counter
+\small
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1304}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1739}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1739}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1739}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1739}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1739}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Held-out case
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Ridge
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Random forest
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Gradient boosting
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Gaussian process
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
+Perceptron
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+Soft copper porphyry & 12.54 & 11.59 & 9.47 & 11.09 & 5.98 \\
+Hard copper porphyry & 9.62 & 6.72 & 4.82 & 5.07 & 1.72 \\
+Free-milling gold with gravity & 8.55 & 12.48 & 10.53 & 15.83 & 12.76 \\
+Fine magnetite concentration & 21.01 & 48.86 & 56.61 & 27.91 & 239.51 \\
+Nickel sulphide with serpentine slimes & 13.47 & 8.49 & 6.80 & 6.66 &
+6.61 \\
+Phosphate with clay slimes & 15.85 & 10.04 & 10.05 & 10.83 & 8.93 \\
+Copper-molybdenum bulk flotation & 9.38 & 6.12 & 4.03 & 6.33 & 1.91 \\
+Oxide copper: assumed sulphidized response & 23.05 & 14.12 & 15.19 &
+12.94 & 11.60 \\
+Zinc sulphide & 10.87 & 11.88 & 10.18 & 8.49 & 7.26 \\
+Copper ore with clay & 10.69 & 5.99 & 6.06 & 9.47 & 6.57 \\
+Low-grade copper at high throughput & 9.68 & 6.25 & 4.48 & 6.41 &
+2.23 \\
+Refractory gold in sulphides & 19.44 & 15.41 & 13.77 & 10.32 & 9.86 \\
+\end{longtable}
+}
+
+The copper cases are not uniformly easy: holding out the soft porphyry
+costs the perceptron 6.0 points, while its error on the hard porphyry,
+molybdenum and low-grade copper cases is 1.7 to 2.2 points. Mixed
+high-clay copper is 6.6 points. The magnetite fold remains the largest
+perceptron error (239.5 points); the tree models also extrapolate poorly
+there. These model errors are measured against this authored simulator,
+not a plant assay.
+
+\subsection{Whole-ore-group transfer}\label{whole-ore-group-transfer}
+
+When an ore group is held out, median recovery R² across seven groups
+ranges from -0.774 for ridge to 0.437 for the perceptron. The MLP scores
+0.795 on the five chalcopyrite cases held out together and -10.2 on the
+two gold-in-pyrite cases; the group result is strongly dependent on ore
+family. Three of five models have a positive median recovery R² across
+groups, but no such aggregate removes the poor individual-group results.
+The release therefore reports per-case and per-group errors alongside
+pooled scores.
+
+\subsection{Energy and upgrade
+targets}\label{energy-and-upgrade-targets}
+
+The one-case-out median R² for total specific energy ranges from 0.652
+(ridge) to 0.952 (gradient boosting); under ore-group holdout it ranges
+from 0.617 (ridge) to 0.907 (Gaussian process). Log-upgrade median R² is
+negative for every model under group holdout, so the recovery transfer
+result does not generalize to grade-upgrade prediction. The held-out
+protocols and target definitions remain separate in the record.
+
+\subsection{Interval coverage}\label{interval-coverage}
+
+The Gaussian process intervals are compared with their empirical
+coverage in the committed record. Coverage is target- and
+split-specific; the point estimates are not used as a substitute for
+uncertainty validation. The authored-plant split does not establish
+calibrated intervals on real plants.
+
+\subsection{The guard}\label{the-guard}
+
+The autoencoder guard is evaluated both on in-envelope states and on
+deliberately shifted probes. Its per-feature and per-distance acceptance
+rates are recorded in \texttt{learning.json}; a low reconstruction error
+is not treated as proof that an input shift is physically safe. The
+guard is a screening signal, not a process constraint or a substitute
+for the operating contract.
+
+\section{The method records}\label{the-method-records}
+
+The engine produces, for each variant, records that do not depend on
+learning:
+
+\begin{itemize}
+\tightlist
+\item
+  \textbf{Kinetic lumping.} Five lumped models fitted to a virtual batch
+  test of the rougher feed, projected to the bank under the same
+  residence distribution and compared with the exact bank recovery by
+  true flotation, over 88 flotation states: mean absolute projection
+  errors of 1.27 points for the gamma model, 1.81 for Kelsall, 2.80 for
+  Klimpel, 4.76 for the stretched exponential and 7.56 for first order
+  (Polat and Chander 2000; Vinnett and Waters 2025). The first-order
+  projection falls below the exact result at every nominal state: a
+  batch curve that is a mixture of rates is not one exponential.
+\item
+  \textbf{Constrained optimization.} A generalized pattern search with a
+  progressive barrier from six starts (Torczon 1997; Audet and Dennis
+  2006, 2009) finds a point within the grade, power and water
+  constraints for 94 of the 96 variants; the two exceptions are the
+  magnetite circuit's harder ore and higher throughput, where the grind
+  is the only decision and the mill is already at installed power. The
+  learned lane screens the search step (Booker et al.~1999): candidates
+  are ranked by the perceptron's prediction and reach the engine only
+  where the guard accepts their state and the Gaussian process's 95\%
+  half-width on recovery is within 5 points, a novelty measure for the
+  perceptron rather than an interval on what it ranks; the poll and the
+  optimum stay engine results. The screen did not save engine work: over
+  the 72 screened variants it cost 17.3\% more engine evaluations than
+  the same starts without it. Where it proposed, the surrogate's
+  recovery was 0.66 points from the engine's on average over the
+  variants (0.71 over the 5811 proposals). The unscreened search reaches
+  the same optimum in 65 of the 72 and a little more metal in the other
+  seven.
+\item
+  \textbf{Sensitivity.} Sobol indices of four uncertain ore properties
+  at each nominal state (Saltelli et al.~2010; Herman and Usher 2017):
+  floatability drives recovery in ten cases, liberation size drives
+  concentrate grade in seven and the head grade in the other five, the
+  work index drives grinding energy and the head grade drives recovered
+  metal in all twelve.
+\end{itemize}
+
+\section{Measured data, which calibrate
+nothing}\label{measured-data-which-calibrate-nothing}
+
+The engine calibrates nothing and is calibrated by nothing. Measured
+data feed three lanes, and one of them also runs through the engine as
+inputs.
+
+\textbf{Particles.} The HZDR constructed-case workbook (Pereira et
+al.~2021; RODARE 336, CC BY 4.0) keeps its training sheet (68 008
+particles with A/B labels) and its test sheet (29 147 particles with
+constructed probabilities and the source authors' predictions, but no
+observed labels). A sparse logistic model per case and a shared network
+(4, 32, 32, 4) are scored against the constructed probabilities:
+
+{\def\LTcaptype{none} % do not increment counter
+\begin{longtable}[]{@{}llll@{}}
+\toprule\noalign{}
+Case & Published reference & L1 logistic & Network \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+1 & 0.0257 & 0.0131 & 0.0138 \\
+2 & 0.0175 & 0.0157 & 0.0181 \\
+3 & 0.0207 & 0.0171 & 0.0143 \\
+4 (28 484 complete rows) & 0.0371 & 0.1919 & 0.0226 \\
+\end{longtable}
+}
+
+The linear model beats the network in cases 1 and 2 and fails only in
+case 4, where the network does not.
+
+\textbf{Locked-cycle tests.} 52 GeoMet locked-cycle copper recoveries
+from 29 drill holes of one deposit (Hoffimann et al.~2022; archived
+dataset 7051975, CC BY 4.0), predicted from five assays by the training
+mean, ridge, a random forest and a Gaussian process, under five folds of
+whole holes and three spatial zones. RMSE ranges from 5.09 to 5.51
+points (whole holes) and 5.15 to 5.69 (zones). A paired bootstrap over
+complete holes (2000 resamples) shows how little separates them. On the
+five fixed hole folds ridge beats the training mean by 0.42 points (95\%
+interval 0.02 to 0.82), but that partition sits at the 98.5th percentile
+of 200 random hole partitions; averaged over them the gain is 0.17
+points (-0.39 to 0.71) and under leave one hole out 0.22 (-0.36 to
+0.79), each interval widened for the six model pairs, and under spatial
+zones no model separates either. The source has no grind, reagent or
+residence information, so it cannot calibrate the engine's controls.
+
+\textbf{The engine on the same samples.} The 52 samples also run through
+the engine as inputs, each on its own assays in the soft copper
+porphyry's circuit at that case's operating point; nothing in the engine
+is fitted to them. The work index comes from the nearest comminution
+sample in the hole (42 samples) or the deposit median (10), and spans
+15.2 to 26.1 kWh/t against the case's 11.0. Most of the copper is
+bornite and chalcocite, allocated by a sulphur-limited normative
+mineralogy, one choice in a family of allocations; the two minerals
+float at declared ratios to chalcopyrite (0.8, and chalcocite at 1.5
+times bornite, a choice the GeoMet data do not bound). Every sample runs
+the mill at installed power, and the engine's recovery falls short of
+the locked-cycle test by 22.6 points on average (RMSE 24.1 points; 2.9
+to 41.1 points below). That gap is mostly the host circuit's size: the
+samples are harder than the circuit's design ore, so at 720 t/h the
+product is coarse. With the circuit sized for the case's 150 µm target
+the gap is +0.2 points, and it runs from +10.0 to -20.8 points as the
+assumed laboratory grind goes from 75 to 300 µm, which the open data do
+not give. At each sample's own target-grind throughput it is +4.0
+points, of which 3.8 come from the longer flotation residence at the
+lower throughput rather than from the grind. At every assumed grind the
+engine carries no information about which sample recovers more (Pearson
+r between 0.03 and 0.06). It is a comparison, not a calibration: the
+circuit, the breakage, the liberation and the flotation are authored for
+another ore, and a locked-cycle test is not a plant.
+
+\textbf{Plant hours.} One iron-ore plant's reverse flotation record
+(Kaggle dataset 6294, CC0; 737,453 rows) gives hourly laboratory silica
+beside 21 feed, reagent, pulp and column sensors. Dropping the 310 hours
+whose silica label was interpolated leaves 3,701 pairs of consecutive
+hours. Scored on three future windows after at least 24 hours of
+embargo, the previous assay alone forecasts the next hour's silica with
+a mean absolute error of 0.464 points, and the best sensor-only model,
+ridge, is 0.001 points below the training mean's 0.766. In 461 of those
+pairs the laboratory value is one carried over unchanged for three or
+more consecutive hours; without them the previous assay's error is 0.510
+points, still the lowest, and ridge is 0.014 points above the training
+mean. The engine has no reverse cationic flotation family, so these
+hours are shown and never simulated.
+
+\section{Discussion and limitations}\label{discussion-and-limitations}
+
+The test bounds transfer between authored plants. A thirteenth authored
+plant is not a real one: the engine is a steady-state model with
+authored parameters, no froth stability, no dynamics and no prices, and
+its twelve plants share its structural assumptions. That is a feature of
+the design, since the teacher's answer is exact and reproducible, and a
+limit of the conclusion, since a real plant can depart from all twelve
+at once.
+
+Four findings should carry over to any surrogate of a flowsheet model.
+First, interpolation and transfer are different questions, and the model
+that answers the first best can answer the second worst. Second, holding
+out one plant tests transfer only to the extent that no training plant
+shares its ore: five copper plants on one mineral each look transferable
+alone and transfer far worse when held out together, so the held-out
+unit has to be the ore, not the plant. Third, transfer error is an
+average over held-out plants that hides where it fails; the plants
+unlike the others dominate it, and reporting the worst held-out case
+matters as much as the mean. Fourth, a reconstruction guard misses
+shifts in inputs that do not move with the others, so its false-accept
+rate must be reported by input and by distance.
+
+A calibrated study would replace the authored targets by measured
+metallurgy across operating periods, calibrate the engine on some
+periods and hold out an entire period and an ore family, and score both
+point error and whether the surrogate preserves the ranking of operating
+decisions.
+
+\section{Reproducibility}\label{reproducibility}
+
+The repository is https://github.com/fsantibanezleal/CAOS\_OreFlow
+(MIT). The engine, the bake, the records, the browser port, the service
+and the documentation are versioned together; the source, records and
+computational environment are versioned with the software release.
+\texttt{./scripts/setup.ps1} builds the environments and
+\texttt{./scripts/precompute.ps1} regenerates every record. On a
+workstation with 32 logical cores and an RTX 4070 Laptop GPU, the
+GPU-accelerated final MLP fit is a computational component of a
+simulator study over authored cases; it is not plant deployment or
+evidence of plant-calibrated performance. \texttt{./scripts/smoke.ps1}
+runs the checks: the guards, the Python and frontend suites and the
+build, with the counts of each release in
+\texttt{docs/release-verification.md}. The workbench at
+https://oreflow.ml.fasl-work.com runs the engine in the browser on any
+state of any case.
+
+\section*{References}
+
+\begin{itemize}
+\sloppy
+\raggedright
+\tightlist
+\item
+  Audet, C. and Dennis, J.E. (2006). Mesh adaptive direct search
+  algorithms for constrained optimization. SIAM Journal on Optimization
+  17(1):188-217. doi:10.1137/040603371
+\item
+  Audet, C. and Dennis, J.E. (2009). A progressive barrier for
+  derivative-free nonlinear programming. SIAM Journal on Optimization
+  20(1):445-472. doi:10.1137/070692662
+\item
+  Bond, F.C. (1952). The third theory of comminution. Transactions AIME
+  193:484-494.
+\item
+  Booker, A.J., Dennis, J.E., Frank, P.D., Serafini, D.B., Torczon, V.
+  and Trosset, M.W. (1999). A rigorous framework for optimization of
+  expensive functions by surrogates. Structural Optimization 17(1):1-13.
+  doi:10.1007/BF01197708
+\item
+  Breiman, L. (2001). Random forests. Machine Learning 45:5-32.
+  doi:10.1023/A:1010933404324
+\item
+  Duarte, R., Yamashita, A., da Silva, M., Cota, L. and Euzébio, T.
+  (2021). Calibration and validation of a cone crusher model with
+  industrial data. Minerals 11(11):1256. doi:10.3390/min11111256
+\item
+  Friedman, J.H. (2001). Greedy function approximation: a gradient
+  boosting machine. Annals of Statistics 29(5):1189-1232.
+  doi:10.1214/aos/1013203451
+\item
+  Global Mining Guidelines Group (2021). Determining the Bond Efficiency
+  of Industrial Grinding Circuits, GMG01-MP-2021.
+\item
+  Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1997). Studies on
+  impeller type, impeller speed and air flow rate in an industrial scale
+  flotation cell. Part 4: Effect of bubble surface area flux on
+  flotation performance. Minerals Engineering 10(4):367-379.
+  doi:10.1016/S0892-6875(97)00014-9
+\item
+  Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1999). The
+  empirical prediction of bubble surface area flux in mechanical
+  flotation cells from cell design and operating data. Minerals
+  Engineering 12(3):309-322. doi:10.1016/S0892-6875(99)00008-4
+\item
+  Herbst, J.A. and Fuerstenau, D.W. (1980). Scale-up procedure for
+  continuous grinding mill design using population balance models.
+  International Journal of Mineral Processing 7(1):1-31.
+  doi:10.1016/0301-7516(80)90034-4
+\item
+  Herman, J. and Usher, W. (2017). SALib: an open-source Python library
+  for sensitivity analysis. Journal of Open Source Software 2(9):97.
+  doi:10.21105/joss.00097
+\item
+  Hoffimann, J., Augusto, J., Resende, L., Mathias, M., Mazzinghy, D.,
+  Bianchetti, M. et al.~(2022). Modeling geospatial uncertainty of
+  geometallurgical variables with Bayesian models and Hilbert-Kriging.
+  Mathematical Geosciences 54(7):1227-1253.
+  doi:10.1007/s11004-022-10013-1
+\item
+  King, R.P. (1979). A model for the quantitative estimation of mineral
+  liberation by grinding. International Journal of Mineral Processing
+  6:207-220. doi:10.1016/0301-7516(79)90037-1
+\item
+  Laplante, A.R. and Gray, S. (2005). Advances in gravity gold
+  technology. Developments in Mineral Processing 15:280-307.
+  doi:10.1016/S0167-4528(05)15013-3
+\item
+  Laplante, A.R. and Staunton, W.P. Gravity recovery of gold, an
+  overview of recent developments (AMIRA P420B).
+\item
+  Loshchilov, I. and Hutter, F. (2019). Decoupled weight decay
+  regularization. arXiv:1711.05101.
+\item
+  Moly-Cop Tools (Sepúlveda). BallSim\_Direct and BallParam\_Direct
+  spreadsheets and documentation.
+\item
+  Muthaphuli, P. (2014). Production of pelletizing concentrates from
+  Zandrivierspoort magnetite/haematite ore by magnetic separation.
+  Journal of the Southern African Institute of Mining and Metallurgy
+  114(7).
+\item
+  Oliveira, E.M. Quality prediction in a mining process: one iron-ore
+  flotation plant, March to September 2017 (CC0). Kaggle dataset 6294.
+  https://www.kaggle.com/datasets/edumagalhaes/quality-prediction-in-a-mining-process
+\item
+  Pereira, L., Frenzel, M., Khodadadzadeh, M., Tolosana-Delgado, R. and
+  Gutzmer, J. (2021). A self-adaptive particle-tracking method for
+  minerals processing. Journal of Cleaner Production 279:123711.
+  doi:10.1016/j.jclepro.2020.123711
+\item
+  Plitt, L.R. (1976). A mathematical model of the hydrocyclone
+  classifier. CIM Bulletin 69(776):114-123.
+\item
+  Polat, M. and Chander, S. (2000). First-order flotation kinetics
+  models and methods for estimation of the true distribution of
+  flotation rate constants. International Journal of Mineral Processing
+  58:145-166. doi:10.1016/S0301-7516(99)00069-1
+\item
+  Rasmussen, C.E. and Williams, C.K.I. (2006). Gaussian Processes for
+  Machine Learning. MIT Press.
+\item
+  Saltelli, A., Annoni, P., Azzini, I., Campolongo, F., Ratto, M. and
+  Tarantola, S. (2010). Variance based sensitivity analysis of model
+  output. Design and estimator for the total sensitivity index. Computer
+  Physics Communications 181(2):259-270. doi:10.1016/j.cpc.2009.09.018
+\item
+  Savassi, O.N., Alexander, D.J., Franzidis, J.P. and Manlapig, E.V.
+  (1998). An empirical model for entrainment in industrial flotation
+  plants. Minerals Engineering 11(3):243-256.
+  doi:10.1016/S0892-6875(98)00003-X
+\item
+  Torczon, V. (1997). On the convergence of pattern search algorithms.
+  SIAM Journal on Optimization 7(1):1-25. doi:10.1137/S1052623493250780
+\item
+  Trahar, W.J. (1981). A rational interpretation of the role of particle
+  size in flotation. International Journal of Mineral Processing
+  8(4):289-327. doi:10.1016/0301-7516(81)90019-3
+\item
+  Vinnett, L. and Waters, K.E. (2025). The use of compressed
+  exponentials for kinetic modelling of batch flotation. Minerals
+  Engineering 226:109246. doi:10.1016/j.mineng.2025.109246
+\end{itemize}
+\end{document}
