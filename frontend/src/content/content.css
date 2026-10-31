@@ -6,7 +6,8 @@
 
 .of-doc { min-width: 0; }
 .of-introduction-page { min-width: 0; }
-.of-introduction-page p:has(> .of-intro-lede) { width: 100%; max-width: none; }
+.of-introduction-page > .page-body.wide.caos-surface { padding-inline: 0; }
+.of-introduction-page .caos-surface-lede { width: 100%; max-width: none; }
 .of-intro-lede { display: block; width: 100%; max-width: none; }
 .of-introduction-page :target { scroll-margin-top: 10rem; }
 .of-doc-head { margin-bottom: 1.2rem; }

@@ -587,8 +587,23 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         // the gate a live run at 50% completes, replaces the baked record and offers the four charts
         if (/^(Optimizer|Optimizador)$/.test(name)) {
           const rerun = page.locator('.of-view-methods .of-rerun');
+          const chartPicker = page.locator('.of-view-methods .of-optimizer-chart-select');
+          const inspector = page.locator('.of-view-methods .of-optimizer-details');
+          await inspector.locator('summary').click();
+          await rerun.waitFor({ state: 'visible', timeout: 5000 });
+          const chartLayout = await page.locator('.of-view-methods .of-optimizer-split').evaluate(el => {
+            const style = getComputedStyle(el);
+            const rect = el.getBoundingClientRect();
+            return { display: style.display, height: rect.height,
+              chartHeight: el.querySelector('.of-optimizer-chart').getBoundingClientRect().height,
+              panelHeight: el.querySelector('.of-aside').getBoundingClientRect().height,
+              inspectorOpen: el.querySelector('.of-optimizer-details').open,
+              chartArea: el.querySelector('.of-plot-area').getBoundingClientRect().height };
+          });
           const controls = { box: await rerun.count(), weight: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count(),
-            charts: await page.locator('.of-view-methods .of-optimizer-chart-select select option').count() };
+            charts: await chartPicker.locator('select option').count(), chartPickerVisible: await chartPicker.isVisible(),
+            chartPickerLabelled: (await chartPicker.locator('span').innerText()).trim().length > 0,
+            defaultChart: await chartPicker.locator('select').inputValue() };
           let live = null;
           let tone = null;
           if (!optimizerRunChecked && controls.box === 1) {
@@ -617,7 +632,9 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
             }
           }
           const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note && tone.selector?.agrees !== false);
-          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false && toneOk, { ...controls, live, tone });
+          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && controls.chartPickerVisible && controls.chartPickerLabelled && controls.defaultChart === 'trace' && live !== false && toneOk, { ...controls, live, tone });
+          if (w > 860) record(`${tag} methods/optimizer keeps a full-stage chart and reachable controls`, chartLayout.display === 'flex' && chartLayout.chartHeight >= 450 && chartLayout.panelHeight >= 250 && chartLayout.inspectorOpen, chartLayout);
+          await inspector.locator('summary').click();
         }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }

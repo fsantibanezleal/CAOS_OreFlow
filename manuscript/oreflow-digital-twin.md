@@ -253,10 +253,13 @@ The engine produces, for each variant, records that do not depend on learning:
   step (Booker et al. 1999): candidates are ranked by the perceptron's prediction and reach the engine only where
   the guard accepts their state and the Gaussian process's 95% half-width on recovery is within 5 points, a
   novelty measure for the perceptron rather than an interval on what it ranks; the poll and the optimum stay
-  engine results. The screen did not save engine work: over the 72 screened variants it cost 17.3% more engine
-  evaluations than the same starts without it. Where it proposed, the surrogate's recovery was 0.66 points from
-  the engine's on average over the variants (0.71 over the 5811 proposals). The unscreened search reaches the
-  same optimum in 65 of the 72 and a little more metal in the other seven.
+engine results. The screen did not save engine work: over the 72 screened variants it used 26,367 engine
+evaluations versus 22,487 without screening, 17.25% more. It saved calls in none, used more in
+  68 variants and tied in four. Mean absolute recovery error averaged 0.66 percentage points across variants;
+  across 5,811 proposals its mean was 0.71 points, median 0.48 and maximum 38.16. Both procedures had the same
+  terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes. Seven
+  feasible pairs selected different decisions, with recovered-metal differences no greater than 0.002653 t/h
+  (0.017%). Five favored the unscreened decision and two the screened decision.
 - **Sensitivity.** Sobol indices of four uncertain ore properties at each nominal state (Saltelli et al. 2010;
   Herman and Usher 2017): floatability drives recovery in ten cases, liberation size drives concentrate grade
   in seven and the head grade in the other five, the work index drives grinding energy and the head grade
