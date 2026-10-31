@@ -827,6 +827,29 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   for (const route of PAGES) {
     await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle', timeout: 90000 });
     await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
+    if (route === 'introduction') {
+      const sectionTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
+      const sectionIllustrations = [];
+      for (const { index, name, section } of [
+        { index: 0, name: 'pain', section: '1' }, { index: 2, name: 'situation', section: '3' }, { index: 4, name: 'proposal', section: '5' },
+      ]) {
+        await sectionTabs.nth(index).click();
+        await page.waitForFunction(() => {
+          const figures = [...document.querySelectorAll('[data-exec-illustration]')];
+          return figures.length === 1 && figures[0].querySelector('svg') && !figures[0].dataset.state;
+        }, null, { timeout: 60000 });
+        sectionIllustrations.push(await page.locator('[data-exec-illustration]').evaluate(figure => ({
+          name: figure.dataset.execIllustration, section: figure.closest('[data-exec-section]')?.dataset.execSection,
+          lang: figure.dataset.lang, file: figure.dataset.execFile, text: figure.querySelector('svg')?.textContent ?? '',
+        })));
+      }
+      const spanish = lang === 'es';
+      const localized = sectionIllustrations.length === 3 && sectionIllustrations.every((figure, index) =>
+        figure.name === ['pain', 'situation', 'proposal'][index] && figure.section === ['1', '3', '5'][index] && figure.lang === lang &&
+        (spanish ? figure.file.endsWith('-es.svg') && !/OreFlow research path|\bFeed\b|\bCrushing\b|\bGrinding\b|\bSeparation\b/.test(figure.text)
+          : !figure.file.endsWith('-es.svg')));
+      record(`${tag} introduction illustrations use the selected language`, localized, sectionIllustrations.map(({ name: illustration, section, lang: figureLang, file }) => ({ illustration, section, lang: figureLang, file })));
+    }
     const topTabs = page.locator('.page-body .tablist [role=tab]');
     const groups = await topTabs.count();
     // PG-01, PG-02: the planned tab census of the pages that 0.07.000 extends

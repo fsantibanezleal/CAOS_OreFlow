@@ -254,6 +254,7 @@ input, select, textarea { font: inherit; }
 }
 .of-optimizer-details { position: relative; flex: none; min-width: 0; max-width: 100%; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); }
 .of-optimizer-details > summary { padding: 5px 9px; color: var(--color-accent); font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.of-optimizer-details:not([open]) > .of-aside { display: none; }
 .of-optimizer-details[open] > .of-aside { position: absolute; top: calc(100% + 5px); right: 0; z-index: 5; width: min(560px, 88vw); max-height: min(68vh, 620px); border: 1px solid var(--color-border); box-shadow: 0 8px 30px color-mix(in oklab, var(--color-shadow, #000) 22%, transparent); }
 /* At ordinary desktop widths the result tables took nearly half the viewport beside the chart, leaving its
  * painted area below ADR-0071's half-viewport floor. Keep the inspector over the plot so the instrument owns its row. */

@@ -75,6 +75,8 @@ jobs:
           python scripts/check_contract_versions.py --base "$base"
       - name: Every guard rejects a planted defect (spec area, cheap, standard library and pytest only)
         run: pip install pytest==9.1.1 && python -m pytest tests/adversarial -q
+      - name: Executive illustrations use language-specific SVG assets
+        run: python scripts/check_executive_assets.py
       - name: The contract catalog, every row complete and every path it names present (ADR-0080)
         run: python scripts/check_contracts.py docs/contracts/catalog.md --repo-root .
       - name: The readiness document is current with the catalog and the bake (ADR-0080)

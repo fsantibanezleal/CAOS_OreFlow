@@ -14,9 +14,9 @@
 \setlength{\parindent}{0pt}
 \setlength{\emergencystretch}{3em}
 \newcommand{\doctype}{Technical report}
-\newcommand{\docversion}{v0.10.006}
-\newcommand{\docdate}{30 October 2026}
-\newcommand{\versiondoi}{10.5281/zenodo.23826265}
+\newcommand{\docversion}{v0.10.007}
+\newcommand{\docdate}{31 October 2026}
+\newcommand{\versiondoi}{10.5281/zenodo.23837152}
 \newcommand{\conceptdoi}{10.5281/zenodo.23783845}
 \newcommand{\docrepo}{https://github.com/fsantibanezleal/CAOS\_OreFlow}
 \newcommand{\headerblock}{%
@@ -523,15 +523,15 @@ learning:
   perceptron rather than an interval on what it ranks; the poll and the
   optimum stay engine results. The screen did not save engine work: over
   the 72 screened variants it used 26,367 engine evaluations versus
-  22,487 without screening, 17.25\% more; it saved calls in none, used
-  more in 68 and tied in four. Mean absolute recovery error averaged
-  0.66 percentage points across variants; across 5,811 proposals its
-  mean was 0.71 points, median 0.48 and maximum 38.16. Both procedures
-  had the same terminal outcome in 65 variants: 63 identical feasible
-  decisions and two matching infeasible outcomes. Seven feasible pairs
-  selected different decisions, with recovered-metal differences no
-  greater than 0.002653 t/h (0.017\%). Five favored the unscreened
-  decision and two the screened decision.
+  22,487 without screening, 17.25\% more. It saved calls in none, used
+  more in 68 variants and tied in four. Mean absolute recovery error
+  averaged 0.66 percentage points across variants; across 5,811
+  proposals its mean was 0.71 points, median 0.48 and maximum 38.16.
+  Both procedures had the same terminal outcome in 65 variants: 63
+  identical feasible decisions and two matching infeasible outcomes.
+  Seven feasible pairs selected different decisions, with
+  recovered-metal differences no greater than 0.002653 t/h (0.017\%).
+  Five favored the unscreened decision and two the screened decision.
 \item
   \textbf{Sensitivity.} Sobol indices of four uncertain ore properties
   at each nominal state (Saltelli et al.~2010; Herman and Usher 2017):
@@ -556,6 +556,7 @@ observed labels). A sparse logistic model per case and a shared network
 (4, 32, 32, 4) are scored against the constructed probabilities:
 
 {\def\LTcaptype{none} % do not increment counter
+\small
 \begin{longtable}[]{@{}llll@{}}
 \toprule\noalign{}
 Case & Published reference & L1 logistic & Network \\

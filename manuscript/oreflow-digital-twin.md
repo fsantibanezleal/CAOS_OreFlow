@@ -2,7 +2,7 @@
 
 Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research programme, Santiago, Chile
 
-Draft of 2026-10-30, written against OreFlow 0.10.006. Not deposited; no DOI. Every number below is read
+Draft of 2026-10-31, written against OreFlow 0.10.007. Not deposited; no DOI. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
 `data/derived/source/*.json`, the twelve case artifacts, the operating contract and the validation record), and
 `tests/test_manuscript_claims.py` fails if one of them and the records disagree. The test counts of section 9 are
@@ -255,7 +255,7 @@ The engine produces, for each variant, records that do not depend on learning:
   novelty measure for the perceptron rather than an interval on what it ranks; the poll and the optimum stay
 engine results. The screen did not save engine work: over the 72 screened variants it used 26,367 engine
 evaluations versus 22,487 without screening, 17.25% more. It saved calls in none, used more in
-  68 variants and tied in four. Mean absolute recovery error averaged 0.66 percentage points across variants;
+  68 variants and tied in four. Mean absolute recovery error averaged 0.66 points across variants;
   across 5,811 proposals its mean was 0.71 points, median 0.48 and maximum 38.16. Both procedures had the same
   terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes. Seven
   feasible pairs selected different decisions, with recovered-metal differences no greater than 0.002653 t/h
@@ -343,9 +343,9 @@ surrogate preserves the ranking of operating decisions.
 ## 9. Reproducibility
 
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
-the browser port, the service and the documentation are versioned together; this draft describes 0.10.006.
+the browser port, the service and the documentation are versioned together; this draft describes 0.10.007.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
-workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed 0.10.006 precompute took 5203 s for the cases on 12 workers and 13553 s for the learned lane. The MLP final fit used CUDA; this is a simulator precompute over authored cases, not a plant deployment.
+workstation with 32 logical cores and an RTX 4070 Laptop GPU, the committed 0.10.007 precompute took 5633 s for the cases on 12 workers and 6592 s for the learned lane. The MLP final fit used CUDA; this is a simulator precompute over authored cases, not a plant deployment.
 `./scripts/smoke.ps1` runs the checks: the guards, the Python and frontend suites and the build, with the counts
 of each release in `docs/release-verification.md`. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.
