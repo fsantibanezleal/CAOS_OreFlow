@@ -2,7 +2,7 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
-## 0.10.007 release candidate, 2026-10-31
+## 0.10.007 release, 2026-10-31
 
 ### Local gate
 
@@ -15,9 +15,11 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 
 ### Remote gate
 
-- Pending the exact candidate commit's CI, merge to `develop`, promotion to `main`, immutable `v0.10.007` tag and GitHub Release.
-- The technical report and optimizer-screening manuscript have separate authorized Zenodo publication workflows. Pending live-record verification, checksums and updated management ledgers.
-- Pending deployment of the tagged `main` commit to `/opt/fasl-apps/CAOS_OreFlow` on the ML VPS and public API, route and browser verification.
+- Release PR #113 merged to `develop` at `2adb91177e8dcca6298b822e221ec3e16280c0d4`; exact-candidate CI run `41209090180` passed its web, checks and guards jobs. Promotion PR #114 merged to `main` at `a6c98f0fa56cefa3c8d1fc3e7ef34d27c7a36d7a`; promotion CI run `41209424374` passed the same jobs. Annotated tag `v0.10.007` and the GitHub Release point to that `main` commit.
+- Both authorized Zenodo records are published under CC BY 4.0. The [technical report](https://doi.org/10.5281/zenodo.23837152) is record 23837152 (concept DOI `10.5281/zenodo.23783845`); its PDF is 93,593 bytes, MD5 `5d2f837adbfd9f7b7e16cb71828f5753`, SHA-256 `9dd06dea388d40ae2742b02be810372be53e3c5e61e37943ea8dc29087d6997b`. The [optimizer-screening article](https://doi.org/10.5281/zenodo.23833135) is record 23833135 (concept DOI `10.5281/zenodo.23833134`); its PDF is 84,930 bytes, MD5 `586fdef3416ec3324b2d6a09d77fd3e8`, SHA-256 `8ab1916ea7ada63ae055e019390811dca72393765b2f8da0f35783433ea3f388`. Public record metadata and file checksums were read back after publication.
+- `deploy/setup-vps.sh` completed with exit code 0 on 2026-10-31 after feeding the script through a CRLF-safe SSH input stream. The ML VPS checkout at `/opt/fasl-apps/CAOS_OreFlow` is on `main` at `a6c98f0fa56cefa3c8d1fc3e7ef34d27c7a36d7a`; the service is enabled and active, the checkout is clean, frontend build passed and `nginx -t` passed.
+- Post-deployment public HTTPS checks on 2026-10-31: `/healthz` reports 0.10.007; `/api/cases` reports 12 cases / 96 variants and contract digest `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`; nominal `POST /api/simulate` returns the `oreflow.live/v2` schema on `live-api`; an out-of-range 50,000 t/h request returns HTTP 422. `/`, `/introduction`, `/methodology`, `/implementation`, `/experiments`, `/benchmark` and `/focus/copper_porphyry_soft` all return HTTP 200.
+- The full public browser gate (`OF_BASE=https://oreflow.ml.fasl-work.com`, `OF_MATRIX=full`) passed **1,346 checks**, exit code 0, on 2026-10-31. It covered desktop viewports 1280×800, 1600×900, 1920×1080 and 2560×1440, phone 390×844, tablet 768×1024, both themes and languages, Focus and return state, all routes and content tabs, simulator/optimizer/uncertainty/source interactions, five architecture diagrams, stale-sweep invalidation, infeasible-state messaging, and browser console. Captures were inspected, including the public Focus and phone workbench views.
 
 ## 0.10.004, 2026-10-27
 
