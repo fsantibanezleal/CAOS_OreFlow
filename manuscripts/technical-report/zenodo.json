@@ -1,0 +1,39 @@
+{
+  "metadata": {
+    "upload_type": "publication",
+    "publication_type": "report",
+    "title": "How far does a learned surrogate of a flowsheet simulator transfer across ores? A closed-circuit, size-by-mineral engine, with cases and ore groups held out",
+    "creators": [
+      {
+        "name": "Santibáñez-Leal, Felipe",
+        "orcid": "0000-0002-0150-3246",
+        "affiliation": "CAOS open-research programme, Santiago, Chile"
+      }
+    ],
+    "description": "<p>Learned surrogates of process simulators are often evaluated on random states from plants they have already seen. This technical report compares interpolation, leave-one-case-out, and leave-one-ore-group-out evaluation for five models trained on a steady-state mineral-processing simulator. The simulator tracks mineral mass over 63 size classes, water, closed grinding circuits, and unit-level balance closure. It reports limitations against published examples alongside the comparisons. On a 3,072-state design over twelve authored cases, the multilayer perceptron gives the lowest interpolation recovery RMSE (3.38 percentage points), but has a 26.24-point mean RMSE when each case is held out. The Gaussian process has the lowest mean held-out-case RMSE (10.95 points), while the perceptron has the highest median case-fold R-squared (0.547). Under ore-group holdout, the perceptron's median recovery R-squared is 0.437 across seven groups, but varies from 0.795 for the five chalcopyrite cases to -10.2 for the two gold-in-pyrite cases. Log-upgrade transfer is poor for every model. The cases are authored; these results do not establish performance on operating plants.</p><p>The report documents the mineral-processing simulator, its physical models, machine-learning evaluation methods, a process-specific optimization study, data and preprocessing, validation protocols, limitations, and reproducibility. Source code and computational records: https://github.com/fsantibanezleal/CAOS_OreFlow</p>",
+    "keywords": [
+      "mineral processing",
+      "comminution",
+      "flotation",
+      "process simulation",
+      "surrogate modelling",
+      "machine learning",
+      "domain generalization",
+      "cross-validation",
+      "optimization",
+      "reproducible research"
+    ],
+    "license": "cc-by-4.0",
+    "language": "eng",
+    "version": "0.10.006",
+    "related_identifiers": [
+      {
+        "relation": "isSupplementedBy",
+        "identifier": "https://github.com/fsantibanezleal/CAOS_OreFlow",
+        "resource_type": "software"
+      }
+    ],
+    "publication_date": "2026-10-30",
+    "version_notes": "Expanded research report for OreFlow version 0.10.006, with methods, benchmark results, executable teaching material, and stated limits."
+  }
+}

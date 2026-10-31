@@ -1,0 +1,39 @@
+\documentclass[10pt]{article}
+\usepackage[margin=25mm]{geometry}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\usepackage{amsmath,booktabs,longtable,array,graphicx,xurl}
+\usepackage{calc}
+\usepackage{microtype}
+\usepackage{fancyvrb}
+\usepackage{hyperref}
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\providecommand{\real}[1]{#1}
+\hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
+\setlength{\parskip}{0.45em}
+\setlength{\parindent}{0pt}
+\newcommand{\doctype}{Technical report}
+\newcommand{\docversion}{$docversion$}
+\newcommand{\docdate}{$docdate$}
+\newcommand{\versiondoi}{$versiondoi$}
+\newcommand{\conceptdoi}{$conceptdoi$}
+\newcommand{\docrepo}{https://github.com/fsantibanezleal/CAOS\_OreFlow}
+\newcommand{\headerblock}{%
+\begin{center}
+\fbox{\parbox{0.94\textwidth}{\small\raggedright
+\textbf{\doctype} \quad$$\cdot$$\quad \docversion, \docdate \quad$$\cdot$$\quad Licence CC BY 4.0\\[2pt]
+CAOS open-research programme \quad$$\cdot$$\quad mineral-processing simulator\\[2pt]
+Version DOI \href{https://doi.org/\versiondoi}{\texttt{\versiondoi}} \quad$$\cdot$$\quad
+concept DOI (always latest) \href{https://doi.org/\conceptdoi}{\texttt{\conceptdoi}}\\[2pt]
+Not peer reviewed. Source code, data and computational records: \href{https://github.com/fsantibanezleal/CAOS_OreFlow}{\texttt{github.com/fsantibanezleal/CAOS\_OreFlow}}
+}}
+\end{center}
+\vspace{4pt}}
+\title{$title$}
+\author{$author$}
+\date{}
+\begin{document}
+\maketitle
+\headerblock
+$body$
+\end{document}

@@ -222,7 +222,8 @@ export default function Workbench() {
   const location = useLocation();
   const { caseId, variantId, base, point, view, selectedUnit, source, sampleId, hourKey, setView, selectUnit } = useWorkbench();
   const { loaded, failure } = useLoaded();
-  const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample, rejected } = useCaseState(loaded, params, !focusMode.show);
+  const caseState = useCaseState(loaded, params);
+  const { artifact, variant, trace, accepted, errors, computing, samples, lane, sample, rejected } = caseState;
   const [cursor, setCursor] = useState<string | null>(null);
 
   // the state travels in the URL (replace, so the back button leaves the page instead of undoing a slider)
@@ -283,7 +284,7 @@ export default function Workbench() {
 
   return (
     <>
-    {focusMode.show && <FocusWorkbench focusMode={focusMode} />}
+    {focusMode.show && <FocusWorkbench focusMode={focusMode} loaded={loaded} failure={failure} state={caseState} />}
     <div className="of-workbench-inert" inert={focusMode.show || undefined}>
     <WorkbenchLayout className="of-bench" rail={<Rail index={index} contract={contract} artifact={artifact} lang={lang} errors={errors} onFocus={openFocus} focusRef={focusMode.enterRef} samples={samples} lane={lane} />} railLabel={{ en: 'Process controls', es: 'Controles del proceso' }}>
       <section className="of-main" aria-label={artifact.title[lang]} data-case-workbench="" data-case={caseId}

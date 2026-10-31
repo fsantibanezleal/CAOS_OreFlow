@@ -12,7 +12,7 @@ if ($Notebooks) {
 }
 Set-Location (Join-Path $PSScriptRoot "..")
 $py = if ($env:PYTHON) { $env:PYTHON } else { "python" }
-function Vpy($dir) { $p = Join-Path $dir "Scripts\python.exe"; if (-not (Test-Path $p)) { $p = Join-Path $dir "bin/python" }; return $p }
+function Vpy($dir) { $p = Join-Path $dir "Scripts\python.exe"; if (-not (Test-Path $p)) { $p = Join-Path $dir "bin/python" }; return (Resolve-Path $p).Path }
 function Pip($vp, [string[]]$arguments) {
   & $vp -m pip @arguments
   if ($LASTEXITCODE -ne 0) { throw "[setup] pip $($arguments -join ' ') failed ($LASTEXITCODE)" }

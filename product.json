@@ -10,7 +10,24 @@
   "license": "MIT",
   "holder": "Felipe Santibáñez-Leal",
   "year": 2026,
+  "manuscripts": [
+    {
+      "kind": "technical-report",
+      "concept_doi": "10.5281/zenodo.23783845",
+      "title": "How far does a learned surrogate of a flowsheet simulator transfer across ores? A closed-circuit, size-by-mineral engine, with cases and ore groups held out",
+      "version": "0.10.006",
+      "covers": []
+    }
+  ],
   "app": "workbench",
   "focus": true,
-  "method_packages": []
+  "method_packages": [],
+  "method_entrypoints": [
+    "pipeline.engine.circuit.simulate",
+    "pipeline.engine.energy.law_curves",
+    "pipeline.engine.kinetics.kinetic_record",
+    "pipeline.methods.learning.fit_and_score",
+    "pipeline.methods.optimization.optimize",
+    "pipeline.methods.uncertainty.sensitivity"
+  ]
 }
