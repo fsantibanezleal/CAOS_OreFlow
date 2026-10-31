@@ -587,8 +587,23 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
         // the gate a live run at 50% completes, replaces the baked record and offers the four charts
         if (/^(Optimizer|Optimizador)$/.test(name)) {
           const rerun = page.locator('.of-view-methods .of-rerun');
+          const chartPicker = page.locator('.of-view-methods .of-optimizer-chart-select');
+          const inspector = page.locator('.of-view-methods .of-optimizer-details');
+          await inspector.locator('summary').click();
+          await rerun.waitFor({ state: 'visible', timeout: 5000 });
+          const chartLayout = await page.locator('.of-view-methods .of-optimizer-split').evaluate(el => {
+            const style = getComputedStyle(el);
+            const rect = el.getBoundingClientRect();
+            return { display: style.display, height: rect.height,
+              chartHeight: el.querySelector('.of-optimizer-chart').getBoundingClientRect().height,
+              panelHeight: el.querySelector('.of-aside').getBoundingClientRect().height,
+              inspectorOpen: el.querySelector('.of-optimizer-details').open,
+              chartArea: el.querySelector('.of-plot-area').getBoundingClientRect().height };
+          });
           const controls = { box: await rerun.count(), weight: await rerun.locator('select').count(), run: await rerun.locator('.of-run').count(),
-            charts: await page.locator('.of-view-methods .of-optimizer-chart-select select option').count() };
+            charts: await chartPicker.locator('select option').count(), chartPickerVisible: await chartPicker.isVisible(),
+            chartPickerLabelled: (await chartPicker.locator('span').innerText()).trim().length > 0,
+            defaultChart: await chartPicker.locator('select').inputValue() };
           let live = null;
           let tone = null;
           if (!optimizerRunChecked && controls.box === 1) {
@@ -617,7 +632,9 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
             }
           }
           const toneOk = tone === null || ((!tone.loss || tone.green === false) && tone.note && tone.selector?.agrees !== false);
-          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && live !== false && toneOk, { ...controls, live, tone });
+          record(`${tag} methods/optimizer run`, controls.box === 1 && controls.weight === 1 && controls.run === 1 && controls.charts === 4 && controls.chartPickerVisible && controls.chartPickerLabelled && controls.defaultChart === 'trace' && live !== false && toneOk, { ...controls, live, tone });
+          if (w > 860) record(`${tag} methods/optimizer keeps a full-stage chart and reachable controls`, chartLayout.display === 'flex' && chartLayout.chartHeight >= 450 && chartLayout.panelHeight >= 250 && chartLayout.inspectorOpen, chartLayout);
+          await inspector.locator('summary').click();
         }
         await page.screenshot({ path: join(OUT, `methods-${k + 1}-${tag}.png`) });
       }
@@ -810,6 +827,29 @@ for (const { v: [w, h], theme, lang } of COMBOS) {
   for (const route of PAGES) {
     await page.goto(`${BASE}/${route}`, { waitUntil: 'networkidle', timeout: 90000 });
     await page.waitForSelector('.page-body, .of-page', { timeout: 60000 });
+    if (route === 'introduction') {
+      const sectionTabs = page.locator('.page-body .tabpanel:not([hidden]) .subtablist [role=tab]');
+      const sectionIllustrations = [];
+      for (const { index, name, section } of [
+        { index: 0, name: 'pain', section: '1' }, { index: 2, name: 'situation', section: '3' }, { index: 4, name: 'proposal', section: '5' },
+      ]) {
+        await sectionTabs.nth(index).click();
+        await page.waitForFunction(() => {
+          const figures = [...document.querySelectorAll('[data-exec-illustration]')];
+          return figures.length === 1 && figures[0].querySelector('svg') && !figures[0].dataset.state;
+        }, null, { timeout: 60000 });
+        sectionIllustrations.push(await page.locator('[data-exec-illustration]').evaluate(figure => ({
+          name: figure.dataset.execIllustration, section: figure.closest('[data-exec-section]')?.dataset.execSection,
+          lang: figure.dataset.lang, file: figure.dataset.execFile, text: figure.querySelector('svg')?.textContent ?? '',
+        })));
+      }
+      const spanish = lang === 'es';
+      const localized = sectionIllustrations.length === 3 && sectionIllustrations.every((figure, index) =>
+        figure.name === ['pain', 'situation', 'proposal'][index] && figure.section === ['1', '3', '5'][index] && figure.lang === lang &&
+        (spanish ? figure.file.endsWith('-es.svg') && !/OreFlow research path|\bFeed\b|\bCrushing\b|\bGrinding\b|\bSeparation\b/.test(figure.text)
+          : !figure.file.endsWith('-es.svg')));
+      record(`${tag} introduction illustrations use the selected language`, localized, sectionIllustrations.map(({ name: illustration, section, lang: figureLang, file }) => ({ illustration, section, lang: figureLang, file })));
+    }
     const topTabs = page.locator('.page-body .tablist [role=tab]');
     const groups = await topTabs.count();
     // PG-01, PG-02: the planned tab census of the pages that 0.07.000 extends

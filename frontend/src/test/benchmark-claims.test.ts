@@ -218,9 +218,9 @@ describe('the Benchmark page says what the records hold', () => {
     expect(worst).toBeLessThan(1e-4);
     const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
     expect(text).toMatch(/26,367 engine evaluations versus 22,487 without screening, 17\.3% more/);
-    expect(text).toMatch(/Of 79,034 candidates, 19 were rejected by the guard and 48,268 by the uncertainty interval; 5,811 were proposed to the engine and 901 improved/);
+    expect(text).toMatch(/Of 79,035 candidates, 19 were rejected by the guard and 48,266 by the uncertainty interval; 5,811 were proposed to the engine and 901 improved/);
     expect(text).toMatch(/0\.66 points per variant/);
-    expect(text).toMatch(/same optimum in 65 variants. In the seven differing cases, metal differs by at most 0.017% and decisions by one to five mesh steps; five favour the unscreened result and two the screened result/);
+    expect(text).toMatch(/same terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes\. Seven of the 70 feasible pairs selected different decisions; recovered metal differed by at most 0\.017%, and the decisions were one to five mesh steps apart\. Five favoured the unscreened result and two the screened result/);
     expect(text).toMatch(/spends 0 to 42% less energy per tonne and 0 to 29% less metal/);
     expect(text).toMatch(/beyond 0\.01%, the mesh's resolution/);
   });
@@ -384,7 +384,7 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
     expect([feasible.length, feasible[0].id, feasible[0].v, round(feasible[0].r.gain_pct, 1), feasible.at(-1)!.id, feasible.at(-1)!.v, round(feasible.at(-1)!.r.gain_pct, 1)])
       .toEqual([43, 'iron_magnetite_fine', 'finer_crusher', 0.3, 'copper_oxide', 'coarser_grind', 20.0]);
     const text = en(ENGINE_BENCHMARK.OPTIMIZATION);
-    expect(text).toMatch(/across proposals its mean is 0\.71, median 0\.48 and maximum 38\.2/);
+    expect(text).toMatch(/across proposals its mean is 0\.71, median 0\.48 and maximum 38\.16 points/);
     expect(text).toMatch(/Among the 43 feasible-start target variants, gains run from 0\.3% .* to 20\.0%/);
   });
 

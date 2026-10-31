@@ -145,14 +145,16 @@ gives every variant). `tests/test_docs_claims.py` holds each number here to the 
 - **What the screen cost (OP-06, OP-11).** Over the 72 screened variants the search spent 26,367 engine evaluations,
   and the same starts and weight without the screen 22,487: 17.3% more with the screen. It took fewer evaluations in 0
   variants, more in 68 and the same in 4. Of the 79,035 candidates screened, the guard rejected 19 and the interval
-  48,266; the engine evaluated the best passing candidate 5,811 times, and 901 of those became an incumbent. Without
-  the screen the search reaches the same optima: in 65 of the 72 variants it ends at the same decisions; in the other
-  two the unscreened search ends with a little more metal, within 0.02% of the recovered metal and one or two of the
-  finest mesh steps away. The measurement before the build (`docs/design/features/live-optimizer/design.md`, "Measured
+  48,266; the engine evaluated the best passing candidate 5,811 times, and 901 of those became an incumbent. Both
+  searches return feasible optima in 70 variants and infeasible outcomes in two; in 65 of the 72 variants it ends at the same decisions, with terminal outcomes matching
+  of the 72 variants (63 identical feasible decisions and two matching infeasible outcomes). The seven differing
+  feasible decisions differ by at most 0.017% in recovered metal and one to five of the finest mesh steps. The measurement
+  before the build (`docs/design/features/live-optimizer/design.md`, "Measured
   on 2026-09-30") gave 7.9% more over the 12 nominal states, and 1.9% more with one-step candidates only; the design
   was kept as validated, and the cost is its result.
-- **The surrogate against the engine.** Where the screen proposed, the surrogate's recovery was on average 0.66 points
-  from the engine's (the mean of the variants' means; 2.05 at worst).
+- **The surrogate against the engine.** the surrogate's recovery was on average 0.66 points from the engine's (the mean of the variants' means; 2.05 at worst).
+  The mean of the 72 per-variant mean absolute recovery errors was 0.66 points. Across all
+  5,811 proposals, the mean absolute error was 0.71 points, the median 0.48 and the maximum 38.16 points.
 - **The weight path (OP-07).** With a quarter of the weight on metal, the nominal optima spend 0 to 42% less energy
   per tonne and recover 0 to 29% less metal than the metal-only optimum. The magnetite optimum does not move: its
   grade specification already binds at the metal-only optimum, and a coarser grind would break it. Along every path

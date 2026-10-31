@@ -199,7 +199,9 @@ input, select, textarea { font: inherit; }
   background: var(--color-surface);
 }
 @media (min-width: 901px) {
-  .of-bench { padding-block: 4px; }
+  /* The optimizer's one full-width instrument was just below ADR-0071's painted-area floor at 1280x800.
+   * Use the app-owned instrument inset to recover four pixels without restyling the shell's page container. */
+  .of-bench { padding-block: 0; }
   .of-view-response > .of-stage { margin: 0; padding: 0; }
   .of-context-chart > .of-plot { height: 640px; }
 }
@@ -239,16 +241,26 @@ input, select, textarea { font: inherit; }
 .of-unit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .of-unit-card-head h3 { margin: 0; font-size: 0.95rem; }
 .of-split { flex: 1 1 auto; display: grid; grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr); grid-template-rows: minmax(0, 1fr); gap: 10px; min-width: 0; min-height: 0; }
-.of-optimizer-split { display: flex; flex-direction: column; gap: 8px; overflow: auto; }
-.of-optimizer-chart { display: flex; flex: 0 0 620px; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; }
-.of-optimizer-chart-select { flex: none; width: min(100%, 24rem); max-width: 24rem; }
-.of-optimizer-chart-select > span { display: none; }
-.of-optimizer-chart-select select { height: 30px; font-size: 0.72rem; }
+/* The chart owns the workbench stage; the searchable weight, actions and result tables live in its expandable inspector. */
+.of-optimizer-split { display: flex; flex-direction: column; overflow: hidden; }
+.of-optimizer-chart { position: relative; display: flex; flex: 1 1 auto; flex-direction: column; gap: 4px; min-width: 0; min-height: 0; height: 100%; }
+.of-optimizer-tools { position: absolute; top: 0; right: 0; z-index: 3; display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.of-optimizer-chart-select { display: flex; flex: none; flex-direction: row; align-items: center; gap: 8px; width: fit-content; max-width: 100%; margin: 0; }
+.of-optimizer-chart-select > span { display: inline; color: var(--color-fg-subtle); font-size: 0.78rem; }
+.of-optimizer-chart-select select { width: auto; min-width: 12rem; height: 32px; font-size: 0.78rem; }
 .of-optimizer-chart > .of-plot { flex: 1 1 auto; min-height: 0; }
 @media (min-width: 1500px) and (min-height: 850px) {
   .of-optimizer-chart { flex-basis: 700px; }
 }
-.of-optimizer-split > .of-aside { flex: none; max-height: none; overflow: visible; }
+.of-optimizer-details { position: relative; flex: none; min-width: 0; max-width: 100%; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); }
+.of-optimizer-details > summary { padding: 5px 9px; color: var(--color-accent); font-size: 0.76rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.of-optimizer-details:not([open]) > .of-aside { display: none; }
+.of-optimizer-details[open] > .of-aside { position: absolute; top: calc(100% + 5px); right: 0; z-index: 5; width: min(560px, 88vw); max-height: min(68vh, 620px); border: 1px solid var(--color-border); box-shadow: 0 8px 30px color-mix(in oklab, var(--color-shadow, #000) 22%, transparent); }
+/* At ordinary desktop widths the result tables took nearly half the viewport beside the chart, leaving its
+ * painted area below ADR-0071's half-viewport floor. Keep the inspector over the plot so the instrument owns its row. */
+@media (min-width: 901px) and (max-width: 1400px) {
+  .of-optimizer-details[open] > .of-aside { width: min(560px, 88vw); }
+}
 /* The Methods records' side panel filled a fifth to a third of its column at 2560x1440 (the Sobol table the
  * least): on a large screen it becomes a strip under the chart, its parts side by side, as tall as its
  * content and never more than 42% of the screen (it scrolls inside beyond that). Below 1300 px of height the learned
@@ -433,7 +445,6 @@ input, select, textarea { font: inherit; }
 .of-context-chart > .of-plot { height: 595px; }
 @media (min-width: 901px) { .of-context-chart > .of-plot { height: 640px; } }
 @media (min-width: 2200px) and (min-height: 1200px) {
-  .of-optimizer-chart { flex-basis: min(1000px, 72vh); }
   .of-context-chart > .of-plot { height: min(1050px, 76vh); }
 }
 .of-context-details { grid-column: 1 / -1; min-width: 0; }
@@ -618,6 +629,10 @@ input, select, textarea { font: inherit; }
   .of-hour-main, .of-sample-main, .of-split > .of-aside, .of-panel, .of-side { overflow: visible; }
   .of-hour-main { grid-template-rows: 260px auto auto; }
   .of-sample-chart { grid-template-rows: 320px; }
+  .of-optimizer-split { display: flex; flex-direction: column; overflow: auto; }
+  .of-optimizer-chart { flex: 0 0 min(480px, 60vh); min-height: 320px; height: auto; }
+  .of-optimizer-tools { position: relative; inset: auto; justify-content: space-between; }
+  .of-optimizer-details[open] > .of-aside { position: static; width: auto; max-height: none; box-shadow: none; }
   .of-table-scroll { overflow-x: auto; overflow-y: visible; }
   .of-table-scroll thead th { position: static; }
 }

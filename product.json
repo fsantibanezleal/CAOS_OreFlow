@@ -15,8 +15,17 @@
       "kind": "technical-report",
       "concept_doi": "10.5281/zenodo.23783845",
       "title": "How far does a learned surrogate of a flowsheet simulator transfer across ores? A closed-circuit, size-by-mineral engine, with cases and ore groups held out",
-      "version": "0.10.006",
+      "version": "0.10.007",
       "covers": []
+    },
+    {
+      "kind": "manuscript",
+      "concept_doi": "10.5281/zenodo.23833134",
+      "title": "When a screened pattern search spends more simulator calls: evidence from mineral-processing circuit cases",
+      "version": "1.0",
+      "covers": [
+        "BS-1"
+      ]
     }
   ],
   "app": "workbench",

@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.006, 2026-10-30. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.007, 2026-10-31. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -47,7 +47,7 @@ Data file: content/executive.json
 - Rasmussen and Williams (2006), *Gaussian Processes for Machine Learning*. https://doi.org/10.1017/CBO9780511790423. The learned lane reports empirical interval coverage for its Gaussian-process model.
 - Global Mining Guidelines Group (2021), *Determining the Bond Efficiency of Industrial Grinding Circuits*, GMG01-MP-2021. https://www.globalminingguidelines.org/guidelines/bond-efficiency/. OreFlow documents its Bond-method applicability and fineness caveats.
 - Torczon (1997), pattern search methods for nonlinear optimization. https://doi.org/10.1137/S1052623493250780. OreFlow uses a generalized pattern search over the declared operating bounds.
-- Audet and Dennis (2009), mesh adaptive direct search algorithms for constrained optimization. https://doi.org/10.1137/070692662. OreFlow uses a declared progressive-barrier simplification and records its limits in `docs/methodologies/12_optimization.md`.
+- Audet and Dennis (2006), mesh adaptive direct search algorithms for constrained optimization. https://doi.org/10.1137/040603371; Audet and Dennis (2009), a progressive barrier for derivative-free nonlinear programming. https://doi.org/10.1137/070692662. OreFlow uses a declared progressive-barrier simplification and records its limits in `docs/methodologies/12_optimization.md`.
 - Booker et al. (1999), managing the evaluation of engineering design problems with surrogate models. https://doi.org/10.1007/BF01197708. OreFlow's optimizer uses a guarded surrogate to order search proposals while the process engine remains the objective evaluator.
 - Saltelli et al. (2010), variance-based sensitivity analysis of model output. https://doi.org/10.1016/j.cpc.2009.09.018. OreFlow estimates first-order and total Sobol indices and documents sampling limitations in `docs/methodologies/13_uncertainty-sensitivity.md`.
 - Herman and Usher (2017), SALib: an open-source Python library for sensitivity analysis. https://doi.org/10.21105/joss.00097. OreFlow uses SALib for its scrambled Sobol design and index estimation.
@@ -203,7 +203,7 @@ applicable variant, tests, documentation and an honest lane label.
 | M-6 | sota | Saltelli-Sobol variance decomposition over contract-bounded operating inputs | Report seeded first-order and total effects with bootstrap intervals, refused draws and the declared sample design. | `tests/test_uncertainty.py::test_seeded_quantiles_and_sobol` |
 | BS-1 | beyond | Surrogate-screened generalized pattern search, with every accepted proposal evaluated by the process engine | Test whether screening lowers engine evaluations while preserving the unscreened optimum; publish the measured cost and any refutation. | `tests/test_optimization.py::test_record_fields` |
 
-The detailed method inventory and its acceptance evidence follow this ladder. The proposal is not treated as a proven accelerator: the current 72-variant record shows 17.3% more engine evaluations with the screen, so the hypothesis that it saves evaluations is refuted on this suite.
+The detailed method inventory and its acceptance evidence follow this ladder. The proposal is not treated as a proven accelerator: the current 72-variant record shows 17.25% more engine evaluations with the screen, so the hypothesis that it saves evaluations is refuted on this suite.
 
 | Class | OreFlow method | Acceptance evidence |
 |---|---|---|
@@ -319,4 +319,4 @@ verdict (ADR-0075). `scripts/check_sdd.py` checks that every live requirement na
 
 **Method.** Keep the existing progressive-barrier pattern search and its bounds, starts, constraints and stopping rules fixed. At each iteration, use the guarded surrogate only to rank the candidate proposals; the circuit engine evaluates every proposal that can become an incumbent. Run a matched search without screening from the same starts and with the same objective weights. Compare engine evaluations, the final decisions and recovered metal. The surrogate never supplies a reported process result.
 
-**Evaluation and result.** Evaluate the paired procedures over all 72 committed screened variants, retaining the 12 authored ores and their six target-mode variants. The acceptance hypothesis is refuted for this suite: screening used 26,367 engine evaluations versus 22,487 without it (17.3% more), saving evaluations in zero variants and costing more in 68. It reached the same terminal decisions in 65 variants; the remaining recorded differences are within 0.02% in recovered metal. These cases are authored scenarios, not plant measurements. The result supports keeping the method as a measured research path, not presenting it as a faster optimizer. The executable comparison is in `data/derived/cases/<case_id>.json` (`variants[].methods.optimization`) and `tests/test_optimization.py::test_record_fields`.
+**Evaluation and result.** Evaluate the paired procedures over all 72 committed screened variants, retaining the 12 authored ores and their six target-mode variants. The acceptance hypothesis is refuted for this suite: screening used 26,367 engine evaluations versus 22,487 without it (17.25% more), saving evaluations in zero variants and costing more in 68. Both searches had the same terminal outcome in 65 variants: 63 identical feasible decision vectors and two matching infeasible outcomes. Seven feasible pairs selected different decisions; the largest recovered-metal difference was 0.002653 t/h (0.017%). Across 5,811 screened proposals, absolute prediction error reached 38.16 percentage points. These cases are authored scenarios, not plant measurements. The result supports keeping the method as a measured research path, not presenting it as a faster optimizer. The executable comparison is in `data/derived/cases/<case_id>.json` (`variants[].methods.optimization`) and `tests/test_optimization.py::test_record_fields`.

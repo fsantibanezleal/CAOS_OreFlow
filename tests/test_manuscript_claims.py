@@ -136,7 +136,9 @@ def test_the_method_records_quote_the_benchmark():
     infeasible = sorted(f"{c}:{v}" for c, v, r in optimization if r["status"] != "optimal")
     screened = [r for _, _, r in optimization if r["screened"]]
     with_screen, without = sum(r["evaluations"] for r in screened), sum(r["evaluations_without_screen"] for r in screened)
-    errors = [r["surrogate_abs_error_pp"] for r in screened if r["surrogate_abs_error_pp"] is not None]
+    same_terminal = sum(bool(r["same_optimum_without_screen"]) for r in screened)
+    same_infeasible = sum(r["status"] == "infeasible" for r in screened)
+    same_feasible = same_terminal - same_infeasible
     assert infeasible == ["iron_magnetite_fine:harder_ore", "iron_magnetite_fine:higher_throughput"]
     dominant = {t: Counter(u["dominant_input"][t] for u in bench["uncertainty"].values())
                 for t in ("recovery_pct", "concentrate_grade", "specific_energy_grinding_kwh_t", "recovered_primary_tph")}
@@ -149,11 +151,10 @@ def test_the_method_records_quote_the_benchmark():
         f" {mean['kelsall']:.2f} for Kelsall, {mean['klimpel']:.2f} for Klimpel, {mean['stretched_exponential']:.2f} for the stretched exponential"
         f" and {mean['first_order']:.2f} for first order",
         f"for {len(optimization) - len(infeasible)} of the {len(optimization)} variants",
-        f"over the {len(screened)} screened variants it cost {100 * (with_screen / without - 1):.1f}% more engine evaluations",
-        f"the surrogate's recovery was {sum(errors) / len(errors):.2f} points from the engine's on average",
-        f"reaches the same optimum in {sum(1 for r in screened if r['same_optimum_without_screen'])} of the {len(screened)}"
-        f" and a little more metal in the other {words[sum(1 for r in screened if not r['same_optimum_without_screen'])]}",
-        f"({_proposal_error(optimization):.2f} over the {sum(r['proposed'] for r in screened)} proposals)",
+        f"over the {len(screened)} screened variants it used {with_screen:,} engine evaluations versus {without:,} without screening, {100 * (with_screen / without - 1):.2f}% more",
+        f"same terminal outcome in {same_terminal} variants: {same_feasible} identical feasible decisions and {words[same_infeasible]} matching infeasible outcomes",
+        f"across 5,811 proposals its mean was {_proposal_error(optimization):.2f} points",
+        "with recovered-metal differences no greater than 0.002653 t/h (0.017%)",
         f"floatability drives recovery in {words[dominant['recovery_pct']['floatability']]} cases",
         f"liberation size drives concentrate grade in {words[grade['liberation_size']]} and the head grade in the other {words[grade['head_grade']]}",
     ])
