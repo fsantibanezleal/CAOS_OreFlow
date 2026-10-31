@@ -132,17 +132,17 @@ The product design and requirement map is [`docs/design/SDD.md`](../design/SDD.m
    (what was planted or refuted) and the test that does it, which must be adversarial: under `tests/adversarial/`, or
    named `test_adversarial_...` (`it('adversarial: ...')` in TypeScript). A requirement and a validation row never
    name a test that is skipped, only a name in a string or comment, or a prefix of a title. A feature whose status is
-   planned or superseded is listed with its reason in `docs/design/features/.status-allow`. Add the planted-defect tests
+   planned or superseded is listed with its reason in the template's feature-status allowlist. Add the planted-defect tests
    of the product's own guards to `tests/adversarial/`.
 
-   **The template's own tests (`tests/template/`).** The base's own planted-defect tests that need the example (they plant
-   into its notebooks, its requirement rows, its catalog rows or its case ids, or read this guide) live in `tests/template/`,
-   and `scripts/instantiate.py` removes the folder with the example. The guards a product takes verbatim (the list under
-   "Files a product takes verbatim") are tested there, once, in the template, whose CI runs `tests/template/adversarial` beside `tests/adversarial`; instantiate drops
-   that path from the product's workflow, and a product does not run them again. A product
+   **The template's own tests.** The base's planted-defect tests that need its example (they plant into its notebooks,
+   requirement rows, catalog rows or case ids, or read this guide) stay in the template's dedicated test suite, which
+   template instantiation removes with the example. The guards a product takes verbatim (the list under "Files a product
+   takes verbatim") are tested there once; the template CI runs them beside the product guard suite. Product CI does not
+   include this template-only suite. A product
    writes the planted-defect tests of its own guards and of its own features under `tests/adversarial/`, on its own rows,
-   notebooks and cases. `tests/test_guards.py` fails any test module outside `tests/template/` that exercises a base guard and
-   holds a string the residue guard treats as example residue, so a base test cannot leak out of the folder.
+   notebooks and cases. A template guard checks that base-guard tests do not leak into the product test suite, where
+   example-specific fixture strings would be treated as residue.
 
 The walking skeleton comes next: the site built on the provider tree
 (`CAOS_DATA_ROOT=docs/contracts/fixtures/data/derived npm run build`) and the API serving it, deployed so the UI and
@@ -154,26 +154,25 @@ and listed by `scripts/check_skeleton.py` until its real producer replaces it; n
 Build vertically: each unit (a method, a case family, a page) is finished, with its code, tests and documentation,
 before the next starts; units whose write scopes are disjoint are built at once, against the fixed contracts.
 
-1. **The engine.** Replace `data-pipeline/pipeline/model/` and the stage bodies with the method ladder of the SDD: a
+1. **The engine.** Replace the template's model package and stage bodies with the method ladder of the SDD: a
    method of each tier (classical, state of the art, and at least one proposal beyond it, `BS-1`), none left out
    ([guide 09](09_method-tiers.md)). A fresh product fails `scripts/check_sdd.py` on this until its SDD proposes its
    beyond method. Each method meets its acceptance criterion (ADR-0069) and gets a card in `docs/frameworks/`, its
    dependency pinned in `data-pipeline/requirements.txt` (or the precompute or GPU file). Write the technical report on
    Zenodo and declare it in `product.json` `manuscripts`.
 2. **Contract 1.** Rewrite `data-pipeline/pipeline/io/contract.py` for the product's raw data (columns, units,
-   ranges, outlier policy) with a sample in `data/examples/`, to the params-record schema the catalog fixed (the
-   test holds the schema's bounds equal to the code's); update `tests/test_contract.py`,
-   `tests/contracts/test_params_record.py` and `data/README.md`.
+    ranges, outlier policy) with a sample in `data/examples/`, to the params-record schema the catalog fixed (the
+    contract test holds the schema's bounds equal to the code's); update `tests/test_contract.py` and `data/README.md`.
 3. **The cases.** Rewrite `data-pipeline/pipeline/cases/` and the registry: bilingual titles, categories and expected
-   bands, and numeric expected ranges for every case (`core/expect.py` fails the bake outside them). Set the default
-   case. Document the coverage matrix in `docs/cases/`.
+    bands, and numeric expected ranges for every case (the case tests and bake checks enforce them). Set the default
+    case. Document the coverage matrix in `docs/cases/`.
 4. **Contract 2.** Rename the schema ids (`example.*`) to the product's and change the trace and manifest shapes as
    the method needs, in the schema files first (bump the catalog row's version), then the producers, the generated
-   types (`npm run contracts:types`) and the descriptors in `frontend/src/lib/contract.types.ts`: the build fails
-   while the generated types are not current, and `tests/contracts/` and `contract.test.ts` fail on any key or type
+    types (`npm run contracts:types`) and the descriptors in `frontend/src/engine/contract.ts`: the build fails
+    while the generated types are not current, and `tests/contracts/` and `frontend/src/test/contract.test.ts` fail on any key or type
    that one side has and the other does not.
 5. **The live engine.** If a method runs live, port it to `frontend/src/engine/` and hold it to the baked artifacts
-   with a parity test, as `sir.parity.test.ts` does. If none can, the workbench replays only and declares
+   with a parity test, as `frontend/src/test/parity.test.ts` does. If none can, the workbench replays only and declares
    `replayOnly`.
 6. **The workbench.** Rewrite `frontend/src/workbench/`: the case's question groups, its variants, its parameters
    and live values in the rail. Views are `PlotCard`s with lane, provenance and the selection key; curves go in a
@@ -191,7 +190,7 @@ before the next starts; units whose write scopes are disjoint are built at once,
 7. **The pages and the diagrams.** Rewrite `frontend/src/pages/` from the product's dossiers (equations with
    captions, references with DOIs that resolve) and the five diagrams in `frontend/src/architecture/` (bilingual,
    shell tokens only).
-8. **The SDD requirements.** Replace `docs/design/features/workbench/` with the product's features; every
+8. **The SDD requirements.** Write each product feature under `docs/design/features/<feature>/`; every
    requirement names a test or guard that exists, and every feature has its `validation.md`.
 
 ## 4. Verify, then release
@@ -209,7 +208,7 @@ both scripts verbatim and keeps no variant):
   row's `documents` cell names it (`data/models/*.pt`) and it is at most 5 MB, all such files together at most 50 MB. A
   product with no catalog admits none. Anything bigger lives in the models root, not in the repository.
 - **Third-party notices.** A notice file copied unmodified from upstream (an ONNX Runtime or licence text with em-dashes) is
-  listed in `scripts/.content_standards_allow` as `<path> <sha256> <source URL>`; `scripts/check_content_standards.py` skips
+   listed in the template's content-standards allowlist as `<path> <sha256> <source URL>`; `scripts/check_content_standards.py` skips
   it only while the digest of its content (line endings normalised to LF) matches, so an edited notice fails. The product's
   own text is never listed.
 
@@ -222,7 +221,7 @@ others to the row's own contract test (its `model io` column describes the contr
 ### Files a product takes verbatim
 
 A product takes these scripts from the template as they are and keeps no variant; they hold nothing that names a person (the GitHub
-handle `fsantibanezleal`, the repositories' owner identifier, may stand in a source URL) or a product, and `tests/template/adversarial/test_guard_gaps_example.py` fails when one of them names the owner in the template:
+handle `fsantibanezleal`, the repositories' owner identifier, may stand in a source URL) or a product. The template's owner-leakage tests fail when one of these scripts names the owner:
 
 - `scripts/check_sdd.py`
 - `scripts/check_tech_matrix.py`
