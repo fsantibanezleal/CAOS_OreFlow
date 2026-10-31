@@ -91,7 +91,7 @@ How the floors read a notebook, so that a product can write to them:
 - **Static, the same verdict everywhere.** The gate never asks the environment which module a distribution is imported as. It reads
   `product.json` (`method_packages`, and the optional `import_names` map `{"distribution": "module"}`), the pins of the notebook and the
   static `import_names` map of `scripts/notebook_bar.json` (scikit-learn is `sklearn`); a product with another renamed package adds it
-  to its `product.json`. The pipeline's modules are those under `data-pipeline/` and `data-pipeline/src/`.
+  to its `product.json`. OreFlow's pipeline modules are under `data-pipeline/pipeline/`.
 - **The answer** quotes a number an output of the notebook shows, outside Setup, at the precision the answer writes it: `0.42` against
   `0.4213`, `42 %` against `0.42`, `12,345` or `12.345` against `12345`. A version, a date, a year or a lone digit never counts.
 - **At level 3** at least 2 method cells call the product's own method; the pinned reference implementation counts toward the
@@ -199,7 +199,7 @@ sections, in this order, named in the tree's language:
   product reads its notebooks' outputs for them before a release.
 - **Method:** each equation in markdown with its source (DOI or URL), then run through the product's package, one step per
   cell. A method is imported and never defined in a notebook, an oracle included: the example's final-size solver is
-  `final_size` of `data-pipeline/pipeline/oracles.py`, which shares no code with the engine, and the check refuses a cell that
+  `final_size` of `data-pipeline/pipeline/methods/oracles.py`, which shares no code with the engine, and the check refuses a cell that
   defines a name the engine (`model/`) or the oracles module already define. The example imports the pipeline by path (`data-pipeline/`) because it publishes no package; a product imports its
   own PyPI package.
 - **Step by step:** every code cell is directly preceded by a markdown cell that says what it does and why, and carries at
