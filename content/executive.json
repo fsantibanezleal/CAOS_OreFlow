@@ -705,21 +705,30 @@
   },
   "illustrations": {
     "pain": {
-      "file": "executive/pain.svg",
+      "file": {
+        "en": "executive/pain.svg",
+        "es": "executive/pain-es.svg"
+      },
       "caption": {
         "en": "The decision links feed, circulating load, grind, separation and final product quality.",
         "es": "La decisión enlaza alimentación, carga circulante, molienda, separación y calidad final."
       }
     },
     "situation": {
-      "file": "executive/situation.svg",
+      "file": {
+        "en": "executive/situation.svg",
+        "es": "executive/situation-es.svg"
+      },
       "caption": {
         "en": "Process simulations and measured-data studies answer different questions and retain separate validation records.",
         "es": "Las simulaciones y estudios medidos responden preguntas distintas y conservan validaciones separadas."
       }
     },
     "proposal": {
-      "file": "executive/proposal.svg",
+      "file": {
+        "en": "executive/proposal.svg",
+        "es": "executive/proposal-es.svg"
+      },
       "caption": {
         "en": "A controlled comparison traces each operating change through the circuit and its evidence.",
         "es": "Una comparación controlada sigue cada cambio operacional por el circuito y su evidencia."

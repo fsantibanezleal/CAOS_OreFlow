@@ -141,7 +141,9 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
   const [live, setLive] = useState<OptimizationRecord | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
-  const [view, setView] = useState<View>('starts');
+  // Lead with the incumbent's actual search history. The six-start summary is a useful secondary view, but
+  // its small between-start differences made the optimizer look inert when it first opened.
+  const [view, setView] = useState<View>('trace');
   const runId = useRef(0);
   useEffect(() => () => { if (runId.current) cancelOptimize(runId.current); }, []);
   const verdict = control ? validateControl(contract, 'optimizer_weight_pct', weightPct) : null;
@@ -288,12 +290,13 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
   return (
     <div className="of-split of-optimizer-split">
       <div className="of-optimizer-chart">
-        <label className="of-field of-optimizer-chart-select"><span>{TEXT.chart[lang]}</span>
-          <select value={shown} onChange={e => setView(e.target.value as View)}>
-            {(['starts', 'trace', 'path', 'screen'] as View[]).map(v => <option key={v} value={v}>{TEXT.views[v][lang]}</option>)}</select></label>
-        {chart}
-      </div>
-      <div className="of-aside">
+        <div className="of-optimizer-tools">
+          <label className="of-optimizer-chart-select"><span>{TEXT.chart[lang]}</span>
+            <select value={shown} onChange={e => setView(e.target.value as View)}>
+              {(['starts', 'trace', 'path', 'screen'] as View[]).map(v => <option key={v} value={v}>{TEXT.views[v][lang]}</option>)}</select></label>
+          <details className="of-optimizer-details">
+            <summary>{lang === 'es' ? 'Controles y resultados' : 'Controls and results'}</summary>
+        <div className="of-aside">
         {control && (
           <div className="of-rerun">
             <p className="of-facts-title">{TEXT.rerun[lang]}</p>
@@ -391,6 +394,10 @@ export function Optimizer({ record: baked, contract, caseId, ore, plant, point, 
         </p>
         {record.path && <p className="of-footnote">{record.path.map(s => `${Math.round(100 * s.weight)}%: ${s.status === 'optimal' ? formatWithUnit(metal(s.recovered_tph), metalUnit, lang) : TEXT.infeasible[lang]}${s.converged === false ? ' *' : ''}`).join('; ')}${record.path.some(s => s.converged === false) ? ` (* ${TEXT.budgetStop[lang]})` : ''}</p>}
         {record.optimum && <p className="of-footnote">{TEXT.costNote[lang]}</p>}
+        </div>
+          </details>
+        </div>
+        {chart}
       </div>
     </div>
   );

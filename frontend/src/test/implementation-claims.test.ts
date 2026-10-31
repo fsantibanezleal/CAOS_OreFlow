@@ -62,7 +62,8 @@ describe('the Implementation page says what the records and environments hold', 
     const t = text(bake);
     const n = (v: number) => v.toLocaleString('en-US');
     expect(t).toMatch(new RegExp(`The screened runs used ${n(withScreen)} engine evaluations against ${n(without)} without screening, ${Number((100 * (withScreen / without - 1)).toFixed(1))}% more`));
-    expect(t).toMatch(new RegExp(`mean absolute surrogate error was ${Number((errors.reduce((a, e) => a + e, 0) / errors.length).toFixed(2))} recovery points`));
+    expect(t).toMatch(new RegExp(`Mean absolute recovery error averaged ${Number((errors.reduce((a, e) => a + e, 0) / errors.length).toFixed(2))} points across variants`));
+    expect(t).toContain('over 5,811 proposals it was 0.71 points, with a 0.48-point median and a 38.16-point maximum');
   });
 
   // T-07: a stage the validation record lists without a text printed its raw id with empty cells

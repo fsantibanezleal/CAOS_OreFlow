@@ -2,6 +2,23 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## 0.10.007 release candidate, 2026-10-31
+
+### Local gate
+
+- Rebuilt the 12 authored process cases and 96 variants on the RTX 4070 Laptop GPU. CUDA training/export, ONNX parity, measured-sample, benchmark, learning, study, contract and manifest lanes passed. The committed contract digest is `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`.
+- Regenerated and checked all 13 case pages. Record-based timing and methodology claims were reconciled in the bake guides, optimization methodology and digital-twin manuscript. The report PDF is the reviewed 10-page 0.10.007 artifact; the separate optimizer-screening paper is five pages and names the measured negative result.
+- Repository guards passed, including the 124 live SDD requirements, artifact recomputation, readiness and contract checks, manuscript voice/tier-name rules, all 32 bilingual notebook structures, the three language-specific executive illustrations, and README coverage. `ruff` passed.
+- The full Python suite passed: 884 tests in 2,285.36 seconds (one upstream Starlette deprecation warning). All nine framework examples passed, including CUDA training on the RTX 4070 Laptop GPU, ONNX parity, GeoMet recalculation and valid/invalid API examples. The dedicated framework pytest example passed 16 tests.
+- The 32 notebooks passed static checks and fresh-kernel execution. The independently reviewed English/Spanish level-4 optimizer lessons run the exact circuit engine on selected saved decisions and explain the paired benchmark result; review is recorded in CAOS_MANAGE `wip/oreflow/notebook-review-2026-10-31.md`.
+- Frontend typecheck, 53 test files / 505 tests and production build passed. The full browser gate passed 1,346 checks across 1280×800, 1600×900, 1920×1080 and 2560×1440, phone 390×844 and tablet 768×1024; both themes and languages; all app views, content tabs, Focus, optimizer and uncertainty reruns, source views, architecture modal, case topologies, and browser console. Captures were read. The test specifically verified that a case/control change clears stale sweeps, infeasible states are surfaced, and the mobile flowsheet is keyboard-scrollable.
+
+### Remote gate
+
+- Pending the exact candidate commit's CI, merge to `develop`, promotion to `main`, immutable `v0.10.007` tag and GitHub Release.
+- The technical report and optimizer-screening manuscript have separate authorized Zenodo publication workflows. Pending live-record verification, checksums and updated management ledgers.
+- Pending deployment of the tagged `main` commit to `/opt/fasl-apps/CAOS_OreFlow` on the ML VPS and public API, route and browser verification.
+
 ## 0.10.004, 2026-10-27
 
 ### Local gate

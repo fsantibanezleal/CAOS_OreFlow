@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-labelledby="title desc">
+  <title id="title">Circuito mineral y operaciones interconectadas</title>
+  <desc id="desc">La alimentación pasa por trituración y molienda hasta la separación mineral.</desc>
+  <defs>
+    <style>
+      .node { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 3; }
+      text { font: 600 13px system-ui; fill: var(--color-fg); }
+      .flow { fill: none; stroke: var(--color-accent); stroke-width: 4; stroke-dasharray: 9 8; animation: move 2s linear infinite; }
+      @keyframes move { to { stroke-dashoffset: -34; } }
+      @media (prefers-reduced-motion: reduce) { .flow { animation: none; opacity: 1; } }
+    </style>
+  </defs>
+  <rect width="900" height="300" rx="22" fill="var(--color-surface)" />
+  <text x="36" y="45" fill="var(--color-fg-subtle)">Operaciones del circuito</text>
+  <path class="flow" d="M 230 148 H 350" />
+  <path class="flow" d="M 450 148 H 570" />
+  <path class="flow" d="M 670 148 H 790" />
+  <g transform="translate(180 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Alimentación</text></g>
+  <g transform="translate(400 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Trituración</text></g>
+  <g transform="translate(620 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Molienda</text></g>
+  <g transform="translate(840 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Separación</text></g>
+</svg>

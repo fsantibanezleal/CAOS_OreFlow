@@ -32,3 +32,5 @@ See [the design and validation record](docs/design/SDD.md) for model assumptions
 ## Technical report
 
 The versioned research report, including the engine, methods, validation protocol, results and limitations, is archived on Zenodo under [concept DOI 10.5281/zenodo.23783845](https://doi.org/10.5281/zenodo.23783845) (CC BY 4.0).
+
+The paired optimizer-screening study is archived under its own Zenodo concept DOI, [10.5281/zenodo.23833134](https://doi.org/10.5281/zenodo.23833134) (CC BY 4.0).

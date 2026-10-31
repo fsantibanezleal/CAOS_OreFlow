@@ -1,17 +1,17 @@
 {
   "release_ready": true,
-  "scope": "OreFlow technical report v0.10.006; reviewed source, metadata, rendered pages and fixed layout warnings",
-  "record_id": "23826265",
-  "version_doi": "10.5281/zenodo.23826265",
+  "scope": "OreFlow technical report v0.10.007; regenerated data claims checked, DOI header verified, rendered pages reviewed, layout warnings cleared",
+  "record_id": "23837152",
+  "version_doi": "10.5281/zenodo.23837152",
   "concept_doi": "10.5281/zenodo.23783845",
-  "bytes": 93391,
-  "md5": "5a29ff2ec2c7b6978cb6534d78fd2f8e",
-  "sha256": "8b6606e6d462077a2b500ebd07c7572cb6604759d958c2789c7bba57c9a46345",
+  "bytes": 93593,
+  "md5": "5d2f837adbfd9f7b7e16cb71828f5753",
+  "sha256": "9dd06dea388d40ae2742b02be810372be53e3c5e61e37943ea8dc29087d6997b",
   "warnings": 0,
   "overfull": 0,
   "underfull": 0,
   "pages": 10,
   "rendered_pages_reviewed": 10,
-  "tex_sha256": "91a67e3511de3b613bd467f3ab7e4927b1130aac7ff1944bb0d0e861fc3508d4",
-  "metadata_sha256": "12fb2b9f3a8b44953e2b2d693266aa6686cf8acac468cbdf6112d6fb04b2fad1"
+  "tex_sha256": "0a00e3bfdbca49bf34739b93d8fb5a3b04491170d515b46ced58da741fb15aa3",
+  "metadata_sha256": "5079049e32136b6dde07abde9dd268b6a73fda1db50acd09ee9121a5daf34a1b"
 }

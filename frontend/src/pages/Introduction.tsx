@@ -23,6 +23,12 @@ const T = {
     es: 'Consulta el informe de investigación versionado sobre el motor de proceso, los supuestos, el protocolo de validación, los resultados y sus límites.',
   },
   reportLink: { en: 'Open the report on Zenodo (CC BY 4.0)', es: 'Abrir el informe en Zenodo (CC BY 4,0)' },
+  optimizerTitle: { en: 'Optimizer screening study', es: 'Estudio del cribado del optimizador' },
+  optimizerText: {
+    en: 'Read the paired study of exact simulator calls and decision agreement when the learned screen is enabled or disabled.',
+    es: 'Consulta el estudio pareado de llamadas exactas al simulador y concordancia de decisiones con el cribado aprendido activado o desactivado.',
+  },
+  optimizerLink: { en: 'Open the study on Zenodo (CC BY 4.0)', es: 'Abrir el estudio en Zenodo (CC BY 4,0)' },
 };
 
 export default function Introduction() {
@@ -35,6 +41,10 @@ export default function Introduction() {
           <section className="prose of-topic" data-doc-section="">
             <h2>{T.reportTitle[lang]}</h2>
             <p>{T.reportText[lang]} <a href="https://doi.org/10.5281/zenodo.23783845" target="_blank" rel="noreferrer">{T.reportLink[lang]}</a>.</p>
+          </section>
+          <section className="prose of-topic" data-doc-section="">
+            <h2>{T.optimizerTitle[lang]}</h2>
+            <p>{T.optimizerText[lang]} <a href="https://doi.org/10.5281/zenodo.23833134" target="_blank" rel="noreferrer">{T.optimizerLink[lang]}</a>.</p>
           </section>
           <TopicGroups lang={lang} label={T.views} groups={INTRODUCTION} />
         </> },

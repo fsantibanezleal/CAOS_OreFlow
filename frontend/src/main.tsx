@@ -23,7 +23,9 @@ import { NavOverflow } from "./lib/NavOverflow";
 // the workbench is the landing route; the focus route and the content pages load when first opened
 const Workbench = React.lazy(() => import("./workbench/Workbench"));
 const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
-const Introduction = React.lazy(() => import("./pages/Introduction"));
+// The root path lands directly on the Introduction's executive view. Load that page with the shell so the
+// landing never exposes a transient empty tab while its lazy chunk arrives (shell gate G4).
+import Introduction from "./pages/Introduction";
 const Methodology = React.lazy(() => import("./pages/Methodology"));
 const Implementation = React.lazy(() => import("./pages/Implementation"));
 const Experiments = React.lazy(() => import("./pages/Experiments"));

@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.10.007] - 2026-10-31
+
+### Changed
+- Rework the optimizer research view so the search trace is the default and its controls, rerun result and trace remain visible together at desktop widths; retain a usable stacked layout on tablets and phones.
+- Correct the paired screening result across the app, methodology, design record, notebooks and manuscripts: 17.25% more exact-engine evaluations, 63 identical feasible decisions, two matching infeasible outcomes and seven differing feasible pairs.
+- Add a bilingual executed optimizer-screening investigation with paired figures and production-engine checks; correct the SIAM MADS and progressive-barrier citations.
+- Update the technical report with the measured optimizer comparison and current release artifacts.
+
 ## [0.10.006] - 2026-10-30
 
 ### Changed

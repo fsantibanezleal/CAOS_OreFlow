@@ -125,11 +125,9 @@ with the screen exported from the committed learning record:
 | the screen as designed (one and two mesh steps) | 3,974 | 7.9% more |
 | the screen limited to one mesh step | 3,753 | 1.9% more |
 
-All three reach the same optimum in every case, to the sixth decimal of recovered metal. Over the 72 variants of the
-first screened development bake (before the cut mode added its 24) (with the weight path) the designed screen spent 8.3% more (23,597 against 21,794).
+In this 12-case, nominal, weight-1 measurement, all three settings reached the same optimum to the sixth decimal of recovered metal. This limited result does not describe the later 72-variant paired bake. Over those 72 variants, the designed screen spent 17.25% more calls than the matched search without screening (26,367 against 22,487), with identical feasible decisions in 63 pairs and two additional matching infeasible outcomes.
 Of its 4,812 proposals, 831 (17%) became an incumbent. The surrogate's error on recovery at the proposals had a
-median of 0.59 points. So the surrogate is accurate where it is trusted, but the mesh neighbours differ by less
-than its error, and a failed two-step proposal is an evaluation the poll would not have made.
+median of 0.59 points in that historical measurement. This median alone does not establish accuracy near the decision boundary or reliable uncertainty calibration. In the later committed bake, proposal error reached 38.16 percentage points, so no general accuracy claim follows from this early measurement.
 
 The design is kept as validated. The screen runs in the bake and the browser, and its cost is the reported
 result (OP-11). The one-step variant, measured and cheaper, is not adopted: it still does not save evaluations, and

@@ -25,7 +25,7 @@
     ],
     "license": "cc-by-4.0",
     "language": "eng",
-    "version": "0.10.006",
+    "version": "0.10.007",
     "related_identifiers": [
       {
         "relation": "isSupplementedBy",
@@ -33,7 +33,7 @@
         "resource_type": "software"
       }
     ],
-    "publication_date": "2026-10-30",
-    "version_notes": "Expanded research report for OreFlow version 0.10.006, with methods, benchmark results, executable teaching material, and stated limits."
+    "publication_date": "2026-10-31",
+    "version_notes": "Rebuilt the complete learning, case, benchmark, study and real-sample records for OreFlow 0.10.007. The reported surrogate-transfer scores and paired optimization-call comparison were reproduced against the regenerated records."
   }
 }
