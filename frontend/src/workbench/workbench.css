@@ -200,9 +200,8 @@ input, select, textarea { font: inherit; }
 }
 @media (min-width: 901px) {
   /* The optimizer's one full-width instrument was just below ADR-0071's painted-area floor at 1280x800.
-   * Give the workbench four pixels back at its lower edge; keep a clear inset above the site footer. */
-  .app-shell.fixed .page-body.wide.caos-wb { padding-bottom: 8px; }
-  .of-bench { padding-block: 4px 0; }
+   * Use the app-owned instrument inset to recover four pixels without restyling the shell's page container. */
+  .of-bench { padding-block: 0; }
   .of-view-response > .of-stage { margin: 0; padding: 0; }
   .of-context-chart > .of-plot { height: 640px; }
 }
