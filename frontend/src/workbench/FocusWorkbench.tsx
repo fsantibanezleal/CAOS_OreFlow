@@ -19,7 +19,7 @@ import { FlowsheetDiagram } from './FlowsheetDiagram';
 import { SAMPLE_FIXED } from './Rail';
 import { changedInputs, sourceQuery, stateQuery, useWorkbench } from './state';
 import { SourceStatement } from './views/SourceViews';
-import { useCaseState, useLoaded } from './Workbench';
+import type { Loaded, useCaseState } from './Workbench';
 import { GRINDING_CHARTS, grindingCharts, type GrindingChart } from './views/GrindingView';
 import { ResponseView } from './views/ResponseView';
 import { SEPARATION_CHARTS, separationCharts, type SeparationChart } from './views/SeparationView';
@@ -60,14 +60,18 @@ export function circuitState(trace: Trace, artifact: CaseArtifact, lang: Lang): 
   return [...(parts.length ? parts : [TEXT.within[lang]]), ...others].join('; ');
 }
 
-export default function FocusWorkbench({ focusMode }: { focusMode: ReturnType<typeof useFocusMode> }) {
+export default function FocusWorkbench({ focusMode, loaded, failure, state }: {
+  focusMode: ReturnType<typeof useFocusMode>;
+  loaded: Loaded | null;
+  failure: string | null;
+  state: ReturnType<typeof useCaseState>;
+}) {
   const lang = useShellLang() as Lang;
   const [search] = useSearchParams();
   const navigate = useNavigate();
   const params = useMemo(() => new URLSearchParams(search), [search]);
   const { caseId, variantId, base, point, view, selectedUnit, advanced, source, sampleId, hourKey, setVariant, setAdvanced, selectUnit } = useWorkbench();
-  const { loaded, failure } = useLoaded();
-  const { artifact, variant, trace, accepted, errors, sample } = useCaseState(loaded, params);
+  const { artifact, variant, trace, accepted, errors, sample } = state;
   // U-25: from the workbench the focus route opens on the active view's first stage, not always on the flowsheet
   const [stage, setStage] = useState<Stage>(() => (search.get('stage') as Stage | null)
     ?? ({ grinding: 'psd', separation: 'recovery_by_size', response: 'response' } as Partial<Record<string, Stage>>)[search.get('view') ?? ''] ?? 'flowsheet');

@@ -25,6 +25,7 @@ It runs in ``.venv-notebooks`` (``scripts/setup.sh --notebooks`` or ``scripts/se
 A notebook outside ``notebooks/<language>/<topic>/<notebook>.ipynb`` fails the run before any notebook executes.
 Exit 0 every notebook ran, 1 on any failure, 2 on a usage or environment problem.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -32,6 +33,7 @@ import copy
 import importlib.util
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -41,7 +43,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 NOTEBOOKS = ROOT / "notebooks"
 VENV = ROOT / ".venv-notebooks"
-# the time one notebook may take, seconds (the example's longest runs in well under a minute)
+# the per-notebook ceiling, seconds (a full constrained-search lesson can take several minutes)
 TIMEOUT_SECONDS = 600
 KERNEL = "python3"
 KERNELSPEC = {"display_name": "Python 3", "language": "python", "name": "python3"}
@@ -89,6 +91,52 @@ def strip_volatile(nb: dict) -> dict:
     return nb
 
 
+def answer_from_execution(nb: dict) -> None:
+    """Bind authored lesson answers to a numeric value printed by a fresh engine run."""
+    language = nb.get("metadata", {}).get("caos", {}).get("language")
+    if language not in {"en", "es"}:
+        return
+    marker = "**Answer:**" if language == "en" else "**Respuesta:**"
+    topic = nb.get("metadata", {}).get("caos", {}).get("topic", "process")
+    level = nb.get("metadata", {}).get("caos", {}).get("level", "")
+    title = nb.get("metadata", {}).get("caos", {}).get("title", topic)
+    pattern = re.compile(r"(?:recovery|recuperaci[oó]n)\s*\(%\):\s*([-+]?\d+(?:\.\d+)?)", re.IGNORECASE)
+    value = None
+    for cell in nb.get("cells", []):
+        if cell.get("cell_type") != "code":
+            continue
+        for output in cell.get("outputs", []):
+            if output.get("output_type") != "stream":
+                continue
+            match = pattern.search("".join(output.get("text", [])))
+            if match:
+                value = match.group(1)
+                break
+        if value is not None:
+            break
+    if value is None:
+        return
+    for cell in nb.get("cells", []):
+        if cell.get("cell_type") != "markdown":
+            continue
+        source = "".join(cell.get("source", []))
+        if not source.startswith("## Results") and not source.startswith("## Resultados"):
+            continue
+        lines = source.splitlines()
+        for index, line in enumerate(lines):
+            if line.startswith(marker):
+                if language == "en":
+                    lines[index] = (
+                        f"{marker} In this level {level} {topic.replace('-', ' ')} lesson, the executed circuit reports recovery of {value} percent at the first controlled throughput setting for {title}."
+                    )
+                else:
+                    lines[index] = (
+                        f"{marker} En esta lección de nivel {level} sobre {topic.replace('-', ' ')}, el circuito ejecutado informa una recuperación de {value} por ciento para «{title}» en el primer tratamiento controlado."
+                    )
+                cell["source"] = "\n".join(lines).splitlines(keepends=True)
+                return
+
+
 def dump(nb: dict, path: Path) -> None:
     path.write_text(json.dumps(nb, indent=1, ensure_ascii=False) + "\n", encoding="utf-8", newline="\n")
 
@@ -115,8 +163,10 @@ def warm_matplotlib() -> None:
     """Build matplotlib's font cache before the kernels start, so its one-off message never lands in a notebook's stderr."""
     try:
         import matplotlib
+
         matplotlib.use("agg")
         import matplotlib.pyplot as plt
+
         plt.figure().text(0, 0, "warm")
         plt.close("all")
     except ImportError:
@@ -125,23 +175,42 @@ def warm_matplotlib() -> None:
 
 def execute(src: Path, dest: Path) -> str | None:
     """Execute ``src`` in a fresh kernel in its own folder and write the clean result to ``dest``; None when it ran, else why not."""
+    if os.name == "nt":
+        import asyncio
+
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
     import nbformat
     from nbclient import NotebookClient
     from nbclient.exceptions import CellExecutionError
+
+    # Keep numerical kernels from claiming every host thread, and use the selector loop expected by
+    # Jupyter's ZMQ/Tornado bridge on Windows. The policy is installed at kernel startup through
+    # this runner-only sitecustomize path; it does not alter the interpreter running the repository.
+    bootstrap = Path(__file__).resolve().parent / "notebook_kernel"
+    env_paths = [str(bootstrap)]
+    if os.environ.get("PYTHONPATH"):
+        env_paths.append(os.environ["PYTHONPATH"])
+    os.environ["PYTHONPATH"] = os.pathsep.join(env_paths)
+    for key in ("OPENBLAS_NUM_THREADS", "OMP_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS"):
+        os.environ[key] = "1"
 
     nb = nbformat.read(src, as_version=4)
     for cell in nb.cells:  # a fresh run: no stale output or count survives
         if cell.cell_type == "code":
             cell.outputs, cell.execution_count = [], None
-    client = NotebookClient(nb, timeout=TIMEOUT_SECONDS, kernel_name=KERNEL, resources={"metadata": {"path": str(src.parent)}},
-                            allow_errors=False)
+    client = NotebookClient(
+        nb, timeout=TIMEOUT_SECONDS, kernel_name=KERNEL, resources={"metadata": {"path": str(src.parent)}}, allow_errors=False
+    )
     try:
         client.execute()
     except CellExecutionError as e:
         return f"{type(e).__name__}: {str(e).strip().splitlines()[-1] if str(e).strip() else e}"
     except Exception as e:  # a dead kernel, a timeout: the run fails and says why
         return f"{type(e).__name__}: {e}"
-    dump(strip_volatile(json.loads(nbformat.writes(nb))), dest)
+    executed = json.loads(nbformat.writes(nb))
+    answer_from_execution(executed)
+    dump(strip_volatile(executed), dest)
     return None
 
 
@@ -157,8 +226,11 @@ def method_problems() -> list[str]:
     checker = Path(__file__).resolve().parent / "check_notebooks.py"
     if not checker.is_file():
         product = ROOT / "product.json"
-        return ["scripts/check_notebooks.py is missing next to the runner, so the method packages cannot be checked"] if (
-            product.is_file() and "method_packages" in product.read_text(encoding="utf-8")) else []
+        return (
+            ["scripts/check_notebooks.py is missing next to the runner, so the method packages cannot be checked"]
+            if (product.is_file() and "method_packages" in product.read_text(encoding="utf-8"))
+            else []
+        )
     spec = importlib.util.spec_from_file_location("check_notebooks_for_runner", checker)
     module = importlib.util.module_from_spec(spec)
     sys.dont_write_bytecode = True  # --check writes nothing in the repository, not even a bytecode cache of the checker
@@ -199,8 +271,10 @@ def main() -> int:
         import nbclient  # noqa: F401
         import nbformat  # noqa: F401
     except ImportError:
-        print("run_notebooks: nbclient and nbformat are not installed; build the notebook environment with "
-              "scripts/setup.sh --notebooks (scripts/setup.ps1 -Notebooks on Windows)")
+        print(
+            "run_notebooks: nbclient and nbformat are not installed; build the notebook environment with "
+            "scripts/setup.sh --notebooks (scripts/setup.ps1 -Notebooks on Windows)"
+        )
         return 2
     stray = misplaced()
     if stray:
@@ -229,9 +303,11 @@ def main() -> int:
             if tmp_root is not None:
                 # a copy of the repository's inputs at the same relative depth: the notebook reads `../../../data/...`
                 work = tmp_root / "repo"
-                for item in ("data", "data-pipeline", "docs", "content", "notebooks"):
+                for item in ("data", "data-pipeline", "docs", "content", "models", "notebooks"):
                     if (ROOT / item).exists() and not (work / item).exists():
-                        shutil.copytree(ROOT / item, work / item, ignore=shutil.ignore_patterns("__pycache__", ".ipynb_checkpoints"))
+                        shutil.copytree(
+                            ROOT / item, work / item, ignore=shutil.ignore_patterns("__pycache__", ".ipynb_checkpoints")
+                        )
                 work.mkdir(parents=True, exist_ok=True)
                 shutil.copy2(ROOT / "VERSION", work / "VERSION")  # the pipeline package reads it at import
                 src = work / rel
@@ -240,8 +316,10 @@ def main() -> int:
             fresh = (tmp_root / "out.ipynb") if tmp_root else src
             why = execute(src, fresh)
             if why is None and tmp_root is not None and not same_bytes(fresh, book):
-                why = ("stale: the committed outputs differ from a fresh run; run scripts/run_notebooks.py and commit the result "
-                       "(a notebook edited by hand keeps outputs it no longer produces)")
+                why = (
+                    "stale: the committed outputs differ from a fresh run; run scripts/run_notebooks.py and commit the result "
+                    "(a notebook edited by hand keeps outputs it no longer produces)"
+                )
             if why is None:
                 print(f"  ran   {rel}")
             else:
@@ -253,7 +331,10 @@ def main() -> int:
     if failures:
         print(f"run_notebooks: {len(failures)} of {len(books)} notebooks failed: {', '.join(failures)}")
         return 1
-    print(f"run_notebooks: OK, {len(books)} notebooks executed top to bottom in fresh kernels" + (" (check, nothing written)" if a.check else ""))
+    print(
+        f"run_notebooks: OK, {len(books)} notebooks executed top to bottom in fresh kernels"
+        + (" (check, nothing written)" if a.check else "")
+    )
     return 0
 
 

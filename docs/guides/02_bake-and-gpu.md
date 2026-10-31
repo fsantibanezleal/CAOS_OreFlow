@@ -29,16 +29,16 @@ stages and stops with an error if the last one, the artifact checks, finds anyth
 
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
-| contract | `contract/operating_contract.json`, `contract/contract_probes.json` | 1.1 s |
-| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 11397.0 s on CUDA in the committed 0.10.004 bake |
-| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 5786.6 s on 12 workers in the committed 0.10.004 bake |
-| benchmark | `benchmark.json` | 2.2 s |
-| studies | `studies.json`: the ablations and the uncertainty seed study | 536.4 s |
-| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 145.1 s |
-| manifests | `manifests/<case>.json`, `manifests/index.json` | 0.2 s |
-| validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | 0.8 s |
+| contract | `contract/operating_contract.json`, `contract/contract_probes.json` | 3.6 s |
+| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 13552.8 s on CUDA in the committed 0.10.006 bake |
+| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 5202.8 s on 12 workers in the committed 0.10.006 bake |
+| benchmark | `benchmark.json` | 1.6 s |
+| studies | `studies.json`: the ablations and the uncertainty seed study | 455.9 s |
+| real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 265.6 s |
+| manifests | `manifests/<case>.json`, `manifests/index.json` | under 1 s |
+| validation | `validation.json` (the checks of `scripts/check_artifacts.py`, run in process) | 1.1 s |
 
-The times are recorded in the committed 0.10.004 `validation.json` (development machine with an RTX 4070 Laptop GPU). The MLP final fit used CUDA. Case simulation used 12 CPU workers. These are run-specific timings, not a hardware-independent performance target. Each stage and each finished case prints a timestamped line; a bake still running after four hours prints each thread's stack once, so a stall shows where it is.
+The times are recorded in the committed 0.10.006 `validation.json` (development machine with an RTX 4070 Laptop GPU). The MLP final fit used CUDA. Case simulation used 12 CPU workers. These are run-specific timings, not a hardware-independent performance target.
 
 ## The GPU lane
 

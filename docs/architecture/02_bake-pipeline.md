@@ -48,11 +48,9 @@ those folders whole, so a case left over from an older catalog would otherwise s
 
 Each stage and each finished case prints a timestamped line, and a bake still running after four
 hours, well past a normal run, prints the stack of every thread once, so a stall shows where it is. On the development
-machine (32 logical cores, RTX 4070 Laptop GPU) the case stage takes about thirty minutes on twelve
-workers and the learning stage about an hour on an idle machine since 0.09.000, whose per-cell flotation residence
-doubled the engine's cost (every target-mode optimizer has run twice, with and without the screen, and along the
-weight path since 0.07.000); both run several times longer when another job holds the machine's cores. The
-measurements (cases, then learning):
+machine (32 logical cores, RTX 4070 Laptop GPU), these measurements vary with the authored optimization
+workload and machine contention. The current bake's stage times (cases, then learning) are:
+- 5203 s and 13553 s for the committed 0.10.006 bake, with studies in 456 s and real samples in 266 s on 12 workers;
 - 5787 s and 11397 s for the committed 0.10.004 bake, with studies in 536 s and real samples in 145 s on 12 workers;
 - 3517 s and 3577 s for the committed 0.10.002 bake, with studies in 316 s and real samples in 124 s on 4 workers;
 - 7611 s and 6901 s for the committed 0.10.001 bake (cases and learning respectively), with studies in 623 s and real samples in 320 s on 4 workers;
@@ -68,4 +66,5 @@ measurements (cases, then learning):
 - 517 s and 3180 s for the committed 0.06.000 bake of 2026-09-28, which shared the machine with another job;
 - 605 s and 4622 s for its predecessor that day, also loaded.
 
-The validation record carries the timings of the bake it belongs to. Every other stage takes under a second.
+The validation record carries the timings of the bake it belongs to. For 0.10.006, contract took 3.6 s,
+benchmark 1.6 s, manifests 0.2 s and validation 1.1 s.

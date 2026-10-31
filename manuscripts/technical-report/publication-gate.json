@@ -1,0 +1,17 @@
+{
+  "release_ready": true,
+  "scope": "OreFlow technical report v0.10.006; reviewed source, metadata, rendered pages and fixed layout warnings",
+  "record_id": "23826265",
+  "version_doi": "10.5281/zenodo.23826265",
+  "concept_doi": "10.5281/zenodo.23783845",
+  "bytes": 93391,
+  "md5": "5a29ff2ec2c7b6978cb6534d78fd2f8e",
+  "sha256": "8b6606e6d462077a2b500ebd07c7572cb6604759d958c2789c7bba57c9a46345",
+  "warnings": 0,
+  "overfull": 0,
+  "underfull": 0,
+  "pages": 10,
+  "rendered_pages_reviewed": 10,
+  "tex_sha256": "91a67e3511de3b613bd467f3ab7e4927b1130aac7ff1944bb0d0e861fc3508d4",
+  "metadata_sha256": "12fb2b9f3a8b44953e2b2d693266aa6686cf8acac468cbdf6112d6fb04b2fad1"
+}

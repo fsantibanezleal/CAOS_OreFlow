@@ -539,10 +539,10 @@ input, select, textarea { font: inherit; }
   color: var(--color-fg);
   pointer-events: none;
 }
-.of-focus-rail { display: flex; flex-direction: column; gap: 10px; padding: 14px; }
+.of-focus-rail { display: flex; flex-direction: column; gap: 6px; padding: 8px; }
 .of-focus-rail .of-field { width: 100%; }
 .of-focus-rail .of-field select { width: 100%; }
-.of-walkthrough { display: grid; gap: 8px; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
+.of-walkthrough { display: grid; gap: 6px; padding: 6px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); }
 .of-walkthrough-heading, .of-walkthrough-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
 .of-walkthrough-heading h3 { margin: 0; font-size: 0.9rem; font-weight: 650; }
 .of-walkthrough-heading > span { color: var(--color-fg-subtle); font: 0.72rem var(--font-mono); }
