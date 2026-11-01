@@ -2,9 +2,10 @@
 import Ajv2020 from 'ajv/dist/2020.js';
 import type { ValidateFunction } from 'ajv';
 import operatingSchema from '../../../docs/contracts/schemas/oreflow-contract-v1.schema.json';
-import learningSchema from '../../../docs/contracts/schemas/oreflow-learning-v1.schema.json';
+import learningSchema from '../../../docs/contracts/schemas/oreflow-learning-v2.schema.json';
 import type { OperatingContract } from '../generated/oreflow-contract-v1';
-import type { LearningRecord } from '../generated/oreflow-learning-v1';
+import type { LearningRecord } from '../generated/oreflow-learning-v2';
+import { checkLearningEvidence } from './learning-evidence';
 
 const ajv = new Ajv2020({ strict: true, allErrors: true, coerceTypes: false, useDefaults: false });
 const operating = ajv.compile<OperatingContract>(operatingSchema);
@@ -30,4 +31,8 @@ function read<T>(name: string, validate: ValidateFunction<T>, payload: unknown):
 }
 
 export const readOperatingContract = (payload: unknown): OperatingContract => read('operating contract', operating, payload);
-export const readLearningRecord = (payload: unknown): LearningRecord => read('learning record', learning, payload);
+export function readLearningRecord(payload: unknown): LearningRecord {
+  const record = read('learning record', learning, payload);
+  checkLearningEvidence(record);
+  return record;
+}

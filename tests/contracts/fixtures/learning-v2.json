@@ -1,0 +1,3492 @@
+{
+  "schema": "oreflow.learning/v2",
+  "features": [
+    "feature"
+  ],
+  "targets": [
+    "recovery_pct",
+    "log_upgrade",
+    "specific_energy_total_kwh_t"
+  ],
+  "models": [
+    "ridge",
+    "random_forest",
+    "hist_gradient_boosting",
+    "gaussian_process",
+    "mlp"
+  ],
+  "design": {
+    "per_case": 2,
+    "cases": [
+      "case-a",
+      "case-b"
+    ],
+    "rows": 4,
+    "seed": 1,
+    "seconds": 0,
+    "method": "contract test fixture"
+  },
+  "settings": {
+    "design_points_per_case": 2,
+    "forest_trees": 2,
+    "forest_min_leaf": 1,
+    "hgb_iterations": 2,
+    "gp_training_rows": 3,
+    "max_epochs": 2,
+    "patience": 1,
+    "permutation_repeats": 1,
+    "seed": 1,
+    "gp_restarts": 0,
+    "ridge_alpha": 1,
+    "hgb_learning_rate": 0.1,
+    "interval_z": 1.96,
+    "mlp_learning_rate": 0.001,
+    "onnx_tolerance": 0.001,
+    "gp_noise_initial": 0.01,
+    "mlp_weight_decay": 0,
+    "ood_shift": 0.5,
+    "test_fraction": 0.25,
+    "validation_fraction": 0.25,
+    "guard_quantile": 0.95,
+    "gp_bound_margin": 0.01,
+    "mlp_hidden": [
+      2
+    ],
+    "autoencoder_hidden": [
+      2
+    ],
+    "gp_noise_bounds": [
+      0.001,
+      1
+    ],
+    "gp_length_scale_bounds": [
+      0.1,
+      10
+    ],
+    "ood_shifts": [
+      0.1
+    ],
+    "mlp_seed_offsets": [
+      0,
+      1
+    ],
+    "device": "cpu"
+  },
+  "identity": {
+    "ridge": "ridge",
+    "random_forest": "random_forest",
+    "hist_gradient_boosting": "hist_gradient_boosting",
+    "gaussian_process": "gaussian_process",
+    "mlp": "mlp"
+  },
+  "interpolation": {
+    "train_rows": 2,
+    "test_rows": 2,
+    "models": {
+      "ridge": {
+        "recovery_pct": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "ridge",
+            "target": "recovery_pct",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "log_upgrade": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "ridge",
+            "target": "log_upgrade",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "specific_energy_total_kwh_t": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "ridge",
+            "target": "specific_energy_total_kwh_t",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        }
+      },
+      "random_forest": {
+        "recovery_pct": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "random_forest",
+            "target": "recovery_pct",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "log_upgrade": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "random_forest",
+            "target": "log_upgrade",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "specific_energy_total_kwh_t": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "random_forest",
+            "target": "specific_energy_total_kwh_t",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        }
+      },
+      "hist_gradient_boosting": {
+        "recovery_pct": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "hist_gradient_boosting",
+            "target": "recovery_pct",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "log_upgrade": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "hist_gradient_boosting",
+            "target": "log_upgrade",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "specific_energy_total_kwh_t": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "hist_gradient_boosting",
+            "target": "specific_energy_total_kwh_t",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        }
+      },
+      "gaussian_process": {
+        "recovery_pct": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "gaussian_process",
+            "target": "recovery_pct",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          },
+          "coverage_95": 0.9,
+          "kernel": "fixture kernel",
+          "training_rows": 3,
+          "length_scales": {
+            "feature": 1
+          },
+          "noise_level": 0.01,
+          "mean_half_width": 1
+        },
+        "log_upgrade": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "gaussian_process",
+            "target": "log_upgrade",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          },
+          "coverage_95": 0.9,
+          "kernel": "fixture kernel",
+          "training_rows": 3,
+          "length_scales": {
+            "feature": 1
+          },
+          "noise_level": 0.01,
+          "mean_half_width": 1
+        },
+        "specific_energy_total_kwh_t": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "gaussian_process",
+            "target": "specific_energy_total_kwh_t",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          },
+          "coverage_95": 0.9,
+          "kernel": "fixture kernel",
+          "training_rows": 3,
+          "length_scales": {
+            "feature": 1
+          },
+          "noise_level": 0.01,
+          "mean_half_width": 1
+        }
+      },
+      "mlp": {
+        "recovery_pct": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "mlp",
+            "target": "recovery_pct",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "log_upgrade": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "mlp",
+            "target": "log_upgrade",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        },
+        "specific_energy_total_kwh_t": {
+          "status": "scored",
+          "valid_for_scoring": true,
+          "rmse": 1,
+          "mae": 0.8,
+          "r2": 0.5,
+          "rows": 2,
+          "evaluation": {
+            "method": "mlp",
+            "target": "specific_energy_total_kwh_t",
+            "protocol": "interpolation",
+            "fold": "interpolation",
+            "seed": 1
+          },
+          "observable": {
+            "schema": "oreflow.observable/v1",
+            "rows": 2,
+            "observed_range": [
+              1,
+              3
+            ],
+            "prediction_range": [
+              1.1,
+              2.9
+            ],
+            "reference_range": [
+              1,
+              3
+            ],
+            "allowed_range": [
+              -1,
+              5
+            ],
+            "constant_baseline": false,
+            "status": "passed"
+          }
+        }
+      }
+    },
+    "mlp_training": {
+      "device": "cpu",
+      "epochs_run": 2,
+      "best_epoch": 1,
+      "best_validation_mse": 1,
+      "stopped_early": false,
+      "validation_rows": 1,
+      "fit_rows": 3,
+      "parameters": 8
+    },
+    "permutation_importance": {
+      "recovery_pct": {
+        "feature": 1
+      },
+      "log_upgrade": {
+        "feature": 1
+      },
+      "specific_energy_total_kwh_t": {
+        "feature": 1
+      }
+    },
+    "case_mean_baseline": {
+      "recovery_pct": {
+        "status": "scored",
+        "valid_for_scoring": true,
+        "rmse": 1,
+        "mae": 0.8,
+        "r2": 0.5,
+        "rows": 2,
+        "evaluation": {
+          "method": "case_mean_baseline",
+          "target": "recovery_pct",
+          "protocol": "interpolation",
+          "fold": "interpolation",
+          "seed": 1
+        },
+        "observable": {
+          "schema": "oreflow.observable/v1",
+          "rows": 2,
+          "observed_range": [
+            1,
+            3
+          ],
+          "prediction_range": [
+            1.1,
+            2.9
+          ],
+          "reference_range": [
+            1,
+            3
+          ],
+          "allowed_range": [
+            -1,
+            5
+          ],
+          "constant_baseline": false,
+          "status": "passed"
+        }
+      },
+      "log_upgrade": {
+        "status": "scored",
+        "valid_for_scoring": true,
+        "rmse": 1,
+        "mae": 0.8,
+        "r2": 0.5,
+        "rows": 2,
+        "evaluation": {
+          "method": "case_mean_baseline",
+          "target": "log_upgrade",
+          "protocol": "interpolation",
+          "fold": "interpolation",
+          "seed": 1
+        },
+        "observable": {
+          "schema": "oreflow.observable/v1",
+          "rows": 2,
+          "observed_range": [
+            1,
+            3
+          ],
+          "prediction_range": [
+            1.1,
+            2.9
+          ],
+          "reference_range": [
+            1,
+            3
+          ],
+          "allowed_range": [
+            -1,
+            5
+          ],
+          "constant_baseline": false,
+          "status": "passed"
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "status": "scored",
+        "valid_for_scoring": true,
+        "rmse": 1,
+        "mae": 0.8,
+        "r2": 0.5,
+        "rows": 2,
+        "evaluation": {
+          "method": "case_mean_baseline",
+          "target": "specific_energy_total_kwh_t",
+          "protocol": "interpolation",
+          "fold": "interpolation",
+          "seed": 1
+        },
+        "observable": {
+          "schema": "oreflow.observable/v1",
+          "rows": 2,
+          "observed_range": [
+            1,
+            3
+          ],
+          "prediction_range": [
+            1.1,
+            2.9
+          ],
+          "reference_range": [
+            1,
+            3
+          ],
+          "allowed_range": [
+            -1,
+            5
+          ],
+          "constant_baseline": false,
+          "status": "passed"
+        }
+      }
+    }
+  },
+  "guard": {
+    "threshold": 1,
+    "false_alarm_rate": 0,
+    "false_accept_rate": 0,
+    "false_accept_by_feature": {
+      "feature": 0
+    },
+    "acceptance_by_distance": [
+      {
+        "distance": 0.5,
+        "upward": 0,
+        "downward": 0
+      }
+    ],
+    "in_envelope_rows": 2,
+    "probe_rows": 2,
+    "training": {
+      "device": "cpu",
+      "epochs_run": 2,
+      "best_epoch": 1,
+      "best_validation_mse": 1,
+      "stopped_early": false,
+      "validation_rows": 1,
+      "fit_rows": 3,
+      "parameters": 8
+    }
+  },
+  "leave_one_case_out": [
+    {
+      "held_out": "case-a",
+      "train_rows": 2,
+      "test_rows": 2,
+      "models": {
+        "ridge": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "ridge",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "ridge",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "ridge",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        },
+        "random_forest": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "random_forest",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "random_forest",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "random_forest",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        },
+        "hist_gradient_boosting": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "hist_gradient_boosting",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "hist_gradient_boosting",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "hist_gradient_boosting",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        },
+        "gaussian_process": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "gaussian_process",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            },
+            "coverage_95": 0.9,
+            "kernel": "fixture kernel",
+            "training_rows": 3,
+            "length_scales": {
+              "feature": 1
+            },
+            "noise_level": 0.01,
+            "mean_half_width": 1
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "gaussian_process",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            },
+            "coverage_95": 0.9,
+            "kernel": "fixture kernel",
+            "training_rows": 3,
+            "length_scales": {
+              "feature": 1
+            },
+            "noise_level": 0.01,
+            "mean_half_width": 1
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "gaussian_process",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            },
+            "coverage_95": 0.9,
+            "kernel": "fixture kernel",
+            "training_rows": 3,
+            "length_scales": {
+              "feature": 1
+            },
+            "noise_level": 0.01,
+            "mean_half_width": 1
+          }
+        },
+        "mlp": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        }
+      },
+      "spread": {
+        "recovery_pct": 1,
+        "log_upgrade": 1,
+        "specific_energy_total_kwh_t": 1
+      },
+      "held_out_flag_rate": 0,
+      "equal_rows": {},
+      "mlp_training": {
+        "device": "cpu",
+        "epochs_run": 2,
+        "best_epoch": 1,
+        "best_validation_mse": 1,
+        "stopped_early": false,
+        "validation_rows": 1,
+        "fit_rows": 3,
+        "parameters": 8
+      }
+    },
+    {
+      "held_out": "case-b",
+      "train_rows": 2,
+      "test_rows": 2,
+      "models": {
+        "ridge": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "ridge",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "ridge",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "ridge",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        },
+        "random_forest": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "random_forest",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "random_forest",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "random_forest",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        },
+        "hist_gradient_boosting": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "hist_gradient_boosting",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "hist_gradient_boosting",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "hist_gradient_boosting",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        },
+        "gaussian_process": {
+          "recovery_pct": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "gaussian_process",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            },
+            "coverage_95": 0.9,
+            "kernel": "fixture kernel",
+            "training_rows": 3,
+            "length_scales": {
+              "feature": 1
+            },
+            "noise_level": 0.01,
+            "mean_half_width": 1
+          },
+          "log_upgrade": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "gaussian_process",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            },
+            "coverage_95": 0.9,
+            "kernel": "fixture kernel",
+            "training_rows": 3,
+            "length_scales": {
+              "feature": 1
+            },
+            "noise_level": 0.01,
+            "mean_half_width": 1
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "gaussian_process",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            },
+            "coverage_95": 0.9,
+            "kernel": "fixture kernel",
+            "training_rows": 3,
+            "length_scales": {
+              "feature": 1
+            },
+            "noise_level": 0.01,
+            "mean_half_width": 1
+          }
+        },
+        "mlp": {
+          "recovery_pct": {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          },
+          "log_upgrade": {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          },
+          "specific_energy_total_kwh_t": {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          }
+        }
+      },
+      "spread": {
+        "recovery_pct": 1,
+        "log_upgrade": 1,
+        "specific_energy_total_kwh_t": 1
+      },
+      "held_out_flag_rate": 0,
+      "equal_rows": {},
+      "mlp_training": {
+        "device": "cpu",
+        "epochs_run": 2,
+        "best_epoch": 1,
+        "best_validation_mse": 1,
+        "stopped_early": false,
+        "validation_rows": 1,
+        "fit_rows": 3,
+        "parameters": 8
+      }
+    }
+  ],
+  "transfer_groups": {
+    "case-a": "shared-group",
+    "case-b": "shared-group"
+  },
+  "leave_one_group_out": [],
+  "equal_rows": {},
+  "mlp_seeds": {
+    "seeds": [
+      1,
+      2
+    ],
+    "summary": {
+      "recovery_pct": {
+        "interpolation_rmse": [
+          1,
+          1
+        ],
+        "loco_rmse_mean": [
+          1,
+          1
+        ],
+        "loco_r2_median": [
+          0.5,
+          0.5
+        ],
+        "loco_rmse_by_case": {
+          "case-a": [
+            1,
+            1
+          ],
+          "case-b": [
+            null,
+            null
+          ]
+        },
+        "loco_folds": [
+          {
+            "attempted": 2,
+            "scored": 1,
+            "rejected": 1
+          },
+          {
+            "attempted": 2,
+            "scored": 1,
+            "rejected": 1
+          }
+        ]
+      },
+      "log_upgrade": {
+        "interpolation_rmse": [
+          1,
+          1
+        ],
+        "loco_rmse_mean": [
+          1,
+          1
+        ],
+        "loco_r2_median": [
+          0.5,
+          0.5
+        ],
+        "loco_rmse_by_case": {
+          "case-a": [
+            1,
+            1
+          ],
+          "case-b": [
+            null,
+            null
+          ]
+        },
+        "loco_folds": [
+          {
+            "attempted": 2,
+            "scored": 1,
+            "rejected": 1
+          },
+          {
+            "attempted": 2,
+            "scored": 1,
+            "rejected": 1
+          }
+        ]
+      },
+      "specific_energy_total_kwh_t": {
+        "interpolation_rmse": [
+          1,
+          1
+        ],
+        "loco_rmse_mean": [
+          1,
+          1
+        ],
+        "loco_r2_median": [
+          0.5,
+          0.5
+        ],
+        "loco_rmse_by_case": {
+          "case-a": [
+            1,
+            1
+          ],
+          "case-b": [
+            null,
+            null
+          ]
+        },
+        "loco_folds": [
+          {
+            "attempted": 2,
+            "scored": 1,
+            "rejected": 1
+          },
+          {
+            "attempted": 2,
+            "scored": 1,
+            "rejected": 1
+          }
+        ]
+      }
+    },
+    "scores": {
+      "interpolation": {
+        "recovery_pct": [
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "interpolation",
+              "fold": "interpolation",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "interpolation",
+              "fold": "interpolation",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        ],
+        "log_upgrade": [
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "interpolation",
+              "fold": "interpolation",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "interpolation",
+              "fold": "interpolation",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        ],
+        "specific_energy_total_kwh_t": [
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "interpolation",
+              "fold": "interpolation",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "interpolation",
+              "fold": "interpolation",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        ]
+      },
+      "case-a": {
+        "recovery_pct": [
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        ],
+        "log_upgrade": [
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        ],
+        "specific_energy_total_kwh_t": [
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          },
+          {
+            "status": "scored",
+            "valid_for_scoring": true,
+            "rmse": 1,
+            "mae": 0.8,
+            "r2": 0.5,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-a",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                1.1,
+                2.9
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "passed"
+            }
+          }
+        ]
+      },
+      "case-b": {
+        "recovery_pct": [
+          {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          },
+          {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "recovery_pct",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          }
+        ],
+        "log_upgrade": [
+          {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          },
+          {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "log_upgrade",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          }
+        ],
+        "specific_energy_total_kwh_t": [
+          {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 1
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          },
+          {
+            "status": "rejected-transfer",
+            "valid_for_scoring": false,
+            "rmse": null,
+            "mae": null,
+            "r2": null,
+            "rows": 2,
+            "evaluation": {
+              "method": "mlp",
+              "target": "specific_energy_total_kwh_t",
+              "protocol": "leave_one_case_out",
+              "fold": "case-b",
+              "seed": 2
+            },
+            "observable": {
+              "schema": "oreflow.observable/v1",
+              "rows": 2,
+              "observed_range": [
+                1,
+                3
+              ],
+              "prediction_range": [
+                -30,
+                -20
+              ],
+              "reference_range": [
+                1,
+                3
+              ],
+              "allowed_range": [
+                -1,
+                5
+              ],
+              "constant_baseline": false,
+              "status": "rejected-outside-range"
+            },
+            "rejection": {
+              "code": "observable-range",
+              "reason": "prediction range wholly outside declared envelope",
+              "affected_rows": 2
+            }
+          }
+        ]
+      }
+    }
+  },
+  "summary": {
+    "ridge": {
+      "recovery_pct": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "log_upgrade": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      }
+    },
+    "random_forest": {
+      "recovery_pct": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "log_upgrade": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      }
+    },
+    "hist_gradient_boosting": {
+      "recovery_pct": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "log_upgrade": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      }
+    },
+    "gaussian_process": {
+      "recovery_pct": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "log_upgrade": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 2,
+          "rejected": 0
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      }
+    },
+    "mlp": {
+      "recovery_pct": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 1,
+          "rejected": 1
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "log_upgrade": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 1,
+          "rejected": 1
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "interpolation_rmse": 1,
+        "interpolation_r2": 0.5,
+        "interpolation_r2_within_case": 0.4,
+        "case_mean_r2": 0,
+        "loco_rmse_mean": 1,
+        "loco_rmse_max": 1,
+        "loco_r2_median": 0.5,
+        "transfer_rmse_mean": null,
+        "transfer_rmse_max": null,
+        "transfer_r2_median": null,
+        "loco_folds": {
+          "attempted": 2,
+          "scored": 1,
+          "rejected": 1
+        },
+        "transfer_folds": {
+          "attempted": 0,
+          "scored": 0,
+          "rejected": 0
+        }
+      }
+    }
+  },
+  "common_cohorts": {
+    "leave_one_case_out": {
+      "recovery_pct": {
+        "attempted": 2,
+        "folds": [
+          "case-a"
+        ],
+        "excluded": [
+          "case-b"
+        ],
+        "models": {
+          "ridge": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "random_forest": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "hist_gradient_boosting": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "gaussian_process": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "mlp": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          }
+        }
+      },
+      "log_upgrade": {
+        "attempted": 2,
+        "folds": [
+          "case-a"
+        ],
+        "excluded": [
+          "case-b"
+        ],
+        "models": {
+          "ridge": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "random_forest": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "hist_gradient_boosting": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "gaussian_process": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "mlp": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          }
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "attempted": 2,
+        "folds": [
+          "case-a"
+        ],
+        "excluded": [
+          "case-b"
+        ],
+        "models": {
+          "ridge": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "random_forest": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "hist_gradient_boosting": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "gaussian_process": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          },
+          "mlp": {
+            "rmse_mean": 1,
+            "r2_median": 0.5
+          }
+        }
+      }
+    },
+    "transfer": {
+      "recovery_pct": {
+        "attempted": 0,
+        "folds": [],
+        "excluded": [],
+        "models": {
+          "ridge": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "random_forest": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "hist_gradient_boosting": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "gaussian_process": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "mlp": {
+            "rmse_mean": null,
+            "r2_median": null
+          }
+        }
+      },
+      "log_upgrade": {
+        "attempted": 0,
+        "folds": [],
+        "excluded": [],
+        "models": {
+          "ridge": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "random_forest": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "hist_gradient_boosting": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "gaussian_process": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "mlp": {
+            "rmse_mean": null,
+            "r2_median": null
+          }
+        }
+      },
+      "specific_energy_total_kwh_t": {
+        "attempted": 0,
+        "folds": [],
+        "excluded": [],
+        "models": {
+          "ridge": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "random_forest": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "hist_gradient_boosting": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "gaussian_process": {
+            "rmse_mean": null,
+            "r2_median": null
+          },
+          "mlp": {
+            "rmse_mean": null,
+            "r2_median": null
+          }
+        }
+      }
+    }
+  },
+  "final": {
+    "mlp_training": {
+      "device": "cpu",
+      "epochs_run": 2,
+      "best_epoch": 1,
+      "best_validation_mse": 1,
+      "stopped_early": false,
+      "validation_rows": 1,
+      "fit_rows": 3,
+      "parameters": 8
+    },
+    "guard_threshold": 1,
+    "exports": {
+      "surrogate": {
+        "path": "fixture.onnx",
+        "bytes": 1,
+        "max_abs_difference": 0,
+        "opset": 18
+      },
+      "guard": {
+        "path": "fixture.onnx",
+        "bytes": 1,
+        "max_abs_difference": 0,
+        "opset": 18
+      },
+      "screen": {
+        "path": "fixture.json",
+        "bytes": 1,
+        "max_abs_difference": 0,
+        "gp_rows": 3,
+        "gp_max_abs_difference": 0,
+        "gp_kernel": "fixture kernel",
+        "surrogate_max_abs_difference": 0,
+        "guard_max_abs_difference": 0,
+        "check_rows": 2,
+        "cholesky": {
+          "path": "fixture.bin",
+          "bytes": 1
+        }
+      }
+    }
+  },
+  "seconds": 0,
+  "engine_version": "fixture",
+  "contract_digest": "0000000000000000000000000000000000000000000000000000000000000000"
+}

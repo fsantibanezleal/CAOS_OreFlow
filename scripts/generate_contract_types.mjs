@@ -10,7 +10,7 @@ const require = createRequire(join(root, 'frontend/package.json'));
 const { compile } = require('json-schema-to-typescript');
 const contracts = [
   ['oreflow-contract-v1', 'OperatingContract'],
-  ['oreflow-learning-v1', 'LearningRecord'],
+  ['oreflow-learning-v2', 'LearningRecord'],
 ];
 const args = process.argv.slice(2);
 let check = false;

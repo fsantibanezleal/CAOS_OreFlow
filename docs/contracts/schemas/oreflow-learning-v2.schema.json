@@ -1,12 +1,12 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "oreflow-learning-v1",
+  "$id": "oreflow-learning-v2",
   "title": "LearningRecord",
   "type": "object",
   "properties": {
     "schema": {
       "type": "string",
-      "const": "oreflow.learning/v1"
+      "const": "oreflow.learning/v2"
     },
     "features": {
       "type": "array",
@@ -348,7 +348,7 @@
           "maximum": 9007199254740991
         },
         "models": {
-          "$ref": "#/$defs/MethodScores"
+          "$ref": "#/$defs/InterpolationScores"
         },
         "mlp_training": {
           "$ref": "#/$defs/Training"
@@ -398,6 +398,28 @@
               "maximum": 1.7976931348623157e+308
             }
           }
+        },
+        "case_mean_baseline": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/ScoredScore"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/ScoredScore"
+          }
         }
       },
       "required": [
@@ -405,7 +427,8 @@
         "test_rows",
         "models",
         "mlp_training",
-        "permutation_importance"
+        "permutation_importance",
+        "case_mean_baseline"
       ],
       "additionalProperties": true
     },
@@ -552,7 +575,7 @@
             "$ref": "#/$defs/SeedSummary"
           }
         },
-        "observable_checks": {
+        "scores": {
           "type": "object",
           "minProperties": 1,
           "additionalProperties": {
@@ -562,21 +585,21 @@
                 "type": "array",
                 "minItems": 1,
                 "items": {
-                  "$ref": "#/$defs/ObservableSummary"
+                  "$ref": "#/$defs/TargetScores"
                 }
               },
               "log_upgrade": {
                 "type": "array",
                 "minItems": 1,
                 "items": {
-                  "$ref": "#/$defs/ObservableSummary"
+                  "$ref": "#/$defs/TargetScores"
                 }
               },
               "specific_energy_total_kwh_t": {
                 "type": "array",
                 "minItems": 1,
                 "items": {
-                  "$ref": "#/$defs/ObservableSummary"
+                  "$ref": "#/$defs/TargetScores"
                 }
               }
             },
@@ -589,17 +612,21 @@
               "type": "array",
               "minItems": 1,
               "items": {
-                "$ref": "#/$defs/ObservableSummary"
+                "$ref": "#/$defs/TargetScores"
               }
             }
           }
+        },
+        "execution": {
+          "$ref": "#/$defs/JobExecution"
         }
       },
       "required": [
         "seeds",
-        "summary"
+        "summary",
+        "scores"
       ],
-      "additionalProperties": true
+      "additionalProperties": false
     },
     "summary": {
       "$ref": "#/$defs/LearningSummary"
@@ -657,6 +684,99 @@
     "contract_digest": {
       "type": "string",
       "pattern": "^[a-f0-9]{64}$"
+    },
+    "common_cohorts": {
+      "type": "object",
+      "properties": {
+        "leave_one_case_out": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/CommonCohort"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/CommonCohort"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/CommonCohort"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/CommonCohort"
+          }
+        },
+        "transfer": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/CommonCohort"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/CommonCohort"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/CommonCohort"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/CommonCohort"
+          }
+        }
+      },
+      "required": [
+        "leave_one_case_out",
+        "transfer"
+      ],
+      "additionalProperties": false
+    },
+    "execution": {
+      "type": "object",
+      "properties": {
+        "fingerprint": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "device": {
+          "type": "string",
+          "minLength": 1
+        },
+        "versions": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "design": {
+          "$ref": "#/$defs/JobExecution"
+        },
+        "evaluation": {
+          "$ref": "#/$defs/JobExecution"
+        },
+        "seeds": {
+          "$ref": "#/$defs/JobExecution"
+        }
+      },
+      "required": [
+        "fingerprint",
+        "device",
+        "versions",
+        "design",
+        "evaluation",
+        "seeds"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [
@@ -678,104 +798,20 @@
     "final",
     "seconds",
     "engine_version",
-    "contract_digest"
+    "contract_digest",
+    "common_cohorts"
   ],
   "additionalProperties": true,
   "$defs": {
     "TargetScores": {
-      "type": "object",
-      "properties": {
-        "rmse": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1.7976931348623157e+308
+      "oneOf": [
+        {
+          "$ref": "#/$defs/ScoredScore"
         },
-        "mae": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1.7976931348623157e+308
-        },
-        "r2": {
-          "type": "number",
-          "minimum": -1.7976931348623157e+308,
-          "maximum": 1.7976931348623157e+308
-        },
-        "rows": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
-        },
-        "r2_within_case": {
-          "type": "number",
-          "minimum": -1.7976931348623157e+308,
-          "maximum": 1.7976931348623157e+308
-        },
-        "coverage_95": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1
-        },
-        "mean_half_width": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1.7976931348623157e+308
-        },
-        "training_rows": {
-          "type": "integer",
-          "minimum": 1,
-          "maximum": 9007199254740991
-        },
-        "kernel": {
-          "type": "string",
-          "minLength": 1
-        },
-        "length_scales": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "type": "number",
-            "minimum": -1.7976931348623157e+308,
-            "maximum": 1.7976931348623157e+308,
-            "exclusiveMinimum": 0
-          }
-        },
-        "switched_off": {
-          "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1
-          },
-          "minItems": 0,
-          "uniqueItems": true
-        },
-        "noise_level": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 1.7976931348623157e+308
-        },
-        "optimizer_notes": {
-          "type": "integer",
-          "minimum": 0,
-          "maximum": 9007199254740991
-        },
-        "observable": {
-          "$ref": "#/$defs/ObservableSummary"
-        },
-        "observable_by_case": {
-          "type": "object",
-          "minProperties": 1,
-          "additionalProperties": {
-            "$ref": "#/$defs/ObservableSummary"
-          }
+        {
+          "$ref": "#/$defs/RejectedScore"
         }
-      },
-      "required": [
-        "rmse",
-        "mae",
-        "r2",
-        "rows"
-      ],
-      "additionalProperties": true
+      ]
     },
     "PerTargetScores": {
       "type": "object",
@@ -941,7 +977,10 @@
         "interpolation_rmse": {
           "type": "array",
           "items": {
-            "type": "number",
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": 0,
             "maximum": 1.7976931348623157e+308
           },
@@ -950,7 +989,10 @@
         "loco_rmse_mean": {
           "type": "array",
           "items": {
-            "type": "number",
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": 0,
             "maximum": 1.7976931348623157e+308
           },
@@ -959,7 +1001,10 @@
         "loco_r2_median": {
           "type": "array",
           "items": {
-            "type": "number",
+            "type": [
+              "number",
+              "null"
+            ],
             "minimum": -1.7976931348623157e+308,
             "maximum": 1.7976931348623157e+308
           },
@@ -971,11 +1016,21 @@
           "additionalProperties": {
             "type": "array",
             "items": {
-              "type": "number",
+              "type": [
+                "number",
+                "null"
+              ],
               "minimum": 0,
               "maximum": 1.7976931348623157e+308
             },
             "minItems": 1
+          }
+        },
+        "loco_folds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/FoldCounts"
           }
         }
       },
@@ -983,7 +1038,8 @@
         "interpolation_rmse",
         "loco_rmse_mean",
         "loco_r2_median",
-        "loco_rmse_by_case"
+        "loco_rmse_by_case",
+        "loco_folds"
       ],
       "additionalProperties": true
     },
@@ -1011,32 +1067,50 @@
           "maximum": 1.7976931348623157e+308
         },
         "loco_rmse_mean": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1.7976931348623157e+308
         },
         "loco_rmse_max": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1.7976931348623157e+308
         },
         "loco_r2_median": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": -1.7976931348623157e+308,
           "maximum": 1.7976931348623157e+308
         },
         "transfer_rmse_mean": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1.7976931348623157e+308
         },
         "transfer_rmse_max": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1.7976931348623157e+308
         },
         "transfer_r2_median": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": -1.7976931348623157e+308,
           "maximum": 1.7976931348623157e+308
         },
@@ -1046,12 +1120,18 @@
           "maximum": 1
         },
         "loco_coverage_pooled": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
         "loco_coverage_worst": {
-          "type": "number",
+          "type": [
+            "number",
+            "null"
+          ],
           "minimum": 0,
           "maximum": 1
         },
@@ -1062,6 +1142,12 @@
         },
         "seeds": {
           "$ref": "#/$defs/SeedSummary"
+        },
+        "loco_folds": {
+          "$ref": "#/$defs/FoldCounts"
+        },
+        "transfer_folds": {
+          "$ref": "#/$defs/FoldCounts"
         }
       },
       "required": [
@@ -1074,9 +1160,105 @@
         "loco_r2_median",
         "transfer_rmse_mean",
         "transfer_rmse_max",
-        "transfer_r2_median"
+        "transfer_r2_median",
+        "loco_folds",
+        "transfer_folds"
       ],
-      "additionalProperties": true
+      "additionalProperties": true,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "loco_folds": {
+                "type": "object",
+                "properties": {
+                  "scored": {
+                    "const": 0
+                  }
+                },
+                "required": [
+                  "scored"
+                ]
+              }
+            },
+            "required": [
+              "loco_folds"
+            ]
+          },
+          "then": {
+            "properties": {
+              "loco_rmse_mean": {
+                "type": "null"
+              },
+              "loco_rmse_max": {
+                "type": "null"
+              },
+              "loco_r2_median": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "loco_rmse_mean": {
+                "type": "number"
+              },
+              "loco_rmse_max": {
+                "type": "number"
+              },
+              "loco_r2_median": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "transfer_folds": {
+                "type": "object",
+                "properties": {
+                  "scored": {
+                    "const": 0
+                  }
+                },
+                "required": [
+                  "scored"
+                ]
+              }
+            },
+            "required": [
+              "transfer_folds"
+            ]
+          },
+          "then": {
+            "properties": {
+              "transfer_rmse_mean": {
+                "type": "null"
+              },
+              "transfer_rmse_max": {
+                "type": "null"
+              },
+              "transfer_r2_median": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "transfer_rmse_mean": {
+                "type": "number"
+              },
+              "transfer_rmse_max": {
+                "type": "number"
+              },
+              "transfer_r2_median": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      ]
     },
     "LearningSummary": {
       "type": "object",
@@ -1599,7 +1781,8 @@
           "enum": [
             "passed",
             "constant-prediction",
-            "declared-constant-baseline"
+            "declared-constant-baseline",
+            "rejected-outside-range"
           ]
         }
       },
@@ -1614,7 +1797,7 @@
         "status"
       ],
       "additionalProperties": true,
-      "description": "Optional prediction-in-observable diagnostics. Status and range consistency are independently rechecked by check_artifacts.py."
+      "description": "Finite forecast diagnostics. Rejected ranges are evidence, never ordinary scores."
     },
     "GaussianProcessScores": {
       "allOf": [
@@ -1625,16 +1808,833 @@
           "type": "object",
           "properties": {
             "coverage_95": {
-              "type": "number",
+              "type": [
+                "number",
+                "null"
+              ],
               "minimum": 0,
               "maximum": 1
             }
           },
           "required": [
             "coverage_95"
-          ]
+          ],
+          "additionalProperties": true
         }
       ]
+    },
+    "Evaluation": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protocol": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fold": {
+          "type": "string",
+          "minLength": 1
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "method",
+        "target",
+        "protocol",
+        "fold",
+        "seed"
+      ],
+      "additionalProperties": false
+    },
+    "Rejection": {
+      "type": "object",
+      "properties": {
+        "code": {
+          "const": "observable-range"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1
+        },
+        "affected_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "code",
+        "reason",
+        "affected_rows"
+      ],
+      "additionalProperties": false
+    },
+    "FoldCounts": {
+      "type": "object",
+      "properties": {
+        "attempted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "scored": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "rejected": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "attempted",
+        "scored",
+        "rejected"
+      ],
+      "additionalProperties": false
+    },
+    "ScoredScore": {
+      "type": "object",
+      "properties": {
+        "rmse": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "mae": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "r2": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "r2_within_case": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "coverage_95": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "mean_half_width": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "training_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "kernel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "length_scales": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          }
+        },
+        "switched_off": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "noise_level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "optimizer_notes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observable": {
+          "allOf": [
+            {
+              "$ref": "#/$defs/ObservableSummary"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "enum": [
+                    "passed",
+                    "constant-prediction",
+                    "declared-constant-baseline"
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "observable_by_case": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/ObservableSummary"
+          }
+        },
+        "evaluation": {
+          "$ref": "#/$defs/Evaluation"
+        },
+        "status": {
+          "const": "scored"
+        },
+        "valid_for_scoring": {
+          "const": true
+        },
+        "rejection": false
+      },
+      "required": [
+        "status",
+        "valid_for_scoring",
+        "rmse",
+        "mae",
+        "r2",
+        "rows",
+        "evaluation",
+        "observable"
+      ],
+      "additionalProperties": true
+    },
+    "RejectedScore": {
+      "type": "object",
+      "properties": {
+        "rmse": {
+          "type": "null"
+        },
+        "mae": {
+          "type": "null"
+        },
+        "r2": {
+          "type": "null"
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "r2_within_case": {
+          "type": "null"
+        },
+        "coverage_95": {
+          "type": "null"
+        },
+        "mean_half_width": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "training_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "kernel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "length_scales": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          }
+        },
+        "switched_off": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "noise_level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "optimizer_notes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observable": {
+          "$ref": "#/$defs/ObservableSummary"
+        },
+        "observable_by_case": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/ObservableSummary"
+          }
+        },
+        "evaluation": {
+          "$ref": "#/$defs/Evaluation"
+        },
+        "status": {
+          "const": "rejected-transfer"
+        },
+        "valid_for_scoring": {
+          "const": false
+        },
+        "rejection": {
+          "$ref": "#/$defs/Rejection"
+        }
+      },
+      "required": [
+        "status",
+        "valid_for_scoring",
+        "rmse",
+        "mae",
+        "r2",
+        "rows",
+        "evaluation",
+        "observable",
+        "rejection"
+      ],
+      "additionalProperties": true
+    },
+    "InterpolationScores": {
+      "type": "object",
+      "properties": {
+        "ridge": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/ScoredScore"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/ScoredScore"
+          }
+        },
+        "random_forest": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/ScoredScore"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/ScoredScore"
+          }
+        },
+        "hist_gradient_boosting": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/ScoredScore"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/ScoredScore"
+          }
+        },
+        "gaussian_process": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/ScoredScore"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "coverage_95": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "coverage_95"
+                  ],
+                  "additionalProperties": true
+                }
+              ]
+            },
+            "log_upgrade": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/ScoredScore"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "coverage_95": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "coverage_95"
+                  ],
+                  "additionalProperties": true
+                }
+              ]
+            },
+            "specific_energy_total_kwh_t": {
+              "allOf": [
+                {
+                  "$ref": "#/$defs/ScoredScore"
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "coverage_95": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    }
+                  },
+                  "required": [
+                    "coverage_95"
+                  ],
+                  "additionalProperties": true
+                }
+              ]
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "allOf": [
+              {
+                "$ref": "#/$defs/ScoredScore"
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "coverage_95": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  }
+                },
+                "required": [
+                  "coverage_95"
+                ],
+                "additionalProperties": true
+              }
+            ]
+          }
+        },
+        "mlp": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/ScoredScore"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/ScoredScore"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/ScoredScore"
+          }
+        }
+      },
+      "required": [
+        "ridge",
+        "random_forest",
+        "hist_gradient_boosting",
+        "gaussian_process",
+        "mlp"
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "recovery_pct": {
+            "$ref": "#/$defs/ScoredScore"
+          },
+          "log_upgrade": {
+            "$ref": "#/$defs/ScoredScore"
+          },
+          "specific_energy_total_kwh_t": {
+            "$ref": "#/$defs/ScoredScore"
+          }
+        },
+        "required": [
+          "recovery_pct",
+          "log_upgrade",
+          "specific_energy_total_kwh_t"
+        ],
+        "additionalProperties": {
+          "$ref": "#/$defs/ScoredScore"
+        }
+      }
+    },
+    "CommonCohort": {
+      "type": "object",
+      "properties": {
+        "attempted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "folds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "excluded": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "uniqueItems": true
+        },
+        "models": {
+          "type": "object",
+          "properties": {
+            "ridge": {
+              "type": "object",
+              "properties": {
+                "rmse_mean": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1.7976931348623157e+308
+                },
+                "r2_median": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": -1.7976931348623157e+308,
+                  "maximum": 1.7976931348623157e+308
+                }
+              },
+              "required": [
+                "rmse_mean",
+                "r2_median"
+              ],
+              "additionalProperties": false
+            },
+            "random_forest": {
+              "type": "object",
+              "properties": {
+                "rmse_mean": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1.7976931348623157e+308
+                },
+                "r2_median": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": -1.7976931348623157e+308,
+                  "maximum": 1.7976931348623157e+308
+                }
+              },
+              "required": [
+                "rmse_mean",
+                "r2_median"
+              ],
+              "additionalProperties": false
+            },
+            "hist_gradient_boosting": {
+              "type": "object",
+              "properties": {
+                "rmse_mean": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1.7976931348623157e+308
+                },
+                "r2_median": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": -1.7976931348623157e+308,
+                  "maximum": 1.7976931348623157e+308
+                }
+              },
+              "required": [
+                "rmse_mean",
+                "r2_median"
+              ],
+              "additionalProperties": false
+            },
+            "gaussian_process": {
+              "type": "object",
+              "properties": {
+                "rmse_mean": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1.7976931348623157e+308
+                },
+                "r2_median": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": -1.7976931348623157e+308,
+                  "maximum": 1.7976931348623157e+308
+                }
+              },
+              "required": [
+                "rmse_mean",
+                "r2_median"
+              ],
+              "additionalProperties": false
+            },
+            "mlp": {
+              "type": "object",
+              "properties": {
+                "rmse_mean": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": 0,
+                  "maximum": 1.7976931348623157e+308
+                },
+                "r2_median": {
+                  "type": [
+                    "number",
+                    "null"
+                  ],
+                  "minimum": -1.7976931348623157e+308,
+                  "maximum": 1.7976931348623157e+308
+                }
+              },
+              "required": [
+                "rmse_mean",
+                "r2_median"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "required": [
+            "ridge",
+            "random_forest",
+            "hist_gradient_boosting",
+            "gaussian_process",
+            "mlp"
+          ],
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "rmse_mean": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": 0,
+                "maximum": 1.7976931348623157e+308
+              },
+              "r2_median": {
+                "type": [
+                  "number",
+                  "null"
+                ],
+                "minimum": -1.7976931348623157e+308,
+                "maximum": 1.7976931348623157e+308
+              }
+            },
+            "required": [
+              "rmse_mean",
+              "r2_median"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "attempted",
+        "folds",
+        "excluded",
+        "models"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "folds": {
+                "maxItems": 0,
+                "type": "array"
+              }
+            },
+            "required": [
+              "folds"
+            ]
+          },
+          "then": {
+            "properties": {
+              "models": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "rmse_mean": {
+                      "type": "null"
+                    },
+                    "r2_median": {
+                      "type": "null"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "models": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "object",
+                  "properties": {
+                    "rmse_mean": {
+                      "type": "number"
+                    },
+                    "r2_median": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "JobExecution": {
+      "type": "object",
+      "properties": {
+        "workers": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "attempted": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "resumed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "executed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "workers",
+        "attempted",
+        "resumed",
+        "executed"
+      ],
+      "additionalProperties": false
     }
   }
 }

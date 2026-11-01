@@ -90,8 +90,8 @@ export type CaseManifest = {
 };
 
 // Learning wire records are generated, including method/target scores, folds and exports.
-export type { LearningRecord, LearningSummary } from '../generated/oreflow-learning-v1';
-import type { LearningSummary } from '../generated/oreflow-learning-v1';
+export type { LearningRecord, LearningSummary } from '../generated/oreflow-learning-v2';
+import type { LearningSummary } from '../generated/oreflow-learning-v2';
 
 export type BenchmarkCase = {
   case_id: string; family: Family; category: string;

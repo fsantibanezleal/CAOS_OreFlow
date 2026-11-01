@@ -1,14 +1,16 @@
 import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
+import fixture from '../../../tests/contracts/fixtures/learning-v2.json';
 import { readLearningRecord, readOperatingContract } from './boundaries';
 import type { LearningRecord } from '../lib/artifacts.types';
 import type { OperatingContract, ContractInput } from '../engine/contract';
-import type { LearningRecord as GeneratedLearning } from '../generated/oreflow-learning-v1';
+import type { LearningRecord as GeneratedLearning } from '../generated/oreflow-learning-v2';
 import type { OperatingContract as GeneratedOperating, ContractInput as GeneratedInput } from '../generated/oreflow-contract-v1';
 
 const load = (path: string): any => JSON.parse(readFileSync(new URL(`../../../data/derived/${path}`, import.meta.url), 'utf8'));
 const contract = () => load('contract/operating_contract.json');
-const learning = () => load('learning.json');
+const learning = (): any => structuredClone(fixture);
+const shippedLearning = () => load('learning.json');
 afterEach(() => { vi.unstubAllGlobals(); vi.resetModules(); });
 
 it('exposes the generated types through the actual public consumers', () => {
@@ -18,12 +20,17 @@ it('exposes the generated types through the actual public consumers', () => {
   expectTypeOf<LearningRecord['interpolation']['models']['ridge']['recovery_pct']['rmse']>().toEqualTypeOf<number>();
 });
 
-it('accepts the real exported documents without mutation or invented defaults', () => {
+it('accepts the operating document and explicit v2 fixture without mutation or defaults', () => {
   const c = contract(), l = learning();
   const before = JSON.stringify([c, l]);
   expect(readOperatingContract(c)).toBe(c);
   expect(readLearningRecord(l)).toBe(l);
   expect(JSON.stringify([c, l])).toBe(before);
+});
+
+it.skipIf(shippedLearning().schema !== 'oreflow.learning/v2')('accepts the freshly baked real learning-v2 document', () => {
+  const record = shippedLearning();
+  expect(readLearningRecord(record)).toBe(record);
 });
 
 const badContracts: Array<[string, (x: any) => void]> = [
@@ -53,7 +60,7 @@ const badLearning: Array<[string, (x: any) => void]> = [
   ['empty summary', x => { x.summary.mlp.recovery_pct = {}; }],
   ['missing ONNX opset', x => { delete x.final.exports.surrogate.opset; }],
   ['malformed Cholesky metadata', x => { x.final.exports.screen.cholesky.bytes = 0; }],
-  ['non-finite score', x => { x.equal_rows.ridge.recovery_pct.r2 = NaN; }],
+  ['non-finite score', x => { x.interpolation.models.ridge.recovery_pct.r2 = NaN; }],
   ['non-finite extension', x => { x.interpolation.models.ridge.recovery_pct.unit_check = { span: Infinity }; }],
 ];
 it.each(badLearning)('rejects learning consumer payload: %s', (_name, corrupt) => {
@@ -67,6 +74,8 @@ it('preserves dynamic case identifiers, negative transfer results and optional s
   l.interpolation.models.ridge.recovery_pct.unit_check = { passed: true, observed_range: [0, 100] };
   l.interpolation.models.ridge.recovery_pct.future_metric = 0.5;
   l.leave_one_case_out[0].models.mlp.recovery_pct.r2 = -100;
+  l.summary.mlp.recovery_pct.loco_r2_median = -100;
+  l.common_cohorts.leave_one_case_out.recovery_pct.models.mlp.r2_median = -100;
   expect(readOperatingContract(c).cases.future_case).toBeDefined();
   expect(readLearningRecord(l).leave_one_case_out[0].models.mlp.recovery_pct.r2).toBe(-100);
 });
@@ -91,17 +100,14 @@ describe('production artifact loaders', () => {
 
 it('validates optional observable diagnostics, including case and seed containers', () => {
   const payload = learning();
-  const diagnostic = {
-    schema: 'oreflow.observable/v1', rows: 3, observed_range: [1, 3], prediction_range: [1.1, 2.9],
-    reference_range: [1, 3], allowed_range: [-1, 5], constant_baseline: false, status: 'passed',
-  };
+  const diagnostic = structuredClone(payload.interpolation.models.ridge.recovery_pct.observable);
   const score = payload.interpolation.models.ridge.recovery_pct;
   score.observable = structuredClone(diagnostic);
   score.observable_by_case = { future_case: structuredClone(diagnostic) };
-  payload.mlp_seeds.observable_checks = { future_split: Object.fromEntries(payload.targets.map((target: string) => [target, [structuredClone(diagnostic)]])) };
+  payload.mlp_seeds.scores['case-a'].recovery_pct[0].observable = structuredClone(diagnostic);
   expect(readLearningRecord(payload).interpolation.models.ridge.recovery_pct.observable?.status).toBe('passed');
   for (const summary of [score.observable, score.observable_by_case.future_case,
-    payload.mlp_seeds.observable_checks.future_split.recovery_pct[0]]) {
+    payload.mlp_seeds.scores['case-a'].recovery_pct[0].observable]) {
     summary.allowed_range = [0];
     expect(() => readLearningRecord(payload)).toThrow(/Invalid/);
     summary.allowed_range = [-1, 5];

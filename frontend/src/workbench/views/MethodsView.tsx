@@ -11,7 +11,7 @@ import type { OperatingPoint } from '../../engine/model';
 import type { Trace } from '../../engine/trace';
 import type { CaseArtifact, VariantArtifact } from '../../lib/artifacts.types';
 import type { Lang } from '../../lib/format';
-import { Learned } from './methods/Learned';
+import { LearningView } from './LearningView';
 import { Optimizer } from './methods/Optimizer';
 import { Sensitivity } from './methods/Sensitivity';
 import { Uncertainty } from './methods/Uncertainty';
@@ -42,7 +42,7 @@ export function MethodsView({ contract, artifact, variant, point, trace, modifie
     ...(sensitivity ? [{ id: 'sensitivity', label: TEXT.sensitivity[lang],
       content: <Sensitivity key={caseId} record={sensitivity} atNominal={variant.id === 'nominal'} lang={lang} onCursor={onCursor} /> }] : []),
     { id: 'learned', label: TEXT.learned[lang],
-      content: <Learned key={caseId} contract={contract} artifact={artifact} point={point} trace={trace} lang={lang} onCursor={onCursor} /> },
+      content: <LearningView key={caseId} contract={contract} artifact={artifact} point={point} trace={trace} lang={lang} onCursor={onCursor} /> },
   ];
   return (
     <div className="of-view of-view-methods of-view-tabbed">

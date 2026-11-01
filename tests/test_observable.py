@@ -54,6 +54,8 @@ def test_adversarial_shipped_scores_cannot_omit_the_runtime_check():
     score = {"rmse": 2.0, "mae": 1.0, "r2": -1.0, "rows": 3}
     assert any("no observable diagnostics" in item for item in record_findings({"models": [score]}))
     score["observable"] = check_observable(np.array([40.0, 50.0, 60.0]), np.array([41.0, 49.0, 61.0]))
+    score.update(status="scored", valid_for_scoring=True,
+                 evaluation={"method": "reference", "target": "recovery_pct", "protocol": "interpolation", "fold": "interpolation", "seed": 1})
     assert record_findings({"models": [score]}) == []
 
 
