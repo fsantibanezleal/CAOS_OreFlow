@@ -7,7 +7,11 @@ from __future__ import annotations
 
 import json
 import re
+import runpy
+from copy import deepcopy
 from pathlib import Path
+
+import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 PAGE = ROOT / "docs" / "methodologies" / "14_learned-lane.md"
@@ -143,3 +147,83 @@ def test_protocols_section_quotes_the_group_folds():
                    f"each of the other {words[alone]} alone",
                    f"{words[len(set(record['transfer_groups'].values()))]} groups in all"):
         assert phrase in section, phrase
+
+
+def _reindex_seed_scores(record, indices, seed_ids):
+    """Change every dependent array consistently, leaving the intended configuration alone."""
+    seeds = record["mlp_seeds"]
+    seeds["seeds"] = list(seed_ids)
+    for targets in seeds["scores"].values():
+        for target, scores in targets.items():
+            targets[target] = [deepcopy(scores[i]) for i in indices]
+            for seed, score in zip(seed_ids, targets[target]):
+                score["evaluation"]["seed"] = seed
+    for target, summary in seeds["summary"].items():
+        for field in ("interpolation_rmse", "loco_rmse_mean", "loco_r2_median", "loco_folds"):
+            summary[field] = [deepcopy(summary[field][i]) for i in indices]
+        summary["loco_rmse_by_case"] = {case: [values[i] for i in indices]
+                                        for case, values in summary["loco_rmse_by_case"].items()}
+        if "seeds" in record["summary"]["mlp"][target]:
+            record["summary"]["mlp"][target]["seeds"] = deepcopy(summary)
+
+
+def _seed_inventory_fixture():
+    record = json.loads((ROOT / "tests/contracts/fixtures/learning-v2.json").read_text(encoding="utf-8"))
+    # Three configured seeds let a mutation reorder only noninitial IDs, defeating
+    # the old first-seed/uniqueness checks without inventing production evidence.
+    record["settings"]["mlp_seed_offsets"] = [0, 1, 2]
+    _reindex_seed_scores(record, [0, 1, 1], [1, 2, 3])
+    for target in record["targets"]:
+        record["summary"]["mlp"][target]["seeds"] = deepcopy(record["mlp_seeds"]["summary"][target])
+    return record
+
+
+def _check_seed_inventory(record):
+    return runpy.run_path(str(ROOT / "scripts/check_artifacts.py"))["check_learning_cohorts"](record)
+
+
+@pytest.mark.parametrize("indices,ids", [
+    ([0, 2], [1, 3]),
+    ([0, 1, 2], [1, 99, 3]),
+    ([0, 2, 1], [1, 3, 2]),
+    ([0, 1, 2, 2], [1, 2, 3, 4]),
+], ids=["removed-noninitial", "substituted-noninitial", "reordered-noninitial", "extra"])
+def test_adversarial_configured_seed_inventory_cannot_be_shortened(indices, ids):
+    record = _seed_inventory_fixture()
+    assert _check_seed_inventory(record) == []
+    _reindex_seed_scores(record, indices, ids)
+    findings = _check_seed_inventory(record)
+    assert findings and all("planned seed inventory" in finding for finding in findings), findings
+
+
+@pytest.mark.parametrize("offsets", [[0], [0, 11], [0, 11, 22]])
+def test_configured_seed_inventory_accepts_complete_one_or_many_seeds(offsets):
+    record = _seed_inventory_fixture()
+    record["settings"]["mlp_seed_offsets"] = offsets
+    _reindex_seed_scores(record, list(range(len(offsets))), [record["design"]["seed"] + offset for offset in offsets])
+    assert _check_seed_inventory(record) == []
+
+
+@pytest.mark.parametrize("field,value", [
+    ("offsets", None), ("offsets", []), ("offsets", "0,1,2"), ("offsets", [0, {}]),
+    ("offsets", [0, True]), ("offsets", [0, 1.5]), ("offsets", [0, 0]),
+    ("offsets", [0, float("inf")]), ("offsets", [0, 2**53 - 1]),
+    ("base", None), ("base", True), ("base", "1"), ("base", float("nan")), ("base", 10**1000),
+    ("ids", None), ("ids", []), ("ids", [1, {}]), ("ids", [1, True]), ("ids", [1, 2.5]),
+    ("settings", None), ("missing-offsets", None), ("missing-base", None),
+])
+def test_adversarial_malformed_seed_declarations_have_findings_without_tracebacks(field, value):
+    record = _seed_inventory_fixture()
+    if field == "offsets":
+        record["settings"]["mlp_seed_offsets"] = value
+    elif field == "base":
+        record["design"]["seed"] = value
+    elif field == "ids":
+        record["mlp_seeds"]["seeds"] = value
+    elif field == "settings":
+        record["settings"] = value
+    elif field == "missing-offsets":
+        del record["settings"]["mlp_seed_offsets"]
+    else:
+        del record["design"]["seed"]
+    assert _check_seed_inventory(record)

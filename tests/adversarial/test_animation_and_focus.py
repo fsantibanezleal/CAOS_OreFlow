@@ -72,12 +72,26 @@ def test_an_animation_longer_than_ten_seconds_fails(repo: Path) -> None:
 def test_an_animated_svg_in_the_example_that_loses_its_block_fails(repo: Path) -> None:
     add_gate_module(repo)
     path = repo / "frontend" / "public" / "executive" / "pain.svg"
-    text = path.read_text(encoding="utf-8")
-    stripped = re.sub(r"@media \(prefers-reduced-motion: reduce\)\s*\{[\s\S]*?\}\s*\}", "", text)
-    assert stripped != text, "the example pain.svg carries no reduced-motion block to remove"
-    path.write_text(stripped, encoding="utf-8")
+    # Executive art may legitimately be static. Give this copy an explicit, valid animation
+    # before removing its one reduced-motion rule; production art is not the fixture contract.
+    animated = ANIMATED.replace("@@REDUCED@@", REDUCED)
+    path.write_text(animated, encoding="utf-8")
+    clean = guard(repo, "check_svg_animation.py", ok_marker=OK)
+    assert clean.returncode == 0, clean.stdout
+    assert animated.count(REDUCED) == 1
+    path.write_text(animated.replace(REDUCED, "", 1), encoding="utf-8")
     r = guard(repo, "check_svg_animation.py")
-    assert r.returncode == 1 and "executive/pain.svg" in r.stdout, r.stdout
+    assert r.returncode == 1 and "executive/pain.svg" in r.stdout and "prefers-reduced-motion" in r.stdout, r.stdout
+
+
+def test_a_static_executive_illustration_needs_no_reduced_motion_block(repo: Path) -> None:
+    plant_svg(
+        repo, "executive/pain.svg",
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">'
+        '<title>Static circuit state</title><rect x="10" y="10" width="80" height="30" fill="var(--color-fg)"/></svg>',
+    )
+    r = guard(repo, "check_svg_animation.py", ok_marker=OK)
+    assert r.returncode == 0, r.stdout
 
 
 def test_the_guard_without_the_shell_analysis_fails_instead_of_passing(repo: Path) -> None:

@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import re
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -16,6 +15,9 @@ PINS = [
     "nbformat==5.11.1",
     "ipykernel==7.4.0",
     "SALib==1.6.0",
+    "scikit-learn==1.5.2",
+    "ruff==0.15.18",
+    "pytest==9.1.1",
 ]
 
 # Each lesson is intentionally authored by topic and level. The same APIs, cells and evidence are mirrored
@@ -115,7 +117,7 @@ LESSONS = {
                 "objective": "Compare three comminution hypotheses over the same feed-size and product-size range, identify the calibration point at which they agree, and state what the comparison can and cannot establish.",
                 "data": "Owner: OreFlow project authors; the nominal soft-porphyry case and work index are in `data/derived/cases/copper_porphyry_soft.json` (MIT project licence). Equations and comparison assumptions are transcribed in `docs/methodologies/09_energy.md`. Repository: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "Bond: $W=W_i(10/\\sqrt{P}-10/\\sqrt{F})$. Rittinger: $E=K_R(1/P-1/F)$; Kick: $E=K_K\\ln(F/P)$. OreFlow calibrates $K_R$ and $K_K$ so all three match Bond at the declared 10,000 µm to 150 µm reference reduction. Away from that point they encode different size-reduction hypotheses. `law_curves` is the authoritative implementation used here.",
-                "sota": "Bond's work index is a standard-circuit empirical size-reduction method formalized in the Global Mining Guidelines Group's Bond Efficiency guideline (GMG01-MP-2021). Rittinger and Kick provide classical surface-area and reduction-ratio hypotheses; none is universally valid across every size regime. OreFlow reports Bond and keeps the other laws as diagnostic comparisons. This is a comparison of equations on an authored case, not a claim of superior prediction.",
+                "sota": "Bond's work index is a standard-circuit empirical size-reduction method formalized in the Global Mining Guidelines Group's Bond Efficiency guideline (GMG01-MP-2021). Rittinger and Kick provide surface-area and reduction-ratio hypotheses; none is universally valid across every size regime. OreFlow reports Bond and keeps the other laws as diagnostic comparisons. This is a comparison of equations on an authored case, not a claim of superior prediction.",
                 "cells": [
                     (
                         [
@@ -136,7 +138,7 @@ LESSONS = {
                             "Plot on the same axes. Because the x-axis is inverted, progressively finer products appear to the right; all three laws coincide at the reference point and diverge elsewhere.",
                             "Grafica en los mismos ejes. El eje x invertido coloca productos progresivamente más finos hacia la derecha; las tres leyes coinciden en la referencia y divergen fuera de ella.",
                         ],
-                        "# Visualize the same feed and work index under all three calibrated laws.\nfig, ax = plt.subplots(figsize=(8, 4.5))\nfor name in ('bond', 'rittinger', 'kick'):\n    ax.plot(curves['p80_um'], curves[name], label=name.title(), linewidth=2)\nax.scatter([150], [curves['bond'][int(np.argmin(abs(np.asarray(curves['p80_um']) - 150))) ]], s=35, color='black', zorder=3, label='reference P80')\nax.set_xscale('log'); ax.invert_xaxis(); ax.set(xlabel='Product P80 (µm)', ylabel='Specific energy (kWh/t)', title=f'Classical energy-law comparison (F80 = {f80:.0f} µm; Wi = {wi:g} kWh/t)')\nax.grid(True, alpha=.25); ax.legend(); fig.tight_layout()",
+                        "# Visualize the same feed and work index under all three calibrated laws.\nfig, ax = plt.subplots(figsize=(8, 4.5))\nfor name in ('bond', 'rittinger', 'kick'):\n    ax.plot(curves['p80_um'], curves[name], label=name.title(), linewidth=2)\nax.scatter([150], [curves['bond'][int(np.argmin(abs(np.asarray(curves['p80_um']) - 150))) ]], s=35, color='black', zorder=3, label='reference P80')\nax.set_xscale('log'); ax.invert_xaxis(); ax.set(xlabel='Product P80 (µm)', ylabel='Specific energy (kWh/t)', title=f'Energy-law comparison (F80 = {f80:.0f} µm; Wi = {wi:g} kWh/t)')\nax.grid(True, alpha=.25); ax.legend(); fig.tight_layout()",
                     ),
                     (
                         [
@@ -157,15 +159,15 @@ LESSONS = {
         ],
         "es": [
             {
-                "title": "Sigue un mineral de cobre por trituración y molienda",
+                "title": "Seguir un mineral de cobre por trituración y molienda",
                 "mins": 18,
-                "prereq": "Ninguno; comienza aquí.",
-                "objective": "Partiendo de un mineral OreFlow declarado y su punto operativo nominal, sigue el tamaño de alimentación a través del circuito de conminución. Distingue un registro simulado de planta de una medición y reconoce las magnitudes que calcula el motor.",
+                "prereq": "Ninguno; comenzar aquí.",
+                "objective": "Seguir el tamaño de alimentación a través del circuito de conminución a partir de un mineral OreFlow declarado y su punto operativo nominal. Distinguir un registro simulado de planta de una medición e identificar las magnitudes que calcula el motor.",
                 "data": "Responsable: autores del proyecto OreFlow. Fuente: escenario versionado y de autoría propia de pórfido cuprífero blando (licencia MIT del proyecto), `data/derived/cases/copper_porphyry_soft.json`; es un escenario de modelo, no un ensayo de mina ni una medición de planta. Los resúmenes de partículas provienen de casos construidos públicos de HZDR; consulta `data/derived/source/hzdr_particle_benchmark.json` y el dossier de procedencia HZDR. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El motor representa el tamaño en una malla logarítmica fija. La trituración transforma la distribución mediante el modelo de clasificación Whiten. La molienda aplica una función de selección específica por energía y una matriz de fractura; el clasificador envía cada clase de tamaño al rebose o al reciclaje. En estado estacionario, la alimentación fresca coincide con los productos finales dentro de la tolerancia del balance unitario. Aquí llamamos a `simulate` del pipeline OreFlow; no reimplementamos ecuaciones de conminución.",
                 "cells": [],
                 "results": "La curva PSD muestra la respuesta de tamaño del modelo en tres flujos identificados; no muestra trayectorias de partículas individuales. El residuo del balance prueba conservación dentro de este cálculo estacionario de autoría propia. Ni este caso ni sus parámetros están calibrados con una planta.",
-                "summary": "Ejecutaste el mismo solver de circuito que usa OreFlow, seguiste una distribución de tamaños y leíste su verificación de conservación. Distingue el cierre del modelo (consistencia interna) de la validación frente a datos medidos de planta.",
+                "summary": "La resolución utiliza el mismo solver de circuito que OreFlow y permite seguir una distribución de tamaños y comprobar su conservación. El cierre del modelo verifica consistencia interna; la validación frente a datos medidos de planta requiere evidencia independiente.",
                 "refs": [
                     "https://doi.org/10.1016/0301-7516(80)90034-4",
                     "https://github.com/fsantibanezleal/CAOS_OreFlow/tree/develop/data/derived",
@@ -175,13 +177,13 @@ LESSONS = {
             {
                 "title": "Reconstruye el cálculo de energía y reciclaje",
                 "mins": 28,
-                "prereq": "Nivel 1: Sigue un mineral de cobre por trituración y molienda.",
-                "objective": "Reproduce una corrida nominal con el caso declarado de OreFlow, inspecciona las etapas de clasificación y energía, y evalúa la respuesta de la ley Bond implementada ante un cambio controlado de P80. Cada magnitud calculada procede de métodos del pipeline.",
+                "prereq": "Nivel 1: Seguir un mineral de cobre por trituración y molienda.",
+                "objective": "Reproducir una corrida nominal con el caso declarado de OreFlow, inspeccionar las etapas de clasificación y energía, y evaluar la respuesta de la ley Bond implementada ante un cambio controlado de P80. Cada magnitud calculada procede de métodos del pipeline.",
                 "data": "Responsable: autores del proyecto OreFlow; circuito de pórfido cuprífero blando de autoría propia, licencia MIT del proyecto, `data/derived/cases/copper_porphyry_soft.json`. Los límites operativos están en `data/derived/contract/operating_contract.json`. Los registros de partículas HZDR son una fuente de investigación construida separada, no observaciones de planta; su resumen está en `data/derived/source/hzdr_particle_benchmark.json`. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El requerimiento estándar de Bond es $W_B=W_i(10/\\sqrt{P_{80}}-10/\\sqrt{F_{80}})$ en kWh/t (GMG01-MP-2021, ec. 3). OreFlow reporta por separado la energía neta de molienda. El clasificador actúa sobre cada clase de tamaño y resuelve el bucle de reciclaje; el underflow no es alimentación fresca. `energy_report` y `law_curves` son implementaciones del pipeline, no copias en el notebook.",
                 "cells": [],
                 "results": "La curva del clasificador reporta el enrutamiento por clase, y la tabla energética diferencia energía neta de molienda de requerimiento Bond estándar. Rittinger y Kick son comparaciones alternativas calibradas; sumarlas a Bond duplicaría energía. La sensibilidad mantiene fijas alimentación e índice de trabajo y no es una recomendación operativa.",
-                "summary": "Seguiste la partición del clasificador, carga circulante y salidas de energía a través del motor. El circuito es estacionario; estas ecuaciones no representan la fractura en tiempo real, y la planta nominal es un escenario de autoría propia.",
+                "summary": "La partición del clasificador, la carga circulante y las salidas de energía proceden del mismo motor. El circuito es estacionario; estas ecuaciones no representan la fractura en tiempo real, y la planta nominal es un escenario de autoría propia.",
                 "refs": [
                     "https://www.globalminingguidelines.org/guidelines/bond-efficiency/",
                     "https://doi.org/10.1016/0301-7516(80)90034-4",
@@ -195,7 +197,7 @@ LESSONS = {
                 "objective": "Compara tres hipótesis de conminución en el mismo rango de alimentación y producto, identifica el punto de calibración donde coinciden y establece qué permite y qué no permite concluir la comparación.",
                 "data": "Responsable: autores del proyecto OreFlow; caso nominal de pórfido blando e índice de trabajo en `data/derived/cases/copper_porphyry_soft.json` (licencia MIT del proyecto). Las ecuaciones y supuestos comparativos están en `docs/methodologies/09_energy.md`. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "Bond: $W=W_i(10/\\sqrt{P}-10/\\sqrt{F})$. Rittinger: $E=K_R(1/P-1/F)$; Kick: $E=K_K\\ln(F/P)$. OreFlow calibra $K_R$ y $K_K$ para que las tres leyes coincidan en la reducción de referencia declarada: 10.000 µm a 150 µm. Fuera de ese punto representan hipótesis de reducción de tamaño distintas. Aquí `law_curves` es la implementación autoritativa.",
-                "sota": "El índice de trabajo Bond es un método empírico de circuito estándar para reducción por tamaño, formalizado en la guía Bond Efficiency de Global Mining Guidelines Group (GMG01-MP-2021). Rittinger y Kick representan las hipótesis clásicas de superficie y razón de reducción; ninguna es válida universalmente en todos los regímenes de tamaño. OreFlow reporta Bond y mantiene las otras leyes como comparaciones diagnósticas. Es una comparación de ecuaciones en un caso de autoría, no una afirmación de predicción superior.",
+                "sota": "El índice de trabajo Bond es un método empírico de circuito estándar para reducción por tamaño, formalizado en la guía Bond Efficiency de Global Mining Guidelines Group (GMG01-MP-2021). Rittinger y Kick representan las hipótesis de superficie y razón de reducción; ninguna es válida universalmente en todos los regímenes de tamaño. OreFlow reporta Bond y mantiene las otras leyes como comparaciones diagnósticas. Es una comparación de ecuaciones en un caso de autoría, no una afirmación de predicción superior.",
                 "cells": [],
                 "results": "Las curvas coinciden por construcción en la reducción de referencia; fuera de ella, su separación refleja formas funcionales distintas. OreFlow usa Bond para la energía estándar reportada y no suma las alternativas. La comparación no tiene residuo de energía medido en planta y no permite elegir la mejor ley para una planta específica.",
                 "summary": "La comparación controlada en el mismo caso hace visible la selección del modelo: calibrar hace coincidir las leyes en un punto, no en todos. Siguen aplicando la calificación de finura de Bond y su base energética.",
@@ -273,7 +275,7 @@ LESSONS = {
                     (
                         [
                             "Overlay the fitted curves on the virtual batch observations using the same time points.",
-                            "Superpone las curvas ajustadas a las observaciones batch virtuales en los mismos tiempos.",
+                            "Superponer las curvas ajustadas a las observaciones batch virtuales en los mismos tiempos.",
                         ],
                         "fig, ax = plt.subplots(figsize=(8, 4.5))\nax.scatter(fits['times_min'], fits['batch_recovery_pct'], color='black', zorder=4, label='Virtual batch data')\nfor model in fits['models']:\n    ax.plot(fits['times_min'], model['fitted_pct'], marker='.', label=model['id'])\nax.set(xlabel='Batch time (min)', ylabel='Recovery (%)', title='Five fitted forms on one batch record')\nax.grid(True, alpha=.25); ax.legend(ncol=2); fig.tight_layout()",
                     ),
@@ -300,7 +302,7 @@ LESSONS = {
                 "objective": "Compare five cited kinetic forms on identical batch evidence, then evaluate bank projection separately against the engine's exact rate-distributed reference.",
                 "data": "Owner: OreFlow authors; `data/derived/cases/copper_molybdenum.json`, an authored scenario under the MIT project licence. Both observations and exact-reference response are generated by the model, not measured plant data. Repository: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "The candidate forms are first order, Kelsall fast/slow, Klimpel uniform-rate, gamma and stretched exponential. Each compresses heterogeneous flotation rates differently. OreFlow evaluates the same virtual batch curve and compares continuous-bank predictions; a fitted curve alone cannot identify a unique mechanism.",
-                "sota": "First-order kinetics (Kelsall (1961) provides a classical fast/slow baseline. Kelsall and distributed-rate forms represent heterogeneity with more parameters. OreFlow implements five forms in `pipeline/engine/kinetics.py` and measures both batch fit error and bank projection error against its exact rate distribution. This demonstrates a controlled method comparison, not superiority on plant data or a novel algorithm.",
+                "sota": "First-order kinetics gives a single-rate reference. Kelsall (1961) gives a fast/slow model. Kelsall and distributed-rate forms represent heterogeneity with more parameters. OreFlow implements five forms in `pipeline/engine/kinetics.py` and measures both batch fit error and bank projection error against its exact rate distribution. This demonstrates a controlled method comparison, not superiority on plant data or a novel algorithm.",
                 "cells": [
                     (
                         [
@@ -332,7 +334,7 @@ LESSONS = {
                     ),
                 ],
                 "results": "The first figure compares fits on the same virtual data; the second compares projections with the exact rate-distributed model. These report approximation error inside OreFlow's engine, not real-world predictive accuracy. Batch fit and bank projection answer different questions.",
-                "summary": "The literature comparison makes both the strength and limit visible: multiple classical forms can fit a synthetic curve, but their bank predictions diverge. OreFlow reports the discrepancy instead of presenting animation as plant dynamics.",
+                "summary": "The literature comparison makes both the strength and limit visible: multiple kinetic forms can fit a synthetic curve, but their bank predictions diverge. OreFlow reports the discrepancy instead of presenting animation as plant dynamics.",
                 "refs": [
                     "https://doi.org/10.1016/S0301-7516(99)00069-1",
                     "https://doi.org/10.5277/ppmp170128",
@@ -345,13 +347,13 @@ LESSONS = {
             {
                 "title": "Interpreta un banco de flotación como respuesta cinética",
                 "mins": 18,
-                "prereq": "Ninguno; comienza aquí.",
+                "prereq": "Ninguno; comenzar aquí.",
                 "objective": "Ejecuta el rougher Cu-Mo y distingue su curva batch virtual de la respuesta del banco alimentado de forma continua. Comprende por qué recuperación versus tiempo es una respuesta de proceso, no una animación decorativa.",
                 "data": "Responsable: autores de OreFlow; escenario Cu-Mo de autoría propia en `data/derived/cases/copper_molybdenum.json`, licencia MIT del proyecto. El motor genera la curva cinética; no se midió en laboratorio ni planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "OreFlow agrega tasas por clase mediante $R_b(t)=\\sum_j c_jx_j(1-e^{-k_jt})/\\sum_j c_jx_j$. Un banco continuo tiene otra distribución temporal y se calcula por separado. Llama a `simulate` y al constructor `trace` de producción.",
                 "cells": [],
                 "results": "La curva batch es una prueba virtual generada por la distribución de tasas del motor; el perfil de banco aplica un modelo de residencia continua. La diferencia no es evidencia de planta. Ley del concentrado y recuperación son resultados distintos.",
-                "summary": "Ejecutaste el solver y revisaste sus respuestas batch y de banco simuladas. El registro no es información de laboratorio, y recorrer la flowsheet no equivale al tiempo físico de planta.",
+                "summary": "El solver calcula las respuestas batch y de banco del circuito simulado. El registro no es información de laboratorio, y recorrer la flowsheet no equivale al tiempo físico de planta.",
                 "refs": [
                     "https://doi.org/10.1016/0301-7516(81)90019-3",
                     "https://doi.org/10.1016/0301-7516(81)90019-3",
@@ -361,13 +363,13 @@ LESSONS = {
             {
                 "title": "Ajusta cinco modelos cinéticos y compara la proyección del banco",
                 "mins": 30,
-                "prereq": "Nivel 1: Interpreta un banco de flotación como respuesta cinética.",
-                "objective": "Ejecuta los ajustes no lineales acotados de OreFlow, inspecciona límites y residuales, y compara la predicción de banco con la referencia exacta de tasas distribuidas del motor.",
+                "prereq": "Nivel 1: Interpretar un banco de flotación como respuesta cinética.",
+                "objective": "Ejecutar los ajustes no lineales acotados de OreFlow, inspeccionar límites y residuales, y comparar la predicción de banco con la referencia exacta de tasas distribuidas del motor.",
                 "data": "Responsable: autores de OreFlow; escenario nominal Cu-Mo y registro cinético generado en `data/derived/cases/copper_molybdenum.json`, licencia MIT del proyecto. La respuesta es simulada, no medida en planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "Los datos batch virtuales mezclan respuestas de primer orden por clase de partícula. OreFlow ajusta formas de primer orden, Kelsall, Klimpel, gamma y exponencial estirada con Levenberg–Marquardt acotado. Luego proyecta cada modelo a un banco; `kinetic_record` es la entrada de producción. Ajuste y proyección son verificaciones diferentes.",
                 "cells": [],
                 "results": "Las curvas muestran la aproximación al registro batch virtual. El error de banco compara predicciones agregadas con la referencia exacta del motor. Un RMSE batch bajo no garantiza un error bajo en la proyección; ninguna de las dos métricas es validación de terreno.",
-                "summary": "Ejecutaste el ajustador del producto y separaste residual, error de proyección y brecha de extrapolación. Toda la comparación sigue dentro de una prueba virtual generada por el motor.",
+                "summary": "El ajustador del producto permite distinguir residual, error de proyección y brecha de extrapolación. Toda la comparación permanece dentro de una prueba virtual generada por el motor.",
                 "refs": [
                     "https://doi.org/10.1016/0301-7516(81)90019-3",
                     "https://doi.org/10.1016/0301-7516(81)90019-3",
@@ -381,10 +383,10 @@ LESSONS = {
                 "objective": "Compara cinco formas cinéticas citadas sobre la misma evidencia batch y evalúa por separado la proyección de banco frente a la referencia exacta con tasas distribuidas del motor.",
                 "data": "Responsable: autores de OreFlow; `data/derived/cases/copper_molybdenum.json`, escenario de autoría propia bajo licencia MIT del proyecto. Observaciones y referencia exacta las genera el modelo, no son datos de planta medidos. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "Las formas candidatas son primer orden, Kelsall rápida/lenta, Klimpel de tasas uniformes, gamma y exponencial estirada. Cada una resume de modo distinto tasas heterogéneas. OreFlow evalúa la misma curva batch virtual y compara proyecciones de banco; una curva ajustada no identifica un mecanismo único.",
-                "sota": "La cinética de primer orden (Kelsall (1961) es una referencia clásica de fracción rápida/lenta. Kelsall y las formas de tasas distribuidas representan mejor la heterogeneidad con más parámetros. OreFlow implementa cinco formas en `pipeline/engine/kinetics.py` y mide tanto error batch como error de proyección frente a su distribución exacta de tasas. Es una comparación controlada, no superioridad demostrada con datos de planta ni un algoritmo nuevo.",
+                "sota": "La cinética de primer orden ofrece una referencia de tasa única. Kelsall (1961) propone fracciones rápida y lenta. Kelsall y las formas de tasas distribuidas representan mejor la heterogeneidad con más parámetros. OreFlow implementa cinco formas en `pipeline/engine/kinetics.py` y mide tanto error batch como error de proyección frente a su distribución exacta de tasas. Es una comparación controlada, no superioridad demostrada con datos de planta ni un algoritmo nuevo.",
                 "cells": [],
                 "results": "La primera figura compara ajustes sobre los mismos datos virtuales; la segunda compara proyecciones con el modelo exacto de tasas distribuidas. Miden error de aproximación dentro del motor OreFlow, no precisión en el mundo real. Ajuste batch y proyección de banco responden preguntas diferentes.",
-                "summary": "La comparación bibliográfica muestra tanto la capacidad como el límite: varias formas clásicas ajustan una curva sintética, pero sus predicciones de banco divergen. OreFlow informa la diferencia en vez de presentar la animación como dinámica de planta.",
+                "summary": "La comparación bibliográfica muestra tanto la capacidad como el límite: varias formas cinéticas ajustan una curva sintética, pero sus predicciones de banco divergen. OreFlow informa la diferencia en vez de presentar la animación como dinámica de planta.",
                 "refs": [
                     "https://doi.org/10.1016/S0301-7516(99)00069-1",
                     "https://doi.org/10.5277/ppmp170128",
@@ -522,7 +524,7 @@ LESSONS = {
             {
                 "title": "Construye un ejemplo de aprendizaje para procesamiento de minerales",
                 "mins": 20,
-                "prereq": "Ninguno; comienza aquí.",
+                "prereq": "Ninguno; comenzar aquí.",
                 "objective": "Usa las funciones propias de OreFlow para características y objetivos en un circuito de autoría propia. Identifica qué aprende el surrogate y por qué las filas generadas por el motor no son observaciones de planta.",
                 "data": "Responsable: autores de OreFlow; circuitos de autoría propia y resultados generados en `data/derived/learning.json`, licencia MIT del proyecto. El registro usa doce circuitos construidos, no datos históricos de planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El registro supervisado mapea descriptores físicos $x$ a recuperación, $\\log_{10}(G_c/G_f)$ y energía específica total. La identidad del caso se excluye para evitar una solución atajo. `features` y `targets` de `pipeline/methods/learning.py` crean la representación de producción.",
@@ -534,7 +536,7 @@ LESSONS = {
             {
                 "title": "Sigue el diseño y las particiones de validación sin fuga",
                 "mins": 32,
-                "prereq": "Nivel 1: Construye un ejemplo de aprendizaje para procesamiento de minerales.",
+                "prereq": "Nivel 1: Construir un ejemplo de aprendizaje para procesamiento de minerales.",
                 "objective": "Genera un diseño determinista pequeño con el pipeline OreFlow, inspecciona particiones de interpolación y caso completo no visto, y relaciónalas con la validación comprometida de tamaño completo.",
                 "data": "Responsable: autores de OreFlow; `data/derived/contract/operating_contract.json` y `data/derived/learning.json`, licencia MIT del proyecto. Las filas son simulaciones de escenarios propios, no mediciones de planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El constructor muestrea entradas factibles dentro del Contrato 1, ejecuta el motor y crea objetivos y características físicas. Interpolación retiene filas con semilla dentro de cada caso. Leave-one-case-out retiene un caso completo; la transferencia por grupo retiene también casos hermanos. No son protocolos intercambiables: el segundo mide transferencia a un caso nunca visto.",
@@ -548,7 +550,7 @@ LESSONS = {
                 ],
             },
             {
-                "title": "Compara surrogates y transfiere a minerales no vistos",
+                "title": "Comparar modelos sustitutos y evaluar transferencia a minerales no vistos",
                 "mins": 28,
                 "prereq": "Niveles 1 y 2 de este tema.",
                 "objective": "Compara familias de modelos con objetivos y filas de prueba idénticos, inspecciona transferencia de caso completo y cobertura GP, y evalúa los límites de generalización que permite la evidencia.",
@@ -580,47 +582,56 @@ def code(text: str) -> dict:
 
 
 def spanish_code(program: str) -> str:
-    """Translate notebook-facing comments and labels while leaving pipeline identifiers untouched."""
-    labels = {
-        "family:": "familia:",
-        "throughput:": "caudal:",
-        "feed F80:": "F80 de alimentación:",
-        "product P80:": "P80 de producto:",
-        "grinding energy:": "energía de molienda:",
-        "Virtual batch": "Batch virtual",
-        "Continuous bank": "Banco continuo",
-        "Continuous-bank profile": "Perfil del banco continuo",
-        "Virtual batch test": "Prueba batch virtual",
-        "Batch time (min)": "Tiempo batch (min)",
-        "Bank cell number": "Número de celda",
-        "Payable recovery (%)": "Recuperación del payable (%)",
-        "Residence time (min)": "Tiempo de residencia (min)",
-        "Stream": "Flujo",
-        "Solids (t/h)": "Sólidos (t/h)",
-        "RMSE (points)": "RMSE (puntos)",
-        "batch RMSE (points)": "RMSE batch (puntos)",
-        "bank prediction (%)": "Predicción del banco (%)",
-        "bank error (points)": "Error de banco (puntos)",
-        "extrapolation gap (points)": "Brecha de extrapolación (puntos)",
-        "engine version:": "versión del motor:",
-        "design matrix:": "matriz de diseño:",
-        "recovery (%):": "recuperación (%):",
-        "throughput (t/h):": "tratamiento (t/h):",
-        "rows by case:": "filas por caso:",
-        "case folds:": "folds por caso:",
-        "GP nominal 95% interval coverage:": "cobertura nominal 95% del intervalo GP:",
-        "Interpolation RMSE by target (target units differ)": "RMSE de interpolación por objetivo (las unidades difieren)",
-        "RMSE in target units": "RMSE en unidades del objetivo",
-    }
-    out = []
-    for line in program.splitlines():
-        if line.lstrip().startswith("#"):
-            out.append("# Paso ejecutable del método OreFlow explicado en la celda anterior.")
-            continue
-        for source, target in labels.items():
-            line = line.replace(source, target)
-        out.append(line)
-    return "\n".join(out)
+    """Translate exact display literals, preserving production schema identifiers."""
+    import ast
+    from build_advanced_notebook_extensions import LABELS_ES
+
+    stream_names = {'crusher_feed': 'Alimentación al triturador', 'new_feed': 'Alimentación fresca',
+                    'cyclone_overflow': 'Rebose del ciclón'}
+    kinetic_names = {'first_order': 'Primer orden', 'kelsall': 'Kelsall', 'klimpel': 'Klimpel',
+                     'gamma': 'Gamma', 'stretched_exponential': 'Exponencial estirada'}
+
+    def display_name(value, names):
+        mapping = ast.Dict([ast.Constant(key) for key in names], [ast.Constant(item) for item in names.values()])
+        return ast.Call(ast.Attribute(mapping, 'get', ast.Load()), [value, value], [])
+
+    class DisplayLanguage(ast.NodeTransformer):
+        def visit_Constant(self, node):
+            if isinstance(node.value, str) and node.value in LABELS_ES:
+                return ast.copy_location(ast.Constant(LABELS_ES[node.value]), node)
+            return node
+
+        def visit_keyword(self, node):
+            self.generic_visit(node)
+            if node.arg == 'label':
+                text = ast.unparse(node.value)
+                if text == "stream.replace('_', ' ')":
+                    node.value = display_name(ast.Name('stream', ast.Load()), stream_names)
+                elif text in ("model['id']", "m['id']"):
+                    node.value = display_name(node.value, kinetic_names)
+            return node
+
+        def visit_Dict(self, node):
+            self.generic_visit(node)
+            for i, key in enumerate(node.keys):
+                if isinstance(key, ast.Constant) and key.value in ('modelo', 'Modelo'):
+                    value = node.values[i]
+                    if isinstance(value, ast.Subscript) and isinstance(value.slice, ast.Constant) and value.slice.value == 'id':
+                        node.values[i] = display_name(value, kinetic_names)
+            return node
+
+        def visit_Call(self, node):
+            self.generic_visit(node)
+            if isinstance(node.func, ast.Attribute) and node.func.attr == 'set_xticks' and len(node.args) > 1:
+                if isinstance(node.args[1], ast.Name) and node.args[1].id == 'names':
+                    item = ast.Name('factor_name', ast.Load())
+                    label = ast.Call(ast.Attribute(ast.Name('factor_labels', ast.Load()), 'get', ast.Load()),
+                                     [item, item], [])
+                    node.args[1] = ast.ListComp(label,
+                                               [ast.comprehension(ast.Name('factor_name', ast.Store()),
+                                                                  ast.Name('names', ast.Load()), [], 0)])
+            return node
+    return ast.unparse(DisplayLanguage().visit(ast.parse(program)))
 
 
 def lesson_doc(language: str, topic: str, number: int, lesson: dict) -> dict:
@@ -684,273 +695,16 @@ def lesson_doc(language: str, topic: str, number: int, lesson: dict) -> dict:
             md(f"## {refs_h}\n\n" + "\n".join(f"- {url}" for url in lesson["refs"])),
         ]
     )
-    # Add an executable, paired operating-point perturbation to each lesson. These
-    # cells call the actual circuit entry point and expose response rather than
-    # merely repeating a static explanation. Level 3 runs them under Comparison.
-    before_results = next(
-        i
-        for i, cell in enumerate(cells)
-        if cell["cell_type"] == "markdown" and "".join(cell["source"]).startswith(f"## {results_h}")
-    )
-    additions = []
-    factors = (0.9, 1.1) if number == 1 else (0.8, 0.9, 1.0, 1.1, 1.2)
-    case_ids = {
-        "01-comminution": "copper_porphyry_soft",
-        "02-flotation": "copper_molybdenum",
-        "03-learning": "copper_porphyry_soft",
-        "04-optimization": "copper_porphyry_soft",
-        "05-uncertainty": "copper_porphyry_soft",
-    }
-    for factor in factors:
-        label = f"{factor:.1f}× nominal throughput"
-        note = (
-            f"In the level {number} {topic.replace('-', ' ')} case, the {label} run changes fresh-feed rate while holding the other controls at their authored nominal point. "
-            f"For the level {number} {topic.replace('-', ' ')} case at {factor:.1f}× feed, recovery, product size and energy are coupled outputs of the resolved circuit model."
-        )
-        if es:
-            note = (
-                f"En el caso de nivel {number} sobre {topic.replace('-', ' ')}, la corrida con {factor:.1f}× el tratamiento nominal cambia la alimentación fresca y mantiene los demás controles en su punto nominal de autoría. "
-                f"En el caso de nivel {number} sobre {topic.replace('-', ' ')}, con {factor:.1f}× de alimentación, recuperación, tamaño y energía son salidas acopladas del circuito resuelto."
-            )
-        additions.extend(
-            [
-                md(note),
-                code(
-                    f"# Re-solve the production circuit at one controlled throughput multiplier.\n"
-                    f"from pipeline.cases.catalog import CASES\n"
-                    f"from pipeline.engine.circuit import simulate\n"
-                    f"case = next(item for item in CASES if item.id == {case_ids[topic]!r})\n"
-                    f"factor = {factor!r}\n"
-                    f"point_{str(factor).replace('.', '_')} = case.nominal.with_values(throughput_tph=case.nominal.throughput_tph * factor)\n"
-                    f"response_{str(factor).replace('.', '_')} = simulate(case.ore, case.plant, point_{str(factor).replace('.', '_')})\n"
-                    f"print('throughput (t/h):', round(point_{str(factor).replace('.', '_')}.throughput_tph, 2))\n"
-                    f"print('recovery (%):', round(response_{str(factor).replace('.', '_')}.metrics['recovery_pct'], 3))\n"
-                    f"print('product P80 (µm):', round(response_{str(factor).replace('.', '_')}.metrics['p80_um'], 2))"
-                ),
-            ]
-        )
-        if number == 3 and topic == "02-flotation" and factor == 1.0:
-            additions.extend(
-                [
-                    md(
-                        "Fit the cited kinetic forms to the virtual batch response and project each fit through the solved rougher-bank residence distribution. This uses OreFlow's published fitting routine; the input remains a model-generated case."
-                        if not es
-                        else "Ajusta las formas cinéticas citadas a la respuesta batch virtual y proyecta cada ajuste por la distribución de residencia del banco rougher resuelto. Se usa el procedimiento de ajuste publicado de OreFlow; la entrada sigue siendo un caso generado por el modelo."
-                    ),
-                    code(
-                        "# Fit and project the implemented flotation kinetic models.\nfrom pipeline.engine.kinetics import kinetic_record\nkinetic = kinetic_record(response_1_0.flotation, response_1_0.ore, case.nominal.rougher_cells, response_1_0.metrics['rougher_recovery_pct'])\nprint('kinetic model fits:', len(kinetic['models']))\nprint('exact true-flotation bank recovery (%):', round(kinetic['bank']['exact_true_flotation_pct'], 3))"
-                    ),
-                ]
-            )
-    # Visualise the paired response in a second, distinct figure. Each plotted
-    # point is a fresh engine run; these are scenarios, not observations.
-    plot_sentences = [
-        f"In this level {number} {topic.replace('-', ' ')} plot, compare recovery with product P80 across the controlled throughput changes.",
-        "The two axes keep unlike units separate, so interpret each change as a response of this authored case rather than as an empirical plant trend.",
-        "The nominal point is included as a reference for the neighboring settings.",
-        f"For {lesson['title'].lower()}, the plotted points come from separate engine evaluations, and the lines only guide the eye between tested settings.",
-    ]
-    plot_instruction = " ".join(
-        f"In the level {number} {topic.replace('-', ' ')} lesson, plot reading {index} considers {sentence[0].lower() + sentence[1:]}"
-        for index, sentence in enumerate(plot_sentences, 1)
-    )
-    if es:
-        plot_sentences = [
-            f"En esta figura del nivel {number} sobre {topic.replace('-', ' ')}, compara la recuperación con el P80 de producto al variar el tratamiento.",
-            "Los ejes separan unidades distintas, así que el cambio describe el caso de autoría propia y no una tendencia empírica de planta.",
-            "El punto nominal sirve como referencia para los ajustes vecinos.",
-            f"En «{lesson['title']}», cada punto procede de una evaluación independiente del motor y las líneas solo guían la vista entre ajustes probados.",
-        ]
-        plot_instruction = " ".join(
-            f"En la lección de nivel {number} sobre {topic.replace('-', ' ')}, la lectura del gráfico {index} considera {sentence[0].lower() + sentence[1:]}"
-            for index, sentence in enumerate(plot_sentences, 1)
-        )
-    names = [str(factor).replace(".", "_") for factor in factors]
-    plot_code = (
-        "# Plot responses from the independently solved operating points.\n"
-        "import matplotlib.pyplot as plt\n"
-        f"factors = {list(factors)!r}\n"
-        f"runs = [{', '.join(f'response_{name}' for name in names)}]\n"
-        "rates = [run.metrics['recovery_pct'] for run in runs]\n"
-        "sizes = [run.metrics['p80_um'] for run in runs]\n"
-        "fig, axes = plt.subplots(1, 2, figsize=(10, 4))\n"
-        "axes[0].plot(factors, rates, marker='o')\n"
-        "axes[0].set(xlabel='Throughput / nominal', ylabel='Recovery (%)', title='Recovery response')\n"
-        "axes[1].plot(factors, sizes, marker='o', color='darkorange')\n"
-        "axes[1].set(xlabel='Throughput / nominal', ylabel='Product P80 (µm)', title='Size response')\n"
-        "for axis in axes:\n"
-        "    axis.grid(True, alpha=0.25)\n"
-        "fig.tight_layout()"
-    )
-    additions.extend([md(plot_instruction), code(plot_code)])
-    if number == 3 and topic == "04-optimization":
-        additions.extend(
-            [
-                md(
-                    "Run the unscreened constrained search on this one case as a fresh reference. It can take longer than reading the committed multi-case record; the objective and bounds come from the same operating contract."
-                    if not es
-                    else "Ejecuta la búsqueda restringida sin filtro para este caso como referencia nueva. Puede tardar más que leer el registro comprometido de varios casos; el objetivo y los límites provienen del mismo contrato operativo."
-                ),
-                code(
-                    "# Run OreFlow's constrained generalized pattern search without learned screening.\nfrom pipeline.io.contract import build_contract\nfrom pipeline.methods.optimization import optimize\nsearch = optimize(case, case.nominal, build_contract(), weight=0.5, path=False)\nprint('search method:', search['method'])\nprint('search status:', search['status'])\nprint('exact evaluations:', search['evaluations'])"
-                ),
-            ]
-        )
-    cells[before_results:before_results] = additions
-    for index in range(len(cells) - 1, -1, -1):
-        cell = cells[index]
-        if cell["cell_type"] != "code" or not any(token in "".join(cell["source"]) for token in ("plt.", "axes[", "ax.")):
-            continue
-        note = (
-            f"Figure {index + 1} in the level {number} {topic.replace('-', ' ')} lesson reports outputs of independently solved operating points. "
-            f"For figure {index + 1} in level {number} {topic.replace('-', ' ')}, each mark is a separate model evaluation at its stated setting. "
-            f"For figure {index + 1} in level {number} {topic.replace('-', ' ')}, check recovery, size and energy against the contract limits. The line in figure {index + 1} only guides comparison."
-            if not es
-            else f"La figura {index + 1} de nivel {number} sobre {topic.replace('-', ' ')} informa salidas de puntos operativos resueltos por separado. "
-            f"En la figura {index + 1} de nivel {number} sobre {topic.replace('-', ' ')}, cada marca es una evaluación separada del modelo en el ajuste indicado. "
-            f"En la figura {index + 1} de nivel {number} sobre {topic.replace('-', ' ')}, contrasta recuperación, tamaño y energía con el contrato. La línea de la figura {index + 1} solo guía la comparación."
-        )
-        cells.insert(index + 1, md(note))
-    # Make the research question explicit at the first reader-facing point.
-    questions = {
-        "01-comminution": (
-            ["When fresh-feed throughput changes, which size and energy outputs respond in the closed circuit?", "At a common calibration point, how do Bond, Rittinger and Kick diverge as target size changes?", "Which energy-law assumptions explain the predicted work differences across the tested reduction range?"],
-            ["Al cambiar el tratamiento de alimentación fresca, ¿qué salidas de tamaño y energía responden en el circuito cerrado?", "En un punto de calibración común, ¿cómo divergen Bond, Rittinger y Kick al cambiar el tamaño objetivo?", "¿Qué supuestos de las leyes de energía explican las diferencias de trabajo en el rango de reducción probado?"],
-        ),
-        "02-flotation": (
-            ["How do particle-class batch rates and a continuous cell-bank residence model yield different recovery measures?", "Which fitted kinetic forms preserve both the batch response and bank projection for this authored case?", "How does each published kinetic model's fitting error compare with its continuous-bank projection error?"],
-            ["¿Cómo producen medidas distintas de recuperación las tasas batch por clase y la residencia de un banco continuo?", "¿Qué formas cinéticas ajustadas conservan la respuesta batch y la proyección del banco en este caso de autoría propia?", "¿Cómo se compara el error de ajuste de cada modelo cinético publicado con su error de proyección al banco continuo?"],
-        ),
-        "03-learning": (
-            ["How does a supervised model perform when validation excludes a complete ore-processing case?", "How do random-row interpolation and leave-one-case-out validation change the model ranking?", "How much does predictive performance change when an entire ore group is absent from training?"],
-            ["¿Cómo se desempeña un modelo supervisado cuando la validación excluye un caso completo de procesamiento mineral?", "¿Cómo cambia el orden de los modelos entre interpolación por filas y validación que excluye un caso?", "¿Cuánto cambia el desempeño predictivo cuando se excluye del entrenamiento un grupo mineral completo?"],
-        ),
-    }
-    question = f"**Question:** {questions[topic][0][number - 1]}" if not es else f"**Pregunta:** {questions[topic][1][number - 1]}"
-    opening_text = "".join(cells[0]["source"]).replace("\n\n", f"\n\n{question}\n\n", 1)
-    cells[0]["source"] = opening_text.splitlines(keepends=True)
-    # Interpretations are authored for this domain and distinguish a model
-    # response, a numerical check and validation against independent plant data.
-    context = {
-        "01-comminution": (
-            "Comminution couples breakage, classification and recycle. A change in fresh feed can move the mill toward its installed-power limit, alter the size distribution entering the classifier and change circulating load. P80 alone does not describe the full distribution, so inspect the plotted cumulative curves and the engine's per-stream audit together. The Bond work-index equation is an empirical standard-circuit relation with a specified feed and product size basis; it is not a mechanistic law for every particle. Rittinger and Kick express different scaling assumptions and should be compared at a common calibration point. A closed mass balance is necessary for a credible calculation, but it cannot establish that the breakage or selection parameters represent an operating plant. An independent validation would require measured feed and product size distributions, throughput, power and ore-specific calibration, with an agreed sampling protocol.",
-            "La conminución acopla fractura, clasificación y recirculación. Un cambio en la alimentación fresca puede acercar el molino al límite de potencia instalada, modificar la distribución de tamaños que entra al clasificador y cambiar la carga circulante. El P80 por sí solo no describe toda la distribución; por eso se deben leer conjuntamente las curvas acumuladas y la auditoría por flujo del motor. La ecuación del índice de trabajo Bond es una relación empírica de circuito estándar con una base definida de tamaños de alimentación y producto; no es una ley mecanicista de cada partícula. Rittinger y Kick expresan supuestos de escala diferentes y deben compararse con un punto de calibración común. Cerrar el balance de masa es necesario para un cálculo creíble, pero no demuestra que los parámetros de fractura o selección representen una planta en operación. La validación independiente necesita distribuciones de tamaño medidas, tratamiento, potencia y calibración específica del mineral, con un protocolo de muestreo acordado.",
-        ),
-        "02-flotation": (
-            "Flotation recovery is conditional on the solids and mineral distribution delivered by grinding, the declared floatability parameters, collector response and available residence time. A higher feed rate changes the time available per unit mass even when cell volume is unchanged. The model represents that coupling through the bank calculation; it does not animate individual particles or infer froth behaviour from an image. Compare valuable-mineral recovery with concentrate grade and water recovery, because a recovery increase can also carry more gangue or water. Kinetic forms such as first-order, fast/slow and distributed-rate models can fit similar batch curves while giving different bank projections. A synthetic exact-rate reference allows internal approximation error to be measured, but it is not a laboratory test. Transfer to a plant requires timed samples, reagent records, air rate, cell geometry and an independently held-out campaign.",
-            "La recuperación por flotación depende de los sólidos y minerales que entrega la molienda, los parámetros declarados de flotabilidad, la respuesta al colector y el tiempo de residencia disponible. Un mayor tratamiento reduce el tiempo disponible por unidad de masa si el volumen de celdas no cambia. El modelo representa ese acoplamiento en el cálculo del banco; no anima partículas individuales ni infiere comportamiento de espuma desde una imagen. Compara recuperación del mineral valioso con ley de concentrado y recuperación de agua, porque una mejora de recuperación también puede arrastrar más ganga o agua. Formas cinéticas de primer orden, fracción rápida/lenta y tasas distribuidas pueden ajustar curvas batch similares y producir proyecciones distintas del banco. Una referencia sintética de tasas exactas permite medir error de aproximación interno, pero no es un ensayo de laboratorio. Transferir a una planta requiere muestras temporizadas, registros de reactivos, aire, geometría de celdas y una campaña independiente reservada.",
-        ),
-        "03-learning": (
-            "Every supervised target in this repository is generated by the OreFlow process engine. The learner therefore approximates a deterministic simulator, not an instrumented plant. Interpolation splits measure performance among states drawn from cases represented during training; whole-case and ore-group splits remove increasingly related examples and provide more demanding transfer questions. The split unit must match the intended deployment because a random row split can leak a case signature through correlated process variables. Scaling, feature selection and tuning belong inside each training fold. Report errors by target and by held-out group rather than only one pooled score, since a good average can hide severe failure for an unfamiliar mineral family. Prediction intervals require empirical coverage checks. These evaluations do not establish causal effects or validate operating decisions. Plant observations and a decision-specific loss are required for those separate questions. The committed design contains 3,072 simulated states from twelve authored circuits. That size improves repeatability of the experiment but does not create 3,072 independent geological settings, since rows share case definitions, mineral parameters and circuit assumptions. A model trained against those labels can reproduce simulator behaviour very accurately and still be wrong about a real plant. For transfer claims, inspect per-case residuals, target scaling and which ore groups are absent from training. A grouped split prevents near-duplicate rows from crossing the boundary, but it cannot test a mineral family that the study never sampled. Compare the learned prediction with the exact process result before using it to rank candidate operating decisions.",
-            "Todos los objetivos supervisados de este repositorio los genera el motor de proceso OreFlow. Por ello, el aprendiz aproxima un simulador determinista, no una planta instrumentada. Las particiones de interpolación miden desempeño entre estados de casos presentes en entrenamiento; las particiones que excluyen un caso o un grupo mineral retiran ejemplos cada vez más relacionados y plantean preguntas de transferencia más exigentes. La unidad de partición debe coincidir con el uso previsto: una partición aleatoria por fila puede filtrar la identidad del caso mediante variables de proceso correlacionadas. El escalamiento, la selección de variables y el ajuste de hiperparámetros deben ocurrir dentro de cada pliegue. Informa errores por objetivo y grupo reservado, no solo una puntuación agregada, porque un promedio bueno puede ocultar fallas severas para una familia mineral desconocida. Los intervalos predictivos requieren cobertura empírica. Estas evaluaciones no establecen causalidad ni validan una decisión operativa. Para esas preguntas separadas hacen falta observaciones de planta y una función de pérdida específica de la decisión. El diseño versionado reúne 3.072 estados simulados de doce circuitos de autoría propia. Ese tamaño mejora la repetibilidad del experimento, pero no genera 3.072 escenarios geológicos independientes: las filas comparten definiciones de caso, parámetros minerales y supuestos de circuito. Un modelo entrenado con esas etiquetas puede reproducir muy bien el simulador y aun así equivocarse sobre una planta real. Para evaluar transferencia, inspecciona residuos por caso, escala de los objetivos y grupos minerales ausentes del entrenamiento. Una partición agrupada evita que filas casi duplicadas crucen la separación, pero no prueba una familia mineral que el estudio nunca incluyó. Compara cada predicción aprendida con el resultado exacto de proceso antes de usarla para ordenar decisiones operativas.",
-        ),
-        "04-optimization": (
-            "A search result is meaningful only relative to its objective, constraints, starting point and stopping rule. OreFlow evaluates candidate settings with the process engine, so each accepted result retains physical outputs and balance diagnostics. An optimizer can improve a scalar objective while violating a grade, power or water requirement unless those limits are enforced explicitly. When a learned score orders candidate proposals, it does not certify feasibility or replace the exact circuit evaluation. Compare a filtered search with an unfiltered search on paired cases, identical bounds and equal stopping conditions, then count exact engine calls and re-evaluate the final decisions. The cost measure is objective evaluations, not wall-clock speed alone; parallelism and cache behaviour can change elapsed time without changing algorithmic work. Report failed and infeasible runs instead of silently dropping them.",
-            "Un resultado de búsqueda solo tiene sentido respecto de su objetivo, restricciones, punto inicial y regla de detención. OreFlow evalúa las configuraciones candidatas con el motor de proceso, de modo que cada resultado aceptado conserva salidas físicas y diagnósticos de balance. Un optimizador puede mejorar un objetivo escalar mientras incumple un límite de ley, potencia o agua si esos límites no se imponen explícitamente. Cuando una puntuación aprendida ordena propuestas, no certifica factibilidad ni reemplaza la evaluación exacta del circuito. Compara búsquedas con y sin filtro en casos pareados, límites idénticos y condiciones de detención iguales; luego cuenta llamadas exactas al motor y reevalúa las decisiones finales. El costo se mide en evaluaciones del objetivo, no solo en tiempo de reloj: paralelismo y caché pueden modificar el tiempo sin cambiar el trabajo algorítmico. Informa corridas fallidas o infactibles en vez de descartarlas en silencio.",
-        ),
-        "05-uncertainty": (
-            "Sensitivity is not uncertainty unless the input distributions and dependence structure represent a defensible population. A one-at-a-time perturbation shows local response under the chosen baseline but cannot reveal interactions or assign probabilities. Global methods such as Sobol analysis decompose output variance only under their sampling design and assumptions; correlated geological inputs require care because independent sampling can create combinations that do not occur in a deposit. Separate parametric uncertainty from structural uncertainty in the equations and from measurement error in assays or sensors. Show the input ranges, random seed, sample count and failed simulations. An uncertainty band generated by a model is conditional on those choices, not a confidence interval for plant performance. Calibration needs repeated measurements with support across the operating domain and an explicit observation model.",
-            "Un análisis de sensibilidad no es incertidumbre si las distribuciones y dependencias de entrada no representan una población defendible. Una perturbación de un factor muestra respuesta local bajo el punto base elegido, pero no revela interacciones ni asigna probabilidades. Métodos globales como Sobol descomponen varianza de salida según su diseño muestral y supuestos; las entradas geológicas correlacionadas requieren cuidado, pues el muestreo independiente puede crear combinaciones inexistentes en un yacimiento. Separa incertidumbre paramétrica de incertidumbre estructural de las ecuaciones y del error de medición de ensayos o sensores. Muestra rangos de entrada, semilla aleatoria, tamaño muestral y simulaciones fallidas. Una banda generada por el modelo está condicionada por esas decisiones; no es un intervalo de confianza del desempeño de planta. La calibración requiere mediciones repetidas con cobertura del dominio operativo y un modelo de observación explícito.",
-        ),
-    }
-    explanation = context[topic][1 if es else 0].replace(";", ".")
-    sentences = re.split(r"(?<=[.!?])\s+", explanation)
-    explanation = " ".join(
-        (
-            f"At level {number} in {topic.replace('-', ' ')}, interpretation {index} is that {sentence[0].lower() + sentence[1:]}"
-            if not es
-            else f"En el nivel {number} de {topic.replace('-', ' ')}, la interpretación {index} es que {sentence[0].lower() + sentence[1:]}"
-        )
-        for index, sentence in enumerate(sentences, 1)
-        if sentence
-    )
-    if number >= 2:
-        extension = {
-            "01-comminution": (
-                "A useful validation table would align paired feed and product size classes with mill power and circulating load, because matching one percentile can hide a distribution error. Report the basis for moisture, density and work-index measurements, and state whether size values are mass or volume fractions. The current circuit calculation is steady state, so a time sequence in the interface is a control sweep rather than a transient population balance.",
-                "Una tabla de validación útil alinearía clases de tamaño pareadas de alimentación y producto con potencia del molino y carga circulante, pues coincidir en un percentil puede ocultar un error de distribución. Informa la base de humedad, densidad y medición del índice de trabajo, y aclara si los tamaños son fracciones másicas o volumétricas. El cálculo actual del circuito es estacionario, así que una secuencia temporal de la interfaz es un barrido de controles y no un balance poblacional transitorio.",
-            ),
-            "02-flotation": (
-                "A defensible kinetic comparison keeps the batch times, fitted ultimate recovery and bank residence assumptions fixed across candidate forms. Report residual structure as well as RMSE, since late-time samples can dominate a squared-error fit while early recovery controls a short bank. Do not interpret the fitted parameters as unique mineral constants when the observations are generated by the same simulator.",
-                "Una comparación cinética defendible mantiene fijos tiempos batch, recuperación última ajustada y supuestos de residencia del banco entre formas candidatas. Informa la estructura de residuos además del RMSE, porque muestras tardías pueden dominar un ajuste cuadrático mientras la recuperación temprana controla un banco corto. No interpretes los parámetros ajustados como constantes minerales únicas cuando el mismo simulador genera las observaciones.",
-            ),
-            "03-learning": (
-                "A fair model comparison uses identical folds, targets, preprocessing and tuning budgets. The selected estimator should be chosen inside training folds because using held-out cases to select a model turns the final score into another tuning result. Retain a simple baseline such as a training-mean predictor and show the distribution over held-out groups, because it reveals whether added complexity helps transfer rather than only interpolation.",
-                "Una comparación justa usa los mismos pliegues, objetivos, preprocesamiento y presupuesto de ajuste. El estimador seleccionado debe elegirse dentro de los pliegues de entrenamiento porque usar casos reservados para elegirlo convierte la puntuación final en otro resultado de ajuste. Conserva una referencia simple, como el predictor de media de entrenamiento, y muestra la distribución entre grupos reservados para evaluar si la complejidad adicional ayuda a transferir y no solo a interpolar.",
-            ),
-        }[topic][1 if es else 0]
-        extra_sentences = re.split(r"(?<=[.!?])\s+", extension)
-        explanation += " " + " ".join(
-            (f"At level {number} in {topic.replace('-', ' ')}, extension {index} shows that {sentence[0].lower() + sentence[1:]}"
-             if not es else f"En el nivel {number} de {topic.replace('-', ' ')}, la extensión {index} muestra que {sentence[0].lower() + sentence[1:]}")
-            for index, sentence in enumerate(extra_sentences, 1)
-            if sentence
-        )
-    results_index = next(
-        i
-        for i, cell in enumerate(cells)
-        if cell["cell_type"] == "markdown" and "".join(cell["source"]).startswith(f"## {results_h}")
-    )
-    # Domain interpretation belongs in Method or Comparison and follows the
-    # figures so readers can connect assumptions to measured outputs.
-    cells.insert(results_index, md(explanation))
-    if topic == "03-learning" and number == 2:
-        cells.insert(
-            results_index,
-            md(
-                "Compare model errors across complete held-out cases. The spread reveals which estimators remain stable when an ore case is absent from training; these simulated folds still do not measure transfer to an operating plant."
-                if not es
-                else "Compara los errores entre casos completos excluidos del entrenamiento. La dispersión muestra qué estimadores son más estables cuando falta un mineral; estos pliegues simulados tampoco miden transferencia a una planta en operación."
-            ),
-        )
-        cells.insert(
-            results_index + 1,
-            code(
-                "# Display the distribution of measured per-case errors for each fitted model.\n"
-                "case_models = record['leave_one_case_out']\n"
-                "model_names = sorted(case_models[0]['models'])\n"
-                "fold_errors = [[fold['models'][name]['recovery_pct']['rmse'] for fold in case_models] for name in model_names]\n"
-                "fig, ax = plt.subplots(figsize=(9, 4.5))\n"
-                "ax.boxplot(fold_errors, tick_labels=model_names, showmeans=True)\n"
-                "ax.set(ylabel='Recovery RMSE (percentage points)', title='Whole-case transfer error by model')\n"
-                "ax.tick_params(axis='x', rotation=25)\n"
-                "ax.grid(axis='y', alpha=0.25)\n"
-                "fig.tight_layout()"
-            ),
-        )
-    # Answers cite a value printed by the matching code run after execution.
-    answer_label = "**Respuesta:**" if es else "**Answer:**"
-    results_index = next(
-        i
-        for i, cell in enumerate(cells)
-        if cell["cell_type"] == "markdown" and "".join(cell["source"]).startswith(f"## {results_h}")
-    )
-    results_cell = cells[results_index]
-    answer_text = (
-        f"{answer_label} Use the output-bound value reported by the executed circuit; it is the response for this case, not a plant measurement."
-        if not es
-        else f"{answer_label} Usa el valor ligado a la salida del circuito ejecutado; corresponde a este caso y no es una medición de planta."
-    )
-    results_text = "".join(results_cell["source"]).replace("\n\n", f"\n\n{answer_text}\n\n", 1)
-    results_cell["source"] = results_text.splitlines(keepends=True)
-    for index, cell in enumerate(cells, 1):
-        cell["id"] = f"cell-{index:02d}"
-    metadata = {
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from build_advanced_notebook_extensions import enrich
+    notebook = {"cells": cells, "metadata": {
         "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
-        "language_info": {"name": "python", "version": "3.12"},
-        "caos": {
-            "language": language,
-            "topic": topic,
-            "level": number,
-            "title": title,
-            "packages": PINS,
-            "data": lesson["data_files"],
-            "sources": lesson["refs"],
-            "methods": lesson.get("method_ids", []),
-            "beyond": lesson.get("beyond_ids", []),
-        },
-    }
-    return {"cells": cells, "metadata": metadata, "nbformat": 4, "nbformat_minor": 5}
+        "language_info": {"name": "python"},
+        "caos": {"language": language, "topic": topic, "level": number, "title": title,
+                 "packages": PINS, "data": lesson["data_files"], "sources": lesson["refs"],
+                 "methods": lesson.get("method_ids", []), "beyond": []}}, "nbformat": 4, "nbformat_minor": 5}
+    return enrich(notebook)
 
 
 def main() -> None:
@@ -1062,5 +816,31 @@ def main() -> None:
         (ROOT / "notebooks" / language / "README.md").write_text("\n".join(sections).rstrip() + "\n", encoding="utf-8")
 
 
-if __name__ == "__main__":
+def build_all() -> None:
+    """Author the full curriculum before rebuilding indexes from the final lesson metadata."""
     main()
+    from build_advanced_notebook_extensions import main as advanced
+    from build_optimizer_evidence_notebooks import main as screening
+    advanced()
+    screening()
+    for lang in ('en', 'es'):
+        lines = ['# OreFlow notebooks' if lang == 'en' else '# Notebooks OreFlow', '']
+        for folder in sorted((ROOT / 'notebooks' / lang).iterdir()):
+            if not folder.is_dir():
+                continue
+            lines.extend(['## ' + folder.name, ''])
+            for path in sorted(folder.glob('*.ipynb')):
+                meta = json.loads(path.read_text(encoding='utf-8'))['metadata']['caos']
+                level = meta['level']
+                label = (f'level {level}' if lang == 'en' else f'nivel {level}')
+                if level == 3:
+                    label += ', comparison with published methods' if lang == 'en' else ', comparación con métodos publicados'
+                if level == 4:
+                    label += ', proposed methods' if lang == 'en' else ', métodos propuestos'
+                lines.append(f"- [{meta['title']}]({folder.name}/{path.name}), {label}.")
+            lines.append('')
+        (ROOT / 'notebooks' / lang / 'README.md').write_text('\n'.join(lines), encoding='utf-8')
+
+
+if __name__ == "__main__":
+    build_all()

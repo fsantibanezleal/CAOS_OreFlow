@@ -1,42 +1,142 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "oreflow-contract-v1",
-  "title": "oreflow-contract-v1",
+  "title": "OperatingContract",
   "type": "object",
   "properties": {
     "schema": {
-      "const": "oreflow.contract/v1",
-      "type": "string"
+      "type": "string",
+      "const": "oreflow.contract/v1"
     },
     "fields": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/FieldName"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "families": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Family"
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "inputs": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ContractInput"
+      },
+      "minItems": 1
     },
     "rules": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/ContractRule"
+      },
+      "minItems": 1
     },
     "messages": {
-      "type": "object"
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/Bilingual"
+      }
     },
     "cases": {
-      "type": "object"
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/ContractCase"
+      }
     },
     "controls": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "uncertainty_seed": {
+          "$ref": "#/$defs/ContractControl"
+        },
+        "uncertainty_samples": {
+          "$ref": "#/$defs/ContractControl"
+        },
+        "optimizer_weight_pct": {
+          "$ref": "#/$defs/ContractControl"
+        }
+      },
+      "required": [
+        "uncertainty_seed",
+        "uncertainty_samples",
+        "optimizer_weight_pct"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/ContractControl"
+      }
     },
     "grid": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "upper_um": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          },
+          "minItems": 1
+        },
+        "size_um": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "upper_um",
+        "size_um"
+      ],
+      "additionalProperties": true
     },
     "laguerre": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          },
+          "minItems": 1
+        },
+        "weights": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          },
+          "minItems": 1
+        }
+      },
+      "required": [
+        "nodes",
+        "weights"
+      ],
+      "additionalProperties": true
     },
     "digest": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "required": [
@@ -52,5 +152,401 @@
     "laguerre",
     "digest"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$defs": {
+    "Bilingual": {
+      "type": "object",
+      "properties": {
+        "en": {
+          "type": "string",
+          "minLength": 1
+        },
+        "es": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "en",
+        "es"
+      ],
+      "additionalProperties": true
+    },
+    "FieldName": {
+      "type": "string",
+      "enum": [
+        "throughput_tph",
+        "target_p80_um",
+        "circulating_load",
+        "water_m3_t",
+        "crusher_css_mm",
+        "work_index_kwh_t",
+        "head_grade",
+        "collector_gpt",
+        "jg_cm_s",
+        "rougher_cells",
+        "gravity_bleed",
+        "deslime_cut_um",
+        "d50c_um"
+      ]
+    },
+    "Family": {
+      "type": "string",
+      "enum": [
+        "rougher",
+        "gravity_rougher",
+        "magnetic",
+        "deslime_rougher"
+      ]
+    },
+    "ContractInput": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "$ref": "#/$defs/FieldName"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bounds": {
+          "type": "string",
+          "enum": [
+            "relative",
+            "absolute",
+            "solved"
+          ]
+        },
+        "low": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "high": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "step": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "integer": {
+          "type": "boolean"
+        },
+        "families": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Family"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "label": {
+          "$ref": "#/$defs/Bilingual"
+        },
+        "help": {
+          "$ref": "#/$defs/Bilingual"
+        },
+        "display_scale": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "display_unit": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "unit",
+        "bounds",
+        "low",
+        "high",
+        "step",
+        "integer",
+        "families",
+        "label",
+        "help",
+        "display_scale",
+        "display_unit"
+      ],
+      "additionalProperties": true
+    },
+    "CaseBounds": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "max": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "step": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "off": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "reference": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "step",
+        "unit"
+      ],
+      "additionalProperties": true
+    },
+    "NominalPoint": {
+      "type": "object",
+      "properties": {
+        "throughput_tph": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "target_p80_um": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "circulating_load": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "water_m3_t": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "crusher_css_mm": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "work_index_kwh_t": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "head_grade": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "collector_gpt": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "jg_cm_s": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "rougher_cells": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "gravity_bleed": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "deslime_cut_um": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "d50c_um": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        }
+      },
+      "required": [
+        "throughput_tph",
+        "target_p80_um",
+        "circulating_load",
+        "water_m3_t",
+        "crusher_css_mm",
+        "work_index_kwh_t",
+        "head_grade",
+        "collector_gpt",
+        "jg_cm_s",
+        "rougher_cells",
+        "gravity_bleed",
+        "deslime_cut_um",
+        "d50c_um"
+      ],
+      "additionalProperties": {
+        "type": "number",
+        "minimum": -1.7976931348623157e+308,
+        "maximum": 1.7976931348623157e+308
+      }
+    },
+    "ContractRule": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "families": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Family"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "left": {
+          "$ref": "#/$defs/FieldName"
+        },
+        "relation": {
+          "type": "string",
+          "const": "<="
+        },
+        "factor": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "right": {
+          "$ref": "#/$defs/FieldName"
+        },
+        "message": {
+          "$ref": "#/$defs/Bilingual"
+        }
+      },
+      "required": [
+        "id",
+        "families",
+        "left",
+        "relation",
+        "factor",
+        "right",
+        "message"
+      ],
+      "additionalProperties": true
+    },
+    "ContractControl": {
+      "type": "object",
+      "properties": {
+        "min": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "max": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "step": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "integer": {
+          "type": "boolean"
+        },
+        "unit": {
+          "type": "string",
+          "minLength": 1
+        },
+        "default": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "label": {
+          "$ref": "#/$defs/Bilingual"
+        },
+        "help": {
+          "$ref": "#/$defs/Bilingual"
+        }
+      },
+      "required": [
+        "min",
+        "max",
+        "step",
+        "integer",
+        "unit",
+        "default",
+        "label",
+        "help"
+      ],
+      "additionalProperties": true
+    },
+    "ContractCase": {
+      "type": "object",
+      "properties": {
+        "family": {
+          "$ref": "#/$defs/Family"
+        },
+        "primary": {
+          "type": "object",
+          "properties": {
+            "species": {
+              "type": "string",
+              "minLength": 1
+            },
+            "unit": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "species",
+            "unit"
+          ],
+          "additionalProperties": true
+        },
+        "nominal": {
+          "$ref": "#/$defs/NominalPoint"
+        },
+        "inputs": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/CaseBounds"
+          }
+        }
+      },
+      "required": [
+        "family",
+        "primary",
+        "nominal",
+        "inputs"
+      ],
+      "additionalProperties": true
+    }
+  }
 }

@@ -1,7 +1,7 @@
 """Reproducible measured LCT-recovery benchmark, separate from OreFlow's simulator.
 
 Source: GeoMet dataset v4, Zenodo 7051975, CC BY 4.0. The raw workbook is
-downloaded to ignored data/raw; only compact attributed evaluation is exported.
+cached under CAOS_DATA_ROOT; only compact attributed evaluation is exported.
 """
 from __future__ import annotations
 
@@ -26,17 +26,20 @@ from sklearn.model_selection import GroupKFold
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from pipeline.io.storage import checkpoint_path as resolve_checkpoint, source_path as resolve_source
+
 ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw" / "geomet-flotation.csv"
+SOURCE_FILE = "geomet-flotation.csv"
 OUTPUT = ROOT / "data" / "derived" / "source" / "geomet_lct_benchmark.json"
-CHECKPOINT = ROOT / "models" / "geomet_lct.joblib"
+CHECKPOINT_FILE = "geomet_lct.joblib"
 SOURCE_URL = "https://zenodo.org/api/records/7051975/files/flotation.csv/content"
 SOURCE_MD5 = "f2e90da6bfa81de1261177ee85a91570"
 FEATURES = ("Cu ppm", "Fe ppm", "S ppm", "Si ppm", "Al ppm")
 MODEL_NAMES = ("train_mean", "ridge", "random_forest", "gaussian_process")
 
 
-def source_bytes(path: Path = RAW) -> bytes:
+def source_bytes(path: Path | None = None) -> bytes:
+    path = resolve_source(SOURCE_FILE, path)
     if path.is_file():
         data = path.read_bytes()
     else:
@@ -51,8 +54,9 @@ def source_bytes(path: Path = RAW) -> bytes:
     return data
 
 
-def load_rows(path: Path = RAW) -> tuple[pd.DataFrame, list[dict]]:
+def load_rows(path: Path | None = None) -> tuple[pd.DataFrame, list[dict]]:
     source_bytes(path)
+    path = resolve_source(SOURCE_FILE, path)
     frame = pd.read_csv(path)
     required = {"HOLEID", "X", "Y", "Z", "LCT", *FEATURES}
     if not required.issubset(frame.columns):
@@ -247,8 +251,9 @@ def robust_hole_comparison(frame: pd.DataFrame, published_rows: list[dict]) -> d
     return {"repeated_partitions": partitions, "leave_one_hole_out": leave_one_hole_out}
 
 
-def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
+def build(source_path: Path | None = None, output_path: Path = OUTPUT) -> dict:
     data = source_bytes(source_path)
+    source_path = resolve_source(SOURCE_FILE, source_path)
     frame, exclusions = load_rows(source_path)
     if len(frame) != 52 or len(exclusions) != 1:
         raise ValueError(f"pinned source population drift: {len(frame)} usable, {len(exclusions)} excluded")
@@ -296,8 +301,10 @@ def validate_assays(path: Path) -> pd.DataFrame:
     return frame
 
 
-def fit_checkpoint(source_path: Path = RAW, checkpoint_path: Path = CHECKPOINT) -> dict:
+def fit_checkpoint(source_path: Path | None = None, checkpoint_path: Path | None = None) -> dict:
+    checkpoint_path = resolve_checkpoint(CHECKPOINT_FILE, checkpoint_path)
     data = source_bytes(source_path)
+    source_path = resolve_source(SOURCE_FILE, source_path)
     frame, _ = load_rows(source_path)
     values = frame[list(FEATURES)].apply(pd.to_numeric, errors="coerce").to_numpy(dtype=float)
     x = np.log1p(np.clip(values, 0, None))
@@ -313,8 +320,9 @@ def fit_checkpoint(source_path: Path = RAW, checkpoint_path: Path = CHECKPOINT) 
     return checkpoint
 
 
-def predict_assays(input_path: Path, output_path: Path, source_path: Path = RAW,
-                   checkpoint_path: Path = CHECKPOINT) -> pd.DataFrame:
+def predict_assays(input_path: Path, output_path: Path, source_path: Path | None = None,
+                   checkpoint_path: Path | None = None) -> pd.DataFrame:
+    checkpoint_path = resolve_checkpoint(CHECKPOINT_FILE, checkpoint_path)
     frame = validate_assays(input_path)
     expected_hash = hashlib.sha256(source_bytes(source_path)).hexdigest()
     checkpoint = joblib.load(checkpoint_path) if checkpoint_path.is_file() else fit_checkpoint(source_path, checkpoint_path)
@@ -342,22 +350,36 @@ def predict_assays(input_path: Path, output_path: Path, source_path: Path = RAW,
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-root", type=Path, help="external data root (or CAOS_DATA_ROOT)")
+    parser.add_argument("--models-root", type=Path, help="external checkpoint root (or CAOS_MODELS_ROOT)")
+    parser.add_argument("--source", type=Path, help="existing read-only GeoMet flotation CSV")
+    parser.add_argument("--checkpoint", type=Path, help="external local inference checkpoint file")
     parser.add_argument("--fit-checkpoint", action="store_true", help="fit full-data local inference checkpoint after evaluation")
     parser.add_argument("--predict", type=Path, help="local CSV containing the five named assay columns")
     parser.add_argument("--output", type=Path, help="prediction CSV path (required with --predict)")
     args = parser.parse_args()
+    # Validate all required destinations before downloading or fitting.
+    from pipeline.io.storage import resolve_root
+    import os
+    for variable, root in (("CAOS_DATA_ROOT", args.data_root), ("CAOS_MODELS_ROOT", args.models_root)):
+        if root is not None:
+            os.environ[variable] = str(resolve_root(variable, root))
+    if args.source is None:
+        resolve_source(SOURCE_FILE)
+    if args.predict or args.fit_checkpoint:
+        args.checkpoint = resolve_checkpoint(CHECKPOINT_FILE, args.checkpoint)
     if args.predict:
         if args.output is None:
             parser.error("--output is required with --predict")
-        prediction = predict_assays(args.predict, args.output)
+        prediction = predict_assays(args.predict, args.output, args.source, args.checkpoint)
         print(f"GeoMet local assay inference: {len(prediction)} rows -> {args.output}; "
               f"{int(prediction['outside_reference_range'].sum())} outside reference range")
     else:
-        artifact = build()
+        artifact = build(args.source)
         print(f"GeoMet LCT benchmark: {artifact['source']['usable_rows']} measured tests, "
               f"{artifact['source']['holes']} holes, 2 leakage-safe protocols, 4 models")
         for name, protocol in artifact["protocols"].items():
             print(name, {model: score["rmse_pp"] for model, score in protocol["scores"].items()})
         if args.fit_checkpoint:
-            checkpoint = fit_checkpoint()
-            print(f"Local inference checkpoint: {checkpoint['training_rows']} rows -> {CHECKPOINT}")
+            checkpoint = fit_checkpoint(args.source, args.checkpoint)
+            print(f"Local inference checkpoint: {checkpoint['training_rows']} rows -> {args.checkpoint}")

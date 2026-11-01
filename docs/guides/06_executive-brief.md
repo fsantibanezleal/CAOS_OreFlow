@@ -3,9 +3,8 @@
 The executive view is the first thing a CAOS product writes, before its sizing, its contracts and any code. It frames the
 problem space the product works in, for a senior decision maker, in executive language, and it is kept in one data file,
 `content/executive.json`, that the shell renders as the first view of the Introduction, where the product lands (the App stays the leftmost tab). This guide
-is enough to fill it with no other context. The binding text is CAOS_MANAGE `conventions/problem-context-first.md` (Felipe,
-2026-10-12 and 2026-10-13); the shell's own guide is its page `06_executive-view` (CAOS_APP_SHELL, folder `docs`). If they
-differ from this page, they win.
+is enough to fill it with no other context. The public [shell executive-view guide](https://github.com/fsantibanezleal/CAOS_APP_SHELL/blob/main/docs/06_executive-view.md)
+describes the renderer and its data contract. OreFlow's actual executive content is the source of its problem statements and cited figures.
 
 A product writes content. It never designs this view: the shell's `ExecutiveView` takes no children, no section can be
 added, removed or reordered, and the shell's gate cannot be waived for it.

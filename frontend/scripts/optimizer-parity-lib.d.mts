@@ -1,0 +1,12 @@
+export const SUITE: string;
+export const SUBSET: string[];
+export function selectInventory(ids: string[], options?: {full?: boolean; shard?: string}): string[];
+export type Shard = {shard: string; ids: string[]};
+export type Snapshot = {sha256: string; files: Record<string,string>};
+export function readInventory(derived: string): string[];
+export function planShards(ids: string[], workers: number): Shard[];
+export function admitShard(report: unknown, expected: string[], testFile: string, exitCode: number | null, signal?: string | null): string[];
+export function admitAll(plan: Shard[], results: unknown, testFile: string): string[];
+export function snapshot(roots: Record<string,string>): Snapshot;
+export function assertStable(before: Snapshot, after: Snapshot): void;
+export function parseArgs(args: string[], repo: string): {workers: number; out: string; plan: boolean};

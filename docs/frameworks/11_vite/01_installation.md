@@ -10,12 +10,12 @@ Read order for this node: **you are on 01.** Next: [02 Usage](02_usage.md), then
 ```json
 "@vitejs/plugin-react": "6.1.1",
 "typescript": "7.0.2",
-"vite": "8.2.2",
-"vitest": "5.0.0"
+"vite": "8.3.5",
+"vitest": "5.0.5"
 ```
 
 with `@types/node` and `@types/react` for the type checker and `playwright` for the gate
-([14](../14_playwright.md)). Node 20 or later is required (`engines`); CI, Pages and the VPS build with
+([14](../14_playwright.md)). The product declares Node 20 or later (`engines`); CI and the VPS build with
 Node 22.
 
 ## Installing
@@ -37,7 +37,8 @@ pin, and commit the lock file with it.
 | `npm run test` | `vitest run`, once, in Node |
 | `npm run build` | typecheck, `copy-data.mjs`, `vite build` into `frontend/dist` |
 | `npm run preview` | serves `frontend/dist` on `127.0.0.1:4914` while developing; a release gate runs against the service on the same port ([14](../14_playwright.md)) |
-| `npm run gate` | `node gate.mjs` against the served build ([14](../14_playwright.md)) |
+| `npm run gate` | `node scripts/gate.mjs`, the installed shared-shell gate against the build |
+| `npm run gate:oreflow` | `node gate.mjs`, the product's process and interaction matrix against the served build ([14](../14_playwright.md)) |
 
 The site is built for the root, as its one host, the VPS, serves it.
 

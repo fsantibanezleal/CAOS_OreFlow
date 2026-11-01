@@ -3,7 +3,7 @@
 The notebooks are the product's didactic layer: they teach a reader, step by step and on the product's own data, how
 its methods work, how each one compares with the published methods, and what the methods the product proposes add. They
 import the product's methods and never re-implement them; logic that exists only in a notebook is incomplete. The
-rule is CAOS_MANAGE `conventions/product-notebooks.md`; this guide describes how OreFlow applies it, and it opens with the bar.
+requirements are stated below so a contributor can author and review an OreFlow lesson without access to private project records.
 
 ## The bar: a notebook is a worked lesson
 
@@ -142,14 +142,14 @@ notebooks/
 - A topic whose method has state-of-the-art research in the product's dossiers has a level 3 notebook. A topic without
   one says why on its row of each language's index, as `No level 3: <reason>` (`Sin nivel 3: <motivo>` in Spanish),
   four words or more, and it may do so only when it has no method of its own: every `sota` method of the SDD's method
-  ladder has a level 3 notebook that names it in `caos.methods` (from 0.13.000, [guide 09](09_method-tiers.md)).
+  ladder has a level 3 notebook that names it in `caos.methods` (from 0.13.000, [guide 09](09_method-comparison-and-reports.md)).
 - Every component the SDD claims beyond the state of the art has a level 4 notebook (next section).
 
-## 3. Claim and cover a component beyond the state of the art
+## 3. Document and test a proposed research method
 
 The SDD's section `## Beyond the state of the art` lists the product's proposed methods beyond the state of the art (a
 product must propose at least one; `None claimed.` is valid only in the template's own example,
-[guide 09](09_method-tiers.md)), each
+[guide 09](09_method-comparison-and-reports.md)), each
 with an identifier of the form `BS-<n>` (the first is `BS-1`, then `BS-2`, and so on), its evidence and its source. For
 each claim:
 
@@ -177,8 +177,7 @@ sections, in this order, named in the tree's language:
 | Summary | Resumen | always |
 | References | Referencias | always |
 
-- **The tier names never reach a reader** (from 0.14.000; CAOS_MANAGE `conventions/method-tiers-and-manuscripts.md`
-  section 0, Felipe 2026-10-30). "State of the art", "beyond the state of the art", "classical approach", SOTA, the
+- **Name the methods in reader-facing content.** "State of the art", "beyond the state of the art", "classical approach", SOTA, the
   claim ids `BS-<n>` and their Spanish forms sort the methods in the SDD and the gates; they are never a title, a
   heading, a section or a file name of a notebook or an index, and never appear in its prose, its code comments, the text in its code
   (plot titles, labels, legends) or its printed output. Name each method ("SciPy's RK45", "Dormand and Prince");

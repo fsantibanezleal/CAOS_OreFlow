@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.007, 2026-10-31. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.008, 2026-10-31. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -21,12 +21,6 @@ Non-goals, stated so they cannot be implied:
 - It is not a substitute for metallurgical testwork, and no output is an operating recommendation.
 - It does not model hydrometallurgy (leaching, pressure oxidation, smelting).
 
-### Executive brief
-
-The executive view is the decision context and evidence inventory for the research system. Its bilingual source data is maintained separately so the shell can render the same claims and citations in either language.
-
-Data file: content/executive.json
-
 ## Executive brief
 
 The executive view frames the decision context and the evidence needed to interpret the research system. Its bilingual copy, cited figures and three illustrations are maintained as structured content for the shared shell.
@@ -45,6 +39,8 @@ Data file: content/executive.json
 - Vinnett and Waters (2025), flotation kinetics, *Minerals Engineering*. https://doi.org/10.1016/j.mineng.2025.109246. This recent work informs the documented limitations of rate-distributed fits.
 - Kingma and Ba (2015), Adam optimization. https://doi.org/10.48550/arXiv.1412.6980. The learned-lane MLP uses Adam; the notebook compares established estimators and makes no algorithm novelty claim.
 - Rasmussen and Williams (2006), *Gaussian Processes for Machine Learning*. https://doi.org/10.1017/CBO9780511790423. The learned lane reports empirical interval coverage for its Gaussian-process model.
+- Rasmussen and Williams, official book and chapter archive: https://gaussianprocess.org/gpml/ and https://gaussianprocess.org/gpml/chapters/. The released-model notebook centres Gaussian intervals on the exported GP's own mean and reports empirical coverage before any guard filtering. Its small simulator challenge does not establish plant calibration.
+- Hinton and Salakhutdinov (2006), reducing dimensionality with neural networks. https://doi.org/10.1126/science.1127647; author-hosted supplementary methods: https://www.cs.toronto.edu/~rsalakhu/papers/science_som.pdf. This is a reconstruction-learning foundation; OreFlow's small guard does not reproduce that study's deep architecture. Controlled feature probes retain accepted shifts as missed detections.
 - Global Mining Guidelines Group (2021), *Determining the Bond Efficiency of Industrial Grinding Circuits*, GMG01-MP-2021. https://www.globalminingguidelines.org/guidelines/bond-efficiency/. OreFlow documents its Bond-method applicability and fineness caveats.
 - Torczon (1997), pattern search methods for nonlinear optimization. https://doi.org/10.1137/S1052623493250780. OreFlow uses a generalized pattern search over the declared operating bounds.
 - Audet and Dennis (2006), mesh adaptive direct search algorithms for constrained optimization. https://doi.org/10.1137/040603371; Audet and Dennis (2009), a progressive barrier for derivative-free nonlinear programming. https://doi.org/10.1137/070692662. OreFlow uses a declared progressive-barrier simplification and records its limits in `docs/methodologies/12_optimization.md`.
@@ -85,15 +81,17 @@ OreFlow currently contains six public routes, twelve authored cases and eight co
 
 ## Technology and versions
 
-Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.9 is the published package release.
+Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.11 is the published package release.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
-| web | @fasl-work/caos-app-shell | 0.19.9 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | @fasl-work/caos-app-shell | 0.19.11 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/node | 24.13.4 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react-dom | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @vitejs/plugin-react | 6.1.1 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | ajv | 8.20.0 | Validate fetched operating-contract and learning payloads against canonical JSON Schemas at the browser boundary. | Handwritten property probes cannot constrain nested model and rule shapes consistently. |
+| web | json-schema-to-typescript | 16.0.0 | Generate consumer types from those same schemas; CI checks byte-for-byte freshness. | Independent handwritten interfaces can silently diverge from the producer schemas. |
 | development | fastapi | 0.116.1 | Directly pinned in `requirements-api.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | development | httpx | 0.28.1 | Directly pinned in `requirements-dev.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | notebooks | ipykernel | 7.4.0 | Directly pinned in `notebooks/requirements.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
@@ -125,7 +123,7 @@ Pinned versions are read from the committed requirement files and npm lock. Shel
 | web | uplot | 1.6.32 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | development | uvicorn | 0.35.0 | Directly pinned in `requirements-api.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | vite | 8.3.5 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
-| web | vitest | 5.0.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | vitest | 5.0.5 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | zustand | 5.0.15 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 
 ## Resources
@@ -210,7 +208,7 @@ The detailed method inventory and its acceptance evidence follow this ladder. Th
 | Classical | Rittinger, Kick, Bond, Whiten, population balance, partition curves, first-order and distributed flotation kinetics | independent balances, limiting cases, direction tests and published example comparisons in the engine suite |
 | Statistical | constrained finite-grid search, uncertainty propagation and Sobol sensitivity | contract-valid states, deterministic seed records and explicitly labelled scenario uncertainty |
 | Learned | ridge, random forest, histogram gradient boosting, Gaussian process and multilayer perceptron | interpolation, leave-one-case-out, held-out ore groups, calibration/coverage and seed dispersion in `data/derived/learning.json` |
-| Frontier | none claimed | OreFlow makes no claim of superiority to the state of the art; its contribution is an integrated, inspectable research implementation with explicit validation limits |
+| Proposed search | surrogate-screened generalized pattern search | The paired 72-variant experiment measures 17.25% more exact-engine evaluations with screening. The evaluation-saving hypothesis is refuted on these authored cases; the method and its negative finding are documented in the separate screening manuscript. |
 
 ## Cases
 
@@ -303,6 +301,11 @@ verdict (ADR-0075). `scripts/check_sdd.py` checks that every live requirement na
 | GeoMet locked-cycle lane | live since 0.04.000; its verdict is in the process engine's tasks | GM-01 to GM-07 | [requirements](features/geomet-lct/requirements.md), [design](features/geomet-lct/design.md), [tasks](features/geomet-lct/tasks.md) |
 | Classifier-cut mode | live since 0.07.000; CM-09 added in 0.08.000 | CM-01 to CM-09 | [requirements](features/cut-mode/requirements.md), [design](features/cut-mode/design.md), [tasks and verdict](features/cut-mode/tasks.md) |
 | Live optimizer | live since 0.07.000 | OP-01 to OP-11 | [requirements](features/live-optimizer/requirements.md), [design](features/live-optimizer/design.md), [tasks and verdict](features/live-optimizer/tasks.md) |
+| Prediction observable | release validation in progress | LO-001 to LO-009 | [requirements](features/prediction-observable/requirements.md), [design](features/prediction-observable/design.md), [tasks](features/prediction-observable/tasks.md), [validation](features/prediction-observable/validation.md) |
+| Learning jobs | release validation in progress | LJ-01 to LJ-08 | [requirements](features/learning-jobs/requirements.md), [design](features/learning-jobs/design.md), [validation](features/learning-jobs/validation.md) |
+| Released-model notebook | release validation in progress | LN-01 to LN-04 | [requirements](features/released-model-notebook/requirements.md), [design](features/released-model-notebook/design.md), [validation](features/released-model-notebook/validation.md) |
+| Release result collection | release validation in progress | RR-01 to RR-08 | [requirements](features/release-results/requirements.md), [design](features/release-results/design.md), [validation](features/release-results/validation.md) |
+| Technical-report build | release validation in progress | RB-01 to RB-04 | [requirements](features/report-build/requirements.md), [design](features/report-build/design.md), [validation](features/report-build/validation.md) |
 | Live uncertainty | live since 0.07.000 | UQ-01 to UQ-08 | [requirements](features/live-uncertainty/requirements.md), [design](features/live-uncertainty/design.md), [tasks and verdict](features/live-uncertainty/tasks.md) |
 | Real samples | live since 0.07.000 | RS-01 to RS-10 | [requirements](features/real-samples/requirements.md), [design](features/real-samples/design.md), [tasks and verdict](features/real-samples/tasks.md) |
 | Iron-plant soft sensor | live since 0.07.000 | IS-01 to IS-06 | [requirements](features/industrial-soft-sensor/requirements.md), [design](features/industrial-soft-sensor/design.md), [tasks and verdict](features/industrial-soft-sensor/tasks.md) |

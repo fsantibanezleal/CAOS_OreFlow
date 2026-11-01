@@ -5,6 +5,7 @@ It is observational forecast evidence, not an intervention or plant set-point mo
 """
 from __future__ import annotations
 
+import argparse
 import hashlib
 import json
 import math
@@ -22,8 +23,10 @@ from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
+from pipeline.io.storage import source_path as resolve_source
+
 ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw" / "iron-flotation-kaggle-v1.zip"
+SOURCE_FILE = "iron-flotation-kaggle-v1.zip"
 OUTPUT = ROOT / "data" / "derived" / "source" / "iron_plant_soft_sensor.json"
 SOURCE_URL = "https://www.kaggle.com/api/v1/datasets/download/edumagalhaes/quality-prediction-in-a-mining-process?datasetVersionNumber=1"
 SOURCE_PAGE = "https://www.kaggle.com/datasets/edumagalhaes/quality-prediction-in-a-mining-process"
@@ -46,7 +49,8 @@ BOOTSTRAP_SEED = 20261002
 HELD_RUN_HOURS = 3
 
 
-def source_archive(path: Path = RAW) -> tuple[Path, str]:
+def source_archive(path: Path | None = None) -> tuple[Path, str]:
+    path = resolve_source(SOURCE_FILE, path)
     if not path.is_file():
         path.parent.mkdir(parents=True, exist_ok=True)
         with urlopen(SOURCE_URL, timeout=120) as response:
@@ -60,7 +64,7 @@ def source_archive(path: Path = RAW) -> tuple[Path, str]:
     return path, actual
 
 
-def load_source(path: Path = RAW) -> tuple[pd.DataFrame, str]:
+def load_source(path: Path | None = None) -> tuple[pd.DataFrame, str]:
     path, _ = source_archive(path)
     with ZipFile(path) as archive:
         if archive.namelist() != [CSV_NAME]:
@@ -273,7 +277,7 @@ def paired_differences(truth: np.ndarray, predictions: dict[str, np.ndarray], da
     return out
 
 
-def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
+def build(source_path: Path | None = None, output_path: Path = OUTPUT) -> dict:
     frame, csv_hash = load_source(source_path)
     hours, quality = prepare_hours(frame)
     pairs = make_pairs(hours)
@@ -316,7 +320,16 @@ def build(source_path: Path = RAW, output_path: Path = OUTPUT) -> dict:
 
 
 if __name__ == "__main__":
-    artifact = build()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--source", type=Path, help="existing read-only source archive")
+    parser.add_argument("--data-root", type=Path, help="external data root (or CAOS_DATA_ROOT)")
+    parser.add_argument("--output", type=Path, default=OUTPUT, help="compact JSON export")
+    args = parser.parse_args()
+    if args.data_root is not None:
+        import os
+        from pipeline.io.storage import resolve_root
+        os.environ["CAOS_DATA_ROOT"] = str(resolve_root("CAOS_DATA_ROOT", args.data_root))
+    artifact = build(args.source, args.output)
     print("Iron-plant soft sensor:", artifact["quality"], "valid pairs", artifact["protocol"]["pair_rows"])
     print("Pooled forward-window MAE pp:", {name: values["mae_pct_points"] for name, values in artifact["pooled_scores"].items()})
     held = artifact["held_labels"]

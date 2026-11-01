@@ -11,9 +11,9 @@ shell's `Equation` component does, and OreFlow supplies the TeX.
 | | |
 |---|---|
 | Package | `katex` |
-| Version | 0.16.47 |
+| Version | 0.19.1 |
 | Licence | MIT |
-| Declared in | `frontend/package.json` (the shell declares `katex ^0.16.0` as a peer) |
+| Declared in | `frontend/package.json` (the shell supports KaTeX 0.16 through 0.19 as a peer) |
 | Rendering | the shell's `Equation` (`@fasl-work/caos-app-shell`), from `frontend/src/content/doc.tsx` and `workbench/views/CaseView.tsx` |
 | Sources of TeX | the topics in `frontend/src/content/`, and `frontend/src/content/equations.ts` for the Case view |
 | Gates | `frontend/src/test/tex-language.test.ts`; the browser gate's KaTeX-error and cut-equation checks |

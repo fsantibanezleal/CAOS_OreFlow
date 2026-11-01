@@ -6,6 +6,14 @@ turns the engine, the case catalog and the methods into the committed artifacts 
 `data/derived/` and `models/`. It never runs in CI (ADR-0074): the bake trains the learned lane, so
 it is a local job, and CI only re-validates what it produced.
 
+Export `CAOS_DATA_ROOT` and `CAOS_MODELS_ROOT` before an offline rebuild. Raw inputs are resolved at call
+time under `<CAOS_DATA_ROOT>/oreflow/raw/`; measured-lane checkpoints are kept under
+`<CAOS_MODELS_ROOT>/oreflow/`. The measured runners accept explicit roots and existing read-only source
+files; the process bake's real-samples reader uses the same configured raw cache. Neither the wrappers nor
+Python load `.env` automatically. Compact release JSON and declared browser assets remain in
+`data/derived/` and `models/`. [Local setup](../guides/01_run-locally.md) documents the environment and
+migration-free use of legacy source files.
+
 ## Stages
 
 | Stage | What it does | Output |
@@ -15,7 +23,7 @@ it is a local job, and CI only re-validates what it produced.
 | `cases` | per case, in parallel: each of the eight variants' trace, screened optimization and uncertainty records; the nominal variant's Sobol record | `cases/<case>.json` |
 | `benchmark` | the cross-case summary from this run's records and the recomputed oracles | `benchmark.json` |
 | `studies` | per case, in parallel: the mechanism ablations and the uncertainty seed study | `studies.json` |
-| `real_samples` | the GeoMet samples in the soft porphyry's circuit, from the pinned tables in `data/raw` | `real_samples.json` |
+| `real_samples` | the GeoMet samples in the soft porphyry's circuit, from the pinned tables in `<CAOS_DATA_ROOT>/oreflow/raw/` | `real_samples.json` |
 | `manifests` | removes any case file the catalog no longer has; byte counts, SHA-256, headline metrics and KPI checks per case; the index | `manifests/<case>.json`, `manifests/index.json` |
 | `validation` | `scripts/check_artifacts.py`, in process | `validation.json`; a failure fails the bake |
 
@@ -66,6 +74,9 @@ workload and machine contention. The current bake's stage times (cases, then lea
 - 517 s and 3180 s for the committed 0.06.000 bake of 2026-09-28, which shared the machine with another job;
 - 605 s and 4622 s for its predecessor that day, also loaded.
 
-The validation record carries the timings of the bake it belongs to. For 0.10.007:
+The current validation record carries the timings of the 0.10.008 bake:
+- 5643 s and 4813 s for the committed 0.10.008 bake (cases, then learning), with studies in 484 s and real samples in 284 s on 8 case workers and 4 learning workers.
+
+The preceding validation record for 0.10.007 reported:
 - 5633 s and 6592 s for the committed 0.10.007 bake (cases, then learning).
 - contract took under 1 s, benchmark 1.9 s, studies 718.1 s, real samples 333.6 s, manifests 0.2 s and validation 1.3 s.

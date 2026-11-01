@@ -39,9 +39,31 @@ Full batch is a deliberate choice: the design has at most 3072 rows and the netw
 thousand parameters, so one step over all rows is cheap and makes the loss curve deterministic for a
 given seed and device.
 
-**The surrogate** is two hidden layers of 64 with SiLU, 22 standardized features in and three standardized targets out (5827 parameters). It has the lowest interpolation recovery RMSE (3.38 points). Across the five chalcopyrite cases held out one at a time, its RMSE ranges from 1.7 to 6.6 points. At the record's seed its mean held-out-case RMSE is 26.2 points (25.0 to 30.1 over five seeds); this average is enlarged by the magnetite fold (239.5 points). The five chalcopyrite cases held out together score recovery R² 0.795, while the two gold-in-pyrite cases score -10.2. These simulator results are split-specific and are not evidence of field transfer. The final surrogate is trained on all 3072 states; it reached its 3000-epoch cap with best validation loss at epoch 2992, on CUDA.
+**The surrogate** is two hidden layers of 64 with SiLU, 22 standardized features in and three standardized targets out (5827 parameters). Interpolation recovery RMSE is 3.38 percentage points on the same interpolation test rows used by all models. At seed 20260927, the conditional mean case-held-out recovery RMSE is 6.86 points over 11/12 scored folds; magnetite has null metrics and `rejected-transfer`, affecting all 256 rows. The conditional transfer mean is 14.60 points over 6/7 scored groups. These conditional means do not cover magnetite. The chalcopyrite group scores recovery R² 0.795, and gold-in-pyrite -10.200.
 
-**The guard** is an autoencoder: hidden layers of 16, 6 and 16 with tanh, trained to reproduce its own standardized input (956 parameters). The threshold is computed from validation reconstruction errors. On held-out in-envelope rows it flags 1.47%; on shifted probes it accepts 15.5%. For shifts of half a range it accepts 15.5% above and 19.9% below the envelope. Acceptance is feature-dependent: crusher setting 95.4%, water 68.8% and circulating load 41.8%. A low reconstruction error does not establish that a state is physically safe; contract checks remain authoritative.
+Conditional means do not rank models with different surviving folds. The matched recovery comparison uses 11/12 case folds and 6/7 transfer groups, excluding magnetite for every algorithm. Null means rejected/unavailable, never zero.
+
+| Recovery seed | Magnetite status | Magnetite RMSE (pp) | LOCO A/S/R | Conditional mean RMSE (pp) | Matched 11-fold mean RMSE (pp) |
+|---|---|---|---|---|---|
+| 20260927 | rejected-transfer | null | 12/11/1 | 6.86 | 6.86 |
+| 20260938 | rejected-transfer | null | 12/11/1 | 7.37 | 7.37 |
+| 20260949 | rejected-transfer | null | 12/11/1 | 7.63 | 7.63 |
+| 20260960 | rejected-transfer | null | 12/11/1 | 7.44 | 7.44 |
+| 20260971 | scored | 217.18 | 12/12/0 | 25.05 | 7.58 |
+
+Four of five neural seeds reject magnetite recovery. Seed 20260971 remains scored with RMSE 217.18 percentage points: its predictions span -172.05 to -88.68%, overlapping the widened envelope at its upper end despite being negative. This is retained poor finite evidence, not a successful physical prediction. The first four conditional means cover eleven folds; the fifth covers twelve. The matched seed column uses the same eleven non-magnetite folds for every seed.
+
+The full-design range check includes held-out target labels and runs only after inference. Passing it does not establish physical validity at every row or independent transfer performance.
+
+Log upgrade and total energy retain all twelve case folds and all seven transfer groups. Their RMSE units are a dimensionless log10 upgrade ratio and kWh/t, respectively. GP uncertainty intervals belong to Gaussian process means, not to the MLP output.
+
+The final surrogate uses the 3072-state design (2611 fitting and 461 validation rows); it reached its 3000-epoch cap with best validation loss at epoch 2992, on CUDA. Its exported ONNX maximum absolute difference is 0.00000155 in standardized outputs, below the 1e-05 export tolerance. Export parity checks execution, not field transfer.
+
+**The guard** is an autoencoder with 16, 6 and 16 tanh hidden units and 22 outputs (956 parameters). Its threshold is fitted from validation reconstruction errors.
+
+The reconstruction guard's held-out false-alarm rate is 1.47% and its false-accept rate is 15.5% over 11,016 shifted probes (612 in-envelope test rows). At +0.5 input ranges it accepts 15.5%; at -0.5, 19.9%. Acceptance varies by feature: crusher CSS 95.4%, water 68.8% and circulating load 41.8%. A reconstruction score is a diagnostic, not an operating constraint or physical-safety certificate.
+
+The interpolation guard ran to the 3000-epoch cap (best epoch 3000); its threshold is 0.392, whereas the separately fitted exported guard uses 0.372. The contract remains authoritative; the learned guard does not certify a safe state.
 
 ## The particle network (`stages/particle_experiment.py`)
 

@@ -92,49 +92,49 @@ def strip_volatile(nb: dict) -> dict:
 
 
 def answer_from_execution(nb: dict) -> None:
-    """Bind authored lesson answers to a numeric value printed by a fresh engine run."""
-    language = nb.get("metadata", {}).get("caos", {}).get("language")
-    if language not in {"en", "es"}:
+    """Refresh explicitly named numeric spans; never infer a lesson's answer from recovery.
+
+    A code cell tagged ``answer-values`` prints one JSON object of computed values.
+    Authored Results retain their prose and bind only spans of the form
+    ``<!-- result:label -->number<!-- /result -->``. Labels are exact and may be
+    localized. Keeping the markers makes a later fresh run update the same values.
+    Missing, ambiguous or non-finite evidence fails rather than retaining a stale claim.
+    """
+    import math
+
+    pattern = re.compile(r"<!-- result:([^>\n]+) -->(.*?)<!-- /result -->", re.DOTALL)
+    results = [cell for cell in nb.get("cells", []) if cell.get("cell_type") == "markdown"
+               and "".join(cell.get("source", [])).startswith(("## Results", "## Resultados"))]
+    required = {match.group(1) for cell in results
+                for match in pattern.finditer("".join(cell.get("source", [])))}
+    if not required:
         return
-    marker = "**Answer:**" if language == "en" else "**Respuesta:**"
-    topic = nb.get("metadata", {}).get("caos", {}).get("topic", "process")
-    level = nb.get("metadata", {}).get("caos", {}).get("level", "")
-    title = nb.get("metadata", {}).get("caos", {}).get("title", topic)
-    pattern = re.compile(r"(?:recovery|recuperaci[oó]n)\s*\(%\):\s*([-+]?\d+(?:\.\d+)?)", re.IGNORECASE)
-    value = None
+    values = {}
     for cell in nb.get("cells", []):
-        if cell.get("cell_type") != "code":
+        if cell.get("cell_type") != "code" or "answer-values" not in cell.get("metadata", {}).get("tags", []):
             continue
-        for output in cell.get("outputs", []):
-            if output.get("output_type") != "stream":
-                continue
-            match = pattern.search("".join(output.get("text", [])))
-            if match:
-                value = match.group(1)
-                break
-        if value is not None:
-            break
-    if value is None:
-        return
-    for cell in nb.get("cells", []):
-        if cell.get("cell_type") != "markdown":
-            continue
+        stream = "".join("".join(output.get("text", [])) for output in cell.get("outputs", [])
+                         if output.get("output_type") == "stream" and output.get("name", "stdout") == "stdout")
+        try:
+            evidence = json.loads(stream)
+        except (TypeError, ValueError) as error:
+            raise ValueError("answer-values must print exactly one JSON result object") from error
+        if not isinstance(evidence, dict):
+            raise ValueError("answer-values result must be a JSON object")
+        for label, value in evidence.items():
+            if label in values:
+                raise ValueError(f"ambiguous answer result: {label}")
+            if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+                raise ValueError(f"answer result must be a finite number: {label}")
+            values[label] = str(value)
+    missing = required - values.keys()
+    if missing:
+        raise ValueError(f"missing computed answer results: {', '.join(sorted(missing))}")
+    for cell in results:
         source = "".join(cell.get("source", []))
-        if not source.startswith("## Results") and not source.startswith("## Resultados"):
-            continue
-        lines = source.splitlines()
-        for index, line in enumerate(lines):
-            if line.startswith(marker):
-                if language == "en":
-                    lines[index] = (
-                        f"{marker} In this level {level} {topic.replace('-', ' ')} lesson, the executed circuit reports recovery of {value} percent at the first controlled throughput setting for {title}."
-                    )
-                else:
-                    lines[index] = (
-                        f"{marker} En esta lección de nivel {level} sobre {topic.replace('-', ' ')}, el circuito ejecutado informa una recuperación de {value} por ciento para «{title}» en el primer tratamiento controlado."
-                    )
-                cell["source"] = "\n".join(lines).splitlines(keepends=True)
-                return
+        cell["source"] = pattern.sub(
+            lambda match: f"<!-- result:{match.group(1)} -->{values[match.group(1)]}<!-- /result -->", source
+        ).splitlines(keepends=True)
 
 
 def dump(nb: dict, path: Path) -> None:

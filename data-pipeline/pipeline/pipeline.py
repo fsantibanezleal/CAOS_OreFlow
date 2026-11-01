@@ -62,7 +62,8 @@ def _checker():
 
 
 def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None,
-            reuse_learning: Path | None = None) -> dict[str, Any]:
+            reuse_learning: Path | None = None, *, learning_workers: int = 1,
+            checkpoint_dir: Path | None = None) -> dict[str, Any]:
     from .methods import learning, oracles
     from .stages import benchmark
 
@@ -85,7 +86,7 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
         record["reused"] = {"from_contract_digest": record.get("contract_digest"), "from_engine_version": record.get("engine_version")}
     else:
         _log("learning: design, protocols and exports")
-        record = learning.run(contract, models_dir)
+        record = learning.run(contract, models_dir, learning_workers=learning_workers, checkpoint_dir=checkpoint_dir)
     record["engine_version"], record["contract_digest"] = __version__, digest
     write_json(derived / "learning.json", record)
     timings["learning"] = time.perf_counter() - t
@@ -197,6 +198,10 @@ def main() -> None:
     parser.add_argument("--output", type=Path, help="sandbox derived directory (default data/derived)")
     parser.add_argument("--models", type=Path, help="sandbox models directory (default models)")
     parser.add_argument("--workers", type=int, help="case worker processes (default half the cores, at most 12)")
+    parser.add_argument("--learning-workers", type=int, choices=range(1, 5), default=1,
+                        help="independent learning worker processes (1 to 4)")
+    parser.add_argument("--checkpoint-dir", type=Path,
+                        help="external checkpoints, accepted only for the identical source, contract and runtime")
     parser.add_argument("--reuse-learning", type=Path, help="development bakes only: take learning.json from this file; "
                         "the record is marked reused and cannot be committed")
     args = parser.parse_args()
@@ -207,7 +212,8 @@ def main() -> None:
     # a bake still running after four hours, well past a normal run (about one and a half), prints every thread's stack
     # once, so a stall shows its place; at 45 minutes it fired in every normal bake
     faulthandler.dump_traceback_later(4 * 60 * 60, exit=False)
-    result = run_all(args.output, args.models, args.workers, args.reuse_learning)
+    result = run_all(args.output, args.models, args.workers, args.reuse_learning,
+                     learning_workers=args.learning_workers, checkpoint_dir=args.checkpoint_dir)
     faulthandler.cancel_dump_traceback_later()
     print(f"oreflow bake {__version__}: stages {' -> '.join(STAGES)}; "
           + ", ".join(f"{k} {v:.0f}s" for k, v in result["seconds"].items()) + "; validation passed")

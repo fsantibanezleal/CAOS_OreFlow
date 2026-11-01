@@ -1,0 +1,164 @@
+{
+  "readiness_excludes": [],
+  "primary_environment": ".venv",
+  "generation_environments": [
+    ".venv-gpu",
+    ".venv"
+  ],
+  "environments": [
+    {
+      "path": ".venv",
+      "requirements": [
+        "requirements-precompute.txt",
+        "requirements-dev.txt"
+      ]
+    },
+    {
+      "path": ".venv-gpu",
+      "when": "gpu",
+      "requirements": [
+        "requirements-gpu.txt",
+        "requirements-dev.txt"
+      ]
+    },
+    {
+      "path": ".venv-notebooks",
+      "when": "notebooks",
+      "requirements": [
+        "notebooks/requirements.txt"
+      ]
+    }
+  ],
+  "node_stamp": ".oreflow-package-lock.sha256",
+  "required": [
+    "data/derived/manifests/index.json",
+    "data/derived/readiness.json",
+    "data/derived/validation.json",
+    "data/derived/learning.json",
+    "data/derived/source/hzdr_summary.json",
+    "data/derived/source/hzdr_particle_benchmark.json",
+    "data/derived/source/geomet_lct_benchmark.json",
+    "data/derived/source/iron_plant_soft_sensor.json",
+    "models/particle_mlp.onnx",
+    "models/process_screen.json"
+  ],
+  "promote": [
+    "data/derived",
+    "models"
+  ],
+  "api": {
+    "environment": ".venv",
+    "active": true,
+    "port": 8146,
+    "health": "/health",
+    "command": [
+      "{python}",
+      "-m",
+      "uvicorn",
+      "app.main:app",
+      "--host",
+      "127.0.0.1",
+      "--port",
+      "{port}"
+    ]
+  },
+  "web_port": 5914,
+  "frontend_prepare": [
+    [
+      "{npm}",
+      "run",
+      "predev"
+    ]
+  ],
+  "frontend_command": [
+    "node",
+    "node_modules/vite/bin/vite.js",
+    "--host",
+    "127.0.0.1",
+    "--port",
+    "{web_port}",
+    "--strictPort"
+  ],
+  "generation": [
+    {
+      "script": "data-pipeline/fetch.py",
+      "args": [
+        "--dataset",
+        "all"
+      ]
+    },
+    {
+      "script": "data-pipeline/run_particles.py",
+      "args": [
+        "--output",
+        "{derived}",
+        "--models-root",
+        "{checkpoints}",
+        "--onnx-output",
+        "{models}/particle_mlp.onnx"
+      ]
+    },
+    {
+      "script": "scripts/local/producer_bridge.py",
+      "args": [
+        "geomet",
+        "{stage}"
+      ]
+    },
+    {
+      "script": "data-pipeline/run_iron_plant.py",
+      "args": [
+        "--output",
+        "{derived}/source/iron_plant_soft_sensor.json"
+      ]
+    },
+    {
+      "script": "data-pipeline/run.py",
+      "args": [
+        "--output",
+        "{derived}",
+        "--models",
+        "{models}",
+        "--checkpoint-dir",
+        "{checkpoints}/learning"
+      ]
+    },
+    {
+      "script": "scripts/local/producer_bridge.py",
+      "args": [
+        "oreflow-finalize",
+        "{stage}"
+      ]
+    }
+  ],
+  "validators": [
+    {
+      "script": "scripts/check_artifacts.py",
+      "args": [
+        "--derived",
+        "{derived}",
+        "--models",
+        "{models}"
+      ]
+    },
+    {
+      "script": "scripts/check_documents.py",
+      "args": [
+        "{stage}"
+      ]
+    }
+  ],
+  "needs_sources": true,
+  "requires_validation": true,
+  "generation_modules": [
+    "numpy",
+    "scipy",
+    "pandas",
+    "openpyxl",
+    "sklearn",
+    "torch",
+    "onnx",
+    "onnxruntime",
+    "SALib"
+  ]
+}

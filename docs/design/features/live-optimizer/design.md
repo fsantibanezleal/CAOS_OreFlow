@@ -102,6 +102,16 @@ Nothing runs without the button, per the no-autoplay rule.
 
 ## Parity
 
+The parity comparator treats only a dimensionless runner-up margin at floating-point zero specially.
+Both implementations subtract the runner-up normalized predicted objective from the selected objective.
+For four rounded objective operands across two runtimes, a local roundoff budget is
+`2 * Number.EPSILON * S`, where S is the largest absolute selected or reconstructed runner-up objective.
+Both margins and their difference must lie within that budget; significant nonzero margins and all
+physical quantities retain the existing relative comparison. Nulls never match finite values.
+Subprocess release shards must partition the full declared case/variant inventory exactly once and admit
+only completed, passing Vitest JSON assertions, with unchanged source/model/data hashes before and after.
+The default three-variant CI cohort remains unchanged; planning does not constitute parity evidence.
+
 `frontend/src/test/optimizer-parity.test.ts` re-runs the optimizer with the bake's screen for every variant from
 the bake's inputs. Each start must stop for the same reason after the same iterations and evaluations, and the
 screen must give the same counts and proposals. The run without the screen must spend the same evaluations. The

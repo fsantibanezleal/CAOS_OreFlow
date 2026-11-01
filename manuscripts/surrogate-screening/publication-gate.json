@@ -1,0 +1,17 @@
+{
+  "release_ready": true,
+  "scope": "OreFlow surrogate-screening v1.1: completed validated bake, exact numeric claims reconciled, first-page identity and CC BY header verified, every rendered page inspected; manuscript publication only.",
+  "record_id": "23852504",
+  "version_doi": "10.5281/zenodo.23852504",
+  "concept_doi": "10.5281/zenodo.23833134",
+  "bytes": 88193,
+  "md5": "0a1bc03e2d310ec8240a4a8bda689744",
+  "sha256": "549ec4d8314b852acfb377c3e8355d9aebaba8ee78e22977502f639582b55558",
+  "warnings": 0,
+  "overfull": 0,
+  "underfull": 0,
+  "pages": 5,
+  "rendered_pages_reviewed": 5,
+  "tex_sha256": "015dc46e9af6198b6d5d4e85d82acddd97162402cb85d15775f4ea051ca9c451",
+  "metadata_sha256": "da0444b93282559c63add236b131bdd7886d258fb0559baa9684c95fdd1f130a"
+}

@@ -2,7 +2,11 @@
 
 Felipe Santibáñez-Leal (ORCID 0000-0002-0150-3246), CAOS open-research programme, Santiago, Chile
 
-Draft of 2026-10-31, written against OreFlow 0.10.007. Not deposited; no DOI. Every number below is read
+Archived draft of 2026-10-31, written against OreFlow 0.10.007. Superseded by the
+[published technical report](https://doi.org/10.5281/zenodo.23783845), whose
+[0.10.008 version](https://doi.org/10.5281/zenodo.23850020) reports the current evaluation protocol and results.
+This historical draft was not deposited and is retained as a record of the earlier analysis. Its values
+do not describe the current release. Every number below is read
 from the records committed with that version (`data/derived/learning.json`, `data/derived/benchmark.json`,
 `data/derived/source/*.json`, the twelve case artifacts, the operating contract and the validation record), and
 `tests/test_manuscript_claims.py` fails if one of them and the records disagree. The test counts of section 9 are

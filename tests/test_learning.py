@@ -4,6 +4,7 @@ and an autoencoder guard with its threshold and error rates. The design here is 
 from __future__ import annotations
 
 import json
+from copy import deepcopy
 from dataclasses import replace
 from functools import lru_cache
 from pathlib import Path
@@ -65,6 +66,25 @@ def test_protocol_splits():
 def test_protocols_and_model_identity(tmp_path):
     record = _run(str(tmp_path))
     json.dumps(record, allow_nan=False)
+    import jsonschema
+    import runpy
+
+    root = Path(__file__).resolve().parents[1]
+    schema = json.loads((root / "docs/contracts/schemas/oreflow-learning-v2.schema.json").read_text(encoding="utf-8"))
+    findings = [f"{'/'.join(map(str, error.path))}: {error.message}" for error in jsonschema.Draft202012Validator(schema).iter_errors(record)]
+    assert findings == []
+    checker = runpy.run_path(str(root / "scripts/check_artifacts.py"))
+    assert checker["check_learning_cohorts"](record) == []
+    missing_group = deepcopy(record)
+    missing_group["leave_one_group_out"].clear()
+    assert "learning planned group membership" in checker["check_learning_cohorts"](missing_group)
+    incomplete_group = deepcopy(record)
+    incomplete_group["leave_one_group_out"][0]["cases"].pop()
+    assert "learning planned group case membership" in checker["check_learning_cohorts"](incomplete_group)
+    forged_seed = deepcopy(record)
+    value = forged_seed["mlp_seeds"]["summary"]["recovery_pct"]["loco_rmse_mean"][0]
+    forged_seed["mlp_seeds"]["summary"]["recovery_pct"]["loco_rmse_mean"][0] = (value or 0) + 100
+    assert any("conditional loco_rmse_mean" in error for error in checker["check_learning_cohorts"](forged_seed))
     identity = record["identity"]
     assert identity["hist_gradient_boosting"].endswith("HistGradientBoostingRegressor")
     assert identity["random_forest"].endswith("RandomForestRegressor")

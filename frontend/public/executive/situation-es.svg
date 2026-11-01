@@ -1,22 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-labelledby="title desc">
-  <title id="title">Modelo de circuito conectado</title>
-  <desc id="desc">El tamaño de partícula y la liberación mineral condicionan la recuperación.</desc>
-  <defs>
-    <style>
-      .node { fill: var(--color-surface); stroke: var(--color-border); stroke-width: 3; }
-      text { font: 600 13px system-ui; fill: var(--color-fg); }
-      .flow { fill: none; stroke: var(--color-accent); stroke-width: 4; stroke-dasharray: 9 8; animation: move 2s linear infinite; }
-      @keyframes move { to { stroke-dashoffset: -34; } }
-      @media (prefers-reduced-motion: reduce) { .flow { animation: none; opacity: 1; } }
-    </style>
-  </defs>
-  <rect width="900" height="300" rx="22" fill="var(--color-surface)" />
-  <text x="36" y="45" fill="var(--color-fg-subtle)">Variables que explican la respuesta</text>
-  <path class="flow" d="M 230 148 H 350" />
-  <path class="flow" d="M 450 148 H 570" />
-  <path class="flow" d="M 670 148 H 790" />
-  <g transform="translate(180 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Mineral</text></g>
-  <g transform="translate(400 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Tamaño</text></g>
-  <g transform="translate(620 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Liberación</text></g>
-  <g transform="translate(840 148)"><circle class="node" r="49" /><text y="5" text-anchor="middle">Recuperación</text></g>
+<svg xmlns="http://www.w3.org/2000/svg" id="oreflow-situation-es" viewBox="0 0 960 520" role="img" aria-labelledby="oreflow-situation-es-title oreflow-situation-es-desc" lang="es">
+<title id="oreflow-situation-es-title">Cada evidencia responde una pregunta distinta</title>
+<desc id="oreflow-situation-es-desc">Los estados simulados, muestras y horas de planta conservan sus propios objetivos y validaciones.</desc>
+<defs><style>#oreflow-situation-es text{font:26px var(--font-sans,system-ui);fill:var(--color-fg)}#oreflow-situation-es .title{font-size:30px;font-weight:650}#oreflow-situation-es .heading{font-size:27px;font-weight:650}#oreflow-situation-es .panel{fill:var(--color-surface);stroke:var(--color-border);stroke-width:2}#oreflow-situation-es .soft{fill:var(--color-surface-2);stroke:var(--color-border);stroke-width:2}#oreflow-situation-es .line{fill:none;stroke:var(--color-fg-subtle);stroke-width:3}#oreflow-situation-es .flow{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-dasharray:9 7;animation:oreflow-situation-es-flow 2s linear 5}#oreflow-situation-es .recycle{stroke-dasharray:5 5}#oreflow-situation-es .accent{fill:var(--color-accent);stroke:none}@keyframes oreflow-situation-es-flow{to{stroke-dashoffset:-32}}@media(prefers-reduced-motion:reduce){#oreflow-situation-es .flow{animation:none}}</style><marker id="oreflow-situation-es-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="accent" d="M0 0 10 5 0 10Z"/></marker></defs>
+<text x="24" y="40" class="title" text-anchor="start">Cada evidencia responde una pregunta distinta</text>
+<rect class="panel" x="24" y="78" width="288" height="300" rx="12"/><text x="40" y="113" class="heading" text-anchor="start">Estados simulados</text>
+<text x="40" y="278" class="body" text-anchor="start">Entradas declaradas</text>
+<text x="40" y="314" class="body" text-anchor="start">Objetivos simulados</text>
+<text x="40" y="350" class="body" text-anchor="start">Reservar minerales</text>
+<rect class="panel" x="336" y="78" width="288" height="300" rx="12"/><text x="352" y="113" class="heading" text-anchor="start">Muestras medidas</text>
+<text x="352" y="278" class="body" text-anchor="start">Ensayos de muestras</text>
+<text x="352" y="314" class="body" text-anchor="start">Respetar grupos</text>
+<text x="352" y="350" class="body" text-anchor="start">Incertidumbre</text>
+<rect class="panel" x="648" y="78" width="288" height="300" rx="12"/><text x="664" y="113" class="heading" text-anchor="start">Horas de planta</text>
+<text x="664" y="278" class="body" text-anchor="start">Datos anteriores</text>
+<text x="664" y="314" class="body" text-anchor="start">Hora siguiente</text>
+<text x="664" y="350" class="body" text-anchor="start">Partición temporal</text>
+<rect class="soft" x="54" y="156" width="58" height="48" rx="6"/>
+<rect class="soft" x="130" y="156" width="58" height="48" rx="6"/>
+<rect class="soft" x="206" y="156" width="58" height="48" rx="6"/>
+<path class="flow" d="M112 180H130" marker-end="url(#oreflow-situation-es-arrow)"/>
+<path class="flow" d="M188 180H206" marker-end="url(#oreflow-situation-es-arrow)"/>
+<path class="flow recycle" d="M234 204V224H82V208" marker-end="url(#oreflow-situation-es-arrow)"/>
+<path class="line" d="M382 148h24v28l12 38q0 10-12 10h-24q-12 0-12-10l12-38Z"/>
+<path class="flow" d="M378 200h32"/>
+<path class="line" d="M454 148h24v28l12 38q0 10-12 10h-24q-12 0-12-10l12-38Z"/>
+<path class="flow" d="M450 200h32"/>
+<path class="line" d="M526 148h24v28l12 38q0 10-12 10h-24q-12 0-12-10l12-38Z"/>
+<path class="flow" d="M522 200h32"/>
+<rect class="soft" x="672" y="154" width="110" height="70" rx="6"/>
+<rect class="soft" x="808" y="154" width="104" height="70" rx="6"/>
+<path class="line" d="M795 142V236" stroke-dasharray="6 6"/>
+<text x="727" y="198" class="body" text-anchor="middle">Antes</text>
+<text x="860" y="198" class="body" text-anchor="middle">Luego</text>
+<rect class="soft" x="24" y="412" width="912" height="94" rx="12"/>
+<text x="44" y="450" class="body" text-anchor="start">Cada resultado conserva su objetivo, partición y fuente.</text>
+<text x="44" y="486" class="body" text-anchor="start">Cerrar un balance simulado no calibra una planta.</text>
 </svg>

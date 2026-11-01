@@ -9,9 +9,16 @@ recorded.
 | Item | Value |
 |---|---|
 | Record | HZDR RODARE 336, doi:10.14278/rodare.336, CC BY 4.0 |
-| File | `SM1.Constructed cases data.xlsx`, saved as `data/raw/SM1.Constructed_cases_data.xlsx` (ignored by git) |
+| File | `SM1.Constructed cases data.xlsx`, cached as `<CAOS_DATA_ROOT>/oreflow/raw/SM1.Constructed_cases_data.xlsx`, outside the checkout |
 | Fetched by | `scripts/fetch-data.ps1` or `.sh`, which refuse any file whose SHA-256 is not `1559e6c5fabd30988ea0de60bbdf04a750f7895401ffc31da974ea4477aa50b0` |
 | Run by | `data-pipeline/run_particles.py` (`pipeline/stages/particle_experiment.py`), from `scripts/precompute.ps1` |
+
+Set `CAOS_DATA_ROOT` and `CAOS_MODELS_ROOT` in the launching process or pass `--data-root` and
+`--models-root` to the runner. Roots are resolved at call time; `.env` is not loaded automatically.
+An existing workbook supplied with `--source` is read-only and hash-checked, including a legacy ignored
+checkout file. Keep its basename `SM1.Constructed_cases_data.xlsx` for the summary reader. A missing
+explicit file fails instead of downloading there. Missing default-cache inputs can be acquired during
+explicit fetching or training; checkout cache/checkpoint destinations are refused.
 
 ## Input fields
 
@@ -56,7 +63,9 @@ on all 29,147.
 
 - `models/particle_mlp.onnx` (committed): input `features` (batch by 4, float32, standardized with the record's
   `standardization`), output `logits` (batch by 4, one per case; the probability is the logistic of each).
-- `models/particle_mlp.pt` (local, ignored): the PyTorch checkpoint with the same weights, the feature order, the
-  scaler and the seed; `tests/test_particle_experiment.py` compares the two when it is present.
+- `<CAOS_MODELS_ROOT>/oreflow/particle_mlp.pt` (local, outside the checkout): the PyTorch checkpoint with the
+  same weights, the feature order, the scaler and the seed. Training also exports the ONNX file in that external
+  directory, then copies only the declared browser asset to `models/particle_mlp.onnx`. The existing parity test
+  compares a legacy `models/particle_mlp.pt` if explicitly retained there; otherwise it validates the committed ONNX.
 
 `scripts/check_artifacts.py` checks the record's pin, population and fields without refitting; CI never trains.

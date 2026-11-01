@@ -1,49 +1,110 @@
 # The CAOS app shell: usage in OreFlow
 
 Read order: [01 Installation](01_installation.md), **you are on 02**, then [03 Applying](03_applying.md).
+Return to [15 The CAOS app shell](../15_caos-app-shell.md).
 
-## The configuration (`frontend/src/main.tsx`)
+## Configuration, containment and routes
 
-```tsx
-const config: ShellConfig = {
-  product: { name: "OreFlow", mark: <Pickaxe size={18} /> },
-  version: APP_VERSION,                       // the root VERSION file
-  fixedRoutes: ["/"],                         // only the workbench is a viewport-sized surface (ADR-0071)
-  architecture: ARCHITECTURE,                 // the modal's five tabs (ADR-0058)
-  routes: [{ path: "/", en: "Workbench", es: "Laboratorio" }, ...],
-  links: { github: "https://github.com/fsantibanezleal/CAOS_OreFlow" },
-  footer: { attribution, license, provenance, disclaimer },   // each in both languages
-};
-```
+`frontend/src/main.tsx` configures `AppShell` with the OreFlow name, a `Pickaxe` mark, `APP_VERSION`,
+public visibility, MIT licence, the architecture modal, the repository link and bilingual footer
+attribution, provenance and research disclaimer. `applyTheme(readTheme())` runs before rendering.
 
-`applyTheme(readTheme())` runs before the first render, so the page paints in the stored theme, and
-`CitationsProvider` supplies the reference list the `Refs` blocks cite from. A `Citation`'s `label` is one
-string, so OreFlow localizes the list before handing it over (`Citations` in `main.tsx`).
+The configuration sets both `contain: true` and `fixedRoutes: ["/app"]`. In installed shell `0.19.10`,
+`contain: true` makes the shell contained on every route; `fixedRoutes` does not restrict containment
+to the workbench. The shell owns the viewport and its main content scroll area. Its CSS gives document
+pages internal vertical scrolling and has a narrow-screen fallback to page scrolling at 860 px.
+The old product reset of `html`, `body` and `#root` heights is absent.
 
-## The components used
-
-| From the shell | Where |
+| URL | Current behavior |
 |---|---|
-| `AppShell`, `ShellConfig`, `applyTheme`, `readTheme`, `CitationsProvider` | `main.tsx` |
-| `useShellLang`, `useThemeStore` | every component that prints text or picks colours |
-| `CaseSelector` | the workbench rail |
-| `FocusShell` | the focus route |
-| `Tabs`, `SubTabs` | the content pages; `SubTabs` also in the Case and Methods views |
-| `Equation`, `Callout`, `Figure`, `Refs` | the content topics and the Case view's context |
-| `ArchitectureConfig`, `Citation`, `CaseDef` (types) | the modal, the citations, the selector |
+| `/` without a query or hash | Redirects to `/introduction?view=executive` |
+| `/` with a query or hash | Redirects to `/app`, preserving that query and hash |
+| `/app` | Workbench; `focus=1` opens the focus surface within it |
+| `/focus/<case-id>` | Compatibility redirect to `/app` with `case` and `focus=1`; preserves other query parameters |
+| `/introduction`, `/methodology`, `/implementation`, `/experiments`, `/benchmark` | Content pages within `AppShell` |
+| Any other path | Redirects to `/introduction?view=executive` |
 
-## Overrides, each with its defect and its gate
+The Introduction is imported eagerly for the landing view. The other content pages and workbench
+load lazily behind a suspense boundary. Focus is not a separate mounted route outside `AppShell`.
 
-| Shell behaviour | Override in OreFlow | Gate |
-|---|---|---|
-| Known defect 1: `html`, `body` and `#root` at height 100% with horizontal overflow hidden make `<body>` the scroll container; the document never scrolls and its height reads as the viewport's (open in 0.6.11) | `frontend/src/content/content.css`: `html, body, #root { height: auto; min-height: 100%; }` | every tall content page must move on `scrollTo`; heights read through `<body>` |
-| Known defect 2: `Tabs` hides inactive panels with `hidden`, which any author `display` overrides | the workbench's own tab row renders only the active view; the sub-tab panels that fill a view re-hide inactive panels explicitly (`.subtabpanel[hidden] { display: none; }`, `workbench.css`) | one tab row, the view at least half the viewport |
-| Known defect 3 (uPlot, same class): the live legend sits below the plot and a sized host clips it | `legend: { show: false }` and the reading reported to the readout row (`Chart.tsx`) | the gate's screenshots; the readout row in every view |
-| Known defect 4: the interface language is never written to `<html lang>` | `DocumentLanguage`, rendered inside `AppShell` and on the focus route | `<html lang>` equals the interface language on every state |
-| Known defect 5: `FocusShell`'s rail column, `clamp(300px, 20vw, 340px)`, leaves the stage 76.6% of a 1280x800 viewport, under ADR-0070's 80% floor | `clamp(248px, 19vw, 340px)` from 861 px up (`workbench.css`): 80.6%, 81% and 86.7% at the three gated viewports | the focus stage and its chart at least 80% |
-| Known defect 6: `Tabs` and `SubTabs` keep their selection internally and report no change, so a view held in the URL cannot drive them | `workbench/ViewTabs.tsx`: a controlled tab row on the shell's own classes, with its keyboard behaviour | the focus round trip returns to the same view |
-| Known defect 7: the case selector's labels lead with the case id, which crowds the rail with snake_case ids | short catalog codes (L1, C2, F3...) as the ids the selector shows (`Rail.tsx`) | the rail fits without scrolling |
-| Known defect 8 (not a shell defect; same class): a visually hidden `<table>` still lays out at its content width, and the body's clipping hides the overflow | the screen-reader table inside a hidden block, `<div className="of-sr-only"><table>` (`Chart.tsx`, `Heatmap.tsx`) | element boxes against the viewport (`OVERFLOW_PROBE`), not `scrollWidth` |
-| The shell resets buttons but not form controls | `input, select, textarea { font: inherit; }` | the screenshots |
+The Introduction composes `SurfacePage` with `document`, retaining its tabs and Focus behavior. The shell owns
+the full-column document framing, padding and lede. The product passes the lede as text and supplies no second
+`page-body` wrapper or local framing override. This adopts the shared document mode released in `0.19.10`.
 
-Every override carries a comment naming what it answers, so nobody tidies it away.
+## Workbench and focus composition
+
+`frontend/src/workbench/Workbench.tsx` uses `WorkbenchLayout` for the shared rail and instrument
+structure. `Rail.tsx` supplies process controls through `CaseSelector` with `layout="select"`.
+The selector's `id` and `selectedId` use canonical `case_id` values, with localized case titles and
+categories; short catalog aliases are no longer substituted for IDs.
+
+The product store and URL carry the case, variant, view, changed inputs and source selection.
+`ViewTabs.tsx` stays product-owned because the installed shared `TabDef` has no `disabled` option.
+For the measured-hour source, only the Case view is available: analytical views remain visible but
+disabled, and arrow keys, Home and End skip them. The row uses roving tabindex, shares space with
+process flags, and leaves rendering of the selected panel to `Workbench.tsx`. This bounded requirement
+explains the product row. Both shared `Tabs` and `SubTabs` already support controlled selection through
+`value` and `onChange`, and render only the active panel.
+
+`useFocusMode({})` owns the `focus` query parameter, Escape handling, focus restoration and background
+inertness. `Workbench.tsx` keeps the normal workbench mounted inside an inert wrapper during focus and adds
+header inertness, initial exit-button focus and a Tab-key focus loop.
+`FocusWorkbench.tsx` receives the existing loaded records and case state; it composes `FocusShell`
+with `landmark={false}`, a stage, HUD, controls rail and localized exit control. Stage selection is
+mirrored as `stage` in the query. Its exit handler calls `focusMode.setFocus(false)`.
+
+The product supplies the flowsheet, grinding and separation charts, response sweep and walkthrough;
+the shell supplies the focus frame. `OverlayInset` reserves room in charts for the focus overlays.
+
+## Citations and content primitives
+
+The `Citations` wrapper in `main.tsx` reads `useShellLang()`, memoizes
+`localizeCitations(CONTENT_CITATIONS, lang)` and supplies `CitationsProvider`. In
+`frontend/src/content/citations.ts`, Spanish descriptive short labels and author conjunctions are
+localized while bibliographic records, DOIs and URLs remain verbatim. The installed `Citation` API
+supports bilingual labels; this preprocessing is OreFlow's retained labeling policy.
+
+Content pages compose shared primitives such as `Tabs`, `SubTabs`, `Equation`, `Callout`, `Figure`
+and `Refs`; `architecture.ts` supplies the architecture modal configuration. Theme-aware product
+styles use shell tokens for process views, figures, tables and controls.
+
+## Customizations still present
+
+These are source observations, not newly measured browser results. Historical defect comments in
+product source are not proof that the same defect remains in `0.19.10`.
+
+| Location | Current customization and scope |
+|---|---|
+| `workbench/workbench.css`: `.of-bench` | Sets `--rail-w: clamp(212px, 16vw, 320px)` on the normal workbench to allocate room to its instrument. The shell still owns the grid. The separate focus surface uses the shell's default `clamp(248px, 19vw, 340px)`; the old focus grid override is absent. |
+| `workbench/workbench.css`: form controls | `input, select, textarea { font: inherit; }` extends the interface font to native controls across the product. |
+| `workbench/workbench.css`: rail selector | `.of-rail .cs-select { max-width: none; }` and the product selector wrapper's padding rule tune the control within the compact rail. They are retained local styling, not a demonstrated upstream defect. |
+| `workbench/workbench.css`: product sub-tabs | `.of-workbench-subtabpanel[hidden] { display: none; }` belongs to product panels. The shell already supplies `[hidden] { display: none !important; }`; no shell `.subtabpanel[hidden]` repair is present. |
+
+
+Product figure and table scroll wrappers, chart sizing, readouts, process controls and focus overlay
+insets describe domain content. They do not replace the shell's header, footer or layout. The installed
+shell already colors `.dg-note` and `.dg-tick` with `--color-fg-subtle`; no active product rule changing
+those shared classes remains.
+
+## Responsibilities adopted from the shell
+
+Installed `AppShell` writes the selected interface language to `<html lang>`. Its navigation uses the
+shared `useOverflowFade` implementation to update overflow fades, reveal the active or focused link,
+and observe scrolling and resizing. OreFlow has removed the former `DocumentLanguage.tsx` and
+`NavOverflow.tsx` helpers and their imports and rendered instances from `main.tsx`.
+
+The architecture modal uses the shell's themed `.caos-arch-toggle` rule. The product's obsolete
+architecture-toggle CSS override and defect comments have been removed from `content.css`.
+The shell also owns the diagram note and tick colors described above.
+
+`main.tsx` no longer imports the unused `Landing` or `FocusWorkbench`. Its explicit redirects own the
+landing behavior; `Workbench.tsx` still imports and composes the active `FocusWorkbench.tsx` component.
+These removals adopt behavior already supplied by shell `0.19.9`.
+
+## Verification entry points
+
+From `frontend/`, `npm run gate` invokes `frontend/scripts/gate.mjs`, which validates the product declaration
+and runs the installed shell gate against the build with the expected brand and required Focus mode.
+`npm run gate:oreflow` invokes `gate.mjs` for the detailed process interactions and measurements.
+`npm run gate:walkthrough` invokes the separate walkthrough gate. See [03 Applying](03_applying.md)
+for commands. Documentation inspection alone does not establish that any browser gate passed.

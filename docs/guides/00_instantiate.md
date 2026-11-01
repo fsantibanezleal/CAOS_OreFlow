@@ -37,7 +37,7 @@ follows.
 | `focus_reason` | text, at least 8 words, no placeholder | Required with `"focus": false`: why ADR-0070 does not apply. The same text stands on the SDD's ADR-0070 row as `not applicable: <reason>`. |
 
 From 0.13.000 it also declares the product's Zenodo manuscripts in `manuscripts` (one technical report at least; the fields, the
-release step and the three method tiers behind them are in [guide 09](09_method-tiers.md)). `instantiate.py` writes
+release step and the three method tiers behind them are in [guide 09](09_method-comparison-and-reports.md)). `instantiate.py` writes
 `"manuscripts": []`, which `scripts/check_manuscripts.py` fails until the technical report is declared.
 
 Choosing the kind: if the App is the instrument for one case at a time (pick a case, read its views, change its parameters),
@@ -89,7 +89,7 @@ The product design and requirement map is [`docs/design/SDD.md`](../design/SDD.m
 1. **Research basis.** Before the plan, research the real state of the art and persist it. In
    [`docs/design/SDD.md`](../design/SDD.md) replace the example's `Research basis`: what was decided, each claim with
    a DOI or URL (at least three distinct works), and a line starting `UNVERIFIED:` (`UNVERIFIED: none` if so). Never write it
-   from memory. The research covers the three method tiers ([guide 09](09_method-tiers.md)): the classical methods, the
+   from memory. The research covers the three method tiers ([guide 09](09_method-comparison-and-reports.md)): the classical methods, the
    current state of the art and the room for the product's own proposals beyond it.
 2. **Executive view.** The first thing the product writes after its research and before its sizing, and the first
    thing to do after instantiating: `instantiate.py` leaves the example's `content/executive.json` and its three
@@ -156,7 +156,7 @@ before the next starts; units whose write scopes are disjoint are built at once,
 
 1. **The engine.** Replace the template's model package and stage bodies with the method ladder of the SDD: a
    method of each tier (classical, state of the art, and at least one proposal beyond it, `BS-1`), none left out
-   ([guide 09](09_method-tiers.md)). A fresh product fails `scripts/check_sdd.py` on this until its SDD proposes its
+   ([guide 09](09_method-comparison-and-reports.md)). A fresh product fails `scripts/check_sdd.py` on this until its SDD proposes its
    beyond method. Each method meets its acceptance criterion (ADR-0069) and gets a card in `docs/frameworks/`, its
    dependency pinned in `data-pipeline/requirements.txt` (or the precompute or GPU file). Write the technical report on
    Zenodo and declare it in `product.json` `manuscripts`.
@@ -234,7 +234,7 @@ handle `fsantibanezleal`, the repositories' owner identifier, may stand in a sou
 
 Before a release that changes a method, a data source or a result, publish the new version of the product's technical report on
 Zenodo and run `python scripts/check_manuscripts.py --release` (`--zenodo` also reads the records online; a local step, never CI;
-[guide 09](09_method-tiers.md)).
+[guide 09](09_method-comparison-and-reports.md)).
 
 A release bumps `VERSION`, `frontend/package.json` and the top of `CHANGELOG.md` together, merges `develop` into
 `main` through a pull request, and tags `vX.XX.XXX`. The deploy runs after CI succeeds on `main` and checks the live
