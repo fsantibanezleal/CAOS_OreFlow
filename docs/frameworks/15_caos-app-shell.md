@@ -11,9 +11,9 @@ Pickaxe product mark. The guide describes the installed release and the current 
 | | |
 |---|---|
 | Packages | `@fasl-work/caos-app-shell`, `lucide-react` |
-| Versions | npm `0.19.10` (release `v0.19.010`), `1.43.0` |
+| Versions | npm `0.19.11` (release `v0.19.011`), `1.43.0` |
 | Licences | MIT, ISC |
-| Declared in | `frontend/package.json`, exact npm pin `"@fasl-work/caos-app-shell": "0.19.10"` |
+| Declared in | `frontend/package.json`, exact npm pin `"@fasl-work/caos-app-shell": "0.19.11"` |
 | Locked in | `frontend/package-lock.json`, registry tarball URL and SHA-512 integrity |
 | Configured in | `frontend/src/main.tsx`, `frontend/src/content/architecture.ts` |
 | Layout and focus | `WorkbenchLayout`, `FocusShell`, `useFocusMode` |

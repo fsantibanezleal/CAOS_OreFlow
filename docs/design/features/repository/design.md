@@ -34,3 +34,12 @@ validation may target the bridge's own checkout; write modes retain external-sta
 The original four-row params CSV and its two deliberate rejected
 IDs remain intact; the five engine cases remain registry-derived. Missing manifests, artifacts or models cannot
 use those exceptions. OreFlow declares no stage_inputs/readiness exceptions and retains strict17-row admission.
+
+OreFlow's frontend/copy-data.mjs selects compact records with OF_DERIVED and matching exports with OF_MODELS;
+their defaults remain local data/derived and models. Global CAOS_DATA_ROOT continues to mean raw storage.
+The adopted generic helper supports an explicit frontend_environment mapping, applied only to frontend
+preparation and startup through a separate dictionary. Product workflow.json declares no such mapping.
+API/generation/caller settings remain unchanged; generation retains its existing external checkpoint sandbox.
+The product regression executes its actual Node consumer with local defaults, explicit preview providers and
+a fixture-only OF_DERIVED/OF_MODELS override, comparing copied bytes and real child environments. Runtime
+sentinels in those external fixtures are copy-only test files; no model inference or numeric result is claimed.

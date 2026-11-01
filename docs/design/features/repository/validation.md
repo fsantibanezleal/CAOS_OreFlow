@@ -18,6 +18,7 @@
 | RP-024 | Challenge the actual helper/guard with the positive production contract and its matching malformed or failure case; require refusal or complete owned recovery. | `tests/test_bootstrap_regressions.py::test_adversarial_tracked_shell_modes` |
 | RP-025 | Exercise current matching package/lock range: accept22.12/24/26 without installation; refuse22.0/22.11/23/25, and refuse a mismatched lock declaration. | `tests/test_bootstrap_regressions.py::test_adversarial_locked_node_engines` |
 | RP-026 | Verify the actual product configuration keeps all17 boundaries strict: reject missing, partial and fabricated dormant states, including altered API or source rows. The shared-template branch separately exercises genuine generation and input/admission failures in an external fixture; neither branch promotes product artifacts. | `tests/test_bootstrap_regressions.py::test_adversarial_real_template_generation_admission` |
+| RP-027 | Run actual frontend/copy-data.mjs with global raw/model/temp stores: exercise its local default, explicit OF_DERIVED/OF_MODELS providers and a fixture-only frontend override. Verify copied data/model bytes plus preparation/frontend/API/generation/caller environments, and assert product config has no frontend_environment declaration. | `tests/test_bootstrap_regressions.py::test_adversarial_frontend_environment_isolation` |
 
 Windows and POSIX cleanup address the recorded process group after leader exit; RP-022 exercises the existing
 venv and an independent HTTP control process. External venv directory aliases remain allowed

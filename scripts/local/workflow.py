@@ -725,8 +725,12 @@ def development(root, config):
         "web_port": str(config["web_port"]),
         "root": str(root),
     }
+    frontend_env = {
+        **env,
+        **{key: value.format_map(values) for key, value in config.get("frontend_environment", {}).items()},
+    }
     for command in config.get("frontend_prepare", []):
-        run([v.format_map(values) for v in command], front, env)
+        run([v.format_map(values) for v in command], front, frontend_env)
     children = []
     try:
         if api:
@@ -755,7 +759,7 @@ def development(root, config):
         child = subprocess.Popen(
             [v.format_map(values) for v in config["frontend_command"]],
             cwd=front,
-            env=env,
+            env=frontend_env,
             **process_group_options(),
         )
         children.append(child)

@@ -47,7 +47,10 @@ PYTEST = re.compile(r"(^|[\s;&|(])(python3?\s+-m\s+)?pytest\b")
 PIP_INSTALL = re.compile(r"\bpip3?\s+install\b[^;&|\n]*")
 # the one suite CI may run: the adversarial plants of the guards (copies of the guards' inputs, standard library and
 # pytest only); the product's own tests stay local. The whole command must be this, nothing before, after or between.
-ADVERSARIAL = re.compile(r"(?:pip install pytest==\d+\.\d+\.\d+ && )?python -m pytest tests/adversarial(?: -q)?")
+# In the template the base guards' plants that need the example run too (tests/template/adversarial, BD-3); instantiate.py
+# removes the whole template-only job together with the folder. Its standalone command is exactly a subset
+# of the formerly admitted union; all surrounding command/option restrictions remain unchanged.
+ADVERSARIAL = re.compile(r"(?:pip install pytest==\d+\.\d+\.\d+ && )?python -m pytest (?:tests/adversarial(?: tests/template/adversarial)?|tests/template/adversarial)(?: -q)?")
 
 
 def runs_a_suite(cmd: str) -> bool:

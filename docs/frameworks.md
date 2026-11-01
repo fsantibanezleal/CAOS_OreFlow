@@ -76,7 +76,7 @@ interpreter:
 | 12 | uplot | 1.6.32 | MIT | `frontend/package.json` |
 | 13 | katex | 0.19.1 | MIT | `frontend/package.json` |
 | 14 | playwright | 1.61.0 | Apache-2.0 | `frontend/package.json` |
-| 15 | @fasl-work/caos-app-shell, lucide-react | 0.19.10 (release v0.19.010), 1.43.0 | MIT, ISC | `frontend/package.json` |
+| 15 | @fasl-work/caos-app-shell, lucide-react | 0.19.11 (release v0.19.011), 1.43.0 | MIT, ISC | `frontend/package.json` |
 | 16 | ajv, json-schema-to-typescript, jsonschema | 8.20.0, 16.0.0, 4.26.0 | MIT, MIT, MIT | `frontend/package.json`, `requirements-dev.txt` |
 
 The requirement files nest by where the code runs: `requirements.txt` (NumPy, the engine) and

@@ -629,7 +629,7 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
       expect(topic.figure!.caption[lang]).toMatch(lang === 'en' ? /conditional results.*coverage/ : /resultados condicionales.*cobertura/);
       const equation = topic.equations![0];
       const tex = typeof equation.tex === 'string' ? equation.tex : equation.tex[lang];
-      expect(tex).toContain('A_{common}=\\bigcap_m A_m');
+      expect(tex).toContain('A_{\\cap}=\\bigcap_m A_m');
       expect(equation.caption[lang]).toMatch(lang === 'en' ? /intersection of admissible fold IDs across all models/ : /intersección de los identificadores admisibles entre todos los modelos/);
       expect(prose).not.toMatch(/highest median recovery|most accurate on four|240 points|217 to 277/);
     }

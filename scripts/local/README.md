@@ -113,19 +113,20 @@ process-name cleanup or environment migration is used.
 The existing CI base-integrity guard checks Git index mode100755 for every tracked .sh file, including old
 and new entrypoints. File executable bits on a Windows filesystem do not replace this index check.
 
-## Authored inputs and template readiness
+## OreFlow compact-data selection
 
-The template stages the exact authored data/examples/params.csv as a source input. Its bytes join the source
-receipt identity and must still match during admission. The table intentionally has four rows: two accepted
-and two rejected by contract1. No rows are stripped or coerced. The five solved cases come from the registry;
-the table is an input-admission teaching example, not the source of those five registry parameterizations.
+The unchanged frontend/copy-data.mjs uses OF_DERIVED for a compact record tree and OF_MODELS for its matching
+model exports. Without these preview selectors it copies local data/derived and models. CAOS_DATA_ROOT remains
+the global raw store; CAOS_MODELS_ROOT and CAOS_TEMP_ROOT keep their storage roles. Raw-store contents are not
+interpreted as web manifests. OreFlow retains strict17-row readiness and its active API configuration.
 
-Complete template generation requires all five registry cases, artifacts and the released model at the current
-version. It preserves the distinct declared outcomes: params-record is partial with bad_i0_gt_N and bad_negbeta;
-the static API row is missing with the producer's dormant-lane reason. Those two row-specific exceptions require
-the existing check_readiness.py to recompute and compare the complete current document, including source facts,
-reasons, rejected IDs, catalog identity and bytes. Admission never rewrites readiness. Shipped-data checks use
-the same policy and the real registry/artifact/document validators. The bridge may inspect its own checkout
-only in read-only template-validate mode; write-capable bridge modes still require an external stage.
-Missing/partial derived outputs remain refused; OreFlow retains its strict17-row admission and
-does not inherit either template exception. Stage inputs are not promoted over authored source files.
+The shared helper supports optional frontend_environment overrides for frontend preparation and startup.
+OreFlow's workflow.json intentionally has no such declaration. Default global/preview values therefore remain
+identical for frontend, API and caller. An explicit declaration can select different frontend-only OF_DERIVED
+and OF_MODELS values without changing API/generation inputs or mutating the caller. Generation retains its
+existing external checkpoint sandbox. An alternate frontend selection must be an already validated compact
+record/model set; the overlay does not generate or validate a new scientific bake.
+
+The product tests exercise actual Node copying in external fixtures, local defaults, explicit preview providers,
+and a fixture-only frontend override. The template's legacy CAOS_DATA_ROOT consumer mapping is not enabled or
+copied into the product.

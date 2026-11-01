@@ -622,6 +622,9 @@ def test_adversarial_real_template_generation_admission(workflow, tmp_path, monk
     index = json.loads((stage / "data/derived/manifests/index.json").read_text())
     assert len(index["cases"]) == 5
     workflow.validate_stage(root, config, stage, python, env, receipt=True)
+
+
+
     assert ready_path.read_bytes() == ready_bytes, "admission must never rewrite the generated states"
     with pytest.raises(workflow.Failure, match="require the actual"):
         workflow.check_readiness_states(root, {**config, "readiness_check": None}, ready, stage)
@@ -720,3 +723,101 @@ def test_adversarial_real_template_generation_admission(workflow, tmp_path, monk
         workflow.generate(root, config, env)
     source.write_bytes(original)
     workflow.validate_stage(root, config, stage, python, env, receipt=True)
+
+@pytest.mark.parametrize("selection", ["local-default", "explicit-provider", "frontend-override"])
+def test_adversarial_frontend_environment_isolation(workflow, fixture_repo, monkeypatch, selection):
+    root, config, _ = fixture_repo
+    assert "frontend_environment" not in workflow.settings(ROOT)
+    present(root, config, workflow)
+    stamp(root, config, workflow)
+    version = (root / "VERSION").read_text().strip()
+    write(root / "data/derived/manifests/index.json",
+          json.dumps({"engine_version": version, "cases": []}))
+    local = root / "data/derived"
+    provider = root.parent / "explicit compact provider"
+    override = root / "frontend-preview"
+    for directory, marker in ((local, "local"), (provider, "provider"), (override, "frontend-only")):
+        write(directory / "manifests/index.json",
+              json.dumps({"engine_version": version, "cases": [], "fixture": marker}))
+        write(directory / "selection.json", json.dumps({"fixture": marker}))
+    provider_models = root.parent / "explicit preview models"
+    override_models = root / "frontend-models"
+    for directory, marker in ((root / "models", "local-model"),
+                              (provider_models, "provider-model"), (override_models, "frontend-model")):
+        write(directory / "selection.json", json.dumps({"fixture": marker}))
+
+    # Execute the unchanged product consumer; these runtime sentinels are copied, never loaded.
+    shutil.copyfile(ROOT / "frontend/copy-data.mjs", root / "frontend/copy-data.mjs")
+    for name in ("ort-wasm-simd-threaded.wasm", "ort-wasm-simd-threaded.mjs"):
+        write(root / "frontend/node_modules/onnxruntime-web/dist" / name, "copy-only runtime fixture\n")
+    raw = root.parent / "global raw store"
+    raw.mkdir()
+    stores = {"CAOS_DATA_ROOT": str(raw), "CAOS_MODELS_ROOT": str(root.parent / "global model store"),
+              "CAOS_TEMP_ROOT": str(root.parent / "global scratch")}
+    for key, value in stores.items():
+        monkeypatch.setenv(key, value)
+    for key in ("OF_DERIVED", "OF_MODELS"):
+        monkeypatch.delenv(key, raising=False)
+    if selection != "local-default":
+        monkeypatch.setenv("OF_DERIVED", str(provider))
+        monkeypatch.setenv("OF_MODELS", str(provider_models))
+    keys = (*stores, "OF_DERIVED", "OF_MODELS")
+    baseline = workflow.environment(root)
+    expected_api = {key: baseline.get(key) for key in keys}
+    producer = root / "producer.py"
+    capture = ("import os,json\nfrom pathlib import Path\n"
+               "(Path(os.environ['CAOS_MODELS_ROOT']).parent/'generation-env.json').write_text("
+               f"json.dumps({{k:os.environ.get(k) for k in {keys!r}}}))\n")
+    write(producer, capture + producer.read_text())
+
+    with socket.socket() as api_reservation, socket.socket() as web_reservation:
+        api_reservation.bind(("127.0.0.1", 0))
+        web_reservation.bind(("127.0.0.1", 0))
+        api_port = api_reservation.getsockname()[1]
+        config["web_port"] = web_reservation.getsockname()[1]
+    write(root / "api.py", """import json,os,sys
+from http.server import BaseHTTPRequestHandler,HTTPServer
+KEYS=('CAOS_DATA_ROOT','CAOS_MODELS_ROOT','CAOS_TEMP_ROOT','OF_DERIVED','OF_MODELS')
+class Handler(BaseHTTPRequestHandler):
+ def do_GET(self):
+  self.send_response(200);self.end_headers()
+  self.wfile.write(json.dumps({k:os.environ.get(k) for k in KEYS}).encode())
+ def log_message(self,*args): pass
+HTTPServer(('127.0.0.1',int(sys.argv[1])),Handler).serve_forever()
+""")
+    write(root / "frontend/frontend-env.py", """import json,os,sys,urllib.request
+from pathlib import Path
+keys=('CAOS_DATA_ROOT','CAOS_MODELS_ROOT','CAOS_TEMP_ROOT','OF_DERIVED','OF_MODELS')
+api=json.loads(urllib.request.urlopen('http://127.0.0.1:'+sys.argv[1]+'/health').read())
+Path('frontend-env.json').write_text(json.dumps({'frontend':{k:os.environ.get(k) for k in keys},'api':api}))
+""")
+    config.update(frontend_prepare=[["node", "copy-data.mjs"]],
+                  frontend_command=["{python}", "frontend-env.py", "{port}"])
+    config["api"].update(active=True, port=api_port, health="/health",
+                         command=["{python}", "api.py", "{port}"])
+    if selection == "frontend-override":
+        config["frontend_environment"] = {"OF_DERIVED": "{root}/frontend-preview",
+                                          "OF_MODELS": "{root}/frontend-models"}
+    write(root / "scripts/local/workflow.json", json.dumps(config))
+    stage = workflow.generate(root, config, baseline)
+    generated = json.loads((stage / "generation-env.json").read_text())
+    assert all(generated[key] == expected_api[key] for key in keys if key != "CAOS_MODELS_ROOT")
+    assert Path(generated["CAOS_MODELS_ROOT"]) == stage / "checkpoints"
+
+    workflow.development(root, config)
+    observed = json.loads((root / "frontend/frontend-env.json").read_text())
+    assert observed["api"] == expected_api
+    assert all(observed["frontend"][key] == stores[key] for key in stores)
+    if selection == "frontend-override":
+        chosen_data, chosen_models = override, override_models
+        assert Path(observed["frontend"]["OF_DERIVED"]).resolve() == override.resolve()
+        assert Path(observed["frontend"]["OF_MODELS"]).resolve() == override_models.resolve()
+    else:
+        chosen_data = local if selection == "local-default" else provider
+        chosen_models = root / "models" if selection == "local-default" else provider_models
+        assert observed["frontend"] == expected_api
+    for kind, source in (("data", chosen_data), ("models", chosen_models)):
+        assert (root / "frontend/public" / kind / "selection.json").read_bytes() == (
+            source / "selection.json").read_bytes()
+    assert baseline == workflow.environment(root), "frontend must not mutate caller store/preview values"
+    assert "frontend_environment" not in workflow.settings(ROOT), "template opt-in must not transfer"
