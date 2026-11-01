@@ -9,10 +9,17 @@ and what is recorded.
 | Item | Value |
 |---|---|
 | Dataset | "Quality Prediction in a Mining Process", Eduardo Magalhaes Oliveira on Kaggle, dataset 6294, version 1, CC0 |
-| Archive | saved as `data/raw/iron-flotation-kaggle-v1.zip` (ignored by git); its one member is `MiningProcess_Flotation_Plant_Database.csv` |
+| Archive | saved as `<CAOS_DATA_ROOT>/oreflow/raw/iron-flotation-kaggle-v1.zip`, outside the checkout; its one member is `MiningProcess_Flotation_Plant_Database.csv` |
 | Pin | SHA-256 of the archive `fa1fb0c928d84366ec1bd315e0ed1380f5d5576525603458b49ea4cfe446d98e`; the record also keeps the SHA-256 of the CSV |
-| Fetched by | `data-pipeline/run_iron_plant.py` itself when the archive is missing, with the same pin; `scripts/fetch-data.ps1` does not fetch it |
+| Fetched by | `scripts/fetch-data.ps1` (or `.sh`), or `data-pipeline/run_iron_plant.py` during an explicit offline run when the default-cache archive is missing; each uses the same pin |
 | Run by | `data-pipeline/run_iron_plant.py`, from `scripts/precompute.ps1` |
+
+Set `CAOS_DATA_ROOT` in the launching process or pass `--data-root`; no machine-specific root is built into
+the runner, and `.env` is not automatically loaded. A missing root fails with the required setting.
+An existing archive supplied with `--source` is read-only and hash-checked, including an ignored legacy
+`data/raw/` file; an explicit missing file fails instead of downloading there. A changed archive is never
+overwritten, and default cache paths inside the checkout are refused. The compact JSON stays under
+`data/derived/source/`; this lane does not persist local model checkpoints.
 
 ## Input fields
 

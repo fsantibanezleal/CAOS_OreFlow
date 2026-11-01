@@ -14,15 +14,15 @@ specific energy (kWh/t). The case identity is never a feature.
 
 **The protocols.** *Interpolation* holds out 20% of the states inside every case (a seeded split per
 case, `interpolation_split`). *Leave one case out* holds out a whole case in turn
-(`leave_one_case_out`): the models that predict it never saw any of its states, which is what
-transfer to an unseen ore and plant means. Features and targets are standardized on the training rows
+(`leave_one_case_out`): plants on the same ore may remain in training, so this is a near-neighbour test.
+Whole payable/carrier groups are held out for transfer: two multi-case groups and five singleton groups, seven in all. Features and targets are standardized on the training rows
 of each split only (`Standardizer`).
 
 **The estimators**, with their settings from the constants file:
 
 ```python
 Ridge(alpha=1.0)
-RandomForestRegressor(n_estimators=300, min_samples_leaf=2, random_state=seed, n_jobs=-1)
+RandomForestRegressor(n_estimators=300, min_samples_leaf=2, random_state=seed, n_jobs=1)
 HistGradientBoostingRegressor(max_iter=300, learning_rate=0.05, early_stopping=False, random_state=seed)
 kernel = (ConstantKernel(1.0) * RBF(length_scale=np.ones(22), length_scale_bounds=(0.01, 1e5))
           + WhiteKernel(1e-3, noise_level_bounds=(1e-9, 10.0)))
@@ -40,17 +40,45 @@ A permutation importance explains the gradient-boosting model on the held-out ro
 with each feature shuffled within each case: shuffled across the cases, as `sklearn.inspection.permutation_importance`
 does, a feature that takes one value per case measures which case a row came from (review of 2026-10-04, L-04).
 
-**What the record shows** (`data/derived/learning.json`, recovery, RMSE in percentage points):
+**What the 0.10.008 learning/v2 record shows** (recovery RMSE in percentage points):
 
-| Model | Interpolation | Leave one case out, mean | Worst held-out case |
-|---|---:|---:|---:|
-| Ridge | 9.46 | 13.68 | 23.05 |
-| Random forest | 6.49 | 13.16 | 48.86 |
-| Histogram gradient boosting | 4.60 | 12.66 | 56.61 |
-| Gaussian process | 5.34 | 10.95 | 27.91 |
-| MLP (PyTorch, [05](../05_pytorch.md)) | 3.38 | 26.24 | 239.51 |
+Conditional means do not rank models with different surviving folds. The matched recovery comparison uses 11/12 case folds and 6/7 transfer groups, excluding magnetite for every algorithm. Null means rejected/unavailable, never zero.
 
-On the interpolation split the MLP has the lowest recovery RMSE (3.38 points). On held-out cases the Gaussian process has the lowest mean error (10.95); the MLP has the highest median fold R² (0.547) but also the largest mean and worst-fold RMSE. Held out, the hard porphyry costs the MLP 1.7 points and ridge 9.6. Its magnetite error is 240 points and phosphate error is 8.9. The five chalcopyrite cases held out together score 0.795 R² for the MLP; the two gold-in-pyrite cases score -10.2. Across all seven payable/carrier labels, the MLP has median recovery R² 0.437; log-upgrade transfer is negative for all models. The held-out cases and group folds expose different limits, so none of these results establishes plant performance. The Gaussian process intervals cover 90.7% of interpolation recoveries (91.3% and 93.8% for the other two targets); group-aware calibration remains unestablished. The Benchmark page's Learned lane tab shows the full tables and charts.
+| Model | Interpolation RMSE (pp) | LOCO mean RMSE (pp) | LOCO worst RMSE (pp) | LOCO A/S/R | Transfer mean RMSE (pp) | Transfer A/S/R |
+|---|---|---|---|---|---|---|
+| Ridge | 9.46 | 13.68 | 23.05 | 12/12/0 | 15.99 | 7/7/0 |
+| Random forest | 6.49 | 13.16 | 48.86 | 12/12/0 | 16.86 | 7/7/0 |
+| Gradient boosting | 4.60 | 12.66 | 56.61 | 12/12/0 | 17.40 | 7/7/0 |
+| Gaussian process | 5.34 | 10.95 | 27.91 | 12/12/0 | 13.37 | 7/7/0 |
+| MLP | 3.38 | 6.86 | 12.76 | 12/11/1 | 14.60 | 7/6/1 |
+
+A/S/R means attempted/scored/rejected. Gradient boosting here is histogram gradient boosting. All five models use the same interpolation rows. Conditional case and group means require their own denominators.
+
+| Matched recovery model | LOCO mean RMSE (pp) | LOCO median R² | Transfer mean RMSE (pp) | Transfer median R² |
+|---|---|---|---|---|
+| Ridge | 13.01 | 0.013 | 15.15 | -0.638 |
+| Random forest | 9.92 | 0.430 | 11.53 | 0.209 |
+| Gradient boosting | 8.67 | 0.581 | 10.87 | 0.365 |
+| Gaussian process | 9.40 | 0.498 | 10.95 | 0.318 |
+| MLP | 6.86 | 0.573 | 14.60 | 0.455 |
+
+The MLP magnetite recovery fold is `rejected-transfer`: RMSE, MAE and R² are null for all 256 rows. The hard porphyry MLP RMSE is 1.7 points against ridge's 9.6; phosphate MLP RMSE is 8.9. These finite cases do not compensate for or validate the rejected case.
+
+Four of five neural seeds reject magnetite recovery. Seed 20260971 remains scored with RMSE 217.18 percentage points: its predictions span -172.05 to -88.68%, overlapping the widened envelope at its upper end despite being negative. This is retained poor finite evidence, not a successful physical prediction. The first four conditional means cover eleven folds; the fifth covers twelve. The matched seed column uses the same eleven non-magnetite folds for every seed.
+
+The full-design range check includes held-out target labels and runs only after inference. Passing it does not establish physical validity at every row or independent transfer performance.
+
+All models retain 12/12 case folds and 7/7 groups for log upgrade and energy; log-upgrade group median R² is negative for each model. Log-upgrade RMSE uses dimensionless log10 ratios, and energy RMSE uses kWh/t. The matched tables apply only to their included folds, not unseen operating plants.
+
+| GP coverage target | Interpolation coverage (%) | Pooled LOCO coverage (%) | Scored LOCO rows |
+|---|---|---|---|
+| recovery_pct | 90.7 | 82.9 | 3072 |
+| log_upgrade | 91.3 | 67.8 | 3072 |
+| specific_energy_total_kwh_t | 93.6 | 86.8 | 3072 |
+
+The intervals are centred on GP means, not MLP predictions. Coverage is empirical and uses 612 interpolation rows and all 3072 held-out-case rows; these intervals remain below nominal 95% coverage and do not establish plant calibration.
+
+The full multi-target and per-seed tables are on [methodology page 14](../../methodologies/14_learned-lane.md).
 
 ## 2. The particle lane (`stages/particle_experiment.py`)
 

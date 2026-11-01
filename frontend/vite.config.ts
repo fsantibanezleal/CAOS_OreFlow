@@ -18,7 +18,25 @@ export default defineConfig({
     // public/ort (copy-data.mjs, `wasmPaths`), instead of a second 14 MB hashed copy in the bundle
     conditions: ['onnxruntime-web-use-extern-wasm', ...defaultClientConditions],
   },
-  plugins: [react()],
+  plugins: [react(), {
+    name: 'oreflow-local-onnx-module',
+    apply: 'serve',
+    configureServer(server) {
+      // ONNX imports this copied ESM module by URL. Delegate its bytes to Vite's public middleware.
+      const modulePath = '/ort/ort-wasm-simd-threaded.mjs';
+      server.middlewares.use((request, _response, next) => {
+        if (request.url?.startsWith(`${modulePath}?`)) {
+          const query = new URLSearchParams(request.url.slice(modulePath.length + 1));
+          if (query.has('import')) {
+            query.delete('import');
+            const remaining = query.toString();
+            request.url = modulePath + (remaining ? `?${remaining}` : '');
+          }
+        }
+        next();
+      });
+    },
+  }],
   build: {
     rolldownOptions: {
       output: {

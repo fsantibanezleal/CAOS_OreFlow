@@ -2,6 +2,84 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## Local optimizer parity protocol
+
+CI still runs the same three nominal variants by default. The existing serial release command remains
+available by setting `OF_PARITY=full` and running `npm --prefix frontend test -- src/test/optimizer-parity.test.ts`.
+The release-only process runner partitions all 96 declared case/variant IDs deterministically; each child
+is one Vitest process with one worker and a validated `OF_PARITY_SHARD=index/count`. It does not train models.
+
+```powershell
+# Use a fresh absolute output directory outside the repository; its parent must already exist.
+$env:OF_PARITY_TIMEOUT='900000'
+node frontend/scripts/optimizer-parity.mjs --workers 8 --out "$env:CAOS_TEMP_ROOT/optimizer-parity-release"
+```
+
+`--workers` defaults to 2 and accepts 1 through 8. `--plan` writes only inventory, assignments and
+input hashes, explicitly without claiming parity. The output directory must be new. Alternate
+`OF_DERIVED`/`OF_MODELS` roots remain supported; missing artifacts/models fail. Each shard writes a bounded
+log and its actual Vitest JSON report. The aggregate admits only exact, unique, completed passing coverage
+with zero child exits, no pending/failed/unexpected assertions, and identical before/after input hashes.
+`result.json` records success only after all those checks; a plan or individual green exit is insufficient.
+Source snapshots include engine/learning/test sources, runner, Python pipeline, contracts, data/models,
+version, frontend configuration and package metadata/lock. Python cache directories are excluded.
+Do not change these inputs during a run, including package metadata. Main owns the complete release run.
+
+The original 2026-11-01 serial run completed 95/96 variants: its sole discrepancy was a dimensionless
+runner-up margin, JavaScript zero versus Python `1.1102230246251565e-16` at a selected normalized objective
+of `0.999379591139013`. Both formulas subtract selected and runner-up predicted objectives. Only margins
+and differences within `2 * Number.EPSILON * S` (S: largest absolute objective operand across both runtimes)
+receive the diagnostic-zero allowance. Four rounded operands contribute at most four unit roundoffs at
+this local operand scale; near-equal subtraction itself is exact. This does not bound upstream model error.
+The existing relative checks still apply to the objective operands, physical values and meaningful nonzero
+margins. Nulls never equal finite values; iteration/count/status/proposal flags stay exact. Full release
+success must be observed independently after this comparator change; the old 95/96 is not a passing run.
+
+## 0.10.008 release, 2026-11-01
+
+### Local verification
+
+- The complete `scripts/smoke.ps1` run exits 0 and prints its final passed marker: all repository,
+  contract, artifact, manuscript, notebook, readiness and design guards; Ruff; 1,304 Python tests with
+  zero skips; all ten framework examples, including actual CUDA training and ONNX inference;
+  603 frontend tests; type checking; and the production build.
+- The final development-only ONNX serving correction passes the complete 604-test frontend suite
+  and build, including an actual Vite exact-byte and unrelated-module rejection regression. All 134
+  production files remain byte-identical. The canonical numbered developer launch passes seventeen
+  API/artifact checks and twenty-nine browser interaction checks; owned shutdown preserves the
+  independent service. This correction changes no scientific engine, model or runtime bytes.
+- The current scientific bake computed all 3,072 design rows, fifteen evaluation jobs and sixty-five
+  seed jobs on the RTX 4070 Laptop CUDA environment. Twelve authored cases and 96 variants validate
+  without errors. Rejected transfer forecasts retain null scores, planned denominators, diagnostics
+  and matched-fold comparisons. These simulator experiments do not establish operating-plant accuracy.
+- All 32 bilingual notebooks execute in fresh kernels: 396 code cells, 76 PNG outputs and 174 checked
+  numeric answer bindings. The higher uncertainty lessons compare recovery and energy sensitivities.
+  Source experiments and interpreted results were independently reviewed.
+- The complete optimizer parity run admits all 96 exact case/variant IDs across eight isolated
+  workers, all exiting 0. All 305 before/after input hashes agree. The original 95/96 run remains
+  failed evidence; its bounded diagnostic-margin correction is described above. Subsequent display,
+  dependency and workflow adoption changes preserve the scientific engines, contracts, artifacts and
+  models; their own frontend, browser and repository checks remain separate.
+- The unmodified installed shell 0.19.11 gate passes 1,412 measured states with zero failures. The
+  application matrix passes 1,346 checks plus 76 checks for the remaining small-screen combinations,
+  with unchanged source and build: sixteen desktop modes and all eight phone/tablet modes, both
+  languages and themes, all routes, Focus and return state, process controls, optimization, uncertainty,
+  measured sources, chart navigation and browser console. Captures were inspected.
+- Adopt the published `CAOS_PRODUCT_TEMPLATE 0.14.002 (tag v0.14.002)` record and exact shell package
+  0.19.11. Product guard plants run in their own bounded CI job. Numbered local initialization,
+  sandbox generation and owned development-process workflows are documented in `scripts/local/README.md`.
+- The [technical report v0.10.008](https://doi.org/10.5281/zenodo.23850020) and
+  [screening article v1.1](https://doi.org/10.5281/zenodo.23852504) are published under CC BY 4.0,
+  each with exactly its reviewed PDF. Public metadata, downloaded hashes and release manuscript
+  checks pass. The screening comparison retains its adverse result: 17.25% more recorded cached
+  trial-state evaluations, with no simulator-cost reduction claim.
+
+### Remote verification
+
+Exact-commit CI, release/source identity, the software archive, deployment and post-deployment API and
+browser results are recorded in the [versioned GitHub release](https://github.com/fsantibanezleal/CAOS_OreFlow/releases/tag/v0.10.008).
+The ML VPS remains the product's sole deployment.
+
 ## 0.10.007 release, 2026-10-31
 
 ### Local gate
@@ -10,7 +88,7 @@ This file is the release gate for OreFlow. It separates reproducibility evidence
 - Regenerated and checked all 13 case pages. Record-based timing and methodology claims were reconciled in the bake guides, optimization methodology and digital-twin manuscript. The report PDF is the reviewed 10-page 0.10.007 artifact; the separate optimizer-screening paper is five pages and names the measured negative result.
 - Repository guards passed, including the 124 live SDD requirements, artifact recomputation, readiness and contract checks, manuscript voice/tier-name rules, all 32 bilingual notebook structures, the three language-specific executive illustrations, and README coverage. `ruff` passed.
 - The full Python suite passed: 884 tests in 2,285.36 seconds (one upstream Starlette deprecation warning). All nine framework examples passed, including CUDA training on the RTX 4070 Laptop GPU, ONNX parity, GeoMet recalculation and valid/invalid API examples. The dedicated framework pytest example passed 16 tests.
-- The 32 notebooks passed static checks and fresh-kernel execution. The independently reviewed English/Spanish level-4 optimizer lessons run the exact circuit engine on selected saved decisions and explain the paired benchmark result; review is recorded in CAOS_MANAGE `wip/oreflow/notebook-review-2026-10-31.md`.
+- The 32 notebooks passed static checks and fresh-kernel execution. The English/Spanish level-4 optimizer lessons checked selected saved decisions with the circuit engine and explained the paired benchmark. Those checks established reproduction and execution freshness; they did not establish that each comparison lesson ran every method it named. The subsequent release addresses that teaching gap.
 - Frontend typecheck, 53 test files / 505 tests and production build passed. The full browser gate passed 1,346 checks across 1280×800, 1600×900, 1920×1080 and 2560×1440, phone 390×844 and tablet 768×1024; both themes and languages; all app views, content tabs, Focus, optimizer and uncertainty reruns, source views, architecture modal, case topologies, and browser console. Captures were read. The test specifically verified that a case/control change clears stale sweeps, infeasible states are surfaced, and the mobile flowsheet is keyboard-scrollable.
 
 ### Remote gate

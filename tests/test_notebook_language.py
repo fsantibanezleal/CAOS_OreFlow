@@ -13,19 +13,122 @@ SPEC.loader.exec_module(AUTHORING)
 
 
 def test_each_notebook_step_uses_its_tree_language() -> None:
-    for topic, spec in AUTHORING.LESSONS.items():
-        for language in ("en", "es"):
-            for level, lesson in enumerate(spec[language], 1):
-                base_lesson = lesson if language == "en" else spec["en"][level - 1]
-                expected = [pair[0 if language == "en" else 1] for pair, _ in base_lesson["cells"]]
-                slug = "01-the-record" if level == 1 else "02-the-method" if level == 2 else "03-research-comparison"
-                path = ROOT / "notebooks" / language / topic / f"{slug}.ipynb"
-                notebook = json.loads(path.read_text(encoding="utf-8"))
-                cells = notebook["cells"]
-                code_indices = [i for i, cell in enumerate(cells) if cell["cell_type"] == "code"]
-                steps = ["".join(cells[i - 1]["source"]).strip() for i in code_indices[1:]]
-                assert len(steps) >= len(expected), f"{path}: one or more authored lesson steps are missing"
-                assert steps[:len(expected)] == expected, f"{path}: step explanations do not match the {language} authoring"
+    for path in sorted((ROOT / "notebooks").glob("*/*/*.ipynb")):
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+        language = notebook["metadata"]["caos"]["language"]
+        for index, cell in enumerate(notebook["cells"]):
+            if cell["cell_type"] != "code":
+                continue
+            assert index and notebook["cells"][index - 1]["cell_type"] == "markdown", path
+            program = "".join(cell["source"])
+            comments = [line.lstrip() for line in program.splitlines() if line.lstrip().startswith("#")]
+            assert comments, path
+            if language == "es":
+                assert not any(comment.startswith(("# Run ", "# Plot ", "# Compare ", "# Import ", "# Re-solve ",
+                                                   "# Evaluate ", "# Separate ", "# Collect ", "# Resume ",
+                                                   "# Audit ", "# Preserve ", "# Qualify ", "# Interpret "))
+                               for comment in comments), path
+                assert "Paso ejecutable del método OreFlow explicado" not in program, path
+
+
+def test_spanish_display_literals_are_localized() -> None:
+    import ast
+    import sys
+    sys.path.insert(0, str(ROOT / "scripts"))
+    from build_advanced_notebook_extensions import LABELS_ES
+    for path in (ROOT / "notebooks/es").glob("*/*.ipynb"):
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+        for cell in notebook["cells"]:
+            if cell["cell_type"] != "code":
+                continue
+            values = {node.value for node in ast.walk(ast.parse("".join(cell["source"])))
+                      if isinstance(node, ast.Constant) and isinstance(node.value, str)}
+            untranslated = {value for value in values if value in LABELS_ES and LABELS_ES[value] != value}
+            assert not untranslated, f"{path}: untranslated display labels: {sorted(untranslated)}"
+
+
+def test_spanish_computed_plot_labels_do_not_expose_raw_api_ids() -> None:
+    import ast
+    for path in (ROOT / "notebooks/es").glob("*/*.ipynb"):
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+        for cell in notebook["cells"]:
+            if cell["cell_type"] != "code":
+                continue
+            for node in ast.walk(ast.parse("".join(cell["source"]))):
+                if isinstance(node, ast.keyword) and node.arg == "label":
+                    label = ast.unparse(node.value)
+                    assert label not in ("stream.replace('_', ' ')", "model['id']", "m['id']"), path
+                if isinstance(node, ast.Call) and isinstance(node.func, ast.Attribute):
+                    if node.func.attr == "set_xticks" and len(node.args) > 1:
+                        assert not (isinstance(node.args[1], ast.Name) and node.args[1].id == "names"), path
+
+
+def test_formal_register_and_numeric_summary_explanations_match_actual_scope():
+    import re
+    for path in (ROOT / "notebooks").glob("*/*/*.ipynb"):
+        book = json.loads(path.read_text(encoding="utf-8"))
+        for index, cell in enumerate(book["cells"]):
+            source = "".join(cell["source"])
+            if source.startswith(("## References", "## Referencias")):
+                continue
+            if cell["cell_type"] == "markdown":
+                if book["metadata"]["caos"]["language"] == "en":
+                    assert not re.search(r"\b(?:you|your|we|our)\b", source, re.I), path
+                else:
+                    assert not re.search(r"(?m)^(?:#\s*)?(?:Compara|Inspecciona|Crea|Activa|Mide|Acorta)\b", source), path
+            if "answer-values" in cell.get("metadata", {}).get("tags", []):
+                prior = "".join(book["cells"][index - 1]["source"])
+                assert not any(text in prior.lower() for text in ("import the pinned", "repository inputs", "resolver las entradas")), path
+
+
+def test_learning_source_claims_match_the_four_case_point_prediction_experiment():
+    for language in ("en", "es"):
+        path = ROOT / "notebooks" / language / "03-learning/03-research-comparison.ipynb"
+        book = json.loads(path.read_text(encoding="utf-8"))
+        prose = "\n".join("".join(c["source"]) for c in book["cells"] if c["cell_type"] == "markdown"
+                          and not "".join(c["source"]).startswith(("## References", "## Referencias")))
+        assert not any(word in prose for word in ("Adam", "permutation importance", "twelve circuits", "doce circuitos")), path
+        assert ("Part 1" if language == "en" else "Parte 1") in prose
+        assert ("Part 2" if language == "en" else "Parte 2") in prose
+
+
+def test_optimizer_comparison_points_to_the_identified_current_cohort():
+    for language in ("en", "es"):
+        path = ROOT / "notebooks" / language / "04-optimization/03-research-comparison.ipynb"
+        book = json.loads(path.read_text(encoding="utf-8"))
+        prose = "\n".join("".join(c["source"]) for c in book["cells"] if c["cell_type"] == "markdown")
+        assert not any(text in prose for text in ("archived 72-pair", "archivo más amplio de 72 parejas")), path
+        expected = "current committed cohort" if language == "en" else "cohorte comprometida actual"
+        assert expected in prose, path
+
+
+def test_spanish_instructions_and_summaries_keep_the_impersonal_register():
+    import re
+    for path in (ROOT / "notebooks/es").glob("*/*.ipynb"):
+        book = json.loads(path.read_text(encoding="utf-8"))
+        for cell in book["cells"]:
+            text = "".join(cell["source"])
+            if text.startswith("## Referencias"):
+                continue
+            if cell["cell_type"] == "code":
+                text = "\n".join(line.lstrip("# ") for line in text.splitlines()
+                                 if line.lstrip().startswith("#"))
+            assert not re.search(r"\b(?:Ejecutaste|Seguiste|seguiste|leíste|revisaste|separaste)\b", text), path
+            assert not re.search(r"(?m)^(?:#\s*)?(?:Busca|Proyecta|Reproduce|Etiqueta|Imprime|Resume)\b", text), path
+            assert not re.search(r"\b(?:y proyecta|y extrae|y reconoce|, inspecciona|, sigue el|así que conserva)\b", text), path
+            assert not re.search(r"\b(?:comienza aquí|confirma las|y recuerda|Interpreta|Construye|Integra|Superpone)\b", text), path
+
+
+def test_internal_tiers_are_absent_from_prose_code_and_outputs() -> None:
+    import re
+    for path in (ROOT / "notebooks").glob("*/*/*.ipynb"):
+        notebook = json.loads(path.read_text(encoding="utf-8"))
+        for cell in notebook["cells"]:
+            source = "".join(cell["source"])
+            if source.startswith(("## References", "## Referencias")):
+                continue
+            public = source + json.dumps(cell.get("outputs", []), ensure_ascii=False)
+            assert not re.search(r"classical|clásic[oa]s?|estado.del.arte|state.of.the.art|\bSOTA\b", public, re.I), path
 
 
 def test_every_curriculum_pair_has_distinct_language_facing_steps() -> None:

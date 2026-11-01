@@ -2,7 +2,7 @@
 # The local release gate. CI runs only the cheap checks (ADR-0074), so the suites run here before a pull
 # request: every guard CI runs, ruff, the Python suite, every framework example (docs/frameworks/*/example.py,
 # which fit models and so stay out of CI), and the frontend typecheck, tests and build.
-# --bake adds a sandbox bake into build/smoke, validated by the bake's own last stage; the committed
+# --bake adds an external sandbox bake under CAOS_TEMP_ROOT, validated by the bake's own last stage; the committed
 # data/derived and models/ are never written. It takes as long as a real bake (about an hour and a half on an idle machine since 0.09.000).
 set -euo pipefail
 cd "$(dirname "$0")/.."
@@ -15,11 +15,18 @@ done
 step() { echo "[smoke] $1"; shift; "$@"; }
 
 for guard in check_template_residue check_content_standards check_ci_budget check_units \
-             check_ui_formulas check_arch_i18n check_sdd check_artifacts; do
+             check_ui_formulas check_arch_i18n check_sdd check_artifacts \
+             check_notebooks check_internal_names check_readme_areas check_manuscripts \
+             check_version_coherence check_svg_animation check_deploy_place check_tech_matrix \
+             check_executive_assets check_readiness check_documents check_base_integrity \
+             check_doc_paths check_web_baseline; do
   step "$guard" "$VP" "scripts/$guard.py"
 done
+step contracts "$VP" scripts/check_contracts.py docs/contracts/catalog.md --repo-root .
+step "contract versions" "$VP" scripts/check_contract_versions.py --base origin/develop
+step "walking skeleton" "$VP" scripts/check_skeleton.py docs/contracts/catalog.md
 step "use-case pages" node --experimental-strip-types scripts/render_use_cases.mjs --check
-step ruff "$VP" -m ruff check data-pipeline tests
+step ruff "$VP" -m ruff check data-pipeline tests scripts app
 step pytest "$VP" -m pytest -q
 # W-02 (review of 2026-10-02): the examples say they check what they print, and one had asserted 72 variants for a
 # release after the catalog grew to 96; the PyTorch and ONNX examples need the accelerator environment
@@ -30,11 +37,11 @@ for example in docs/frameworks/*/example.py; do
   if [ "$gpu" = 0 ] && { [ "$node" = 05_pytorch ] || [ "$node" = 06_onnx ]; }; then echo "[smoke] example $node skipped: no .venv-gpu"; continue; fi
   step "example $node" "$VP" "$example"
 done
-(cd frontend && step typecheck npm run typecheck && step vitest npm run test && step build npm run build)
+(cd frontend && step "contract types" npm run contracts:check && step typecheck npm run typecheck && step vitest npm run test && step build npm run build)
 
 if [ "${1:-}" = "--bake" ]; then
-  sandbox=build/smoke
-  rm -rf "$sandbox"
+  : "${CAOS_TEMP_ROOT:?Set CAOS_TEMP_ROOT to an external temporary-data directory before --bake}"
+  sandbox="$("$VP" -c 'import os, pathlib; base=pathlib.Path(os.environ["CAOS_TEMP_ROOT"]); assert base.is_absolute(), "CAOS_TEMP_ROOT must be absolute"; target=(base/"oreflow"/"smoke").resolve(); assert not target.is_relative_to(pathlib.Path.cwd().resolve()), "sandbox must be external"; print(target.as_posix())')"
   mkdir -p "$sandbox/derived/source" "$sandbox/models"
   # the measured lanes come from their own pipelines (fetch-data, run_particles, run_geomet); the bake
   # summarizes and validates them, so the sandbox starts from the committed ones

@@ -490,7 +490,9 @@ def _step(repo: Path, command: str) -> None:
     edit(repo, ".github/workflows/ci.yml", f"run: {ALLOWED}", command)
 
 
-def test_ci_budget_the_allowance_itself_passes(budget_repo: Path) -> None:
+@pytest.mark.parametrize("suite", ["tests/adversarial", "tests/template/adversarial"])
+def test_ci_budget_the_allowance_itself_passes(budget_repo: Path, suite: str) -> None:
+    _step(budget_repo, "run: " + ALLOWED.replace("tests/adversarial", suite))
     r = guard(budget_repo, "check_ci_budget.py", ok_marker="ci budget: OK")
     assert r.returncode == 0, r.stdout
 
@@ -507,7 +509,9 @@ def test_ci_budget_the_allowance_itself_passes(budget_repo: Path) -> None:
     ("B-9 a plugin", "run: python -m pytest tests/adversarial -p no:cacheprovider"),
     ("B-9 an and-chain", "run: python -m pytest tests/adversarial && python -m pytest tests"),
 ])
-def test_ci_budget_an_allowance_that_is_broader_than_the_adversarial_suite(budget_repo: Path, plant: str, command: str) -> None:
+@pytest.mark.parametrize("suite", ["tests/adversarial", "tests/template/adversarial"])
+def test_ci_budget_an_allowance_that_is_broader_than_the_adversarial_suite(budget_repo: Path, plant: str, command: str, suite: str) -> None:
+    command = command.replace("tests/adversarial", suite)
     _step(budget_repo, command)
     r = guard(budget_repo, "check_ci_budget.py")
     assert r.returncode == 1 and "tests run locally" in r.stdout, r.stdout
@@ -583,9 +587,17 @@ def test_sdd_rereview_m3d_the_brief_inside_a_tilde_fence_with_a_backtick_line(sd
 
 
 def test_sdd_rereview_the_data_line_inside_a_code_block_is_not_the_data_line(sdd_repo: Path) -> None:
-    _replace_line(sdd_repo, SDD, "Data file: content/executive.json", "```\nData file: content/executive.json\n```", occurrence=1)
+    clean = guard(sdd_repo, "check_sdd.py", ok_marker="check_sdd: OK")
+    assert clean.returncode == 0, clean.stdout
+    text = _sdd_text(sdd_repo)
+    start, end = _brief_span(text)
+    brief = text[start:end]
+    line = "Data file: content/executive.json"
+    assert brief.splitlines().count(line) == 1, "the Executive brief must have exactly one live data-file line"
+    fenced = brief.replace(line, f"```\n{line}\n```", 1)
+    (sdd_repo / SDD).write_text(text[:start] + fenced + text[end:], encoding="utf-8")
     r = sdd(sdd_repo)
-    assert r.returncode == 1 and "Data file: content/executive.json" in r.stdout, r.stdout
+    assert r.returncode == 1 and "Executive brief" in r.stdout and "Data file: content/executive.json" in r.stdout, r.stdout
 
 
 # ---- a validation gate that skips for lack of a tool is not a gate that ran (Q1, S-3d), and the name is a prefix (M9c)
@@ -626,7 +638,9 @@ def test_sdd_rereview_m9c_a_ts_name_that_only_starts_with_the_word(sdd_repo: Pat
     ("M10d PYTEST_ADDOPTS on the step", "env:\n          PYTEST_ADDOPTS: \"tests --override-ini=addopts=\"\n        run: " + ALLOWED),
     ("M10d PYTEST_ADDOPTS exported in the command", "run: export PYTEST_ADDOPTS=tests && python -m pytest tests/adversarial"),
 ])
-def test_ci_budget_rereview_an_allowance_broader_than_the_yaml_shows(budget_repo: Path, plant: str, command: str) -> None:
+@pytest.mark.parametrize("suite", ["tests/adversarial", "tests/template/adversarial"])
+def test_ci_budget_rereview_an_allowance_broader_than_the_yaml_shows(budget_repo: Path, plant: str, command: str, suite: str) -> None:
+    command = command.replace("tests/adversarial", suite)
     _step(budget_repo, command)
     r = guard(budget_repo, "check_ci_budget.py")
     assert r.returncode == 1 and ("tests run locally" in r.stdout or "PYTEST_" in r.stdout), r.stdout

@@ -14,6 +14,7 @@ import argparse
 import hashlib
 import json
 import math
+import statistics
 import sys
 from pathlib import Path
 
@@ -254,13 +255,151 @@ def check_cases(derived: Path, version: str, digest: str | None) -> list[str]:
     return errors
 
 
+def check_learning_cohorts(record: dict) -> list[str]:
+    """Recompute conditional denominators and fair comparisons from every persisted fold."""
+    errors = []
+
+    def safe_seed(value) -> bool:
+        # Match JSON/JavaScript safe integers, excluding booleans and coercions.
+        return (isinstance(value, (int, float)) and not isinstance(value, bool)
+                and 0 <= value <= 2**53 - 1 and value == int(value))
+
+    try:
+        base = record["design"]["seed"]
+        offsets = record["settings"]["mlp_seed_offsets"]
+        declared = record["mlp_seeds"]["seeds"]
+    except (KeyError, TypeError, IndexError):
+        return ["learning planned seed inventory: require design.seed, settings.mlp_seed_offsets and mlp_seeds.seeds"]
+    if (not safe_seed(base) or not isinstance(offsets, list) or not offsets or not all(safe_seed(v) for v in offsets)
+            or len(set(offsets)) != len(offsets) or not isinstance(declared, list) or not declared
+            or not all(safe_seed(v) for v in declared)):
+        return ["learning planned seed inventory: require a nonnegative safe-integer base, unique offsets and seed IDs"]
+    expected_seeds = [base + offset for offset in offsets]
+    if not all(safe_seed(seed) for seed in expected_seeds):
+        return ["learning planned seed inventory: design.seed plus every offset must remain a safe integer"]
+    if declared != expected_seeds:
+        errors.append(f"learning planned seed inventory: expected ordered IDs {expected_seeds}, found {declared}")
+    groups = record.get("transfer_groups", {})
+    loco = record.get("leave_one_case_out", [])
+    transfer = record.get("leave_one_group_out", []) + [
+        {**fold, "held_out_group": groups.get(fold.get("held_out"))} for fold in loco
+        if list(groups.values()).count(groups.get(fold.get("held_out"))) == 1]
+
+    def same(actual, expected) -> bool:
+        return actual is None if expected is None else (
+            _finite(actual) and math.isclose(actual, expected, rel_tol=1e-10, abs_tol=1e-10))
+
+    try:
+        planned = record["design"]["cases"]
+        if len(set(planned)) != len(planned) or set(groups) != set(planned) or (
+                [fold["held_out"] for fold in loco] != planned):
+            errors.append("learning planned case membership")
+        memberships = {group: [case for case in planned if groups[case] == group] for group in dict.fromkeys(groups.values())}
+        expected_groups = {group: members for group, members in memberships.items() if len(members) > 1 and len(memberships) > 1}
+        actual_groups = record["leave_one_group_out"]
+        if [fold["held_out_group"] for fold in actual_groups] != list(expected_groups):
+            errors.append("learning planned group membership")
+        per_case = record["design"]["per_case"]
+        if record["design"]["rows"] != len(planned) * per_case:
+            errors.append("learning design row coverage")
+        for fold in loco + actual_groups:
+            members = [fold["held_out"]] if "held_out" in fold else expected_groups.get(fold["held_out_group"], [])
+            if "held_out_group" in fold and fold["cases"] != members:
+                errors.append("learning planned group case membership")
+            if fold["test_rows"] != len(members) * per_case or fold["train_rows"] + fold["test_rows"] != record["design"]["rows"]:
+                errors.append("learning planned fold rows")
+        for name, key, prefix, folds in (("leave_one_case_out", "held_out", "loco", loco),
+                                          ("transfer", "held_out_group", "transfer", transfer)):
+            if len({fold[key] for fold in folds}) != len(folds):
+                errors.append(f"learning {name}: duplicate folds")
+            for target in record["targets"]:
+                common = [fold for fold in folds if all(fold["models"][model][target]["valid_for_scoring"] for model in LEARNING_MODELS)]
+                cohort = record["common_cohorts"][name][target]
+                if cohort["attempted"] != len(folds) or cohort["folds"] != [fold[key] for fold in common] or (
+                        cohort["excluded"] != [fold[key] for fold in folds if fold not in common]):
+                    errors.append(f"learning {name}/{target}: common cohort membership")
+                for model in LEARNING_MODELS:
+                    scores = [fold["models"][model][target] for fold in folds]
+                    accepted = [score for score in scores if score["valid_for_scoring"]]
+                    summary = record["summary"][model][target]
+                    if summary[f"{prefix}_folds"] != {"attempted": len(scores), "scored": len(accepted), "rejected": len(scores) - len(accepted)}:
+                        errors.append(f"learning {name}/{target}/{model}: conditional denominator")
+                    for suffix, metric, aggregate in (("rmse_mean", "rmse", statistics.mean), ("rmse_max", "rmse", max),
+                                                       ("r2_median", "r2", statistics.median)):
+                        expected = aggregate([score[metric] for score in accepted]) if accepted else None
+                        if not same(summary[f"{prefix}_{suffix}"], expected):
+                            errors.append(f"learning {name}/{target}/{model}: conditional {suffix}")
+                    for metric, aggregate in (("rmse", statistics.mean), ("r2", statistics.median)):
+                        expected = aggregate([fold["models"][model][target][metric] for fold in common]) if common else None
+                        suffix = "mean" if metric == "rmse" else "median"
+                        if not same(cohort["models"][model][f"{metric}_{suffix}"], expected):
+                            errors.append(f"learning {name}/{target}/{model}: matched {metric}")
+                    for fold, score in zip(folds, scores):
+                        evaluation = score["evaluation"]
+                        expected_fold = fold.get("held_out", fold[key])
+                        expected_protocol = "leave_one_case_out" if "held_out" in fold else "transfer"
+                        if evaluation["method"] != model or evaluation["target"] != target or evaluation["fold"] != expected_fold or (
+                                evaluation["seed"] != record["design"]["seed"]) or score["rows"] != fold["test_rows"] or (
+                                evaluation["protocol"] != expected_protocol):
+                            errors.append(f"learning {name}/{target}/{model}: score evaluation identity")
+        seeds = record["mlp_seeds"]
+        if len(set(seeds["seeds"])) != len(seeds["seeds"]) or not seeds["seeds"] or seeds["seeds"][0] != record["design"]["seed"]:
+            errors.append("learning planned seed identity")
+        seed_folds = list(seeds["scores"])
+        if seed_folds != ["interpolation"] + [fold["held_out"] for fold in loco]:
+            errors.append("learning seed fold coverage")
+        for fold in seed_folds:
+            for target in record["targets"]:
+                scores = seeds["scores"][fold][target]
+                if len(scores) != len(seeds["seeds"]):
+                    errors.append("learning seed count")
+                for seed, score in zip(seeds["seeds"], scores):
+                    if score["evaluation"] != {"method": "mlp", "target": target, "protocol": (
+                            "interpolation" if fold == "interpolation" else "leave_one_case_out"), "fold": fold, "seed": seed}:
+                        errors.append(f"learning seed/{fold}/{target}: evaluation identity")
+        for target in record["targets"]:
+            summary = seeds["summary"][target]
+            if summary["interpolation_rmse"] != [score["rmse"] for score in seeds["scores"]["interpolation"][target]] or (
+                    set(summary["loco_rmse_by_case"]) != set(planned)):
+                errors.append(f"learning seed/{target}: interpolation or case summary")
+            expected_means, expected_medians, expected_counts = [], [], []
+            for index in range(len(seeds["seeds"])):
+                scores = [seeds["scores"][case][target][index] for case in planned]
+                accepted = [score for score in scores if score["valid_for_scoring"]]
+                expected_means.append(statistics.mean(score["rmse"] for score in accepted) if accepted else None)
+                expected_medians.append(statistics.median(score["r2"] for score in accepted) if accepted else None)
+                expected_counts.append({"attempted": len(scores), "scored": len(accepted), "rejected": len(scores) - len(accepted)})
+            for metric, expected in (("loco_rmse_mean", expected_means), ("loco_r2_median", expected_medians)):
+                actual = summary[metric]
+                if len(actual) != len(expected) or any(not same(a, b) for a, b in zip(actual, expected)):
+                    errors.append(f"learning seed/{target}: conditional {metric}")
+            if summary["loco_folds"] != expected_counts:
+                errors.append(f"learning seed/{target}: conditional denominator")
+            for case in planned:
+                if summary["loco_rmse_by_case"][case] != [score["rmse"] for score in seeds["scores"][case][target]]:
+                    errors.append(f"learning seed/{target}/{case}: null or RMSE summary")
+            if "seeds" in record["summary"]["mlp"][target] and record["summary"]["mlp"][target]["seeds"] != summary:
+                errors.append(f"learning seed/{target}: copied model summary")
+    except (KeyError, TypeError, ValueError, IndexError, AttributeError) as exc:
+        errors.append(f"learning cohort structure: {exc}")
+    return errors
+
+
 def check_learning(derived: Path, models: Path, version: str, digest: str | None, allow_reused: bool = False) -> list[str]:
     path = derived / "learning.json"
     if not path.is_file():
         return ["missing learning.json"]
     record = _load(path)
     errors: list[str] = []
-    if record.get("schema") != "oreflow.learning/v1" or record.get("models") != LEARNING_MODELS:
+    # Load the same stdlib-only range validator that scoring uses, without importing the training stack.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("oreflow_observable", ROOT / "data-pipeline" / "pipeline" / "methods" / "observable.py")
+    observable = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(observable)
+    errors.extend(observable.record_findings(record))
+    errors.extend(check_learning_cohorts(record))
+    if record.get("schema") != "oreflow.learning/v2" or record.get("models") != LEARNING_MODELS:
         errors.append("learning schema or model set")
     if record.get("engine_version") != version or record.get("contract_digest") != digest:
         errors.append("learning record belongs to another engine version or contract")

@@ -8,3 +8,5 @@
 ## Convergence
 
 The requirement checks are `tests/adversarial/test_app_kind.py`; the complete rendered-state and return-state checks run through `frontend/gate.mjs` against a served build.
+
+- [x] Verify actual Vite ONNX module serving with exact SDK bytes, bounded path/query behavior and the real learned view (WB-020).

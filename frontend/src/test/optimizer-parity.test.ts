@@ -4,7 +4,9 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import type { OperatingPoint, Ore, Plant } from '../engine';
 import type { OperatingContract } from '../engine/contract';
-import { optimize, type OptimizationRecord, type ScreenRecord, type Summary } from '../engine/optimize';
+import { optimize, type OptimizationRecord, type Summary } from '../engine/optimize';
+import { close, compareScreen } from './optimizer-parity-comparison';
+import { selectInventory } from '../../scripts/optimizer-parity-lib.mjs';
 import { choleskyFrom, Screen, type ScreenDoc } from '../learning/screen';
 import type { Scalers } from '../learning/surrogate';
 
@@ -18,7 +20,6 @@ import type { Scalers } from '../learning/surrogate';
 // each, so CI runs a declared subset (the nominal variants of the magnetite circuit, one decision; the oxide copper,
 // where water binds; the free-milling gold, where the screen rarely passes) and OF_PARITY=full runs all 96 at release
 // (docs/release-verification.md).
-const SUBSET = new Set(['iron_magnetite_fine/nominal', 'copper_oxide/nominal', 'gold_free_milling/nominal']);
 const FULL = process.env.OF_PARITY === 'full';
 // about a minute per variant on an idle machine; a release run on a loaded one may raise it (OF_PARITY_TIMEOUT, in ms)
 const TIMEOUT = Number(process.env.OF_PARITY_TIMEOUT ?? 300_000);
@@ -26,19 +27,17 @@ const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/d
 const models = process.env.OF_MODELS ?? fileURLToPath(new URL('../../../models/', import.meta.url));
 const contract = JSON.parse(readFileSync(join(derived, 'contract', 'operating_contract.json'), 'utf-8')) as OperatingContract;
 const files = readdirSync(join(derived, 'cases')).filter(f => f.endsWith('.json')).sort();
+const artifacts = files.map(file => JSON.parse(readFileSync(join(derived, 'cases', file), 'utf-8')) as Baked);
+const selected = new Set(selectInventory(artifacts.flatMap(a => a.variants.map(v => `${a.case_id}/${v.id}`)), {full:FULL, shard:process.env.OF_PARITY_SHARD}));
 const doc = JSON.parse(readFileSync(join(models, 'process_screen.json'), 'utf-8')) as ScreenDoc;
 const scalers = JSON.parse(readFileSync(join(models, 'process_surrogate.json'), 'utf-8')) as Scalers;
 const bin = readFileSync(join(models, doc.gp.cholesky.file));
 const screen = new Screen(doc, scalers, choleskyFrom(bin.buffer.slice(bin.byteOffset, bin.byteOffset + bin.byteLength)));
-const RELATIVE = 1e-6;
 
 type Baked = {
   case_id: string; definition: { ore: Ore; plant: Plant };
   variants: Array<{ id: string; point: OperatingPoint; methods: { optimization: OptimizationRecord } }>;
 };
-
-const close = (a: number | null | undefined, b: number | null | undefined) =>
-  (a == null || b == null) ? a == b : Math.abs(a - b) <= RELATIVE * Math.max(Math.abs(a), Math.abs(b), 1e-12);
 
 function compareSummary(where: string, mine: Summary, baked: Summary, problems: string[]): void {
   if (mine.feasible !== baked.feasible) problems.push(`${where}.feasible: ${mine.feasible} vs ${baked.feasible}`);
@@ -48,21 +47,10 @@ function compareSummary(where: string, mine: Summary, baked: Summary, problems: 
   for (const [k, v] of Object.entries(baked.values)) if (!close(mine.values[k], v)) problems.push(`${where}.values.${k}: ${mine.values[k]} vs ${v}`);
 }
 
-function compareScreen(where: string, mine: Omit<ScreenRecord, 'proposals'> & { proposals?: ScreenRecord['proposals'] }, baked: typeof mine, problems: string[]): void {
-  const counts = (s: typeof mine) => [s.iterations, s.screened, s.rejected.guard, s.rejected.interval, s.proposed, s.improved].join('/');
-  if (counts(mine) !== counts(baked)) problems.push(`${where} screen: ${counts(mine)} vs ${counts(baked)}`);
-  (baked.proposals ?? []).forEach((b, i) => {
-    const m = mine.proposals?.[i];
-    if (!m || m[0] !== b[0] || m[6] !== b[6]) { problems.push(`${where} proposal ${i}: ${JSON.stringify(m)} vs ${JSON.stringify(b)}`); return; }
-    for (const c of [1, 2, 3, 4, 5]) if (!close(m[c] as number | null, b[c] as number | null)) problems.push(`${where} proposal ${i}[${c}]: ${m[c]} vs ${b[c]}`);
-  });
-}
-
 describe('the browser reproduces the baked optimization records', () => {
-  for (const file of files) {
-    const artifact = JSON.parse(readFileSync(join(derived, 'cases', file), 'utf-8')) as Baked;
+  for (const artifact of artifacts) {
     for (const variant of artifact.variants) {
-      if (!FULL && !SUBSET.has(`${artifact.case_id}/${variant.id}`)) continue;
+      if (!selected.has(`${artifact.case_id}/${variant.id}`)) continue;
       it(`${artifact.case_id}/${variant.id}`, () => {
         const baked = variant.methods.optimization;
         const { ore, plant } = artifact.definition;
@@ -74,6 +62,9 @@ describe('the browser reproduces the baked optimization records', () => {
         expect(mine.without_screen?.evaluations).toBe(baked.without_screen?.evaluations);
         expect(mine.without_screen?.starts).toEqual(baked.without_screen?.starts);
         expect(mine.trace?.length).toBe(baked.trace?.length);
+        expect(mine.starts.length).toBe(baked.starts.length);
+        expect(mine.path?.length).toBe(baked.path?.length);
+        expect(mine.proposal_columns).toEqual(baked.proposal_columns);
         const problems: string[] = [];
         compareSummary('base', mine.base, baked.base, problems);
         mine.starts.forEach((s, i) => {

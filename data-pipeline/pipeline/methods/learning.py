@@ -30,21 +30,28 @@ and exported to ONNX, with an ONNX Runtime check against PyTorch.
 from __future__ import annotations
 
 import json
+import hashlib
+import importlib.metadata
+import os
+import platform
 import time
 import warnings
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 from typing import Any
 
 import numpy as np
 from scipy.stats import qmc
 
+from .. import __version__
 from ..cases.catalog import CASES, CaseDef
 from ..engine.circuit import simulate
 from ..engine.constants import constant
 from ..engine.model import OperatingPoint
 from ..engine.ore import grade_to_fraction, resolve
 from ..io.contract import validate
+from .observable import PredictionRejected, check_observable, record_findings
+from .learning_jobs import Job, run_jobs
 
 FEATURES = (
     "log_payable_fraction", "specific_throughput_t_h_mw", "target_p80_um", "circulating_load", "water_m3_t",
@@ -233,27 +240,60 @@ def leave_one_group_out(case_of: np.ndarray, groups: dict[str, str]) -> list[tup
 
 # ---- models ----
 
-def _scores(y: np.ndarray, pred: np.ndarray, cases: np.ndarray | None = None) -> dict[str, float]:
+def _scores(y: np.ndarray, pred: np.ndarray, cases: np.ndarray | None = None, *, reference: np.ndarray | None = None,
+            constant_baseline: bool = False, evaluation: dict[str, Any] | None = None,
+            allow_rejection: bool = False) -> dict[str, Any]:
     """RMSE, MAE and R2 against the test rows' pooled mean; with the rows' cases, also R2 against each case's own mean,
     which subtracts what knowing the case alone explains (L-03)."""
+    context = evaluation or {"method": "diagnostic", "target": "diagnostic", "protocol": "diagnostic", "fold": "single", "seed": 0}
+    if allow_rejection and context["protocol"] not in ("leave_one_case_out", "transfer"):
+        raise ValueError("Only a declared transfer protocol may preserve a rejected prediction")
+
+    def diagnose(a: np.ndarray, b: np.ndarray) -> dict[str, Any]:
+        try:
+            return check_observable(a, b, reference=reference, constant_baseline=constant_baseline)
+        except PredictionRejected as exc:
+            if not allow_rejection:
+                raise
+            return exc.diagnostics
+
+    observable = diagnose(y, pred)
+    by_case = {str(c): diagnose(y[cases == c], pred[cases == c])
+               for c in dict.fromkeys(cases.tolist())} if cases is not None else None
+    failed = [d for d in (by_case.values() if by_case is not None else [observable])
+              if d["status"] == "rejected-outside-range"]
+    if observable["status"] == "rejected-outside-range" or failed:
+        out = {"status": "rejected-transfer", "valid_for_scoring": False, "rmse": None, "mae": None,
+               "r2": None, "rows": int(len(y)), "evaluation": context, "observable": observable,
+               "rejection": {"code": "observable-range", "reason": "Predictions wholly outside the declared widened observable in the fold or an individual case.",
+                             "affected_rows": sum(d["rows"] for d in failed)}}
+        if by_case is not None:
+            out.update(observable_by_case=by_case, r2_within_case=None)
+        return out
     err = pred - y
     ss = float(np.sum((y - np.mean(y)) ** 2))
-    out = {"rmse": float(np.sqrt(np.mean(err ** 2))), "mae": float(np.mean(np.abs(err))),
-           "r2": 1.0 - float(np.sum(err ** 2)) / ss if ss > 0.0 else 0.0, "rows": int(len(y))}
+    out = {"status": "scored", "valid_for_scoring": True, "evaluation": context,
+           "rmse": float(np.sqrt(np.mean(err ** 2))), "mae": float(np.mean(np.abs(err))),
+           "r2": 1.0 - float(np.sum(err ** 2)) / ss if ss > 0.0 else 0.0, "rows": int(len(y)),
+           "observable": observable}
     if cases is not None:
         within = sum(float(np.sum((y[cases == c] - np.mean(y[cases == c])) ** 2)) for c in dict.fromkeys(cases.tolist()))
         out["r2_within_case"] = 1.0 - float(np.sum(err ** 2)) / within if within > 0.0 else 0.0
+        out["observable_by_case"] = by_case
     return out
 
 
-def case_mean_baseline(y: np.ndarray, train: np.ndarray, test: np.ndarray, case_of: np.ndarray) -> dict[str, dict[str, float]]:
+def case_mean_baseline(y: np.ndarray, train: np.ndarray, test: np.ndarray, case_of: np.ndarray,
+                       seed: int = 0) -> dict[str, dict[str, Any]]:
     """The predictor that knows only the case: each test row gets its case's training mean (L-03). An interpolation
     score is skill only where it beats this."""
     out = {}
     for j, target in enumerate(TARGETS):
         means = {c: float(np.mean(y[train[case_of[train] == c], j])) for c in dict.fromkeys(case_of[test].tolist())}
         pred = np.array([means[c] for c in case_of[test]])
-        out[target] = _scores(y[test, j], pred, case_of[test])
+        out[target] = _scores(y[test, j], pred, case_of[test], reference=y[:, j], constant_baseline=True,
+                              evaluation={"method": "case_mean_baseline", "target": target, "protocol": "interpolation",
+                                          "fold": "interpolation", "seed": seed})
     return out
 
 
@@ -324,9 +364,14 @@ def _predict_network(model, x: np.ndarray) -> np.ndarray:
 
 class Standardizer:
     def __init__(self, data: np.ndarray) -> None:
-        self.mean = data.mean(axis=0)
-        scale = data.std(axis=0)
-        self.scale = np.where(scale > 0.0, scale, 1.0)
+        from sklearn.preprocessing import StandardScaler
+
+        # StandardScaler recognizes numerically constant training columns, including roundoff-sized
+        # variances. Dividing by their tiny positive np.std had amplified unseen-ore features by 1e16.
+        # Fit only the supplied training rows; the exported mean/scale keep the existing inference API.
+        fitted = StandardScaler().fit(data)
+        self.mean = fitted.mean_
+        self.scale = fitted.scale_
 
     def __call__(self, data: np.ndarray) -> np.ndarray:
         return (data - self.mean) / self.scale
@@ -336,7 +381,7 @@ class Standardizer:
 
 
 def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int,
-                  cases: np.ndarray | None = None) -> dict[str, Any]:
+                  cases: np.ndarray | None = None, *, protocol: str = "interpolation", fold: str = "interpolation") -> dict[str, Any]:
     """Train every model on ``train`` rows and score it on ``test`` rows, for every target; with ``cases`` (each test
     row's case), every score also carries its within-case R2."""
     from sklearn.base import clone
@@ -352,12 +397,18 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
     out: dict[str, Any] = {"models": {}, "identity": {}}
     rng = np.random.default_rng(seed)
     gp_rows = train if len(train) <= int(s["gp_training_rows"]) else np.sort(rng.choice(train, int(s["gp_training_rows"]), replace=False))
+
+    def score(target: str, name: str, predictions: np.ndarray) -> dict[str, Any]:
+        j = TARGETS.index(target)
+        return _scores(y[test, j], predictions, cases, reference=y[:, j],
+                       evaluation={"method": name, "target": target, "protocol": protocol, "fold": fold, "seed": seed},
+                       allow_rejection=protocol in ("leave_one_case_out", "transfer"))
     for j, target in enumerate(TARGETS):
         yt, ye = y[train, j], y[test, j]
         estimators = {
             "ridge": Ridge(alpha=float(s["ridge_alpha"])),
             "random_forest": RandomForestRegressor(n_estimators=int(s["forest_trees"]), min_samples_leaf=int(s["forest_min_leaf"]),
-                                                   random_state=seed, n_jobs=-1),
+                                                   random_state=seed, n_jobs=1),
             "hist_gradient_boosting": HistGradientBoostingRegressor(max_iter=int(s["hgb_iterations"]),
                                                                     learning_rate=float(s["hgb_learning_rate"]),
                                                                     early_stopping=False, random_state=seed),
@@ -365,7 +416,7 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         for name, est in estimators.items():
             est.fit(xs_tr, yt)
             out["identity"][name] = f"{type(est).__module__}.{type(est).__name__}"
-            out["models"].setdefault(name, {})[target] = _scores(ye, est.predict(xs_te), cases)
+            out["models"].setdefault(name, {})[target] = score(target, name, est.predict(xs_te))
             if name == "hist_gradient_boosting":
                 out.setdefault("_hgb", {})[target] = est
         low, high = (float(v) for v in s["gp_length_scale_bounds"])
@@ -382,8 +433,9 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         z = float(s["interval_z"])
         inside = np.abs(ye - mean) <= z * std
         out["identity"]["gaussian_process"] = f"{type(gp).__module__}.{type(gp).__name__}"
+        gp_score = score(target, "gaussian_process", mean)
         out["models"].setdefault("gaussian_process", {})[target] = {
-            **_scores(ye, mean, cases), "coverage_95": float(np.mean(inside)), "mean_half_width": float(np.mean(z * std)),
+            **gp_score, "coverage_95": float(np.mean(inside)) if gp_score["valid_for_scoring"] else None, "mean_half_width": float(np.mean(z * std)),
             "training_rows": int(len(gp_rows)), "kernel": str(gp.kernel_),
             "length_scales": {name: float(v) for name, v in zip(FEATURES, scales)},
             "switched_off": [name for name, v in zip(FEATURES, scales) if v >= high * float(s["gp_bound_margin"])],
@@ -393,36 +445,43 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
             # M-11: the GP sees a subsample; the other models refitted on the same rows rank it on equal data
             for name, est in estimators.items():
                 refit = clone(est).fit(fx(x[gp_rows]), y[gp_rows, j])
-                out.setdefault("equal_rows", {}).setdefault(name, {})[target] = _scores(ye, refit.predict(xs_te))
+                out.setdefault("equal_rows", {}).setdefault(name, {})[target] = score(target, name, refit.predict(xs_te))
     model, info, _ = _train_network(xs_tr, fy(y[train]), list(s["mlp_hidden"]), s, seed, "silu")
     pred = fy.inverse(_predict_network(model, xs_te))
     out["identity"]["mlp"] = f"torch.nn.Sequential ({info['device']})"
     for j, target in enumerate(TARGETS):
-        out["models"].setdefault("mlp", {})[target] = _scores(y[test, j], pred[:, j], cases)
+        out["models"].setdefault("mlp", {})[target] = score(target, "mlp", pred[:, j])
     out["mlp_training"] = info
     return out
 
 
 def mlp_seeds(x: np.ndarray, y: np.ndarray, splits: list[tuple[str, np.ndarray, np.ndarray]], s: dict[str, Any],
-              seeds: list[int]) -> dict[str, Any]:
+              seeds: list[int], case_of: np.ndarray, *, workers: int = 1, checkpoint_dir: Path | None = None,
+              fingerprint: str | None = None) -> dict[str, Any]:
     """M-21: the network retrained over several seeds on every split; the first seed is the record's own."""
-    runs: dict[str, dict[str, list[dict[str, float]]]] = {}
+    jobs = []
     for name, tr, te in splits:
-        fx, fy = Standardizer(x[tr]), Standardizer(y[tr])
         for k in seeds:
-            model, _, _ = _train_network(fx(x[tr]), fy(y[tr]), list(s["mlp_hidden"]), s, k, "silu")
-            pred = fy.inverse(_predict_network(model, fx(x[te])))
-            for j, target in enumerate(TARGETS):
-                runs.setdefault(name, {}).setdefault(target, []).append(_scores(y[te, j], pred[:, j]))
+            jobs.append(Job(f"seed:{name}:{k}", {"kind": "seed", "x": x, "y": y, "case_of": case_of,
+                                                "train": tr, "test": te, "settings": s, "seed": k, "fold": name}))
+    results, execution = run_jobs(jobs, _learning_job, workers=workers, checkpoint_dir=checkpoint_dir,
+                                  fingerprint=fingerprint, validate=_validate_job, progress=_job_progress)
+    runs: dict[str, dict[str, list[dict[str, Any]]]] = {}
+    for job, result in zip(jobs, results):
+        name = job.payload["fold"]
+        for target in TARGETS:
+            runs.setdefault(name, {}).setdefault(target, []).append(result["data"][target])
     folds = [name for name, _, _ in splits if name != "interpolation"]
     summary = {}
     for target in TARGETS:
-        loco_mean = [float(np.mean([runs[h][target][i]["rmse"] for h in folds])) for i in range(len(seeds))]
-        loco_median_r2 = [float(np.median([runs[h][target][i]["r2"] for h in folds])) for i in range(len(seeds))]
+        records = [[runs[h][target][i] for h in folds] for i in range(len(seeds))]
+        loco_mean = [_aggregate(rows, "rmse", "mean") for rows in records]
+        loco_median_r2 = [_aggregate(rows, "r2", "median") for rows in records]
         summary[target] = {"interpolation_rmse": [r["rmse"] for r in runs["interpolation"][target]],
                            "loco_rmse_mean": loco_mean, "loco_r2_median": loco_median_r2,
+                           "loco_folds": [_fold_counts(rows) for rows in records],
                            "loco_rmse_by_case": {h: [r["rmse"] for r in runs[h][target]] for h in folds}}
-    return {"seeds": seeds, "summary": summary}
+    return {"seeds": seeds, "summary": summary, "scores": runs, "execution": execution}
 
 
 def guard(x: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int) -> dict[str, Any]:
@@ -530,48 +589,153 @@ def export_onnx(model, n_inputs: int, path: Path, input_name: str, output_name: 
 
 # ---- the lane ----
 
-def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] = CASES, **overrides: Any) -> dict[str, Any]:
+def _fold_counts(scores: list[dict[str, Any]]) -> dict[str, int]:
+    scored = sum(score["valid_for_scoring"] is True for score in scores)
+    return {"attempted": len(scores), "scored": scored, "rejected": len(scores) - scored}
+
+
+def _aggregate(scores: list[dict[str, Any]], metric: str, statistic: str) -> float | None:
+    values = [score[metric] for score in scores if score["valid_for_scoring"]]
+    return float({"mean": np.mean, "max": np.max, "median": np.median}[statistic](values)) if values else None
+
+
+def common_cohort(folds: list[dict[str, Any]], key: str, target: str) -> dict[str, Any]:
+    """Compare every model on the same admissible folds; retain all excluded identifiers."""
+    common = [fold for fold in folds if all(fold["models"][model][target]["valid_for_scoring"] for model in MODELS)]
+    return {"attempted": len(folds), "folds": [fold[key] for fold in common],
+            "excluded": [fold[key] for fold in folds if fold not in common],
+            "models": {model: {"rmse_mean": _aggregate([fold["models"][model][target] for fold in common], "rmse", "mean"),
+                               "r2_median": _aggregate([fold["models"][model][target] for fold in common], "r2", "median")}
+                       for model in MODELS}}
+
+
+def _job_progress(job_id: str, completed: int, total: int, resumed: bool) -> None:
+    print(f"learning job {completed}/{total}: {job_id} ({'verified checkpoint' if resumed else 'computed'})", flush=True)
+
+
+def _validate_job(result: dict[str, Any]) -> None:
+    if result.get("kind") == "design":
+        design = result["data"]
+        x, y = np.asarray(design["x"]), np.asarray(design["y"])
+        if x.ndim != 2 or y.shape != (len(x), len(TARGETS)) or x.shape[1] != len(FEATURES) or (
+                len(design["case"]) != len(x) or len(design["states"]) != len(x)) or not (
+                np.isfinite(x).all() and np.isfinite(y).all()):
+            raise ValueError("Invalid checkpoint learning design")
+    elif result.get("kind") in ("evaluation", "seed"):
+        findings = record_findings(result["data"])
+        if findings:
+            raise ValueError("Invalid learning job: " + "; ".join(findings[:10]))
+    else:
+        raise ValueError("Unknown learning checkpoint result kind")
+
+
+def _learning_job(payload: dict[str, Any]) -> dict[str, Any]:
+    """Spawn-safe independent work; fitted objects never cross the checkpoint boundary."""
+    kind = payload["kind"]
+    if kind == "design":
+        design = build_design(payload["contract"], payload["cases"], payload["per_case"], payload["seed"])
+        for name in ("x", "y", "case"):
+            design[name] = design[name].tolist()
+        return {"kind": kind, "data": design}
+    x, y, case_of = payload["x"], payload["y"], payload["case_of"]
+    tr, te, s, seed, name = (payload[k] for k in ("train", "test", "settings", "seed", "fold"))
+    protocol = "interpolation" if name == "interpolation" else payload.get("protocol", "leave_one_case_out")
+    if kind == "seed":
+        fx, fy = Standardizer(x[tr]), Standardizer(y[tr])
+        model, _, _ = _train_network(fx(x[tr]), fy(y[tr]), list(s["mlp_hidden"]), s, seed, "silu")
+        pred = fy.inverse(_predict_network(model, fx(x[te])))
+        data = {target: _scores(y[te, j], pred[:, j], case_of[te], reference=y[:, j],
+                               evaluation={"method": "mlp", "target": target, "protocol": protocol, "fold": name, "seed": seed},
+                               allow_rejection=protocol != "interpolation") for j, target in enumerate(TARGETS)}
+        return {"kind": kind, "data": data}
+    if kind != "evaluation":
+        raise ValueError(f"Unknown learning job {kind}")
+    data = fit_and_score(x, y, tr, te, s, seed, case_of[te], protocol=protocol, fold=name)
+    hgb = data.pop("_hgb")
+    g = guard(x, tr, te, s, seed)
+    if protocol == "interpolation":
+        data["permutation_importance"] = importance(hgb, x, y, te, Standardizer(x[tr]), s, seed, case_of)
+        data["case_mean_baseline"] = case_mean_baseline(y, tr, te, case_of, seed)
+        data["guard"] = {k: v for k, v in g.items() if not k.startswith("_")}
+    else:
+        data["mlp_training"].pop("validation_history", None)
+        data["held_out_flag_rate"] = float(g["false_alarm_rate"])
+    return {"kind": kind, "data": data}
+
+
+def _fingerprint(contract: dict[str, Any], cases: tuple[CaseDef, ...], s: dict[str, Any]) -> tuple[str, dict[str, Any]]:
+    """Same source, design, contract, dependencies and compute device, never an old-release shortcut."""
+    import torch
+
+    root = Path(__file__).resolve().parents[3]
+    sources = sorted((root / "data-pipeline" / "pipeline").rglob("*.py"))
+    sources += sorted((root / "data-pipeline" / "pipeline").rglob("*.json"))
+    sources += sorted((root / "data-pipeline").glob("requirements*.txt"))
+    sources.append(root / "VERSION")
+    versions = {name: importlib.metadata.version(name) for name in (
+        "numpy", "scipy", "scikit-learn", "torch", "onnx", "onnxruntime")}
+    device = _torch_device(s["device"])
+    identity = {"policy": "oreflow.learning/v2", "contract": contract, "cases": [asdict(c) for c in cases],
+                "settings": s, "versions": versions, "device": str(device), "cuda": torch.version.cuda,
+                "runtime": {"python": platform.python_version(), "platform": platform.platform(),
+                            "torch_threads": torch.get_num_threads(), "dtype": str(torch.get_default_dtype()),
+                            "cudnn": torch.backends.cudnn.version(), "tf32": torch.backends.cuda.matmul.allow_tf32,
+                            "threads": {key: os.environ.get(key) for key in (
+                                "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS")}},
+                "hardware": torch.cuda.get_device_name(device) if device.type == "cuda" else "cpu",
+                "sources": {str(path.relative_to(root)).replace("\\", "/"): hashlib.sha256(path.read_bytes()).hexdigest()
+                            for path in sources}}
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()
+    digest = hashlib.sha256(encoded).hexdigest()
+    return digest, {"fingerprint": digest, "device": str(device), "versions": versions}
+
+
+def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] = CASES, *,
+        learning_workers: int = 1, checkpoint_dir: Path | None = None, **overrides: Any) -> dict[str, Any]:
     s = settings(**overrides)
     seed = int(s["seed"])
     started = time.perf_counter()
-    design = build_design(contract, cases, int(s["design_points_per_case"]), seed)
+    models_dir.mkdir(parents=True, exist_ok=True)
+    fingerprint, execution = _fingerprint(contract, cases, s)
+    results, design_execution = run_jobs([Job("design", {"kind": "design", "contract": contract, "cases": cases,
+                                                       "per_case": int(s["design_points_per_case"]), "seed": seed})],
+                                        _learning_job, checkpoint_dir=checkpoint_dir, fingerprint=fingerprint,
+                                        validate=_validate_job, progress=_job_progress)
+    design = results[0]["data"]
+    for key in ("x", "y", "case"):
+        design[key] = np.asarray(design[key])
     x, y, case_of = design["x"], design["y"], design["case"]
     print(f"learning evaluation: {len(x)} rows; device={s['device']}; interpolation", flush=True)
     train, test = interpolation_split(case_of, float(s["test_fraction"]), seed)
-    interpolation = fit_and_score(x, y, train, test, s, seed, case_of[test])
-    hgb = interpolation.pop("_hgb")
-    fx = Standardizer(x[train])
-    interpolation["permutation_importance"] = importance(hgb, x, y, test, fx, s, seed, case_of)
-    interpolation["case_mean_baseline"] = case_mean_baseline(y, train, test, case_of)
-    guard_interp = guard(x, train, test, s, seed)
-    print(f"learning evaluation: interpolation complete ({time.perf_counter() - started:.0f}s); leave-one-case-out", flush=True)
+    groups = transfer_groups(cases)
+    specifications = [("interpolation", "interpolation", train, test)] + [
+        ("leave_one_case_out", name, tr, te) for name, tr, te in leave_one_case_out(case_of)] + [
+        ("transfer", name, tr, te) for name, tr, te in leave_one_group_out(case_of, groups)]
+    jobs = [Job(f"evaluation:{protocol}:{name}", {"kind": "evaluation", "x": x, "y": y, "case_of": case_of,
+                "train": tr, "test": te, "settings": s, "seed": seed, "fold": name, "protocol": protocol})
+            for protocol, name, tr, te in specifications]
+    evaluations, evaluation_execution = run_jobs(jobs, _learning_job, workers=learning_workers, checkpoint_dir=checkpoint_dir,
+                                                fingerprint=fingerprint, validate=_validate_job, progress=_job_progress)
+    interpolation = evaluations[0]["data"]
+    guard_interp = interpolation.pop("guard")
     folds = []
-    for held_out, tr, te in leave_one_case_out(case_of):
-        fold = fit_and_score(x, y, tr, te, s, seed)
-        fold.pop("_hgb", None)
-        g = guard(x, tr, te, s, seed)
-        folds.append({"held_out": held_out, "train_rows": int(len(tr)), "test_rows": int(len(te)), "models": fold["models"],
+    grouped = []
+    for (protocol, name, tr, te), result in zip(specifications[1:], evaluations[1:]):
+        fold = result["data"]
+        item = {"train_rows": int(len(tr)), "test_rows": int(len(te)), "models": fold["models"],
                       # M-07: the held-out case's own spread, so an R2 is read beside the RMSE it comes from
                       "spread": {target: float(np.std(y[te, j])) for j, target in enumerate(TARGETS)},
                       "equal_rows": fold.get("equal_rows", {}),
                       "mlp_training": {k: v for k, v in fold["mlp_training"].items() if k != "validation_history"},
-                      "held_out_flag_rate": float(g["false_alarm_rate"])})
-        print(f"learning evaluation: held-out case {held_out} ({len(folds)}/{len(cases)}, {time.perf_counter() - started:.0f}s)", flush=True)
-    # transfer: a whole ore group held out, so no sibling with the same carrier mineral stays in training (L-01)
-    groups = transfer_groups(cases)
-    grouped = []
-    for key, tr, te in leave_one_group_out(case_of, groups):
-        fold = fit_and_score(x, y, tr, te, s, seed)
-        fold.pop("_hgb", None)
-        g = guard(x, tr, te, s, seed)
-        grouped.append({"held_out_group": key, "cases": [c for c in dict.fromkeys(case_of[te].tolist())],
-                        "train_rows": int(len(tr)), "test_rows": int(len(te)), "models": fold["models"],
-                        "spread": {target: float(np.std(y[te, j])) for j, target in enumerate(TARGETS)},
-                        "held_out_flag_rate": float(g["false_alarm_rate"])})
-        print(f"learning evaluation: held-out ore group {key} ({len(grouped)}, {time.perf_counter() - started:.0f}s)", flush=True)
+                      "held_out_flag_rate": fold["held_out_flag_rate"]}
+        if protocol == "leave_one_case_out":
+            folds.append({"held_out": name, **item})
+        else:
+            grouped.append({"held_out_group": name, "cases": list(dict.fromkeys(case_of[te].tolist())), **item})
     singles = [f for f in folds if sum(1 for g in groups.values() if g == groups[f["held_out"]]) == 1]
     seeds = mlp_seeds(x, y, [("interpolation", train, test)] + [(h, tr, te) for h, tr, te in leave_one_case_out(case_of)],
-                      s, [seed + int(k) for k in s["mlp_seed_offsets"]])
+                      s, [seed + int(k) for k in s["mlp_seed_offsets"]], case_of, workers=learning_workers,
+                      checkpoint_dir=checkpoint_dir, fingerprint=fingerprint)
     print(f"learning evaluation: five-seed stability complete ({time.perf_counter() - started:.0f}s); final CUDA/CPU models and ONNX parity", flush=True)
     # the deployable surrogate and guard: every state trains them
     all_rows = np.arange(len(x))
@@ -596,37 +760,43 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
     from .screen import export as export_screen
     exports["screen"] = export_screen(models_dir, x, y, TARGETS, fx_all.mean, fx_all.scale, s, seed)
     summary: dict[str, Any] = {}
+    transfer_folds = grouped + [{"held_out_group": groups[fold["held_out"]], **fold} for fold in singles]
     for model_name in MODELS:
         summary[model_name] = {}
         for target in TARGETS:
             pooled = [f["models"][model_name][target] for f in folds]
-            transfer = [f["models"][model_name][target] for f in grouped + singles]
+            transfer = [f["models"][model_name][target] for f in transfer_folds]
             summary[model_name][target] = {
                 "interpolation_rmse": interpolation["models"][model_name][target]["rmse"],
                 "interpolation_r2": interpolation["models"][model_name][target]["r2"],
                 # against each case's own mean, beside the predictor that knows only the case (L-03)
                 "interpolation_r2_within_case": interpolation["models"][model_name][target]["r2_within_case"],
                 "case_mean_r2": interpolation["case_mean_baseline"][target]["r2"],
-                "loco_rmse_mean": float(np.mean([p["rmse"] for p in pooled])),
-                "loco_rmse_max": float(np.max([p["rmse"] for p in pooled])),
-                "loco_r2_median": float(np.median([p["r2"] for p in pooled])),
+                "loco_rmse_mean": _aggregate(pooled, "rmse", "mean"),
+                "loco_rmse_max": _aggregate(pooled, "rmse", "max"),
+                "loco_r2_median": _aggregate(pooled, "r2", "median"),
+                "loco_folds": _fold_counts(pooled),
                 # one ore group out: the grouped folds and the groups of one case (L-01)
-                "transfer_rmse_mean": float(np.mean([p["rmse"] for p in transfer])),
-                "transfer_rmse_max": float(np.max([p["rmse"] for p in transfer])),
-                "transfer_r2_median": float(np.median([p["r2"] for p in transfer])),
+                "transfer_rmse_mean": _aggregate(transfer, "rmse", "mean"),
+                "transfer_rmse_max": _aggregate(transfer, "rmse", "max"),
+                "transfer_r2_median": _aggregate(transfer, "r2", "median"),
+                "transfer_folds": _fold_counts(transfer),
             }
             if model_name == "gaussian_process":
                 # M-08: the coverage under leave one case out, beside the interpolation's
-                rows = np.array([f["test_rows"] for f in folds], dtype=float)
-                cover = np.array([p["coverage_95"] for p in pooled])
+                accepted = [p for p in pooled if p["valid_for_scoring"]]
+                rows = np.array([p["rows"] for p in accepted], dtype=float)
+                cover = np.array([p["coverage_95"] for p in accepted])
                 summary[model_name][target].update({
                     "interpolation_coverage": interpolation["models"][model_name][target]["coverage_95"],
-                    "loco_coverage_pooled": float(np.sum(cover * rows) / np.sum(rows)),
-                    "loco_coverage_worst": float(cover.min()), "loco_folds_below_80": int(np.sum(cover < float(constant("learning.coverage_floor"))))})
+                    "loco_coverage_pooled": float(np.sum(cover * rows) / np.sum(rows)) if len(accepted) else None,
+                    "loco_coverage_worst": float(cover.min()) if len(accepted) else None,
+                    "loco_folds_below_80": int(np.sum(cover < float(constant("learning.coverage_floor"))))})
             if model_name == "mlp":
                 summary[model_name][target]["seeds"] = seeds["summary"][target]
     return {
-        "schema": "oreflow.learning/v1",
+        "schema": "oreflow.learning/v2",
+        "engine_version": __version__, "contract_digest": contract["digest"],
         "features": list(FEATURES), "targets": list(TARGETS), "models": list(MODELS),
         "design": {"per_case": design["per_case"], "cases": [c.id for c in cases], "rows": int(len(x)), "seed": design["seed"],
                    "seconds": design["seconds"], "method": "scrambled Sobol over each case's Contract 1 envelope and ore factors"},
@@ -634,6 +804,7 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
         "identity": interpolation["identity"],
         "interpolation": {"train_rows": int(len(train)), "test_rows": int(len(test)), "models": interpolation["models"],
                           "mlp_training": interpolation["mlp_training"],
+                          "case_mean_baseline": interpolation["case_mean_baseline"],
                           "permutation_importance": interpolation["permutation_importance"]},
         "guard": {k: v for k, v in guard_interp.items() if not k.startswith("_")},
         "leave_one_case_out": folds,
@@ -642,6 +813,11 @@ def run(contract: dict[str, Any], models_dir: Path, cases: tuple[CaseDef, ...] =
         "equal_rows": interpolation.get("equal_rows", {}),
         "mlp_seeds": seeds,
         "summary": summary,
+        "common_cohorts": {
+            "leave_one_case_out": {target: common_cohort(folds, "held_out", target) for target in TARGETS},
+            "transfer": {target: common_cohort(transfer_folds, "held_out_group", target) for target in TARGETS}},
+        "execution": {**execution, "design": design_execution, "evaluation": evaluation_execution,
+                      "seeds": seeds["execution"]},
         "final": {"mlp_training": {k: v for k, v in final_info.items() if k != "validation_history"},
                   "guard_threshold": final_guard["threshold"], "exports": exports},
         "seconds": time.perf_counter() - started,

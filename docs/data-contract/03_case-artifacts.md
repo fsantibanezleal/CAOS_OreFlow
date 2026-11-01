@@ -39,6 +39,12 @@ factor; the classifier cut's factor applies to the nominal state's solved cut, s
 - `sensitivity`: the Sobol record, on the nominal variant only; `status: "refused_draws"` with `refused` and no
   indices where any draw of the design has no steady state.
 
+The optimization `evaluations` field is the fixed-weight multistart cache size: distinct trial states,
+including refusals, with reuse across starts counted once. Its `without_screen.evaluations` comparator
+uses a separate cache at the same weight. Both are recorded before the subsequent warm-started `path`;
+path trials, uncached base/endpoint audits, fitting and screening inference are not included. These
+counters do not instrument every simulator invocation or measure elapsed time.
+
 Because the artifact embeds the definition and the point, the browser engine recomputes every
 variant from the artifact alone; `frontend/src/test/parity.test.ts` does exactly that for all 96
 variants (PE-31), and `optimizer-parity.test.ts` re-runs the optimizer (three variants in CI, all 96 at release).
@@ -57,7 +63,12 @@ entry per case (`case_id`, `category`, `family`, `title`, `manifest_path`, `arti
 
 ## Learning record, benchmark and validation
 
-- `data/derived/learning.json` (`oreflow.learning/v1`): the learned lane of
+The learning payload is a breaking replacement of `oreflow.learning/v1`. The
+[contract catalog](../contracts/catalog.md) preserves the original v1 history, records its major
+retirement and registers the v2 contract. Consumers must migrate explicitly; a legacy score-only
+record cannot stand in for the scored/rejected evidence and complete cohorts required below.
+
+- `data/derived/learning.json` (`oreflow.learning/v2`): the learned lane of
   [methodology page 14](../methodologies/14_learned-lane.md), with the engine version and contract
   digest; the exported models live in `models/process_surrogate.onnx`, `models/process_guard.onnx`
   and `models/process_surrogate.json` (feature order, scalers, guard threshold, and a `reference`
@@ -66,6 +77,14 @@ entry per case (`case_id`, `category`, `family`, `title`, `manifest_path`, `arti
   the Gaussian process's training rows, hyperparameters, normalization and `alpha`, and a reference block of every
   case's nominal state) with `models/process_gp_cholesky.bin` (the lower Cholesky factor, float64 little-endian,
   packed by rows); the learning record's `final.exports.screen` holds the export checks.
+  Each score retains its method, target, protocol, fold and seed. A scored prediction has finite metrics;
+  a range-rejected transfer has explicit `rejected-transfer` status, `valid_for_scoring=false`, null metrics,
+  affected rows and pooled/per-case range diagnostics. Ordinary poor or constant forecasts remain scored.
+  `summary` carries attempted/scored/rejected counts beside conditional statistics, while `common_cohorts`
+  records identical admissible fold IDs across models, excluded IDs and matched statistics. Empty cohorts
+  retain null metrics. `mlp_seeds.scores` preserves each complete split/target/seed record, and interpolation
+  retains its full case-mean baseline. `execution` identifies the source/config/runtime fingerprint and actual
+  planned, resumed and computed jobs; it does not relabel an earlier release's results.
 - `data/derived/studies.json` and `data/derived/real_samples.json`: the two sections below.
 - `data/derived/source/iron_plant_soft_sensor.json` (`oreflow.iron-plant-soft-sensor/v1`): the iron-plant soft
   sensor's record, [data contract 06](06_iron-plant.md).

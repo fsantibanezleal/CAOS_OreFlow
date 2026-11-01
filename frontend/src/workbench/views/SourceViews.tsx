@@ -251,7 +251,11 @@ export function SampleView({ record, sample, recovery, p80, powerLimited, lang, 
           <p className="of-sample-text">{SOURCE_TEXT.authored[lang]}</p>
           {/* the comparison's two notes read under the facts: in the panel they crowded it while the facts' column stood
               half empty at 1600 x 900 (0.08 gate captures) */}
-          <p className="of-footnote">{SOURCE_TEXT.comparison[lang]}</p>
+          <p className="of-footnote">{SOURCE_TEXT.comparison[lang]}{' '}
+            <a href="https://github.com/fsantibanezleal/CAOS_OreFlow/blob/main/ATTRIBUTION.md#geomet" target="_blank" rel="noreferrer noopener">
+              {lang === 'es' ? 'GeoMet: Hoffimann et al., licencia CC BY 4.0.' : 'GeoMet: Hoffimann et al., CC BY 4.0.'}
+            </a>
+          </p>
           <p className="of-footnote">{gapFrame(record, lang)}</p>
         </div>
         <div className="of-aside">
@@ -331,7 +335,11 @@ export function HourView({ lane, hourKey, lang, onCursor }: { lane: IronPlant; h
           </table>
           <p className="of-footnote">{`${SOURCE_TEXT.outOfFold[lang](window.id, Math.floor(window.embargo_hours_min))} ${SOURCE_TEXT.laneNote[lang]}`}</p>
           <p className="of-footnote">{SOURCE_TEXT.heldNote[lang](lane.held_labels.run_hours_min, formatFixed(lane.held_labels.pairs_touching, lang, 0), formatFixed(lane.protocol.pair_rows, lang, 0))}</p>
-          <p className="of-footnote" role="note">{SOURCE_TEXT.caseNotEngine[lang]}</p>
+          <p className="of-footnote" role="note">{SOURCE_TEXT.caseNotEngine[lang]}{' '}
+            <a href="https://github.com/fsantibanezleal/CAOS_OreFlow/blob/main/ATTRIBUTION.md#iron-flotation-measurements" target="_blank" rel="noreferrer noopener">
+              {lang === 'es' ? 'Datos: Eduardo Magalhães de Oliveira, CC0.' : 'Data: Eduardo Magalhães de Oliveira, CC0.'}
+            </a>
+          </p>
         </div>
         <div className="of-aside">
           <table className="of-table">

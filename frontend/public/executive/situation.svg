@@ -1,1 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 300" role="img" aria-labelledby="title desc"><title id="title">A connected circuit model</title><desc id="desc">Un modelo de circuito conectado</desc><defs><style>.node{fill:var(--color-surface);stroke:var(--color-border);stroke-width:3}text{font:600 15px system-ui;fill:var(--color-fg)}.flow{fill:none;stroke:var(--color-accent);stroke-width:4;stroke-dasharray:9 8;animation:move 2s linear infinite}@keyframes move{to{stroke-dashoffset:-34}}@media(prefers-reduced-motion:reduce){.flow{animation:none}}</style></defs><rect width="900" height="300" rx="22" fill="var(--color-surface)"/><text x="36" y="45" font-family="system-ui" font-size="14" fill="var(--color-fg-subtle)">OreFlow research path</text><path class="flow" d="M 230 148 H 350"/><path class="flow" d="M 450 148 H 570"/><path class="flow" d="M 670 148 H 790"/><circle class="node" cx="180" cy="148" r="49"/><text x="180" y="154" text-anchor="middle">Ore</text><circle class="node" cx="400" cy="148" r="49"/><text x="400" y="154" text-anchor="middle">Size</text><circle class="node" cx="620" cy="148" r="49"/><text x="620" y="154" text-anchor="middle">Liberation</text><circle class="node" cx="800" cy="148" r="49"/><text x="800" y="154" text-anchor="middle">Recovery</text></svg>
+<svg xmlns="http://www.w3.org/2000/svg" id="oreflow-situation-en" viewBox="0 0 960 520" role="img" aria-labelledby="oreflow-situation-en-title oreflow-situation-en-desc" lang="en">
+<title id="oreflow-situation-en-title">Different evidence answers different questions</title>
+<desc id="oreflow-situation-en-desc">Simulator states, measured samples and plant hours retain separate targets and validation splits.</desc>
+<defs><style>#oreflow-situation-en text{font:26px var(--font-sans,system-ui);fill:var(--color-fg)}#oreflow-situation-en .title{font-size:30px;font-weight:650}#oreflow-situation-en .heading{font-size:27px;font-weight:650}#oreflow-situation-en .panel{fill:var(--color-surface);stroke:var(--color-border);stroke-width:2}#oreflow-situation-en .soft{fill:var(--color-surface-2);stroke:var(--color-border);stroke-width:2}#oreflow-situation-en .line{fill:none;stroke:var(--color-fg-subtle);stroke-width:3}#oreflow-situation-en .flow{fill:none;stroke:var(--color-accent);stroke-width:3;stroke-dasharray:9 7;animation:oreflow-situation-en-flow 2s linear 5}#oreflow-situation-en .recycle{stroke-dasharray:5 5}#oreflow-situation-en .accent{fill:var(--color-accent);stroke:none}@keyframes oreflow-situation-en-flow{to{stroke-dashoffset:-32}}@media(prefers-reduced-motion:reduce){#oreflow-situation-en .flow{animation:none}}</style><marker id="oreflow-situation-en-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path class="accent" d="M0 0 10 5 0 10Z"/></marker></defs>
+<text x="24" y="40" class="title" text-anchor="start">Different evidence answers different questions</text>
+<rect class="panel" x="24" y="78" width="288" height="300" rx="12"/><text x="40" y="113" class="heading" text-anchor="start">Simulator states</text>
+<text x="40" y="278" class="body" text-anchor="start">Declared inputs</text>
+<text x="40" y="314" class="body" text-anchor="start">Simulator targets</text>
+<text x="40" y="350" class="body" text-anchor="start">Hold out ores</text>
+<rect class="panel" x="336" y="78" width="288" height="300" rx="12"/><text x="352" y="113" class="heading" text-anchor="start">Measured samples</text>
+<text x="352" y="278" class="body" text-anchor="start">Assay observations</text>
+<text x="352" y="314" class="body" text-anchor="start">Respect groups</text>
+<text x="352" y="350" class="body" text-anchor="start">Sample uncertainty</text>
+<rect class="panel" x="648" y="78" width="288" height="300" rx="12"/><text x="664" y="113" class="heading" text-anchor="start">Plant hours</text>
+<text x="664" y="278" class="body" text-anchor="start">Past observations</text>
+<text x="664" y="314" class="body" text-anchor="start">Next-hour target</text>
+<text x="664" y="350" class="body" text-anchor="start">Forward time split</text>
+<rect class="soft" x="54" y="156" width="58" height="48" rx="6"/>
+<rect class="soft" x="130" y="156" width="58" height="48" rx="6"/>
+<rect class="soft" x="206" y="156" width="58" height="48" rx="6"/>
+<path class="flow" d="M112 180H130" marker-end="url(#oreflow-situation-en-arrow)"/>
+<path class="flow" d="M188 180H206" marker-end="url(#oreflow-situation-en-arrow)"/>
+<path class="flow recycle" d="M234 204V224H82V208" marker-end="url(#oreflow-situation-en-arrow)"/>
+<path class="line" d="M382 148h24v28l12 38q0 10-12 10h-24q-12 0-12-10l12-38Z"/>
+<path class="flow" d="M378 200h32"/>
+<path class="line" d="M454 148h24v28l12 38q0 10-12 10h-24q-12 0-12-10l12-38Z"/>
+<path class="flow" d="M450 200h32"/>
+<path class="line" d="M526 148h24v28l12 38q0 10-12 10h-24q-12 0-12-10l12-38Z"/>
+<path class="flow" d="M522 200h32"/>
+<rect class="soft" x="672" y="154" width="110" height="70" rx="6"/>
+<rect class="soft" x="808" y="154" width="104" height="70" rx="6"/>
+<path class="line" d="M795 142V236" stroke-dasharray="6 6"/>
+<text x="727" y="198" class="body" text-anchor="middle">Past</text>
+<text x="860" y="198" class="body" text-anchor="middle">Next</text>
+<rect class="soft" x="24" y="412" width="912" height="94" rx="12"/>
+<text x="44" y="450" class="body" text-anchor="start">Keep the target, split and source with each result.</text>
+<text x="44" y="486" class="body" text-anchor="start">A closed simulator balance is not plant calibration.</text>
+</svg>

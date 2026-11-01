@@ -75,7 +75,11 @@ so instead of naming a winner (review of 2026-10-02, M-05).
 ## Predicting new samples
 
 `scripts/precompute.ps1` fits each model once more on all 52 tests into a local checkpoint
-(`models/geomet_lct.joblib`, ignored by git). `scripts/predict-geomet.ps1 INPUT.csv OUTPUT.csv` (or the shell
+(`<CAOS_MODELS_ROOT>/oreflow/geomet_lct.joblib`, outside the checkout, or an external `--checkpoint` file).
+The source cache is `<CAOS_DATA_ROOT>/oreflow/raw/`; roots are read at call time from the process environment
+or explicit runner arguments. Existing files passed with `--source` remain read-only, including legacy checkout
+inputs; missing explicit files are refused. `.env` is not automatically loaded.
+`scripts/predict-geomet.ps1 INPUT.csv OUTPUT.csv` (or the shell
 counterpart) predicts the recovery of new assays with it: each output row carries the four predictions, the count of
 missing assays and a flag when any assay lies outside the range of the 52 training tests. The checkpoint is refused
 when it was fitted on another source file or another feature list. It is a Python pickle: load only one this

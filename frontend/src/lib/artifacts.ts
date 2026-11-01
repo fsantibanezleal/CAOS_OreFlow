@@ -5,18 +5,20 @@
 import type { OperatingContract } from '../engine/contract';
 import type { Benchmark, CaseArtifact, CaseIndex, CaseManifest, LearningRecord, ValidationRecord } from './artifacts.types';
 import { APP_VERSION } from './version';
+import { readOperatingContract, readLearningRecord } from '../contracts/boundaries';
 
 const base = import.meta.env.BASE_URL;
 
 const loads = new Map<string, Promise<unknown>>();
 
 /** One request per file and page session; a failed request is forgotten, so it can be retried. */
-function get<T>(path: string): Promise<T> {
+function get<T>(path: string, decode?: (payload: unknown) => T): Promise<T> {
   let load = loads.get(path);
   if (!load) {
-    load = fetch(`${base}data/${path}?v=${encodeURIComponent(APP_VERSION)}`, { cache: 'no-store' }).then(response => {
+    load = fetch(`${base}data/${path}?v=${encodeURIComponent(APP_VERSION)}`, { cache: 'no-store' }).then(async response => {
       if (!response.ok) throw new Error(`${response.status} ${path}`);
-      return response.json();
+      const payload: unknown = await response.json();
+      return decode ? decode(payload) : payload;
     });
     load.catch(() => loads.delete(path));
     loads.set(path, load);
@@ -27,9 +29,9 @@ function get<T>(path: string): Promise<T> {
 export const loadIndex = () => get<CaseIndex>('manifests/index.json');
 export const loadManifest = (id: string) => get<CaseManifest>(`manifests/${id}.json`);
 export const loadCase = (id: string) => get<CaseArtifact>(`cases/${id}.json`);
-export const loadContract = () => get<OperatingContract>('contract/operating_contract.json');
+export const loadContract = () => get<OperatingContract>('contract/operating_contract.json', readOperatingContract);
 export const loadBenchmark = () => get<Benchmark>('benchmark.json');
-export const loadLearning = () => get<LearningRecord>('learning.json');
+export const loadLearning = () => get<LearningRecord>('learning.json', readLearningRecord);
 export const loadValidation = () => get<ValidationRecord>('validation.json');
 
 export type ParticleThreshold = { threshold: number; selected_fraction: number; expected_recovery: number; expected_grade_proxy: number };

@@ -44,7 +44,8 @@ worker = new Worker(new URL('./worker.ts', import.meta.url), { type: 'module' })
 ```
 
 Vite recognizes the `new URL(..., import.meta.url)` pattern and bundles `engine/worker.ts` and the
-whole engine into their own module (`worker-*.js`, about 94 KB), loaded on the first evaluation.
+whole engine into their own module (`worker-*.js`), loaded on the first evaluation. Current byte counts
+come from the release build rather than a fixed estimate in this guide.
 
 ## The build condition for the ONNX runtime (`vite.config.ts`)
 
@@ -60,12 +61,15 @@ overlay) instead of embedding a second, hashed 14 MB copy in the bundle.
 
 ## Code splitting
 
-The content pages and the focus route are separate chunks (React's `lazy`), and so are the worker and
-the ONNX runtime loader. The main chunk (the shell, React, the workbench, uPlot, KaTeX) is about 780 KB,
-250 KB compressed, which is why Vite prints its chunk-size notice; the workbench needs all of it on
-first paint.
+The Introduction loads eagerly. The other content pages and the workbench use React's `lazy`; Focus
+is composed within the workbench rather than mounted as a separate route. The worker and ONNX runtime
+loader have their own chunks. `build.rolldownOptions.output.codeSplitting.groups` declares separate
+React and math vendor groups. The release build reports the resulting artifact sizes.
 
 ## The test suites (Vitest, `environment: 'node'`)
+
+The table is the historical 0.08.000 inventory. Current files also include contract-generation, learning-v2
+evidence and chart-navigation regressions; the exact current suite result belongs to release verification.
 
 | File | Tests in 0.08.000 | Verifies |
 |---|---|---|

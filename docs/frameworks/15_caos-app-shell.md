@@ -1,31 +1,31 @@
 # 15 The CAOS app shell
 
-`@fasl-work/caos-app-shell` is the design system every public app of the CAOS line shares: the header
-and navigation, the theme and language toggles, the footer, the page body, tabs and sub-tabs, the case
-selector, the focus layout, the architecture modal, and the equation, callout, figure and reference
-blocks. OreFlow adopts it whole and builds nothing the shell provides. Where the shell has a defect,
-OreFlow applies the override the line's shared register prescribes, names the defect next to the
-override, and a gate checks it. lucide-react supplies the product mark in the header.
+`@fasl-work/caos-app-shell` supplies OreFlow's shared header, navigation, theme and language
+controls, footer, architecture modal, workbench layout, focus surface and content primitives.
+The shell also owns document language, navigation overflow fades and architecture-toggle theming.
+OreFlow composes these with its process controls, views and engine state. lucide-react supplies the
+Pickaxe product mark. The guide describes the installed release and the current product source.
 
 ## At a glance
 
 | | |
 |---|---|
 | Packages | `@fasl-work/caos-app-shell`, `lucide-react` |
-| Versions | 0.6.11 (the Git tag `v0.06.011`), 1.43.0 |
+| Versions | npm `0.19.11` (release `v0.19.011`), `1.43.0` |
 | Licences | MIT, ISC |
-| Declared in | `frontend/package.json`: `"@fasl-work/caos-app-shell": "github:fsantibanezleal/CAOS_APP_SHELL#v0.06.011"` |
-| Configured in | `frontend/src/main.tsx` (the `ShellConfig`), `frontend/src/content/architecture.ts` (the modal) |
-| Peers it expects | React 18 or 19, react-router 6 to 8, zustand 4 or 5, KaTeX 0.16, lucide-react 0.400 or later |
-| Defect register | kept by the shell's maintainers outside this repository; the comment beside each override here names the defect by its number and says what it fixes |
+| Declared in | `frontend/package.json`, exact npm pin `"@fasl-work/caos-app-shell": "0.19.11"` |
+| Locked in | `frontend/package-lock.json`, registry tarball URL and SHA-512 integrity |
+| Configured in | `frontend/src/main.tsx`, `frontend/src/content/architecture.ts` |
+| Layout and focus | `WorkbenchLayout`, `FocusShell`, `useFocusMode` |
+| Styles | shared `styles.css`, then `workbench/workbench.css` and `frontend/src/content/content.css` |
 
 ## Read in order
 
-1. [Installation](15_caos-app-shell/01_installation.md): the Git pin, the stylesheet, the peers.
-2. [Usage in OreFlow](15_caos-app-shell/02_usage.md): the configuration, the components used, and every
-   override with the defect it answers and the gate that checks it.
-3. [Applying it](15_caos-app-shell/03_applying.md): upgrading the pin, and what to do on finding a new
-   shell defect.
+1. [Installation](15_caos-app-shell/01_installation.md): the npm pin, lockfile, stylesheet and peers.
+2. [Usage in OreFlow](15_caos-app-shell/02_usage.md): containment, routes, composition, citations and
+   the customizations actually present.
+3. [Applying it](15_caos-app-shell/03_applying.md): adopting another release and checking the result.
 
-Related: [10 React](10_react.md), [12 uPlot](12_uplot.md), [13 KaTeX](13_katex.md),
-[14 Playwright](14_playwright.md), [architecture 04](../architecture/04_web-app.md).
+Related: [all frameworks](../frameworks.md), [10 React](10_react.md), [12 uPlot](12_uplot.md),
+[13 KaTeX](13_katex.md), [14 Playwright](14_playwright.md),
+[architecture 04](../architecture/04_web-app.md).

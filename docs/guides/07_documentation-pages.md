@@ -1,9 +1,9 @@
 # Guide: the five documentation pages
 
 Every product carries five documentation pages: Introduction, Methodology, Implementation, Experiments and
-Benchmark. This guide says what each must contain. It is transcribed from ADR-0017 section 2.1 of CAOS_MANAGE
-(`conventions/architecture/1-frontend/ADR-0017-rotorvitals-frontend-bar.md`, amended 2026-10-12), which is the binding
-text; if the two differ, the ADR wins and this guide is wrong.
+Benchmark. This guide states their content and interaction requirements directly. The product's
+[design document](../design/SDD.md) records the requirements and their executable checks;
+the public [shared shell](https://github.com/fsantibanezleal/CAOS_APP_SHELL) provides their layout and accessibility primitives.
 
 Two rules hold for the header and the layout, whatever a product adds (Felipe, 2026-10-13, shell 0.13.1). The header
 order is always App, Introduction, Methodology, Implementation, Experiments, Benchmark: the App is the leftmost tab, and

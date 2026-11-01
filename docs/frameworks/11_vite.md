@@ -11,7 +11,7 @@ once.
 | | |
 |---|---|
 | Packages | `vite`, `@vitejs/plugin-react`, `typescript`, `vitest` |
-| Versions | 8.2.2, 6.1.1, 7.0.2, 5.0.0 |
+| Versions | 8.3.5, 6.1.1, 7.0.2, 5.0.5 |
 | Licences | MIT, MIT, Apache-2.0, MIT |
 | Declared in | `frontend/package.json` (devDependencies) |
 | Configuration | `frontend/vite.config.ts` (build, dev server, test environment), `frontend/tsconfig.json` |
@@ -21,7 +21,7 @@ once.
 ## Read in order
 
 1. [Installation](11_vite/01_installation.md): the pins, Node, and the npm scripts.
-2. [Usage in OreFlow](11_vite/02_usage.md): the data overlay, the build condition, the Pages plugin, the
+2. [Usage in OreFlow](11_vite/02_usage.md): the data overlay, the build condition, code splitting, the
    imports that tie the port to the Python engine's files, the worker, and the test suites.
 3. [Applying it](11_vite/03_applying.md): adding a test, changing the base path, and the traps of a
    static build.

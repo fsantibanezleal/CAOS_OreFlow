@@ -1,5 +1,29 @@
 # Changelog
 
+## [0.10.008] - 2026-11-01
+
+### Changed
+- Adopt CAOS Product Template 0.14.002, including structured deployment-target validation, complete local workflows and bounded CI jobs; retain the single ML VPS deployment.
+- Adopt shared-shell npm release 0.19.11, including measured document traversal and transformed executive-label bounds; remove the Introduction's duplicate framing and update the framework guide.
+- Use the shell's document-language synchronization, navigation overflow handling and themed architecture control; remove obsolete product copies and overrides.
+- Run the complete repository guard set from both local smoke commands, including manuscripts, notebooks, contracts, readiness, deployment and web-baseline checks.
+- Regenerate the release artifacts with the production pipeline and CUDA training at the current release version.
+- Validate nested operating and learning records in the browser and producer gates, generating consumer declarations from the shared schemas.
+- Replace generic notebook experiments with topic-specific fitting, simulation, optimization and uncertainty lessons in English and Spanish.
+- Add chart panning, heatmap scale and region controls, and linked response slices with keyboard navigation.
+- Resolve raw-data and checkpoint locations from configured external roots; make local launch honor the frontend lockfile.
+- Record dataset and trained-model licences, attribution and downstream reuse terms alongside source links.
+- Pin Vitest 5.0.5 with the manual-mock registration and Windows redirect-allowlist security fixes.
+- Add numbered local workflows with staged generation, source-bound receipts, complete admission checks and owned development-process cleanup; validate all ten framework examples against production APIs.
+- Run all product guard plants in a separate bounded CI job while retaining the complete static release checks.
+
+### Fixed
+- Treat numerically constant training features as unit scale rather than dividing by roundoff-sized variance, which could produce enormous held-out-ore predictions.
+- Check prediction finiteness and observable ranges during scoring and recheck persisted diagnostics before release; retain constant forecasts as explicitly identified negative evidence.
+- Preserve finite range-rejected transfers with null scores, complete fold denominators and matched comparisons; expose the rejected folds and seed instability in the app, notebooks and report.
+- Translate the learned-comparison equation labels and retain its common-fold intersection in both languages.
+- Serve the copied ONNX module correctly in local Vite development, with exact-byte and native import-rule regression checks; retain the production runtime files.
+
 ## [0.10.007] - 2026-10-31
 
 ### Changed

@@ -3,37 +3,13 @@
  * It interprets only the exported contract document, so the browser and the API accept and reject exactly
  * the same states with the same codes; contract_probes.json holds the verdicts both must reproduce.
  */
-export type ContractInput = {
-  name: string; unit: string; bounds: string; low: number; high: number; step: number; integer: boolean; families: string[];
-  label: { en: string; es: string }; help: { en: string; es: string }; display_scale: number; display_unit: string;
-};
-/** A case's bounds of one input; `off` is the value that turns the input off (the classifier cut's target mode). */
-export type CaseBounds = { min: number; max: number; step: number; unit: string; off?: number; reference?: number };
-export type ContractCase = {
-  family: string;
-  primary: { species: string; unit: string };
-  nominal: Record<string, number>;
-  inputs: Record<string, CaseBounds>;
-};
-export type ContractRule = {
-  id: string; families: string[]; left: string; relation: string; factor: number; right: string; message: { en: string; es: string };
-};
-export type OperatingContract = {
-  schema: string;
-  fields: string[];
-  families: string[];
-  inputs: ContractInput[];
-  rules: ContractRule[];
-  messages: Record<string, { en: string; es: string }>;
-  cases: Record<string, ContractCase>;
-  controls?: Record<string, ContractControl>;
-  digest: string;
-};
-/** A control of a method record (UQ-07): the workbench re-runs the record with it; it is not a plant input. */
-export type ContractControl = {
-  min: number; max: number; step: number; integer: boolean; unit: string; default: number;
-  label: { en: string; es: string }; help: { en: string; es: string };
-};
+// Wire shapes come only from the canonical schemas. Verdict/error types below belong
+// to the validator's domain and remain independent of the serialized document.
+export type {
+  OperatingContract, ContractInput, CaseBounds, ContractCase, ContractRule, ContractControl,
+} from '../generated/oreflow-contract-v1';
+import type { OperatingContract, ContractInput } from '../generated/oreflow-contract-v1';
+
 export type ContractError = { code: string; input: string | null; value?: number; min?: number; max?: number; step?: number };
 export type Verdict = { accepted: boolean; point: Record<string, number> | null; errors: ContractError[] };
 

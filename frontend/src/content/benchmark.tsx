@@ -7,6 +7,8 @@
 import { useState } from 'react';
 import type uPlot from 'uplot';
 import { Chart } from '../components/charts/Chart';
+import { LearningComparison } from '../learning/comparison';
+import { LearningEvidence } from './implementation/learned';
 import { loadBenchmark, loadContract, loadIndex, loadLearning } from '../lib/artifacts';
 import type { Benchmark, CaseIndex } from '../lib/artifacts.types';
 import { formatFixed, formatFraction, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../lib/format';
@@ -158,17 +160,7 @@ const TEXT = {
   domRec: { en: 'Drives recovery', es: 'Domina la recuperación' },
   domGrade: { en: 'Drives grade', es: 'Domina la ley' },
   uncCaption: { en: 'The uncertainty record of every nominal state: quantiles, the probability of meeting each constraint and all of them, and the ore input with the largest total Sobol index.', es: 'El registro de incertidumbre de cada estado nominal: cuantiles, la probabilidad de cumplir cada restricción y todas, y la entrada del mineral con el mayor índice total de Sobol.' },
-  target: { en: 'Target', es: 'Objetivo' },
-  interp: { en: 'interpolation R²', es: 'R² de interpolación' },
-  loco: { en: 'one-case-out median R²', es: 'R² mediano dejando un caso fuera' },
-  group: { en: 'one-group-out median R²', es: 'R² mediano dejando fuera un grupo' },
-  locoRmse: { en: 'One-case-out mean RMSE', es: 'RMSE medio dejando un caso fuera' },
-  learnTitle: { en: 'Interpolation against transfer (one ore group out)', es: 'Interpolación frente a transferencia (un grupo de mineral fuera)' },
-  learnSummary: { en: 'The interpolation R² and the median one-ore-group-out R² of the five models for the chosen target; the table also gives one case out.', es: 'El R² de interpolación y el R² mediano dejando fuera un grupo de mineral de los cinco modelos para el objetivo elegido; la tabla da también un caso fuera.' },
-  learnCaption: { en: 'The three protocols of the learned lane for every model and target (interpolation, one case out, one ore group out), from the learning record; the Gaussian process\'s 95% intervals cover {cov} of the held-out states.', es: 'Los tres protocolos de la vía aprendida para cada modelo y objetivo (interpolación, un caso fuera, un grupo de mineral fuera), desde el registro de aprendizaje; los intervalos del 95% del proceso gaussiano cubren {cov} de los estados reservados.' },
-  heldOut: { en: 'Held-out case', es: 'Caso reservado' },
-  flagRate: { en: 'Guard flags', es: 'Marcas del guardia' },
-  foldCaption: { en: 'Each one-case-out fold: the share of the held-out plant\'s states the guard flags, and each model\'s recovery R² on that plant.', es: 'Cada partición dejando un caso fuera: la fracción de estados de la planta reservada que marca el guardia, y el R² de recuperación de cada modelo en esa planta.' },
+
 };
 
 const fill = (template: string, values: Record<string, string>) => template.replace(/\{(\w+)\}/g, (_, key: string) => values[key] ?? key);
@@ -552,89 +544,20 @@ function UncertaintyTable({ lang }: { lang: Lang }) {
   );
 }
 
-const LEARN_MODELS = ['ridge', 'random_forest', 'hist_gradient_boosting', 'gaussian_process', 'mlp'];
-const TARGETS = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'];
-
 function LearnedChart({ lang }: { lang: Lang }) {
   const learning = useArtifact(loadLearning);
-  const [target, setTarget] = useState('recovery_pct');
-  const [reading, setReading] = useState<string | null>(null);
-  return (
-    <Loaded lang={lang} errors={[learning.error]} ready={Boolean(learning.value)}>
-      {() => {
-        const s = learning.value!.summary;
-        const interp = LEARN_MODELS.map(m => s[m][target].interpolation_r2), loco = LEARN_MODELS.map(m => s[m][target].loco_r2_median);
-        // one ore group out, the transfer protocol (L-01); a record without it draws no bar rather than another protocol's
-        const group = LEARN_MODELS.map(m => s[m][target].transfer_r2_median ?? null);
-        return (
-          <div className="of-doc-panel">
-            <label className="of-doc-control"><span>{TEXT.target[lang]}</span>
-              <select value={target} onChange={e => setTarget(e.target.value)}>{TARGETS.map(id => <option key={id} value={id}>{t(TARGET[id], lang)}</option>)}</select></label>
-            <div className="of-doc-chart of-doc-chart-narrow">
-              <Chart data={[LEARN_MODELS.map((_, i) => i), interp, group] as uPlot.AlignedData} categories={LEARN_MODELS.map(m => short(m, lang))}
-                xLabel={TEXT.model[lang]} yLabel="R²" title={TEXT.learnTitle[lang]} summary={TEXT.learnSummary[lang]}
-                series={[{ label: TEXT.interp[lang], colour: 'accent', bars: true, align: -1 }, { label: TEXT.group[lang], colour: 'warn', bars: true, align: 1 }]}
-                levels={[{ y: 0, label: '0' }]} format={(v, axis) => (axis === 'x' ? '' : formatFixed(v, lang, 3))}
-                onCursor={c => setReading(c ? `${t(MODEL[LEARN_MODELS[c.index]], lang)}: ${TEXT.interp[lang]} ${formatFixed(interp[c.index], lang, 3)}, ${group[c.index] !== null ? `${TEXT.group[lang]} ${formatFixed(group[c.index] as number, lang, 3)}, ` : ''}${TEXT.loco[lang]} ${formatFixed(loco[c.index], lang, 3)}` : null)} />
-            </div>
-            <Reading text={reading} lang={lang} />
-          </div>
-        );
-      }}
-    </Loaded>
-  );
+  return <Loaded lang={lang} errors={[learning.error]} ready={Boolean(learning.value)}>
+    {() => <LearningComparison record={learning.value!} lang={lang} />}
+  </Loaded>;
 }
 
 function LearnedTables({ lang }: { lang: Lang }) {
   const index = useArtifact(loadIndex);
   const learning = useArtifact(loadLearning);
-  return (
-    <Loaded lang={lang} errors={[index.error, learning.error]} ready={Boolean(index.value && learning.value)}>
-      {() => {
-        const l = learning.value!;
-        const gp = l.interpolation.models.gaussian_process as Record<string, Record<string, number>>;
-        const coverage = TARGETS.map(id => formatFraction(gp[id].coverage_95, lang, 1)).join(', ');
-        return (
-          <div className="of-doc-panel">
-            <div className="of-doc-scroll">
-              <table className="of-doc-table of-doc-table-data">
-                <caption>{fill(TEXT.learnCaption[lang], { cov: coverage })}</caption>
-                <thead>
-                  <tr><th scope="col" rowSpan={2}>{TEXT.model[lang]}</th>{TARGETS.map(id => <th scope="colgroup" colSpan={4} key={id}>{t(TARGET[id], lang)}</th>)}</tr>
-                  <tr>{TARGETS.flatMap(id => [<th scope="col" key={`${id}-i`}>{TEXT.interp[lang]}</th>, <th scope="col" key={`${id}-l`}>{TEXT.loco[lang]}</th>, <th scope="col" key={`${id}-r`}>{TEXT.locoRmse[lang]}</th>, <th scope="col" key={`${id}-g`}>{TEXT.group[lang]}</th>])}</tr>
-                </thead>
-                <tbody>{LEARN_MODELS.map(m => (
-                  <tr key={m}>
-                    <th scope="row">{t(MODEL[m], lang)}</th>
-                    {TARGETS.flatMap(id => {
-                      const v = l.summary[m][id];
-                      return [<td key={`${id}-i`}>{formatFixed(v.interpolation_r2, lang, 3)}</td>, <td key={`${id}-l`} className={v.loco_r2_median < 0 ? 'of-down' : undefined}>{formatFixed(v.loco_r2_median, lang, 3)}</td>, <td key={`${id}-r`}>{formatSignificant(v.loco_rmse_mean, lang, 3, true)}</td>, <td key={`${id}-g`} className={(v.transfer_r2_median ?? 0) < 0 ? 'of-down' : undefined}>{v.transfer_r2_median !== undefined ? formatFixed(v.transfer_r2_median, lang, 3) : ''}</td>];
-                    })}
-                  </tr>
-                ))}</tbody>
-              </table>
-            </div>
-            <div className="of-doc-scroll">
-              <table className="of-doc-table of-doc-table-data">
-                <caption>{TEXT.foldCaption[lang]}</caption>
-                <thead><tr>{[TEXT.heldOut, TEXT.flagRate].map(h => <th scope="col" key={h.en}>{h[lang]}</th>)}{LEARN_MODELS.map(m => <th scope="col" key={m}>{t(MODEL[m], lang)}</th>)}</tr></thead>
-                <tbody>{l.leave_one_case_out.map(f => (
-                  <tr key={f.held_out}>
-                    <th scope="row">{index.value!.cases.find(c => c.case_id === f.held_out)?.title[lang] ?? f.held_out}</th>
-                    <td>{formatFraction(f.held_out_flag_rate, lang, 0)}</td>
-                    {LEARN_MODELS.map(m => {
-                      const v = f.models[m].recovery_pct.r2;
-                      return <td key={m} className={v < 0 ? 'of-down' : undefined}>{formatSignificant(v, lang, 3, true)}</td>;
-                    })}
-                  </tr>
-                ))}</tbody>
-              </table>
-            </div>
-          </div>
-        );
-      }}
-    </Loaded>
-  );
+  return <Loaded lang={lang} errors={[index.error, learning.error]} ready={Boolean(index.value && learning.value)}>
+    {() => <>{learning.value!.targets.map(target => <LearningEvidence key={target} record={learning.value!} lang={lang} target={target}
+      foldNames={Object.fromEntries(index.value!.cases.map(entry => [entry.case_id, entry.title[lang]]))} />)}</>}
+  </Loaded>;
 }
 
 const ORACLES: Topic = {
@@ -696,14 +619,16 @@ const OPTIMIZATION: Topic = {
       es: 'Veintinueve de las 72 variantes en modo objetivo comienzan fuera de al menos una restricción. La ganancia del óptimo sobre el estado propio de la variante va de -0,8% (magnetita con molienda más gruesa) a +20,0% (cobre oxidado con molienda más gruesa); la primera comienza fuera de restricciones y la segunda dentro. Entre las 43 variantes objetivo que comienzan factibles, las ganancias van de 0,3% (magnetita con chancador más fino) a 20,0% (cobre oxidado con molienda más gruesa). Las ganancias nominales van de 0,3% (magnetita) a 7,9% (cobre oxidado). Las 24 variantes de corte cumplen restricciones tal como se operan; sus ganancias optimizadas van de 0,3% en magnetita a 6,2% en sulfuro de zinc.' },
     { en: 'Installed power is the constraint that shapes the answer most often, active at 70 of the 94 optima and at all 24 in the cut mode, then the grade specification at 31 and the water capacity at 20: with the objective on recovered metal alone, the optimizer spends every kilowatt the mill has.',
       es: 'La potencia instalada es la restricción que más a menudo define la respuesta, activa en 70 de los 94 óptimos y en los 24 del modo de corte, seguida de la especificación de ley en 31 y la capacidad de agua en 20: con el objetivo solo en el metal recuperado, el optimizador gasta cada kilowatt que tiene el molino.' },
-    { en: 'The screen did not save engine evaluations. Across 72 target-mode variants it used 26,367 engine evaluations versus 22,487 without screening, 17.3% more; it used more in 68 variants and the same in four. Of 79,035 candidates, 19 were rejected by the guard and 48,266 by the uncertainty interval; 5,811 were proposed to the engine and 901 improved the incumbent. Mean absolute surrogate error is 0.66 points per variant; across proposals its mean is 0.71, median 0.48 and maximum 38.16 points. The searches had the same terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes. Seven of the 70 feasible pairs selected different decisions; recovered metal differed by at most 0.017%, and the decisions were one to five mesh steps apart. Five favoured the unscreened result and two the screened result. Cut-mode searches remain unscreened.',
-      es: 'El filtro no ahorró evaluaciones del motor. En 72 variantes en modo objetivo usó 26.367 evaluaciones frente a 22.487 sin filtro, 17,3% más; usó más en 68 variantes e igual en cuatro. De 79.035 candidatos, la guardia rechazó 19 y el intervalo de incertidumbre 48.266; se propusieron 5.811 al motor y 901 mejoraron al incumbente. El error absoluto medio del sustituto fue 0,66 puntos por variante; entre las propuestas fue 0,71 de media, 0,48 de mediana y 38,16 puntos como máximo. Los resultados terminales coinciden en 65 variantes: 63 decisiones factibles idénticas y dos resultados inviables en ambas búsquedas. Siete de los 70 pares con óptimo factible eligieron decisiones distintas; el metal recuperado difirió como máximo 0,017% y las decisiones quedaron separadas por uno a cinco pasos de malla. Cinco favorecieron el resultado sin filtro y dos el filtrado. El modo de corte no usa filtro.' },
+    { en: 'The screen did not reduce fixed-weight cached trials. Across 72 target-mode variants it used 26,367 cached trials versus 22,487 without screening, 17.3% more; it used more in 68 variants and the same in four. Of 79,034 candidates, 19 were rejected by the guard and 48,268 by the uncertainty interval; 5,811 were proposed to the engine and 901 improved the incumbent. These counters record unique cached trial states in the primary multistart search, including refused trials. They exclude the later weight path, uncached audits, model fitting/loading and inference; they do not measure total simulator calls or elapsed time.',
+      es: 'El filtro no redujo los ensayos en caché de peso fijo. En 72 variantes en modo objetivo usó 26.367 ensayos frente a 22.487 sin filtro, 17,3% más; usó más en 68 variantes e igual en cuatro. De 79.034 candidatos, la guardia rechazó 19 y el intervalo de incertidumbre 48.268; se propusieron 5.811 al motor y 901 mejoraron al incumbente. Los contadores registran estados únicos en caché de la búsqueda multiinicio principal, incluidos los ensayos rechazados. Excluyen la ruta posterior de pesos, las auditorías sin caché, el ajuste/carga de modelos y la inferencia; no miden llamadas totales al simulador ni tiempo transcurrido.' },
+    { en: 'Mean absolute surrogate error is 0.66 points across the 68 of 72 variants with evaluated proposals; across the 5,811 proposals its mean is 0.71, median 0.48 and maximum 38.16 points. The four variants without evaluated proposals have no error score. The searches had the same terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes. Seven of the 70 feasible pairs selected different decisions; recovered metal differed by at most 0.017%, and the decisions were one to five mesh steps apart. Five favoured the unscreened result and two the screened result. Cut-mode searches remain unscreened.',
+      es: 'El error absoluto medio del sustituto fue 0,66 puntos entre las 68 de 72 variantes con propuestas evaluadas; entre las 5.811 propuestas fue 0,71 de media, 0,48 de mediana y 38,16 puntos como máximo. Las cuatro variantes sin propuestas evaluadas no tienen un puntaje de error. Los resultados terminales coinciden en 65 variantes: 63 decisiones factibles idénticas y dos resultados inviables en ambas búsquedas. Siete de los 70 pares con óptimo factible eligieron decisiones distintas; el metal recuperado difirió como máximo 0,017% y las decisiones quedaron separadas por uno a cinco pasos de malla. Cinco favorecieron el resultado sin filtro y dos el filtrado. El modo de corte no usa filtro.' },
     { en: 'Moving weight from metal to energy trades one for the other. At the nominal states, with a quarter of the weight on metal, the optimum spends 0 to 42% less energy per tonne and 0 to 29% less metal than the metal-only optimum; the magnetite optimum does not move, because its grade specification already binds there and a coarser grind would break it. Along every path neither the energy nor the metal rises as the weight falls, beyond 0.01%, the mesh\'s resolution.',
-      es: 'Mover peso del metal a la energía cambia uno por otro. En los estados nominales, con un cuarto del peso en el metal, el óptimo gasta de 31 a 47% menos energía por tonelada y recupera de 8 a 37% menos metal que el óptimo solo de metal; el óptimo de la magnetita no se mueve, porque su especificación de ley ya está activa ahí y una molienda más gruesa la incumpliría. A lo largo de cada camino ni la energía ni el metal suben al bajar el peso, más allá de 0,01%, la resolución de la malla.' },
+      es: 'Mover peso del metal a la energía cambia uno por otro. En los estados nominales, con un cuarto del peso en el metal, el óptimo gasta de 0 a 42% menos energía por tonelada y recupera de 0 a 29% menos metal que el óptimo solo de metal; el óptimo de la magnetita no se mueve, porque su especificación de ley ya está activa ahí y una molienda más gruesa la incumpliría. A lo largo de cada camino ni la energía ni el metal suben al bajar el peso, más allá de 0,01%, la resolución de la malla.' },
   ],
   equations: [
     { tex: r`g = \frac{\dot m(u^{*}) - \dot m(u_v)}{\dot m(u_v)}`, caption: { en: 'The gain of the optimum $u^{*}$ over the variant\'s own point $u_v$ in recovered metal.', es: 'La ganancia del óptimo $u^{*}$ sobre el punto propio de la variante $u_v$ en metal recuperado.' } },
-    { tex: r`\Delta N = \frac{N_{s} - N_{0}}{N_{0}}`, caption: { en: 'What the screen costs or saves: the engine evaluations of the screened search $N_s$ against those of the same starts and weight without it, $N_0$.', es: 'Lo que cuesta o ahorra el filtro: las evaluaciones del motor de la búsqueda filtrada $N_s$ frente a las de los mismos inicios y peso sin él, $N_0$.' } },
+    { tex: r`\Delta N = \frac{N_{s} - N_{0}}{N_{0}}`, caption: { en: 'The primary fixed-weight cached trials of the screened search $N_s$ against the same starts and weight without it, $N_0$. The later weight path is excluded.', es: 'Los ensayos en caché de peso fijo de la búsqueda filtrada $N_s$ frente a los mismos inicios y peso sin él, $N_0$. Se excluye la ruta posterior de pesos.' } },
   ],
   limits: [
     { en: 'A steady-state optimum of an authored plant, weighing recovered metal against energy per tonne: no reagent cost, payability or value of energy beyond the declared weight, and no froth-stability penalty on air.', es: 'Un óptimo de estado estacionario de una planta de autor, que pondera el metal recuperado contra la energía por tonelada: sin costo de reactivos, condiciones comerciales ni valor de la energía más allá del peso declarado, y sin penalización de estabilidad de espuma al aire.' },
@@ -740,20 +665,22 @@ const LEARNED: Topic = {
   id: 'learned',
   title: { en: 'The learned lane', es: 'La vía aprendida' },
   paragraphs: [
-    { en: 'Interpolation and transfer rank the models differently. Under interpolation the MLP fits recovery best (R² 0.951 at the record seed; RMSE 3.0 to 3.5 points over five training seeds). With one case held out, it is most accurate on four of the five copper sulphide plants (RMSE 1.7 to 9.1 across cases and seeds); in high-clay copper the random forest scores 5.99 points against the MLP at 6.57. The magnetite holdout is difficult for the MLP (240 points at the record seed; 217 to 277 over seeds), while phosphate error is 9 points at the record seed (7 to 19 over seeds). Mean one-case-out MLP RMSE ranges from 25.0 to 30.1 across seeds, 26.2 at the record seed. Its median one-case-out recovery R² is 0.547, followed by gradient boosting at 0.512. On 612 matched training rows the forest and gradient boosting score R² 0.683 and 0.813; the Gaussian process uses 500 of 2,460 rows and scores 0.878. The five copper plants share chalcopyrite, so holding one out tests near-neighbour interpolation rather than transfer to another ore.',
-      es: 'La interpolación y la transferencia ordenan los modelos de forma distinta. En interpolación el MLP ajusta mejor la recuperación (R² 0,951 con la semilla del registro; RMSE de 3,0 a 3,5 puntos sobre cinco semillas de entrenamiento). Al dejar un caso fuera, es más preciso en cuatro de las cinco plantas de sulfuros de cobre (RMSE de 1,7 a 9,1 entre casos y semillas); en el cobre con arcilla, el bosque aleatorio obtiene 5,99 puntos frente a 6,57 del MLP. La magnetita es difícil para el MLP (240 puntos con la semilla del registro; 217 a 277 entre semillas), mientras que el error en fosfato es 9 puntos con la semilla del registro (7 a 19 entre semillas). El RMSE medio del MLP al dejar un caso fuera va de 25,0 a 30,1 entre semillas, 26,2 con la semilla del registro. Su R² mediano de recuperación al dejar un caso fuera es 0,547, seguido por gradient boosting con 0,512. Las cinco plantas de cobre comparten calcopirita; dejar una fuera prueba interpolación entre vecinas, no transferencia a otro mineral.' },
-    { en: 'A whole ore group out is a different test: the MLP has the highest median recovery R² across seven groups (0.437), but mean error is 46.7 points; holding out the two pyrite gold plants gives it R² -10.2, while the five chalcopyrite plants held out together score 0.795 for the MLP and 0.539 for the Gaussian process. The five copper plants held out one at a time yield MLP R² from 0.52 to 0.99. Median energy R² remains 0.923 to 0.968 with one case out and 0.88 to 0.91 with a whole ore group out; on phosphate the Gaussian process and MLP score -0.9 and 0.0. The copper-group median upgrade R² is 0.92 for the Gaussian process, 0.95 for the MLP, 0.11 for gradient boosting, 0.23 for the forest and -5.88 for ridge. Gaussian-process interval coverage is 90.7, 91.3 and 93.8% under interpolation and 82.9, 68.1 and 86.9% with one case out (worst folds 35.5, 0 and 43.8%).',
-      es: 'Dejar fuera un grupo completo de mineral es otra prueba: el MLP tiene el mayor R² mediano de recuperación entre siete grupos (0,437), pero un error medio de 46,7 puntos; al reservar las dos plantas de oro con pirita obtiene R² -10,2, mientras que las cinco plantas de calcopirita juntas dan 0,795 al MLP y 0,539 al proceso gaussiano. Las cinco plantas de cobre reservadas de a una dan al MLP R² entre 0,52 y 0,99. El R² mediano de energía queda entre 0,923 y 0,968 al dejar un caso fuera y entre 0,88 y 0,91 al dejar un grupo completo; en fosfato el proceso gaussiano y el MLP obtienen -0,9 y 0,0. El R² mediano del enriquecimiento en el grupo de cobre es 0,92 para el proceso gaussiano, 0,95 para el MLP, 0,11 para gradient boosting, 0,23 para el bosque y -5,88 para ridge. La cobertura de intervalos del proceso gaussiano es 90,7, 91,3 y 93,8% en interpolación y 82,9, 68,1 y 86,9% al dejar un caso fuera (peores particiones 35,5, 0 y 43,8%).' },
-    { en: 'The guard raises a false alarm on 1.5% of held-out envelope states. At half a training range beyond the maximum it accepts 15.5% of probes (19.9% below the minimum); at one tenth it accepts 48% (60% below), and at one full range 6%. Crusher setting, water per tonne and circulating load account for 74% of the summed false-accept feature rates. The oxide-copper, magnetite, phosphate and refractory-gold plants are flagged in every held-out state; nickel is flagged in 71%, zinc in 9%, mixed high-clay in 95%, and soft porphyry in 16%; the other copper sulphide cases stay below 3.2%. The guard detects unfamiliar features, not prediction error: it flags 16% of soft-porphyry states while gradient boosting upgrade R² is -1.46, and all refractory-gold states while gradient boosting recovery R² is 0.17.',
-      es: 'El guardia genera falsas alarmas en 1,5% de los estados reservados dentro de la envolvente. A media amplitud de entrenamiento más allá del máximo acepta 15,5% de las sondas (19,9% bajo el mínimo); a una décima acepta 48% (60% bajo el mínimo), y a una amplitud completa 6%. La abertura del chancador, el agua por tonelada y la carga circulante suman 74% de las tasas de aceptación falsa por variable. Las plantas de cobre oxidado, magnetita, fosfato y oro refractario se marcan en cada estado reservado; níquel en 71%, zinc en 9%, cobre con arcilla en 95% y pórfido blando en 16%; los demás casos de sulfuros de cobre quedan bajo 3,2%. El guardia detecta variables desconocidas, no el error de predicción: marca 16% de los estados del pórfido blando mientras el R² de enriquecimiento de gradient boosting es -1,46, y todos los estados del oro refractario mientras el R² de recuperación de gradient boosting es 0,17.' },
+    { en: 'Interpolation, one case out and one ore group out answer different questions. Interpolation withholds operating states from known authored plants. One case out withholds an entire plant; one ore group out also removes plants sharing its carrier mineral. The comparisons below are read from the validated learning record for the selected target and protocol.',
+      es: 'La interpolación, un caso fuera y un grupo de mineral fuera responden preguntas distintas. La interpolación reserva estados operacionales de plantas de autor conocidas. Un caso fuera reserva una planta completa; un grupo fuera elimina también las plantas que comparten su mineral portador. Las comparaciones siguientes se leen del registro de aprendizaje validado para el objetivo y el protocolo elegidos.' },
+    { en: 'A forecast wholly outside its declared observable envelope is rejected transfer evidence. Its fold stays in the planned denominator with its forecast diagnostics and reason; ordinary RMSE, MAE and R² are unavailable. Finite constant predictions remain scored negative evidence. Non-finite output, malformed shapes and training failures stop artifact production.',
+      es: 'Un pronóstico totalmente fuera de su envolvente observable declarada constituye evidencia de transferencia rechazada. Su partición permanece en el total previsto con los diagnósticos del pronóstico y el motivo; el RMSE, el MAE y el R² ordinarios no están disponibles. Las predicciones constantes finitas siguen siendo evidencia negativa evaluada. Las salidas no finitas, las formas inválidas y los fallos de entrenamiento detienen la producción del artefacto.' },
+    { en: 'Conditional means, maxima and medians describe admissible scored folds only. Their tables report planned, scored and rejected counts together. For model comparison, the matched common cohort uses exactly the same admissible fold IDs for every model and names every excluded fold. If no common fold remains, the comparison is unavailable; gaps in the chart preserve missing scores.',
+      es: 'Las medias, los máximos y las medianas condicionales describen solo las particiones admisibles evaluadas. Sus tablas muestran juntas las particiones previstas, evaluadas y rechazadas. Para comparar modelos, el conjunto común usa exactamente los mismos identificadores de partición admisible para cada modelo y enumera todas las exclusiones. Si no queda ninguna partición común, la comparación no está disponible; los huecos del gráfico conservan las puntuaciones ausentes.' },
+    { en: 'The reconstruction guard uses feature reconstruction error as a signal of unfamiliar inputs. It can miss shifts and does not measure prediction error. Its alerts and the observable-range diagnostic assess different properties. Interpolation and transfer on authored plants do not establish accuracy on a measured plant campaign.',
+      es: 'El detector de reconstrucción usa el error al reconstruir las variables como señal de entradas desconocidas. Puede omitir cambios y no mide el error de predicción. Sus alertas y el diagnóstico de rango observable evalúan propiedades distintas. La interpolación y la transferencia sobre plantas de autor no establecen precisión en una campaña de planta medida.' },
   ],
   equations: [
-    { tex: { en: r`\tilde R^2 = \operatorname{median}_{u}\ R^2_{u}`, es: r`\tilde R^2 = \operatorname{mediana}_{u}\ R^2_{u}` }, caption: { en: 'The held-out score: the median over the held-out units u of the R² on u, the twelve cases with one case out and the seven ore groups with one group out, the transfer score.', es: 'El puntaje reservado: la mediana sobre las unidades reservadas u del R² en u, los doce casos al dejar un caso fuera y los siete grupos de mineral al dejar fuera un grupo, el puntaje de transferencia.' } },
+    { tex: { en: r`\widetilde{R}^{2}_{m,A}=\operatorname{median}_{u\in A}R^{2}_{m,u},\quad A_{\cap}=\bigcap_m A_m`, es: r`\widetilde{R}^{2}_{m,A}=\operatorname{mediana}_{u\in A}R^{2}_{m,u},\quad A_{\cap}=\bigcap_m A_m` }, caption: { en: 'Conditional metrics use the admissible set A of each model. The common comparison instead uses the intersection of admissible fold IDs across all models; planned attempts and exclusions remain explicit.', es: 'Las métricas condicionales usan el conjunto admisible A de cada modelo. La comparación común usa la intersección de los identificadores admisibles entre todos los modelos; los intentos previstos y las exclusiones siguen explícitos.' } },
   ],
   limits: [
     { en: 'The surrogates learn this engine on these twelve authored plants; one ore group out bounds their transfer to a thirteenth authored plant on an ore none of them shares, and one case out to a plant on a known ore; neither bounds transfer to a real plant.', es: 'Los sustitutos aprenden este motor en estas doce plantas de autor; dejar fuera un grupo de mineral acota su transferencia a una decimotercera planta de autor sobre un mineral que ninguna comparte, y dejar un caso fuera a una planta sobre un mineral conocido; ninguno acota la transferencia a una planta real.' },
   ],
-  figure: { caption: { en: 'Interpolation R² against the median one-ore-group-out R² of every model, for the chosen target; the table gives one case out too.', es: 'R² de interpolación frente al R² mediano dejando fuera un grupo de mineral de cada modelo, para el objetivo elegido; la tabla da también un caso fuera.' }, render: lang => <LearnedChart lang={lang} /> },
+  figure: { caption: { en: 'Interpolation and held-out R² for the selected target and protocol. The default comparison uses matched common folds; conditional results remain separately selectable with their coverage.', es: 'R² de interpolación y de reserva para el objetivo y el protocolo elegidos. La comparación inicial usa particiones comunes entre modelos; los resultados condicionales se eligen por separado junto a su cobertura.' }, render: lang => <LearnedChart lang={lang} /> },
   data: lang => <LearnedTables lang={lang} />,
   refs: ['sklearn2011', 'breiman2001', 'friedman2001', 'rasmussen2006', 'pytorch2019'],
 };

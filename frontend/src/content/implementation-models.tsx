@@ -128,7 +128,7 @@ export const MODELS: Topic = {
   ],
   equations: [
     { tex: r`z = \frac{x - \mu_x}{\sigma_x},\qquad \hat y = \sigma_y\,f_\theta(z) + \mu_y`, caption: { en: 'The surrogate on standardized features, with the scalers the precompute wrote.', es: 'El sustituto sobre variables estandarizadas, con los escaladores que escribió el precálculo.' } },
-    { tex: r`e(z) = \lVert z - g_\phi(z)\rVert^2 > q_{0.99}`, caption: { en: 'The guard flags a state whose reconstruction error e passes the 99th percentile q of its validation errors.', es: 'El guardia marca un estado cuyo error de reconstrucción e pasa el percentil 99 q de sus errores de validación.' } },
+    { tex: r`e(z) = \frac{1}{D}\lVert z - g_\phi(z)\rVert^2 > q_{0.99}`, caption: { en: 'Mean squared reconstruction error over D standardized features. The guard flags a state when this error exceeds the 99th percentile of its validation errors.', es: 'Error cuadrático medio de reconstrucción sobre D variables estandarizadas. El detector marca un estado cuando este error supera el percentil 99 de sus errores de validación.' } },
     { tex: r`\max\,\lvert \hat y_{\mathrm{ONNX}} - \hat y_{\mathrm{PyTorch}}\rvert \le 10^{-5}`, caption: { en: 'Each export against its network on the same inputs.', es: 'Cada exportación frente a su red con las mismas entradas.' } },
   ],
   limits: [
