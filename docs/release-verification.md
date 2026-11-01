@@ -76,9 +76,21 @@ success must be observed independently after this comparator change; the old 95/
 
 ### Remote verification
 
-Exact-commit CI, release/source identity, the software archive, deployment and post-deployment API and
-browser results are recorded in the [versioned GitHub release](https://github.com/fsantibanezleal/CAOS_OreFlow/releases/tag/v0.10.008).
-The ML VPS remains the product's sole deployment.
+The complete public installed-shell gate recorded 14 failures in 1,412 measured states: thirteen G8
+events during pending-content arrival and one G4 artifact read interrupted by navigation. The separate
+complete application matrix passed 1,422 checks. Publication preceded completion of the public shell
+gate, so this release has no overall public-gate clearance. The
+[release notice](https://github.com/fsantibanezleal/CAOS_OreFlow/releases/tag/v0.10.008) records that
+result. Corrective work addresses explicit pending-content readiness and complete artifact transport
+verification; the latter is tracked in [shared-shell issue 174](https://github.com/fsantibanezleal/CAOS_APP_SHELL/issues/174).
+
+Source commit `a0a0c4a32c244747818df4f7826e0a872757965f` passed its
+[exact-main CI](https://github.com/fsantibanezleal/CAOS_OreFlow/actions/runs/41324054715).
+The [software archive](https://doi.org/10.5281/zenodo.23862389) retains the tagged source.
+The deployed checkout was verified independently, and all seventeen public API checks passed against
+fresh references computed in the native Linux runtime, using absolute tolerance 1e-12 and exact discrete
+comparisons. That check covers the four nominal circuit families; it does not establish bit-identical
+Windows-bake and Linux results. The ML VPS remains the product's sole deployment.
 
 ## 0.10.007 release, 2026-10-31
 

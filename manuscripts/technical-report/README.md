@@ -23,14 +23,14 @@ PowerShell, from the repository root:
 
 ```powershell
 & .venv/Scripts/python.exe scripts/build_technical_report.py `
-  --doi 10.5281/zenodo.23850020 --date 2026-11-01
+  --doi 10.5281/zenodo.23864184 --date 2026-11-01 --expected-pages 12
 ```
 
 Bash, from the repository root:
 
 ```bash
 .venv/bin/python scripts/build_technical_report.py \
-  --doi 10.5281/zenodo.23850020 --date 2026-11-01
+  --doi 10.5281/zenodo.23864184 --date 2026-11-01 --expected-pages 12
 ```
 
 This concrete DOI/date identifies the current reserved report version. Supply the
@@ -38,8 +38,8 @@ actual reserved version DOI and matching ISO publication date for a later build.
 The version DOI must differ from the concept DOI. The offline builder checks DOI
 syntax and source consistency; it cannot establish remote reservation ownership.
 Stale authored metadata versions or dates fail explicitly and must be reconciled
-before building. For example, metadata and `VERSION` may be `0.10.008` while the
-manifest still declares published report `0.10.007`. Versions are compared as
+before building. For example, metadata and `VERSION` may be `0.10.009` while the
+manifest still declares published report `0.10.008`. Versions are compared as
 numeric major/minor/patch components, not strings. There is no automatic
 metadata or manifest mutation or historical-version relabelling.
 
@@ -57,8 +57,9 @@ sole author's name and ORCID, version, date, labelled version/concept DOIs,
 technical-report header, CC BY 4.0 license and unreviewed status. No warning is
 suppressed to obtain a pass. Source hashes are rechecked after compilation.
 
-The reviewed layout is eleven pages, so `--expected-pages` defaults to `11`.
-Change that value only when a new layout has been deliberately reviewed; a
+The published 0.10.008 report has twelve reviewed pages. The examples explicitly
+request twelve pages; the builder's original default remains `11`.
+Change the expected count only when a new layout has been deliberately reviewed; a
 different page count is not silently accepted as a complete report. Each external
 tool call has a 180-second timeout and bounded surfaced output/errors. Failed
 scratch candidates remain available for diagnosis; this tool does not clean or
@@ -81,12 +82,12 @@ only the verified `main.tex` and `main.pdf`, add **`--write`**:
 
 ```powershell
 & .venv/Scripts/python.exe scripts/build_technical_report.py `
-  --doi 10.5281/zenodo.23850020 --date 2026-11-01 --write
+  --doi 10.5281/zenodo.23864184 --date 2026-11-01 --expected-pages 12 --write
 ```
 
 ```bash
 .venv/bin/python scripts/build_technical_report.py \
-  --doi 10.5281/zenodo.23850020 --date 2026-11-01 --write
+  --doi 10.5281/zenodo.23864184 --date 2026-11-01 --expected-pages 12 --write
 ```
 
 The write invocation performs the full build/validation again, stages both files,

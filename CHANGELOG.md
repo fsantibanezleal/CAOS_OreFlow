@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.10.009] - 2026-11-01
+
+### Fixed
+- Declare pending artifact-backed documents through the shared loading-state contract, so public-network loads finish before idle measurements.
+- Validate model artifacts independently of response reads interrupted by page navigation, using the corrected shared shell gate.
+
+
 ## [0.10.008] - 2026-11-01
 
 ### Changed
