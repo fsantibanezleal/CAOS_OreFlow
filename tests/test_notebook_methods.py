@@ -8,6 +8,78 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_adversarial_uncertainty_comparison_uses_distinct_targets(language):
+    import copy
+    import numpy as np
+    import pandas as pd
+    state = {"np": np, "pd": pd}
+    for source in programs("05-uncertainty", "03-research-comparison.ipynb", language):
+        definitions = [node for node in ast.parse(source).body if isinstance(node, ast.FunctionDef)
+                       and node.name.startswith("uq_")]
+        exec(compile(ast.Module(body=definitions, type_ignores=[]), "<actual uncertainty helpers>", "exec"), state)
+    assert "uq_compare_targets" in state, "L3 needs its own executable cross-output comparison"
+    names = ["work_index", "head_grade", "liberation_size", "floatability"]
+    recovery = [-0.2, 0.8, 0.15, 1.2]
+    energy = [1.4, 0.1, -0.3, 0.0]
+    widths = [[0.9, 1.4, 0.5, 1.6], [2.2, 0.7, 1.8, 0.2]]
+    keys = ["recovery_pct", "specific_energy_grinding_kwh_t"]
+    record = {"status": "computed", "base_samples": 16, "evaluations": 96, "seed": 20261031,
+              "inputs": {name: {"half_width": 0.1} for name in names}, "indices": {}}
+    for target, values, width in zip(keys, [recovery, energy], widths):
+        record["indices"][target] = {"ST": dict(zip(names, values)), "ST_conf": dict(zip(names, width))}
+    compare = state["uq_compare_targets"]
+    result = compare(record)
+    np.testing.assert_allclose(result["delta"], [-1.6, 0.7, 0.45, 1.2], rtol=0, atol=1e-15)
+    np.testing.assert_array_equal(result["recovery"]["rank"], [4, 2, 3, 1])
+    np.testing.assert_array_equal(result["energy"]["rank"], [1, 2, 4, 3])
+    for target, values, width in zip(["recovery", "energy"], [recovery, energy], widths):
+        np.testing.assert_array_equal(result[target]["ST"], values)
+        np.testing.assert_array_equal(result[target]["ST_conf"], width)
+    assert result["rank_agreement"] is False
+    tied = copy.deepcopy(record)
+    tied["indices"][keys[1]]["ST"] = dict(zip(names, [1.4, 1.4, -0.3, 0.0]))
+    np.testing.assert_array_equal(compare(tied)["energy"]["rank"], [1, 1, 4, 3])
+    identical = copy.deepcopy(record)
+    identical["indices"][keys[1]] = copy.deepcopy(record["indices"][keys[0]])
+    assert compare(identical)["rank_agreement"] is True
+    np.testing.assert_array_equal(compare(identical)["delta"], [0, 0, 0, 0])
+    constant = copy.deepcopy(record)
+    constant["indices"][keys[1]] = {"constant": True}
+    unavailable = compare(constant)
+    assert unavailable["energy"]["constant"] is True
+    assert unavailable["energy"]["ST"] is None and unavailable["energy"]["rank"] is None
+    assert unavailable["delta"] is None and unavailable["rank_agreement"] is None
+    missing = copy.deepcopy(record)
+    del missing["indices"][keys[1]]
+    with pytest.raises(ValueError, match=keys[1]):
+        compare(missing)
+    for field, bad in [("ST", float("nan")), ("ST_conf", -0.5)]:
+        invalid = copy.deepcopy(record)
+        invalid["indices"][keys[1]][field][names[0]] = bad
+        with pytest.raises(ValueError, match=keys[1]):
+            compare(invalid)
+    table_state, shown = execute_plot_cell("05-uncertainty", "03-research-comparison.ipynb",
+                                          "uq-compare-006", language, cross_outputs=[result])
+    energy_column = "Energy ST (1)" if language == "en" else "Energía ST (1)"
+    np.testing.assert_array_equal(shown[0][energy_column], energy)
+    plot_state, _ = execute_plot_cell("05-uncertainty", "03-research-comparison.ipynb", "uq-compare-008",
+                                     language, cross_outputs=[result], factor_labels=table_state["factor_labels"])
+    axis = plot_state["ax"]
+    series = [container for container in axis.containers if hasattr(container, "has_xerr")]
+    assert len(series) == 2
+    for container, values, width in zip(series, [recovery, energy], widths):
+        np.testing.assert_array_equal(container.lines[0].get_xdata(), values)
+        segments = container.lines[2][0].get_segments()
+        np.testing.assert_allclose([segment[1, 0]-segment[0, 0] for segment in segments], 2*np.asarray(width))
+    lo, hi = axis.get_xlim()
+    assert lo <= -2.1 and hi >= 3.6, "complete negative and above-one uncertainty bars must be retained"
+    plot_state["fig"].canvas.draw()
+    renderer = plot_state["fig"].canvas.get_renderer()
+    assert not axis.title.get_window_extent(renderer).overlaps(axis.get_legend().get_window_extent(renderer))
+    plot_state["plt"].close("all")
+
+
 def released_helpers(language="en"):
     import hashlib
     import numpy as np

@@ -3622,12 +3622,256 @@ for panel, (products, law_values) in enumerate(panel_specs):
         replace('lesson-026', source)
     if topic == '04-optimization' and level == 2:
         preference_output_fix(notebook, replace, program)
+    if topic == '05-uncertainty' and level == 3:
+        uncertainty_output_comparison(notebook)
     if lang == 'es' and topic == '04-optimization':
         setup = next(cell for cell in cells if cell['cell_type'] == 'code')
         setup['source'] += ("\ntrace_headers = dict(zip('Outcome Mesh Barrier Objective Evaluations'.split(),\n"
                             "    'Resultado Malla Barrera Objetivo Evaluaciones'.split()))\n").splitlines(keepends=True)
         trace = next(cell for cell in cells if cell['cell_type'] == 'code' and 'history = pd.DataFrame' in ''.join(cell['source']))
         trace['source'] += "\ndisplay(history.rename(columns=trace_headers))\n".splitlines(keepends=True)
+
+
+def uncertainty_output_comparison(notebook):
+    """UQ-09: distinct output comparisons from the existing complete Saltelli designs."""
+    lang = notebook['metadata']['caos']['language']
+    LABELS_ES.update({
+        'Work index': 'Índice de trabajo', 'Head grade': 'Ley de alimentación',
+        'Liberation size': 'Tamaño de liberación', 'Floatability': 'Flotabilidad',
+        'Recovery': 'Recuperación', 'Energy': 'Energía', 'Grinding energy': 'Energía de molienda',
+        ' ST (1)': ' ST (1)', ' half-width (1)': ' semiamplitud (1)',
+        ' rank': ' orden', ' state': ' estado', 'Computed': 'Calculado',
+        'Constant output': 'Salida constante',
+        'ST recovery - energy (1)': 'ST recuperación - energía (1)',
+        'Output-specific total effects': 'Efectos totales según salida',
+        'Total Sobol\nindex (1)': 'Índice Sobol\ntotal (1)',
+        'Cross-output rank agreement (1=yes)': 'Acuerdo entre salidas (1=sí)',
+        'Largest recovery-energy ST difference (1)': 'Máxima diferencia ST entre salidas (1)',
+        'Largest energy total-effect half-width (1)': 'Máxima semiamplitud total de energía (1)',
+        'Sobol response: unavailable design': 'Respuesta Sobol: diseño no disponible',
+        'Sobol response: incomplete target ': 'Respuesta Sobol: objetivo incompleto ',
+        'Sobol response: invalid target ': 'Respuesta Sobol: objetivo inválido ',
+        'Cross-output Results unavailable: constant target':
+        'Resultados entre salidas no disponibles: objetivo constante',
+    })
+    cells = notebook['cells']
+    def local(en, es):
+        return pair(en, es, lang)
+    def source(cell_id):
+        return ''.join(next(c for c in cells if c['id'] == cell_id)['source'])
+    def replace(cell_id, text):
+        next(c for c in cells if c['id'] == cell_id)['source'] = text.splitlines(keepends=True)
+    title = local('Compare output-specific Sobol sensitivity', 'Comparar sensibilidad Sobol según la salida')
+    notebook['metadata']['caos']['title'] = title
+    replace('lesson-001', '# ' + title + '\n\n' + local(
+        '**Question:** How does factor importance differ between recovery and grinding energy '
+        'under the same finite Saltelli designs?\n\nLevel: 3. Prerequisites: earlier lessons in this topic. '
+        'Reading time: 30 minutes.',
+        '**Pregunta:** ¿Cómo cambia la importancia de factores entre recuperación y energía de molienda '
+        'con los mismos diseños Saltelli finitos?\n\nNivel: 3. Prerrequisitos: lecciones anteriores del tema. '
+        'Tiempo de lectura: 30 minutos.'))
+    replace('lesson-002', local(
+        '## Objectives\n\nRetain level 2’s seeded N8/N16 experiment as a shared baseline, then calculate '
+        'a distinct cross-output comparison. Use already returned recovery and grinding-energy indices '
+        'to compare factor ranks and signed total-effect differences at each budget. Keep individual '
+        'bootstrap widths and constant-output states visible; no additional engine solve is needed.',
+        '## Objetivos\n\nConservar el experimento N8/N16 de nivel 2 como base compartida y calcular una '
+        'comparación adicional entre salidas. Usar índices ya devueltos de recuperación y energía de '
+        'molienda para comparar órdenes y diferencias firmadas de efectos totales con cada presupuesto. '
+        'Conservar semiamplitudes individuales y estados constantes; no se requieren evaluaciones adicionales.'))
+    replace('lesson-007', local(
+        '## Method\n\nThe original 32-draw propagation and N8/N16 sensitivity calls are the explicitly '
+        'shared level-2 baseline: same nominal circuit, seed 20261031 and independent factor ranges. '
+        'Each complete response already contains recovery_pct and specific_energy_grinding_kwh_t indices '
+        'from its same 48 or 96 engine evaluations. The additional analysis extracts each target separately, '
+        'ranks descending ST values with shared ranks for ties, and subtracts energy ST from recovery ST '
+        'factor by factor. No input distribution, sample count or solve is added. Individual bootstrap '
+        'half-widths remain attached to their own targets. No joint resamples are exposed, so differences '
+        'receive no inferred confidence interval or significance test.',
+        '## Método\n\nLa propagación de 32 extracciones y las llamadas N8/N16 son la base compartida '
+        'explícita de nivel 2: mismo circuito nominal, semilla 20261031 y rangos independientes. Cada '
+        'respuesta completa contiene índices recovery_pct y specific_energy_grinding_kwh_t obtenidos de '
+        'las mismas 48 o 96 evaluaciones. El análisis adicional extrae cada salida por separado, ordena ST '
+        'de mayor a menor con empates compartidos y resta ST de energía a ST de recuperación por factor. '
+        'No agrega distribución, muestras ni evaluaciones. Cada semiamplitud pertenece a su salida. '
+        'Sin remuestreos conjuntos, no se infiere intervalo de diferencia ni prueba de significación.'))
+    additions = []
+    def add(number, kind, text):
+        if kind == 'code' and lang == 'es':
+            explanation = ''.join(additions[-1]['source']).split('. ')[0]
+            text = '# ' + explanation + '\n' + '\n'.join(text.splitlines()[1:])
+        cell = md(text) if kind == 'markdown' else code(text)
+        cell['id'] = f'uq-compare-{number:03d}'
+        additions.append(cell)
+    add(1, 'markdown', local(
+        'Extract two output vectors from one complete sensitivity response. Recovery has physical units '
+        'of percent and grinding energy kWh/t; both normalized Sobol indices are dimensionless. Validate '
+        'every factor and half-width before ranking. A production constant flag means index and rank are '
+        'unavailable, not zero. Missing targets and invalid designs stop with response-contract context.',
+        'Extraer dos vectores de una misma respuesta completa. Las unidades físicas son porcentaje para '
+        'recuperación y kWh/t para energía de molienda; ambos índices Sobol son adimensionales. Validar '
+        'cada factor y semiamplitud antes de ordenar. Una salida constante tiene índice y orden no '
+        'disponibles, no cero. Un objetivo ausente o diseño inválido detiene el cálculo con contexto.'))
+    add(2, 'code', '''# Extract validated target-specific indices without changing finite estimates.
+def uq_target_indices(record, target):
+    if record.get('status') != 'computed':
+        raise ValueError('Sobol response: unavailable design')
+    try:
+        names = list(record['inputs'])
+        effect = record['indices'][target]
+        if effect.get('constant'):
+            return {'constant': True, 'ST': None, 'ST_conf': None, 'rank': None}
+        values = np.asarray([[effect[key][name] for name in names] for key in ('ST', 'ST_conf')], dtype=float)
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError('Sobol response: incomplete target ' + target) from error
+    if not names or not np.isfinite(values).all() or np.any(values[1] < 0):
+        raise ValueError('Sobol response: invalid target ' + target)
+    ranks = pd.Series(values[0]).rank(ascending=False, method='min').to_numpy(dtype=int)
+    return {'constant': False, 'ST': values[0], 'ST_conf': values[1], 'rank': ranks}''')
+    add(3, 'markdown', local(
+        'Pair each factor’s recovery ST with its own grinding-energy ST from that same design. Calculate '
+        'signed recovery-minus-energy differences and compare target-specific point ranks, retaining '
+        'negative estimates, values above one and wide individual bootstrap half-widths. These finite-sample '
+        'descriptions do not estimate plant effects or uncertainty of a paired difference. A constant '
+        'target leaves differences and rank agreement unavailable for the entire pair.',
+        'Emparejar ST de recuperación y ST de energía de cada factor dentro del mismo diseño. Calcular '
+        'diferencias firmadas recuperación menos energía y comparar órdenes puntuales, conservando '
+        'estimaciones negativas, valores mayores que uno y semiamplitudes individuales amplias. Estas '
+        'descripciones finitas no estiman efectos de planta ni incertidumbre de una diferencia pareada. '
+        'Una salida constante deja diferencias y acuerdo de orden no disponibles.'))
+    add(4, 'code', '''# Compare distinct target vectors on their shared factor order and sample design.
+def uq_compare_targets(record):
+    recovery_effect = uq_target_indices(record, 'recovery_pct')
+    energy_effect = uq_target_indices(record, 'specific_energy_grinding_kwh_t')
+    available = not (recovery_effect['constant'] or energy_effect['constant'])
+    delta = recovery_effect['ST'] - energy_effect['ST'] if available else None
+    agreement = bool(np.array_equal(recovery_effect['rank'], energy_effect['rank'])) if available else None
+    return {'names': list(record['inputs']), 'N': record['base_samples'], 'recovery': recovery_effect,
+            'energy': energy_effect, 'delta': delta, 'rank_agreement': agreement}
+
+cross_outputs = [uq_compare_targets(record) for record in (small_indices, larger_indices)]''')
+    add(5, 'markdown', local(
+        'Build the new paired table for both existing budgets without calling the engine. Each row keeps '
+        'factor, N, two total effects, separate bootstrap half-widths, signed difference and descending '
+        'ranks. Absent numbers accompany an explicit constant-output state. Read N8 beside N16 before '
+        'treating apparent target-specific importance as stable.',
+        'Construir la nueva tabla pareada con ambos presupuestos existentes sin llamar al motor. Cada '
+        'fila conserva factor, N, dos efectos totales, semiamplitudes separadas, diferencia firmada y '
+        'órdenes descendentes. Los números ausentes acompañan un estado explícito de salida constante. '
+        'Leer N8 junto a N16 antes de considerar estable la importancia según salida.'))
+    add(6, 'code', '''# Tabulate both already computed designs without additional circuit evaluations.
+factor_labels = {'work_index': 'Work index', 'head_grade': 'Head grade',
+                 'liberation_size': 'Liberation size', 'floatability': 'Floatability'}
+comparison_rows = []
+for comparison in cross_outputs:
+    for i, name in enumerate(comparison['names']):
+        row = {'N': comparison['N'], 'Factor': factor_labels.get(name, name)}
+        for key, label in (('recovery', 'Recovery'), ('energy', 'Energy')):
+            effect = comparison[key]
+            available = not effect['constant']
+            row[label + ' ST (1)'] = effect['ST'][i] if available else None
+            row[label + ' half-width (1)'] = effect['ST_conf'][i] if available else None
+            row[label + ' rank'] = effect['rank'][i] if available else None
+            row[label + ' state'] = 'Computed' if available else 'Constant output'
+        row['ST recovery - energy (1)'] = comparison['delta'][i] if comparison['delta'] is not None else None
+        comparison_rows.append(row)
+comparison_table = pd.DataFrame(comparison_rows)
+display(comparison_table.round(4))''')
+    add(7, 'markdown', local(
+        'Plot the new N16 comparison using separate recovery and energy series with their own individual '
+        'bootstrap half-widths. Both series occupy the same dimensionless axis; this does not equate '
+        'physical output units. The zero reference is an index reference, not a null-hypothesis test. '
+        'Let the axes include complete bars rather than trimming negative or above-one endpoints.',
+        'Graficar la nueva comparación N16 con series separadas y sus semiamplitudes bootstrap propias. '
+        'Ambas usan un eje adimensional, sin equiparar unidades físicas. La referencia cero pertenece '
+        'al índice, no a una prueba de hipótesis. Conservar barras completas, incluso con extremos '
+        'negativos o mayores que uno.'))
+    add(8, 'code', r'''# Plot distinct output indices with their own uncertainty on the existing N16 design.
+plt.rcParams.update({'font.size': 18, 'axes.titlesize': 18, 'axes.titlepad': 65})
+fig, ax = plt.subplots(figsize=(6.4, 3.8))
+comparison = cross_outputs[-1]
+for offset, key, label in ((-0.12, 'recovery', 'Recovery'), (0.12, 'energy', 'Grinding energy')):
+    effect = comparison[key]
+    if effect['constant']:
+        ax.plot([], [], 'o', label=label + ': ' + 'Constant output')
+    else:
+        ax.errorbar(effect['ST'], np.arange(len(comparison['names'])) + offset,
+                    xerr=effect['ST_conf'], fmt='o', capsize=3, label=label)
+ax.axvline(0, color='grey', linewidth=0.8)
+ax.set_yticks(range(len(comparison['names'])), [factor_labels.get(n, n) for n in comparison['names']])
+ax.set(xlabel='Total Sobol\nindex (1)', ylabel='', title='Output-specific total effects')
+ax.legend(ncol=2, fontsize=16, **legend_style)
+ax.grid(axis='x', alpha=0.25)
+fig.subplots_adjust(left=0.4, right=0.96, bottom=0.23, top=0.64)''')
+    add(9, 'markdown', local(
+        'Factor importance is conditional on which output variance is decomposed. Compare signed '
+        'differences and point ranks in the table with these individual bars; even matching ranks are '
+        'only descriptive at small N. Overlap does not provide a paired-difference interval, and '
+        'nonoverlap does not supply a calibrated significance test. Finite design, independent-factor '
+        'assumptions and model structure still limit both outputs. No clamp or extra solve was used '
+        'to make the two series appear different.',
+        'La importancia depende de la varianza de salida descompuesta. Comparar diferencias firmadas '
+        'y órdenes de la tabla junto a las barras individuales; incluso órdenes coincidentes son '
+        'descriptivos con N pequeño. El solapamiento no aporta un intervalo de diferencia pareada ni '
+        'su ausencia una prueba calibrada. Diseño finito, independencia y estructura del modelo limitan '
+        'ambas salidas. No se recortaron índices ni agregaron evaluaciones para producir diferencias.'))
+    add(10, 'markdown', local(
+        'Compute new answer quantities directly from the N16 target pair. Preserve signed factorwise '
+        'values in the table while summarizing largest absolute difference, point-order agreement and '
+        'largest energy half-width. If a target is constant, refuse numeric answer binding explicitly '
+        'instead of manufacturing a zero difference or rank.',
+        'Calcular las nuevas respuestas desde la pareja N16. Conservar diferencias firmadas en la tabla '
+        'y resumir máxima diferencia absoluta, acuerdo de orden y máxima semiamplitud de energía. Si una '
+        'salida es constante, rechazar el vínculo numérico explícitamente en lugar de inventar diferencia cero u orden.'))
+    add(11, 'code', '''# Bind the actual cross-output comparison without reusing recovery as energy.
+cross_final = cross_outputs[-1]
+if cross_final['delta'] is None:
+    raise RuntimeError('Cross-output Results unavailable: constant target')
+cross_answer = {
+    'Cross-output rank agreement (1=yes)': int(cross_final['rank_agreement']),
+    'Largest recovery-energy ST difference (1)': float(np.max(np.abs(cross_final['delta']))),
+    'Largest energy total-effect half-width (1)': float(np.max(cross_final['energy']['ST_conf'])),
+}
+display(pd.DataFrame(cross_answer.items(), columns=['Quantity', 'Value']))''')
+    result_index = next(i for i, cell in enumerate(cells) if cell['id'] == 'lesson-028')
+    cells[result_index:result_index] = additions
+    def binding(en, es):
+        return '<!-- result:' + local(en, es) + ' -->0<!-- /result -->'
+    paragraph = local(
+        'For the additional same-design N16 comparison, recovery versus grinding-energy point-order agreement is ',
+        'En la comparación adicional N16 del mismo diseño, el acuerdo de orden puntual entre recuperación y energía es ')
+    paragraph += binding('Cross-output rank agreement (1=yes)', 'Acuerdo entre salidas (1=sí)')
+    paragraph += local(' (1=yes). The largest absolute factorwise ST difference is ',
+                       ' (1=sí). La máxima diferencia absoluta ST por factor es ')
+    paragraph += binding('Largest recovery-energy ST difference (1)', 'Máxima diferencia ST entre salidas (1)')
+    paragraph += local(', and the largest individual energy half-width is ',
+                       ', y la máxima semiamplitud individual de energía es ')
+    paragraph += binding('Largest energy total-effect half-width (1)', 'Máxima semiamplitud total de energía (1)')
+    paragraph += local(
+        '. All are dimensionless finite estimators. The table retains signed differences for both budgets '
+        'and the figure separate target intervals. No difference confidence interval, significant separation '
+        'or plant causality is inferred.',
+        '. Son estimadores finitos adimensionales. La tabla conserva diferencias firmadas de ambos '
+        'presupuestos y la figura intervalos separados. No se infiere intervalo de diferencia, separación '
+        'significativa ni causalidad de planta.')
+    replace('lesson-028', source('lesson-028') + '\n\n' + paragraph)
+    answer = source('lesson-030')
+    answer = answer.replace('answer_values = {label:', 'answer_values.update(cross_answer)\nanswer_values = {label:')
+    replace('lesson-030', answer)
+    replace('lesson-029', local(
+        'Bind retained baseline quantities and the new same-design cross-output comparison to their own Results spans.',
+        'Vincular cantidades de la base y la nueva comparación entre salidas del mismo diseño con sus propios resultados.'))
+    replace('lesson-031', local(
+        '## Summary\n\nThe shared N8/N16 baseline retains its recovery rank-stability check. The additional '
+        'paired table and original figure compare recovery and grinding-energy ST vectors, individual '
+        'intervals and target-specific ranks from those same solves. Observed differences and rank agreement '
+        'are finite-design descriptions, not significance, causal plant effects or evidence against omitted '
+        'correlations and structural-model uncertainty.',
+        '## Resumen\n\nLa base N8/N16 conserva su comprobación de estabilidad del orden de recuperación. '
+        'La tabla pareada adicional y la figura original comparan vectores ST de recuperación y energía, '
+        'intervalos individuales y órdenes según salida de las mismas evaluaciones. Diferencias y acuerdo '
+        'son descripciones finitas, no significación, efectos causales de planta ni evidencia contra '
+        'correlaciones omitidas o incertidumbre estructural.'))
 
 
 def preference_output_fix(notebook, replace, program):

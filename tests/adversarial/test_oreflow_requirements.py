@@ -1,12 +1,35 @@
 """Adversarial adoption checks for the OreFlow 0.10 research records."""
 from __future__ import annotations
 import json
+import re
 from pathlib import Path
+
+import pytest
+from planting import edit, make_tree
 
 ROOT = Path(__file__).resolve().parents[2]
 
 def _json(rel):
     return json.loads((ROOT / rel).read_text(encoding="utf-8"))
+
+def _web(root: Path) -> None:
+    source = (root / "frontend/src/main.tsx").read_text(encoding="utf-8")
+    for route in ["/introduction", "/methodology", "/implementation", "/experiments", "/benchmark"]:
+        assert re.search(r'<Route\s+path=["\']' + re.escape(route) + r'["\']', source), f"main.tsx must route {route}"
+    assert "<AppShell" in source, "main.tsx must render AppShell"
+    assert re.search(
+        r'const\s+Workbench\s*=\s*React\.lazy\(\s*\(\)\s*=>\s*import\(["\']\./workbench/Workbench["\']\)\s*\)', source,
+    ), "main.tsx must lazy-load the Workbench component"
+    assert re.search(
+        r'<Route\s+path=["\']/app["\']\s+element=\{<Workbench\s*/>\}', source,
+    ), "main.tsx /app must render Workbench"
+    workbench = (root / "frontend/src/workbench/Workbench.tsx").read_text(encoding="utf-8")
+    assert re.search(
+        r'import\s+FocusWorkbench\s+from\s+["\']\./FocusWorkbench["\']', workbench,
+    ), "Workbench.tsx must import FocusWorkbench"
+    assert re.search(r'<FocusWorkbench\b', workbench), "Workbench.tsx must render FocusWorkbench"
+    assert (root / "frontend/src/workbench/FocusWorkbench.tsx").is_file(), "FocusWorkbench component file is missing"
+
 
 def _check(kind):
     if kind in {"engine", "cut"}:
@@ -40,10 +63,30 @@ def _check(kind):
         record = _json("data/derived/real_samples.json")
         assert record["schema"] == "oreflow.real_samples/v1" and record.get("source") and record.get("samples")
     elif kind == "web":
-        source = (ROOT / "frontend/src/main.tsx").read_text(encoding="utf-8")
-        for route in ["/introduction", "/methodology", "/implementation", "/experiments", "/benchmark"]:
-            assert route in source
-        assert "FocusWorkbench" in source and "AppShell" in source
+        _web(ROOT)
+
+
+@pytest.mark.parametrize("path, old, new, finding", [
+    ("frontend/src/main.tsx", 'import("./workbench/Workbench")', 'import("./workbench/Detached")',
+     "main.tsx must lazy-load the Workbench component"),
+    ("frontend/src/main.tsx", '<Route path="/app" element={<Workbench />} />', '<Route path="/app" element={<div />} />',
+     "main.tsx /app must render Workbench"),
+    ("frontend/src/workbench/Workbench.tsx", "import FocusWorkbench from './FocusWorkbench';", "",
+     "Workbench.tsx must import FocusWorkbench"),
+    ("frontend/src/workbench/Workbench.tsx", "<FocusWorkbench focusMode=", "<DetachedWorkbench focusMode=",
+     "Workbench.tsx must render FocusWorkbench"),
+])
+def test_adversarial_web_cannot_detach_a_component_in_the_actual_route(
+    tmp_path: Path, path: str, old: str, new: str, finding: str,
+) -> None:
+    repo = make_tree(
+        tmp_path / "repo", "frontend/src/main.tsx", "frontend/src/workbench/Workbench.tsx",
+        "frontend/src/workbench/FocusWorkbench.tsx",
+    )
+    _web(repo)
+    edit(repo, path, old, new)
+    with pytest.raises(AssertionError, match=re.escape(finding)):
+        _web(repo)
 
 def test_adversarial_ab_01():
     _check("benchmark")

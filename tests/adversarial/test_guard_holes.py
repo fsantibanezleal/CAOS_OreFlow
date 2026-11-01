@@ -583,9 +583,17 @@ def test_sdd_rereview_m3d_the_brief_inside_a_tilde_fence_with_a_backtick_line(sd
 
 
 def test_sdd_rereview_the_data_line_inside_a_code_block_is_not_the_data_line(sdd_repo: Path) -> None:
-    _replace_line(sdd_repo, SDD, "Data file: content/executive.json", "```\nData file: content/executive.json\n```", occurrence=1)
+    clean = guard(sdd_repo, "check_sdd.py", ok_marker="check_sdd: OK")
+    assert clean.returncode == 0, clean.stdout
+    text = _sdd_text(sdd_repo)
+    start, end = _brief_span(text)
+    brief = text[start:end]
+    line = "Data file: content/executive.json"
+    assert brief.splitlines().count(line) == 1, "the Executive brief must have exactly one live data-file line"
+    fenced = brief.replace(line, f"```\n{line}\n```", 1)
+    (sdd_repo / SDD).write_text(text[:start] + fenced + text[end:], encoding="utf-8")
     r = sdd(sdd_repo)
-    assert r.returncode == 1 and "Data file: content/executive.json" in r.stdout, r.stdout
+    assert r.returncode == 1 and "Executive brief" in r.stdout and "Data file: content/executive.json" in r.stdout, r.stdout
 
 
 # ---- a validation gate that skips for lack of a tool is not a gate that ran (Q1, S-3d), and the name is a prefix (M9c)

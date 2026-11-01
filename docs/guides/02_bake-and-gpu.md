@@ -30,8 +30,8 @@ stages and stops with an error if the last one, the artifact checks, finds anyth
 | Stage | Writes | Time in the committed bake |
 |---|---|---|
 | contract | `contract/operating_contract.json`, `contract/contract_probes.json` | under 1 s |
-| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 4812.9 s on CUDA in the 0.10.008 bake |
-| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 5643.1 s on 8 workers in the 0.10.008 bake |
+| learning | `learning.json`, `models/process_surrogate.onnx`, `process_guard.onnx`, `process_surrogate.json`, the screen's `process_screen.json` and `process_gp_cholesky.bin` | 4812.9 s on CUDA in the committed 0.10.008 bake |
+| cases | `cases/<case>.json`: every variant's trace, optimization (screened and unscreened, with the weight path) and uncertainty records, the nominal Sobol record | 5643.1 s on 8 workers in the committed 0.10.008 bake |
 | benchmark | `benchmark.json` | 1.5 s |
 | studies | `studies.json`: the ablations and the uncertainty seed study | 484.3 s |
 | real_samples | `real_samples.json`: the GeoMet samples in the soft porphyry's circuit | 283.9 s |
