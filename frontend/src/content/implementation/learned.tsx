@@ -15,7 +15,7 @@ export function LearningEvidence({ record, lang, target, foldNames = {} }: {
   ];
   const modelName = (id: string) => LEARNING_MODELS[id]?.[lang] ?? id;
   return (
-    <section className="of-doc-panel" aria-label={`${TEXT.conditional[lang]}: ${LEARNING_TARGETS[target]?.[lang] ?? target}`}>
+    <section className="of-doc-panel of-learning-evidence" aria-label={`${TEXT.conditional[lang]}: ${LEARNING_TARGETS[target]?.[lang] ?? target}`}>
       <h4>{LEARNING_TARGETS[target]?.[lang] ?? target}</h4>
       <p>{TEXT.definition[lang]}</p>
       {protocols.map(protocol => {

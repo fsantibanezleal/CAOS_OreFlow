@@ -792,7 +792,7 @@ Resuelve nuevamente el extremo elegido con un circuito fresco. Así ves recupera
 
 Dibuja historia incumbente y malla del comienzo seleccionado. El conteo horizontal del primer panel registra evaluaciones exactas dentro de ese comienzo. El segundo registra iteraciones, no llamadas al motor. Contraer malla indica una exploración local más fina; un objetivo factible plano puede coexistir con intentos de mejorar un punto infactible.
 
-La historia explica cómo se alcanzó la configuración terminal. Saltos son mejoras aceptadas; mesetas pueden reflejar rechazos o trabajo de restricciones. Aquí se traza solo un comienzo y el conteo impreso cubre toda la corrida. Interpreta la última malla junto al motivo de detención y recuerda las escalas nominales al comparar objetivo, recuperación y energía."""),
+La historia explica cómo se alcanzó la configuración terminal. Saltos son mejoras aceptadas; mesetas pueden reflejar rechazos o trabajo de restricciones. Aquí se traza solo un comienzo y el conteo impreso cubre toda la corrida. Interpretar la última malla junto al motivo de detención y conservar las escalas nominales al comparar objetivo, recuperación y energía."""),
 ('04-optimization', 2): (
 """Set up the magnetite problem to examine objective construction rather than surrogate cost. The nominal recovered mass and specific energy define separate normalization constants. Without those constants a weighted sum would mix tonnes per hour and kWh per tonne arbitrarily. All experiments below share the same bounded grind decision and physical constraints. This controlled setup makes a change in selected operating point attributable to preference weights rather than a changed process definition.
 
@@ -893,7 +893,7 @@ Ajusta Ridge después de estandarizar solo con entrenamiento y predice las etiqu
 
 Dibuja el error de interpolación de este único estimador. La lección inicial contiene un protocolo y un modelo ajustado; la barra resume una predicción concreta, no una clasificación bibliográfica. Usa puntos porcentuales porque mide diferencias de recuperación, no cambio porcentual relativo. Lee junto a rangos de predicción y referencia para juzgar la magnitud.
 
-La barra es descriptiva y no tiene intervalo de confianza: se usa una partición determinista. Las sesenta y cuatro etiquetas comparten cuatro definiciones y no son observaciones geológicas independientes. El modelo aproxima el motor. Antes de agregar estimadores no lineales, confirma unidades, representación de casos en ambas particiones y que el estandarizador haya visto solamente filas de entrenamiento."""),
+La barra es descriptiva y no tiene intervalo de confianza: se usa una partición determinista. Las sesenta y cuatro etiquetas comparten cuatro definiciones y no son observaciones geológicas independientes. El modelo aproxima el motor. Antes de agregar estimadores no lineales, confirmar unidades, representación de casos en ambas particiones y uso exclusivo de filas de entrenamiento al ajustar el estandarizador."""),
 ('03-learning', 2): (
 """Generate a common 64-row design for two estimators and two validation protocols. The practical question concerns a complete missing porphyry case, so keep its hard sibling as a deliberate near-neighbour during training. This is less strict than removing their shared ore group. The design size is chosen for a worked lesson and does not reproduce the release's full learning experiment. All features and targets still come from the production builders.
 
@@ -982,7 +982,7 @@ Genera un dominio común de tamaños para las leyes. El límite inferior permane
 
 Dibuja la comparación normalizada con tamaño logarítmico y referencia Bond unitaria. El panel pregunta cómo divergen las hipótesis al pedir un producto más fino. Mantiene fijo el índice de trabajo, sin mezclar dureza y tamaño. Usa los estados nominal, fino y grueso como anclas físicas; las curvas continuas evalúan ecuaciones, no representan resoluciones adicionales del circuito.
 
-Las curvas relativas muestran dónde difieren más las hipótesis inversa y logarítmica respecto de raíz cuadrada inversa. Su intersección está condicionada por calibración y no certifica un modelo para otro mineral. Un cociente cercano a uno puede coexistir con un objetivo inalcanzable por falta de potencia. Integra figura, P80 alcanzado, potencia y partición para explicar el cálculo completo, sin escoger una ecuación solo por cercanía visual a Bond."""),
+Las curvas relativas muestran dónde difieren más las hipótesis inversa y logarítmica respecto de raíz cuadrada inversa. Su intersección está condicionada por calibración y no certifica un modelo para otro mineral. Un cociente cercano a uno puede coexistir con un objetivo inalcanzable por falta de potencia. Integrar figura, P80 alcanzado, potencia y partición para explicar el cálculo completo, sin escoger una ecuación solo por cercanía visual a Bond."""),
 ('02-flotation', 1): (
 """Return to the copper-molybdenum rougher and generate a fresh kinetic record from its particle-class rates. Five named forms are fitted to the same virtual batch observations. The recorded continuous-bank recovery uses a residence model rather than the batch's single exposure time. This fresh fit connects the two views above without treating either curve as laboratory data. Notice that true flotation and overall rougher recovery need not coincide because entrainment contributes to the latter; the exact kinetic reference intentionally isolates true flotation.
 
@@ -1250,6 +1250,7 @@ factor_labels = {
     if topic == '03-learning' and level == 3:
         released_learning_challenge(notebook)
     readable_figures(notebook)
+    final_output_fixes(notebook)
     finalize(notebook)
     return notebook
 
@@ -1271,7 +1272,8 @@ def finalize(notebook):
             source = spanish_code(source)
             prior = ''.join(notebook['cells'][index - 1]['source'])
             english = ('Import ', 'Load ', 'Record ', 'Fit ', 'Run ', 'Summarize ', 'Resolve ', 'Re-run ',
-                       'Evaluate ', 'Separate ', 'Collect ')
+                       'Evaluate ', 'Separate ', 'Collect ', 'Audit ', 'Preserve ', 'Qualify ',
+                       'Interpret ', 'Identify ', 'Count ', 'Compare ', 'Plot ', 'Keep ', 'Overlay ')
             if comments and not comments[0].startswith(english):
                 comment = comments[0]
             else:
@@ -3475,6 +3477,216 @@ def readable_figures(notebook):
         comment = comments[0] if comments else pair('# Plot the computed comparison.', '# Graficar la comparación.', lang)
         style = f"plt.rcParams.update({{'font.size': {font}, 'axes.titlepad': {title_pad}}})"
         cell['source'] = (comment + '\n' + style + '\n' + program + '\n').splitlines(keepends=True)
+
+
+def final_output_fixes(notebook):
+    """F12-F16: repair the quantities, legends and interpretation exposed by adopted outputs."""
+    meta = notebook['metadata']['caos']
+    topic, level, lang = meta['topic'], meta['level'], meta['language']
+    cells = notebook['cells']
+    def replace(cell_id, text):
+        next(cell for cell in cells if cell['id'] == cell_id)['source'] = text.splitlines(keepends=True)
+    def program(cell_id):
+        return ''.join(next(cell for cell in cells if cell['id'] == cell_id)['source'])
+    LABELS_ES.update({
+        'First order|Kelsall|Klimpel|Gamma|Stretched exponential':
+        'Primer orden|Kelsall|Klimpel|Gamma|Exponencial estirada',
+        'Stretched exp.': 'Exp. estirada', 'Virtual data': 'Datos virtuales',
+        'Five batch fits': 'Cinco ajustes batch',
+        'Recovery\n(%)': 'Recuperación\n(%)',
+        'Fitted projection': 'Proyección ajustada', 'Exact reference': 'Referencia exacta',
+        'Bank true-flotation recovery (%)': 'Recuperación verdadera del banco (%)',
+        'Continuous-bank projections': 'Proyecciones al banco continuo',
+        'Specific energy\n(kWh/t)': 'Energía específica\n(kWh/t)',
+        ' coincident preferences': ' preferencias coincidentes',
+    })
+    if topic == '02-flotation' and level >= 2:
+        setup = next(cell for cell in cells if cell['cell_type'] == 'code')
+        setup['source'] += ("\nmodel_labels = dict(zip('first_order kelsall klimpel gamma stretched_exponential'.split(),\n"
+                            "    'First order|Kelsall|Klimpel|Gamma|Stretched exponential'.split('|')))\n"
+                            "curve_labels = {**model_labels, 'stretched_exponential': 'Stretched exp.'}\n").splitlines(keepends=True)
+        curve_id = 'lesson-013' if level == 2 else 'lesson-014'
+        tree = ast.parse(program(curve_id))
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Dict):
+                for i, key in enumerate(node.keys):
+                    if isinstance(key, ast.Constant) and key.value == 'axes.titlepad':
+                        node.values[i] = ast.Constant(100)
+            if not isinstance(node, ast.Call):
+                continue
+            for kw in node.keywords:
+                if isinstance(node.func, ast.Attribute) and node.func.attr == 'legend' and kw.arg is None:
+                    kw.value = ast.parse("{**legend_style, 'bbox_to_anchor': (0.5, 1.1)}", mode='eval').body
+                if kw.arg == 'figsize':
+                    kw.value = ast.Tuple([ast.Constant(6.4), ast.Constant(4.4)], ast.Load())
+                if kw.arg == 'label' and isinstance(kw.value, ast.Subscript):
+                    kw.value = ast.Call(ast.Attribute(ast.Name('curve_labels', ast.Load()), 'get', ast.Load()),
+                                        [kw.value, kw.value], [])
+                elif kw.arg == 'label' and isinstance(kw.value, ast.Constant):
+                    kw.value = ast.Constant('Virtual data')
+                if kw.arg == 'title':
+                    kw.value = ast.Constant('Five batch fits')
+                if kw.arg == 'ylabel':
+                    kw.value = ast.Constant('Recovery\n(%)')
+                if kw.arg == 'ncol':
+                    kw.value = ast.Constant(3)
+                if isinstance(node.func, ast.Attribute) and node.func.attr == 'subplots_adjust':
+                    if kw.arg == 'top':
+                        kw.value = ast.Constant(0.5)
+                    elif kw.arg == 'bottom':
+                        kw.value = ast.Constant(0.18)
+        source = ast.unparse(tree)
+        source = source.replace("'axes.titlepad': 100", "'axes.titlepad': 100, 'axes.titlesize': 18, 'legend.fontsize': 16")
+        replace(curve_id, '# Plot all five fits and their common virtual observations.\n' + source)
+    if topic == '02-flotation' and level == 3:
+        replace('lesson-017', """# Compare fitted bank projections with the exact reference on the numeric recovery axis.
+plt.rcParams.update({'font.size': 18, 'axes.titlepad': 40})
+fig, ax = plt.subplots(figsize=(6.4, 3.8))
+projection_bars = ax.barh([model_labels.get(m['id'], m['id']) for m in models],
+                          [m['bank_projection_pct'] for m in models])
+reference_line = ax.axvline(kinetics['bank']['exact_true_flotation_pct'], color='firebrick', linestyle='--')
+ax.set(xlabel='Bank true-flotation recovery (%)', ylabel='', title='Continuous-bank projections')
+ax.legend([projection_bars, reference_line], ['Fitted projection', 'Exact reference'], ncol=2, **legend_style)
+ax.grid(axis='x', alpha=0.25)
+fig.subplots_adjust(left=0.4, right=0.96, bottom=0.23, top=0.72)""")
+        replace('lesson-036', """# Preserve the two signed-error series and bind their legend to their own bar containers.
+plt.rcParams.update({'font.size': 18, 'axes.titlepad': 40})
+fig, ax = plt.subplots(figsize=(6.4, 3.8))
+residence.set_index('Model')[['Refit signed error (pp)', 'Frozen signed error (pp)']].rename(
+    index=model_labels).plot.barh(ax=ax)
+ax.axvline(0, color='black', linewidth=1)
+ax.set(xlabel='Bank error (pp)', ylabel='', title='Short-bank projection errors')
+ax.legend(handles=ax.containers, labels=['Refitted', 'Frozen'], fontsize=18, ncol=2, **legend_style)
+fig.subplots_adjust(left=0.4, right=0.96, bottom=0.23, top=0.72)""")
+    if topic == '01-comminution' and level == 3:
+        title_physical = pair('Mill feed F80', 'F80 al molino', lang)
+        title_reference = pair('Reference', 'Referencia', lang)
+        replace('lesson-014', r"""# Keep the physical and imposed-calibration experiments in separate complete figures.
+plt.rcParams.update({'font.size': 18, 'axes.titlepad': 70, 'axes.titlesize': 18})
+axes = []
+panel_specs = ((curves['p80_um'], curves), (reference_products, reference_curves))
+panel_titles = [f'PHYSICAL={f80:.1f} µm', f'REFERENCE: F80={reference_feed:g}; P80={reference_product:g} µm']
+for panel, (products, law_values) in enumerate(panel_specs):
+    fig, ax = plt.subplots(figsize=(6.4, 3.8))
+    for name in ('bond', 'rittinger', 'kick'):
+        ax.plot(products, law_values[name], label=name.title())
+        if panel == 1:
+            ax.scatter([reference_product], [calibration[name][0]], s=28)
+    ax.set(xlabel='Product P80 (µm)', ylabel='Specific energy\n(kWh/t)', title=panel_titles[panel])
+    ax.set_xscale('log')
+    ax.invert_xaxis()
+    ax.grid(alpha=0.25)
+    ax.legend(ncol=3, fontsize=16, **legend_style)
+    fig.subplots_adjust(left=0.24, right=0.96, bottom=0.23, top=0.72)
+    axes.append(ax)""".replace('PHYSICAL', title_physical).replace('REFERENCE', title_reference))
+        replace('lesson-013', pair(
+            'The first figure evaluates the physical mill-feed reduction. The second is a different, explicitly '
+            'labelled calibration experiment; each marker uses the exact law value at the declared reference endpoint. '
+            'No nearest-grid ordinate is used for a marker at another size.',
+            'La primera figura evalúa la reducción física del molino. La segunda es un experimento de calibración '
+            'distinto y rotulado; cada marca usa el valor exacto de su ley en el extremo de referencia. Ninguna '
+            'marca toma la ordenada de un tamaño vecino.', lang))
+        replace('lesson-015', pair(
+            'The first figure’s curves can differ at 150 µm because their feed is the achieved mill feed. '
+            'The second figure’s markers coincide only at the declared reference reduction, evaluated exactly '
+            'rather than interpolated from an unrelated grid point. These are distinct questions with labelled '
+            'endpoints. The later nominal-work table and ratio sweep retain the physical mill-feed basis; '
+            'calibration supplies neither another operating state nor measured energy validation.',
+            'Las curvas de la primera figura pueden diferir a 150 µm porque usan alimentación alcanzada del '
+            'molino. Las marcas de la segunda coinciden solo en la reducción de referencia declarada, evaluada '
+            'exactamente y no desde un punto vecino. Son preguntas distintas con extremos identificados. La '
+            'tabla nominal y el barrido relativo mantienen la base física del molino; calibrar no aporta otro '
+            'estado operativo ni validación energética medida.', lang))
+    if topic == '03-learning' and level == 3:
+        source = program('released-015')
+        tree = ast.parse(source)
+        for index, node in enumerate(tree.body):
+            if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == 'target_units' for t in node.targets):
+                value = ast.parse(ast.unparse(node.value), mode='eval').body
+                value.elts[0] = ast.Constant('%')
+                tree.body.insert(index + 1, ast.Assign(targets=[ast.Name('physical_units', ast.Store())], value=value))
+                break
+        for node in ast.walk(tree):
+            if isinstance(node, ast.Dict):
+                for index, key in enumerate(node.keys):
+                    if isinstance(key, ast.Constant) and key.value in ('Unit', 'Unidad'):
+                        if isinstance(node.values[index], ast.Name) and node.values[index].id == 'target_units':
+                            node.values[index] = ast.Name('physical_units', ast.Load())
+        replace('released-015', source.splitlines()[0] + '\n' + ast.unparse(ast.fix_missing_locations(tree)))
+        source = program('lesson-026').replace('ncol=2', 'ncol=3')
+        source = source.replace("'axes.titlepad': 40", "'axes.titlepad': 90, 'axes.titlesize': 18")
+        source = source.replace('fontsize=18', 'fontsize=16')
+        if lang == 'es':
+            source = source.replace("'Case holdout': 'Case'", "'Case holdout': 'Caso'")
+            source = source.replace("'Ore-group holdout': 'Ore group'", "'Ore-group holdout': 'Grupo mineral'")
+        replace('lesson-026', source)
+    if topic == '04-optimization' and level == 2:
+        preference_output_fix(notebook, replace, program)
+    if lang == 'es' and topic == '04-optimization':
+        setup = next(cell for cell in cells if cell['cell_type'] == 'code')
+        setup['source'] += ("\ntrace_headers = dict(zip('Outcome Mesh Barrier Objective Evaluations'.split(),\n"
+                            "    'Resultado Malla Barrera Objetivo Evaluaciones'.split()))\n").splitlines(keepends=True)
+        trace = next(cell for cell in cells if cell['cell_type'] == 'code' and 'history = pd.DataFrame' in ''.join(cell['source']))
+        trace['source'] += "\ndisplay(history.rename(columns=trace_headers))\n".splitlines(keepends=True)
+
+
+def preference_output_fix(notebook, replace, program):
+    """Describe the computed invariant outcome without changing the three searches."""
+    lang = notebook['metadata']['caos']['language']
+    replace('lesson-022', """# Preserve each preference status and annotate actual coincident physical endpoints.
+plt.rcParams.update({'font.size': 18, 'axes.titlepad': 80})
+preference_runs = (('Equal', plain), ('Metal', metal_search), ('Energy', energy_search))
+endpoints_xy = []
+fig, ax = plt.subplots(figsize=(6.4, 3.8))
+for label, run in preference_runs:
+    end = run.get('optimum') or run.get('least_violating') or run['base']
+    if run['status'] != 'base_refused' and end['values']:
+        xy = (end['values']['energy_kwh_t'], end['recovered_tph'])
+        endpoints_xy.append(xy)
+        ax.scatter(*xy, marker='o' if end['feasible'] else 'x', label=label + ' [' + run['status'] + ']')
+if len(endpoints_xy) > 1 and len(set(endpoints_xy)) == 1:
+    ax.annotate(str(len(endpoints_xy)) + ' coincident preferences', endpoints_xy[0],
+                xytext=(0, -30), textcoords='offset points', ha='center', fontsize=16)
+ax.set(xlabel='Specific energy (kWh/t)', ylabel='Recovered metal (t/h)', title='Computed preference endpoints')
+ax.legend(ncol=2, **legend_style)
+fig.subplots_adjust(left=0.22, right=0.96, bottom=0.23, top=0.61)""")
+    replace('lesson-021', pair(
+        'Plot the three preference runs in energy and recovered-metal coordinates while retaining their '
+        'individual statuses. This bounded case selects the same physical endpoint at all three weights. '
+        'Coincident markers therefore demonstrate invariance across these requested preferences, not an '
+        'observed trade-off. The annotation counts the overplotted outcomes without moving them or inventing '
+        'an interpolated frontier. The following table retains every run’s slacks and stopping evidence.',
+        'Graficar las tres preferencias en coordenadas de energía y metal recuperado, conservando sus estados. '
+        'Este caso acotado selecciona el mismo extremo físico con los tres pesos. Las marcas coincidentes '
+        'demuestran invariancia entre estas preferencias, sin intercambio observado. La anotación cuenta '
+        'resultados superpuestos sin moverlos ni inventar una frontera interpolada. La tabla posterior '
+        'conserva holguras y evidencia de detención de cada corrida.', lang))
+    replace('lesson-023', pair(
+        'Three status-labelled runs coincide at one plotted coordinate in this experiment. The equal, metal-only '
+        'and energy-only preferences therefore supply an invariant physical outcome here, rather than three '
+        'distinct Pareto points. The annotation preserves their multiplicity. Infeasible or unavailable states '
+        'would still require the recorded status and slacks; coincidence alone is not a feasibility or global '
+        'optimality proof, an economic valuation or evidence of preference insensitivity for another circuit.',
+        'Las tres corridas con estado coinciden en una coordenada en este experimento. Las preferencias de '
+        'pesos iguales, solo metal y solo energía aportan aquí un resultado físico invariante, no tres puntos '
+        'Pareto distintos. La anotación conserva su multiplicidad. Estados infactibles o ausentes seguirían '
+        'exigiendo estado y holguras registrados; coincidir no prueba factibilidad, optimalidad global, valor '
+        'económico ni insensibilidad de otro circuito a preferencias.', lang))
+    replace('lesson-030', pair(
+        '## Summary\n\nAll three requested preferences select the same physical endpoint in this bounded '
+        'experiment. Individual feasibility, slacks and stopping evidence remain visible. This invariance '
+        'does not establish a general absence of trade-offs, an economic utility or an interpolated frontier.',
+        '## Resumen\n\nLas tres preferencias seleccionan el mismo extremo físico en este experimento '
+        'acotado. Se conservan factibilidad, holguras y detención individuales. Esta invariancia no establece '
+        'ausencia general de intercambios, utilidad económica ni una frontera interpolada.', lang))
+    source = program('lesson-027')
+    if lang == 'en':
+        source = source.replace('Their separately labelled physical outcomes and slacks show the preference trade-off,',
+            'The table reports the same physical endpoint for all three preferences: an invariant outcome in this run,')
+    else:
+        source = source.replace('Salidas físicas y holguras rotuladas muestran el compromiso;',
+            'La tabla informa el mismo extremo físico con las tres preferencias: un resultado invariante en esta corrida;')
+    replace('lesson-027', source)
 
 
 def main():

@@ -28,7 +28,7 @@ export function LearningComparison({ record, lang }: { record: LearningRecord; l
     </select></label>
     <p>{TEXT.definition[lang]}</p>
     {comparison === 'common' && <p>{cohort.folds.length ? `${TEXT.common[lang]}: ${formatFixed(cohort.folds.length, lang, 0)} / ${formatFixed(cohort.attempted, lang, 0)}` : TEXT.empty[lang]}</p>}
-    <div className="of-doc-chart of-doc-chart-narrow">
+    <div className="of-doc-chart of-learning-comparison-chart">
       <Chart data={[record.models.map((_, i) => i), interp, heldOut] as uPlot.AlignedData}
         categories={record.models.map(model => LEARNING_MODELS[model]?.[lang] ?? model)}
         xLabel={TEXT.model[lang]} yLabel="R²" title={`${TEXT.interpolation[lang]} / ${label}`} summary={summary}

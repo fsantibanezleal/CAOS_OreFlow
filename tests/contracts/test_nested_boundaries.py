@@ -85,7 +85,6 @@ def test_actual_scoring_producer_and_optional_observable_payloads():
     payload = json.loads((Path(__file__).parent / "fixtures/learning-v2.json").read_text(encoding="utf-8"))
     score = _scores(np.array([1.0, 2.0, 3.0]), np.array([1.1, 2.1, 2.9]), np.array(["new_case"] * 3), evaluation={"method": "ridge", "target": "recovery_pct", "protocol": "interpolation", "fold": "interpolation", "seed": 1})
     payload["interpolation"]["models"]["ridge"]["recovery_pct"] = score
-    observable = copy.deepcopy(score["observable"])
     seed_score = payload["mlp_seeds"]["scores"]["case-a"]["recovery_pct"][0]
     seed_score.update(copy.deepcopy(score))
     seed_score["evaluation"].update(method="mlp", fold="case-a", protocol="leave_one_case_out")

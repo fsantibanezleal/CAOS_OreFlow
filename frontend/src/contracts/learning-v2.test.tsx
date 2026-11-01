@@ -5,6 +5,12 @@ import { readLearningRecord } from './boundaries';
 import { formatLearningMetric, formatScore, learningSeries } from '../learning/evidence';
 import { LearningEvidence } from '../content/implementation/learned';
 import { LearningComparison } from '../learning/comparison';
+import { LearningView } from '../workbench/views/LearningView';
+import * as artifactData from '../content/data';
+import { readOperatingContract } from './boundaries';
+import { readFileSync } from 'node:fs';
+import type { CaseArtifact } from '../lib/artifacts.types';
+import { LEARNING_TARGETS } from '../learning/evidence';
 
 const plot = vi.hoisted(() => ({ data: [] as Array<Array<number | null>>, summary: '' }));
 vi.mock('../components/charts/Chart', () => ({ Chart: (props: { data: Array<Array<number | null>>; summary: string }) => {
@@ -13,6 +19,35 @@ vi.mock('../components/charts/Chart', () => ({ Chart: (props: { data: Array<Arra
 } }));
 
 const fresh = () => JSON.parse(JSON.stringify(fixture));
+
+describe.each(['en', 'es'] as const)('localized full workbench evidence (%s)', lang => {
+  it('adversarial: rejected three-target evidence stays localized and keyboard reachable', () => {
+    const record = readLearningRecord(allRejected());
+    const read = (path: string) => JSON.parse(readFileSync(new URL(`../../../data/derived/${path}`, import.meta.url), 'utf8'));
+    const artifact = read('cases/copper_porphyry_soft.json') as CaseArtifact;
+    const names = lang === 'en' ? ['First authored circuit', 'Second authored circuit'] : ['Primer circuito de autoría propia', 'Segundo circuito de autoría propia'];
+    const index = { cases: ['case-a', 'case-b'].map((case_id, i) => ({ case_id, title: { [lang]: names[i] } })) };
+    const hook = vi.spyOn(artifactData, 'useArtifact').mockReturnValueOnce({ value: record, error: null }).mockReturnValueOnce({ value: index, error: null });
+    try {
+      const html = renderToStaticMarkup(<LearningView contract={readOperatingContract(read('contract/operating_contract.json'))}
+        artifact={artifact} point={artifact.nominal} trace={artifact.variants[0].trace} onCursor={() => {}} lang={lang} />);
+      expect(html).not.toMatch(/case-a|case-b/);
+      for (const name of names) expect(html).toContain(name);
+      for (const target of record.targets) expect(html).toContain(LEARNING_TARGETS[target][lang]);
+      // Refute fitting the panel by moving or dropping its complete rejected-cohort disclosure.
+      const aside = html.slice(html.indexOf('class="of-aside of-learning-aside"'));
+      expect(aside).toContain('role="region" tabindex="0"');
+      expect(aside).toContain(lang === 'en' ? 'Full evaluation evidence (all three targets)' : 'Evidencia completa de evaluación (los tres objetivos)');
+      expect(aside.match(/class="of-doc-panel of-learning-evidence"/g)).toHaveLength(3);
+      for (const target of record.targets) {
+        expect(aside).toContain(`<h4>${LEARNING_TARGETS[target][lang]}</h4>`);
+      }
+      expect(html).toContain(lang === 'en' ? '2 planned / 0 scored / 2 rejected' : '2 previstas / 0 evaluadas / 2 rechazadas');
+      expect(html).toContain(lang === 'en' ? 'Rejected: prediction range' : 'Rechazado: rango de predicción');
+      expect(html).not.toMatch(/NaN|Infinity/);
+    } finally { hook.mockRestore(); }
+  });
+});
 
 function allRejected() {
   const payload = fresh();
@@ -95,7 +130,7 @@ describe.each(['en', 'es'] as const)('consumer evidence in %s', lang => {
     expect(html).not.toMatch(/NaN|Infinity|best|wins/);
     if (lang === 'es') expect(html).not.toMatch(/Unavailable|Rejected|planned|scored|prediction range/);
   });
-  it('renders all-rejected evidence as unavailable and preserves null plot inputs', () => {
+  it('adversarial: all-rejected comparisons preserve unavailable counts and null plot gaps', () => {
     const record = readLearningRecord(allRejected());
     const html = renderToStaticMarkup(<LearningEvidence record={record} target="recovery_pct" lang={lang} />);
     expect(html).toContain(lang === 'en' ? '2 planned / 0 scored / 2 rejected' : '2 previstas / 0 evaluadas / 2 rechazadas');

@@ -480,6 +480,27 @@ input, select, textarea { font: inherit; }
 .of-facts > .of-facts-wide { grid-column: 1 / -1; flex-direction: column; gap: 2px; }
 .of-facts > .of-facts-wide dd { font-family: inherit; white-space: normal; }
 .of-facts.of-grid-facts { align-content: start; padding: 10px; border: 1px solid var(--color-border); border-radius: 8px; background: var(--color-surface); overflow: hidden; }
+
+/* Complete learned evidence uses its real column width; rejected diagnostics remain readable. */
+.of-learning-evidence { min-width: 0; }
+.of-learning-layout > .of-stack { grid-template-rows: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 860px) {
+  .of-learning-layout > .of-stack { grid-template-rows: repeat(2, minmax(360px, auto)); }
+}
+.of-learning-layout .of-plot-title { flex: 1 1 auto; white-space: normal; }
+.of-learning-aside .of-facts { min-width: 0; max-width: 100%; grid-template-columns: minmax(0, 1fr); }
+.of-learning-aside .of-facts > div { min-width: 0; }
+.of-learning-aside .of-facts dt, .of-learning-aside .of-facts dd { min-width: 0; flex: 1 1 50%; }
+.of-learning-aside .of-facts dd { white-space: normal; }
+.of-learning-aside > .of-table { table-layout: fixed; width: 100%; }
+.of-learning-aside .of-doc-table th { white-space: normal; }
+.of-learning-aside > .of-table th, .of-learning-aside > .of-table td { white-space: normal; }
+.of-learning-aside .of-doc-soft { min-width: 0; }
+.of-learning-aside details, .of-learning-aside .of-doc-scroll { min-width: 0; max-width: 100%; }
+/* uPlot retains a 120px canvas minimum; a tall translated heading must not consume that space. */
+.of-learning-comparison-chart { height: auto; min-height: 360px; }
+.of-learning-comparison-chart > .of-plot { height: auto; min-height: 360px; }
+.of-learning-comparison-chart .of-plot-area { flex: 1 0 180px; }
 .of-facts-title { margin: 4px 0 0; font-size: 0.74rem; font-weight: 600; color: var(--color-fg-subtle); }
 
 .of-hint { margin: auto; max-width: 60ch; text-align: center; font-size: 0.86rem; color: var(--color-fg-subtle); }

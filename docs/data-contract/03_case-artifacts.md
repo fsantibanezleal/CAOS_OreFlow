@@ -63,6 +63,11 @@ entry per case (`case_id`, `category`, `family`, `title`, `manifest_path`, `arti
 
 ## Learning record, benchmark and validation
 
+The learning payload is a breaking replacement of `oreflow.learning/v1`. The
+[contract catalog](../contracts/catalog.md) preserves the original v1 history, records its major
+retirement and registers the v2 contract. Consumers must migrate explicitly; a legacy score-only
+record cannot stand in for the scored/rejected evidence and complete cohorts required below.
+
 - `data/derived/learning.json` (`oreflow.learning/v2`): the learned lane of
   [methodology page 14](../methodologies/14_learned-lane.md), with the engine version and contract
   digest; the exported models live in `models/process_surrogate.onnx`, `models/process_guard.onnx`

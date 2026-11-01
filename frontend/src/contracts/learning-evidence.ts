@@ -51,6 +51,16 @@ export function transferFoldEvidence(record: LearningRecord) {
 }
 
 export function checkLearningEvidence(record: LearningRecord): void {
+  const base = record.design?.seed, offsets = record.settings?.mlp_seed_offsets, declared = record.mlp_seeds?.seeds;
+  const safeSeed = (value: unknown): value is number => typeof value === 'number' && Number.isSafeInteger(value) && value >= 0;
+  if (!safeSeed(base) || !Array.isArray(offsets) || !offsets.length || !offsets.every(safeSeed)
+    || new Set(offsets).size !== offsets.length || !Array.isArray(declared) || !declared.length || !declared.every(safeSeed)) {
+    invalid('mlp_seeds.seeds', 'configured seed inventory requires a nonnegative safe-integer base, unique offsets and seed IDs');
+  }
+  const expectedSeeds = offsets.map(offset => base + offset);
+  if (!expectedSeeds.every(safeSeed) || declared.length !== expectedSeeds.length || declared.some((seed, index) => seed !== expectedSeeds[index])) {
+    invalid('mlp_seeds.seeds', `configured seed inventory must equal ordered design.seed + settings.mlp_seed_offsets: ${expectedSeeds.join(', ')}`);
+  }
   const protocols = [
     { id: 'leave_one_case_out' as const, prefix: 'loco' as const, folds: record.leave_one_case_out.map(f => ({ id: f.held_out, models: f.models, evaluationFold: f.held_out, protocol: 'leave_one_case_out' })) },
     { id: 'transfer' as const, prefix: 'transfer' as const, folds: transferFoldEvidence(record) },

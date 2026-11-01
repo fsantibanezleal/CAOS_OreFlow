@@ -58,6 +58,22 @@ const benchmark = read<{
 // or reporting obsolete numeric/ranking failures for every learning assertion.
 const readRealLearning = (): LearningRecord => readLearningRecord(read<unknown>('learning.json'));
 
+it('adversarial: adopted case captions cannot leak IDs or drop a target', () => {
+  const record = readRealLearning();
+  const index = read<{ cases: Array<{ case_id: string; title: Record<Lang, string> }> }>('manifests/index.json');
+  for (const lang of ['en', 'es'] as const) {
+    const foldNames = Object.fromEntries(index.cases.map(entry => [entry.case_id, entry.title[lang]]));
+    for (const target of record.targets) {
+      const html = renderToStaticMarkup(createElement(LearningEvidence, { record, target, lang, foldNames }));
+      for (const fold of record.leave_one_case_out) {
+        expect(html).toContain(foldNames[fold.held_out]);
+        expect(html).not.toContain(fold.held_out);
+      }
+      expect(html).toContain(lang === 'en' ? 'rejected' : 'rechazadas');
+    }
+  }
+});
+
 const cellText = (html: string): string => html.replace(/<[^>]+>/g, '')
   .replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
 
@@ -318,7 +334,7 @@ describe('the Benchmark page says what the records hold', () => {
     expect([withScreen, without, round(100 * (withScreen / without - 1), 1)]).toEqual([26367, 22487, 17.3]);
     const change = screened.map(x => x.r.evaluations - x.r.evaluations_without_screen!);
     expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([0, 68, 4]);
-    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5811, 79035, 901]);
+    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5811, 79034, 901]);
     // the rejections by reason are in the case records' per-start screen counts
     const rejected = { guard: 0, interval: 0 };
     for (const x of screened) {
@@ -326,13 +342,13 @@ describe('the Benchmark page says what the records hold', () => {
         .variants.find(v => v.id === x.v)!.methods.optimization.starts;
       for (const s of starts) { rejected.guard += s.screen.rejected.guard; rejected.interval += s.screen.rejected.interval; }
     }
-    expect([rejected.guard, rejected.interval]).toEqual([19, 48266]);
+    expect([rejected.guard, rejected.interval]).toEqual([19, 48268]);
     const errors = screened.map(x => x.r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
+    expect(errors).toHaveLength(68);
     expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.66);
     const differ = screened.filter(x => !x.r.same_optimum_without_screen);
     expect([screened.length - differ.length, differ.length]).toEqual([65, 7]);
-    // the two that differ, both low-grade copper: the unscreened search recovers more metal in each, within 0.02% and
-    // one or two finest mesh steps away in any decision
+    // Compare every differing feasible pair in recovered metal and finest-mesh decision steps.
     const artifact = (id: string) => read<{ variants: Array<{ id: string; methods: { optimization: OptimizationRecord } }> }>(`cases/${id}.json`);
     const meshMinimum = 2 ** -10;
     const gaps = differ.map(x => {
@@ -366,12 +382,19 @@ describe('the Benchmark page says what the records hold', () => {
     }
     expect(worst).toBeLessThan(1e-4);
     const text = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.en).join(' ');
-    expect(text).toMatch(/26,367 engine evaluations versus 22,487 without screening, 17\.3% more/);
-    expect(text).toMatch(/Of 79,035 candidates, 19 were rejected by the guard and 48,266 by the uncertainty interval; 5,811 were proposed to the engine and 901 improved/);
-    expect(text).toMatch(/0\.66 points per variant/);
+    expect(text).toMatch(/26,367 cached trials versus 22,487 without screening, 17\.3% more/);
+    expect(text).toMatch(/Of 79,034 candidates, 19 were rejected by the guard and 48,268 by the uncertainty interval; 5,811 were proposed to the engine and 901 improved/);
+    expect(text).toMatch(/0\.66 points across the 68 of 72 variants with evaluated proposals/);
+    expect(text).toMatch(/exclude the later weight path, uncached audits, model fitting\/loading and inference/);
     expect(text).toMatch(/same terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes\. Seven of the 70 feasible pairs selected different decisions; recovered metal differed by at most 0\.017%, and the decisions were one to five mesh steps apart\. Five favoured the unscreened result and two the screened result/);
     expect(text).toMatch(/spends 0 to 42% less energy per tonne and 0 to 29% less metal/);
     expect(text).toMatch(/beyond 0\.01%, the mesh's resolution/);
+    const spanish = ENGINE_BENCHMARK.OPTIMIZATION.paragraphs.map(p => p.es).join(' ');
+    expect(spanish).toContain('79.034 candidatos');
+    expect(spanish).toContain('incertidumbre 48.268');
+    expect(spanish).toContain('68 de 72 variantes');
+    expect(spanish).toContain('de 0 a 42% menos energía');
+    expect(spanish).toContain('de 0 a 29% menos metal');
   });
 
   it('uncertainty: the spreads, the joint probabilities and the dominant inputs as quoted', () => {
@@ -591,7 +614,7 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
     expect([feasible.length, feasible[0].id, feasible[0].v, round(feasible[0].r.gain_pct, 1), feasible.at(-1)!.id, feasible.at(-1)!.v, round(feasible.at(-1)!.r.gain_pct, 1)])
       .toEqual([43, 'iron_magnetite_fine', 'finer_crusher', 0.3, 'copper_oxide', 'coarser_grind', 20.0]);
     const text = en(ENGINE_BENCHMARK.OPTIMIZATION);
-    expect(text).toMatch(/across proposals its mean is 0\.71, median 0\.48 and maximum 38\.16 points/);
+    expect(text).toMatch(/across the 5,811 proposals its mean is 0\.71, median 0\.48 and maximum 38\.16 points/);
     expect(text).toMatch(/Among the 43 feasible-start target variants, gains run from 0\.3% .* to 20\.0%/);
   });
 

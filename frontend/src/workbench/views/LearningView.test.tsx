@@ -7,7 +7,7 @@ import { readLearningRecord, readOperatingContract } from '../../contracts/bound
 import type { LearningRecord, RejectedScore, ScoredScore, TargetScores } from '../../generated/oreflow-learning-v2';
 import type { CaseArtifact } from '../../lib/artifacts.types';
 import type { SurrogateAnswer } from '../../learning/surrogate';
-import { loadLearning } from '../../lib/artifacts';
+import { loadIndex, loadLearning } from '../../lib/artifacts';
 import { askSurrogate } from '../../learning/surrogate';
 import { LearningView } from './LearningView';
 
@@ -39,10 +39,14 @@ vi.mock('react', async importOriginal => {
 vi.mock('../../content/data', async importOriginal => {
   const actual = await importOriginal<typeof import('../../content/data')>();
   return { ...actual, useArtifact: (loader: unknown) => {
-    setup.artifactHook(loader); return { value: setup.record, error: null };
+    setup.artifactHook(loader);
+    return { value: loader === loadIndex ? read('manifests/index.json') : setup.record, error: null };
   } };
 });
-vi.mock('../../lib/artifacts', () => ({ loadLearning: vi.fn(async () => setup.record) }));
+vi.mock('../../lib/artifacts', () => ({
+  loadLearning: vi.fn(async () => setup.record),
+  loadIndex: vi.fn(async () => read('manifests/index.json')),
+}));
 vi.mock('../../learning/surrogate', () => ({ askSurrogate: vi.fn(async () => [setup.current]) }));
 
 const read = (path: string): unknown => JSON.parse(readFileSync(new URL(`../../../../data/derived/${path}`, import.meta.url), 'utf8'));
@@ -201,10 +205,13 @@ describe.each(['en', 'es'] as const)('LO-008/009 live instrument in %s', lang =>
 
   it('uses one learning loader owner while retaining the live inference effect', async () => {
     render(lang);
-    expect(setup.artifactHook).toHaveBeenCalledExactlyOnceWith(loadLearning);
+    expect(setup.artifactHook).toHaveBeenCalledTimes(2);
+    expect(setup.artifactHook).toHaveBeenCalledWith(loadLearning);
+    expect(setup.artifactHook).toHaveBeenCalledWith(loadIndex);
     for (const effect of setup.effects) effect();
     await Promise.resolve();
-    expect(loadLearning).not.toHaveBeenCalled(); // record is supplied by the wrapper's single hook
+    expect(loadLearning).not.toHaveBeenCalled(); // records are supplied at the artifact-hook boundary
+    expect(loadIndex).not.toHaveBeenCalled();
     expect(askSurrogate).toHaveBeenCalledExactlyOnceWith(artifact.definition.ore, artifact.definition.plant, [artifact.nominal]);
   });
 });

@@ -31,6 +31,10 @@ have null metrics. All neural seed scores and case-mean baseline diagnostics rem
 standard-library artifact checker recomputes summary metrics, denominators, matched membership and score identity
 from the stored fold records.
 
+Seed coverage is determined before those summaries are checked: the expected ordered IDs are the design seed
+plus every configured neural seed offset. The declared seed list must equal that full list. A reduced list
+with otherwise internally consistent score arrays must fail at both the artifact and browser boundaries.
+
 `oreflow.observable/v1` stores rows, observed/predicted/reference ranges, widened limits, baseline declaration and
 status. The validator recomputes allowed bounds and status rather than trusting the stored verdict. These summaries
 are sufficient for consistency checks, not an independent reconstruction of all predictions or scores.
@@ -41,3 +45,19 @@ to its threshold; acceptance does not prove support, and an alert does not prove
 Both false alarms and missed shifts are possible. The active target's case/group counts accompany its conditional
 metrics. The full three-target evidence remains in a disclosure inside the existing aside, with the original
 plot/controls layout preserved; duplicate introductory blocks outside the instrument must not consume its stage.
+
+## Readable complete evidence
+
+The workbench obtains case titles from the same validated catalog index used by Benchmark and passes
+localized fold names into the evidence renderer. Internal IDs remain keys. No protocol, target, rejected
+row, interval diagnostic or seed is removed to shorten the display. The existing full-evidence disclosure
+retains all three targets and remains keyboard reachable inside the learned instrument.
+
+A product-owned learned-layout class controls wrapping independently of other method panels. Counts
+and tables must shrink to the actual column width, with long diagnostic content wrapping inside its
+own disclosure. Chart headings wrap at desktop widths as well as phone widths. The two live sweep
+charts get equal-height rows so the guard's full rotated axis label has room. The benchmark comparison
+uses natural block height and a 180px drawable minimum: a long translated heading must not leave a
+host shorter than uPlot's 120px minimum and clip its canvas. Font sizes and
+scientific calculations remain unchanged. Review before implementation: these are presentation changes
+at existing component boundaries; no contract reader, producer, shell selector or artifact changes are needed.

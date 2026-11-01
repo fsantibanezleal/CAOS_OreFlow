@@ -2,6 +2,7 @@ import { afterEach, describe, expect, expectTypeOf, it, vi } from 'vitest';
 import { readFileSync } from 'node:fs';
 import fixture from '../../../tests/contracts/fixtures/learning-v2.json';
 import { readLearningRecord, readOperatingContract } from './boundaries';
+import { checkLearningEvidence } from './learning-evidence';
 import type { LearningRecord } from '../lib/artifacts.types';
 import type { OperatingContract, ContractInput } from '../engine/contract';
 import type { LearningRecord as GeneratedLearning } from '../generated/oreflow-learning-v2';
@@ -118,4 +119,61 @@ it('validates optional observable diagnostics, including case and seed container
   }
   delete payload.interpolation.models.gaussian_process.recovery_pct.coverage_95;
   expect(() => readLearningRecord(payload)).toThrow(/coverage_95/);
+});
+
+function reindexSeeds(payload: ReturnType<typeof learning>, indices: number[], seedIDs: number[]): void {
+  const seeds = payload.mlp_seeds;
+  seeds.seeds = [...seedIDs];
+  for (const split of Object.keys(seeds.scores)) for (const target of payload.targets) {
+    const previous = seeds.scores[split][target];
+    seeds.scores[split][target] = indices.map((i, index) => ({ ...structuredClone(previous[i]), evaluation: { ...previous[i].evaluation, seed: seedIDs[index] } }));
+  }
+  for (const target of payload.targets) {
+    const summary = seeds.summary[target];
+    for (const field of ['interpolation_rmse', 'loco_rmse_mean', 'loco_r2_median', 'loco_folds']) summary[field] = indices.map(i => structuredClone(summary[field][i]));
+    for (const id of Object.keys(summary.loco_rmse_by_case)) summary.loco_rmse_by_case[id] = indices.map(i => summary.loco_rmse_by_case[id][i]);
+    if (payload.summary.mlp[target].seeds) payload.summary.mlp[target].seeds = structuredClone(summary);
+  }
+}
+function seedInventoryFixture(): ReturnType<typeof learning> {
+  const payload = learning();
+  payload.settings.mlp_seed_offsets = [0, 1, 2];
+  reindexSeeds(payload, [0, 1, 1], [1, 2, 3]);
+  for (const target of payload.targets) payload.summary.mlp[target].seeds = structuredClone(payload.mlp_seeds.summary[target]);
+  return payload;
+}
+
+it('adversarial: configured seed inventory cannot be shortened', () => {
+  for (const [indices, ids] of [
+    [[0, 2], [1, 3]], [[0, 1, 2], [1, 99, 3]],
+    [[0, 2, 1], [1, 3, 2]], [[0, 1, 2, 2], [1, 2, 3, 4]],
+  ]) {
+    const payload = seedInventoryFixture();
+    expect(readLearningRecord(payload)).toBe(payload);
+    reindexSeeds(payload, indices, ids);
+    expect(() => readLearningRecord(payload)).toThrow(/configured seed inventory/);
+  }
+});
+
+it.each([[0], [0, 11], [0, 11, 22]])('accepts the complete configured seed inventory %j', (...offsets) => {
+  const payload = seedInventoryFixture();
+  payload.settings.mlp_seed_offsets = offsets;
+  reindexSeeds(payload, offsets.map((_, i) => i), offsets.map(offset => payload.design.seed + offset));
+  expect(readLearningRecord(payload)).toBe(payload);
+});
+
+it('adversarial: malformed seed declarations fail without falling back to a smaller inventory', () => {
+  const mutations: Array<(payload: ReturnType<typeof learning>) => void> = [
+    p => { delete p.settings; }, p => { delete p.settings.mlp_seed_offsets; }, p => { p.settings.mlp_seed_offsets = []; },
+    p => { p.settings.mlp_seed_offsets = [0, true]; }, p => { p.settings.mlp_seed_offsets = [0, {}]; },
+    p => { p.settings.mlp_seed_offsets = [0, 0]; }, p => { p.settings.mlp_seed_offsets = [0, Number.MAX_SAFE_INTEGER]; },
+    p => { p.settings.mlp_seed_offsets = [0, 1.5]; }, p => { p.settings.mlp_seed_offsets = [0, Infinity]; },
+    p => { delete p.design.seed; }, p => { p.design.seed = true; }, p => { p.design.seed = NaN; },
+    p => { p.mlp_seeds.seeds = null; }, p => { p.mlp_seeds.seeds = [1, {}]; },
+  ];
+  for (const mutate of mutations) {
+    const payload = seedInventoryFixture(); mutate(payload);
+    expect(() => readLearningRecord(payload)).toThrow(/Invalid/);
+    expect(() => checkLearningEvidence(payload)).toThrow(/Invalid learning record.*seed/i);
+  }
 });

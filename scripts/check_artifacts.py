@@ -258,6 +258,27 @@ def check_cases(derived: Path, version: str, digest: str | None) -> list[str]:
 def check_learning_cohorts(record: dict) -> list[str]:
     """Recompute conditional denominators and fair comparisons from every persisted fold."""
     errors = []
+
+    def safe_seed(value) -> bool:
+        # Match JSON/JavaScript safe integers, excluding booleans and coercions.
+        return (isinstance(value, (int, float)) and not isinstance(value, bool)
+                and 0 <= value <= 2**53 - 1 and value == int(value))
+
+    try:
+        base = record["design"]["seed"]
+        offsets = record["settings"]["mlp_seed_offsets"]
+        declared = record["mlp_seeds"]["seeds"]
+    except (KeyError, TypeError, IndexError):
+        return ["learning planned seed inventory: require design.seed, settings.mlp_seed_offsets and mlp_seeds.seeds"]
+    if (not safe_seed(base) or not isinstance(offsets, list) or not offsets or not all(safe_seed(v) for v in offsets)
+            or len(set(offsets)) != len(offsets) or not isinstance(declared, list) or not declared
+            or not all(safe_seed(v) for v in declared)):
+        return ["learning planned seed inventory: require a nonnegative safe-integer base, unique offsets and seed IDs"]
+    expected_seeds = [base + offset for offset in offsets]
+    if not all(safe_seed(seed) for seed in expected_seeds):
+        return ["learning planned seed inventory: design.seed plus every offset must remain a safe integer"]
+    if declared != expected_seeds:
+        errors.append(f"learning planned seed inventory: expected ordered IDs {expected_seeds}, found {declared}")
     groups = record.get("transfer_groups", {})
     loco = record.get("leave_one_case_out", [])
     transfer = record.get("leave_one_group_out", []) + [

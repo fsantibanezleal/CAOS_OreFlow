@@ -28,8 +28,9 @@ This catalog covers the committed scientific outputs and model records. Schema i
 
 | contract | version | date | change | kind |
 |---|---|---|---|---|
+| oreflow-learning-v1 | 2.0.0 | 2026-10-31 | Retire the v1 schema and catalog entry; replace them with oreflow-learning-v2. Consumers must migrate to explicit scored/rejected diagnostics and complete cohort counts | major |
 | oreflow-contract-v1 | 2.0.0 | 2026-10-31 | Require nested declarations, bilingual labels, rules, resolved case bounds and finite nominal values; generate and validate consumer types | major |
-| oreflow-learning-v2 | 2.0.0 | 2026-10-31 | Breaking payload v2: scored or rejected transfer evidence, mandatory evaluation diagnostics, conditional metrics with planned coverage, seed scores and matched common cohorts | major |
+| oreflow-learning-v2 | 2.0.0 | 2026-10-31 | Initial v2 contract, replacing retired v1: scored or rejected transfer evidence, mandatory evaluation diagnostics, conditional metrics with planned coverage, seed scores and matched common cohorts | initial |
 | oreflow-benchmark-v2 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-case-v2 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-contract-probes-v1 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
@@ -38,7 +39,7 @@ This catalog covers the committed scientific outputs and model records. Schema i
 | oreflow-hzdr-summary-v1 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-index-v2 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-iron-plant-soft-sens | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
-| oreflow-learning-v2 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
+| oreflow-learning-v1 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-manifest-v2 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-particle-benchmark-v | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
 | oreflow-process-surrogate-v1 | 1.0.1 | 2026-10-24 | Refine inferred payload field types and optional legacy schema identity | patch |
@@ -56,7 +57,7 @@ This catalog covers the committed scientific outputs and model records. Schema i
 | oreflow-hzdr-summary-v1 | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
 | oreflow-index-v2 | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
 | oreflow-iron-plant-soft-sens | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
-| oreflow-learning-v2 | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
+| oreflow-learning-v1 | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
 | oreflow-manifest-v2 | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
 | oreflow-particle-benchmark-v | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |
 | oreflow-process-surrogate-v1 | 1.0.0 | 2026-10-24 | Initial OreFlow contract registration with schema identity and required boundary fields | initial |

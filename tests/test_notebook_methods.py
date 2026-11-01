@@ -285,16 +285,174 @@ def execute_selected(topic, filename, selectors, language="en"):
     return state
 
 
+def execute_plot_cell(topic, filename, cell_id, language="en", **values):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    import numpy as np
+    import pandas as pd
+    book = notebook(topic, filename, language)
+    shown = []
+    state = {"plt": plt, "np": np, "pd": pd, "display": shown.append, **values}
+    setup = next(c for c in book["cells"] if c["cell_type"] == "code")
+    for node in ast.parse("".join(setup["source"])).body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id in
+                {"legend_style", "model_labels", "curve_labels", "trace_headers"} for t in node.targets):
+            exec(compile(ast.Module(body=[node], type_ignores=[]), "<authored display setup>", "exec"), state)
+    source = "".join(next(c for c in book["cells"] if c["id"] == cell_id)["source"])
+    exec(compile(source, "<actual plotting cell>", "exec"), state)
+    return state, shown
+
+
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_horizontal_bank_reference_and_legend_follow_quantities(language):
+    import numpy as np
+    from matplotlib.lines import Line2D
+    from matplotlib.patches import Rectangle
+    ids = ["first_order", "kelsall", "klimpel", "gamma", "stretched_exponential"]
+    state, _ = execute_plot_cell("02-flotation", "03-research-comparison.ipynb", "lesson-017", language,
+        models=[{"id": name, "bank_projection_pct": 90 + i} for i, name in enumerate(ids)],
+        kinetics={"bank": {"exact_true_flotation_pct": 94.}})
+    axis = state["ax"]
+    assert axis.get_ylim()[1] < 6, "a recovery reference must not expand a categorical model axis"
+    assert any(np.array_equal(line.get_xdata(), [94., 94.]) for line in axis.lines)
+    handles = axis.get_legend().legend_handles
+    assert len(handles) == 2 and isinstance(handles[0], Rectangle) and isinstance(handles[1], Line2D)
+    assert "94" not in [label.get_text() for label in axis.get_yticklabels()]
+    if language == "es":
+        assert {"Primer orden", "Exponencial estirada"} <= {t.get_text() for t in axis.get_yticklabels()}
+    state["plt"].close("all")
+
+
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_horizontal_residence_legend_keeps_refit_frozen_handles(language):
+    import numpy as np
+    import pandas as pd
+    book = notebook("02-flotation", "03-research-comparison.ipynb", language)
+    source = "".join(next(c for c in book["cells"] if c["id"] == "lesson-036")["source"])
+    tree = ast.parse(source)
+    model_key = next(n.args[0].value for n in ast.walk(tree) if isinstance(n, ast.Call)
+                     and isinstance(n.func, ast.Attribute) and n.func.attr == "set_index")
+    columns = next([v.value for v in n.slice.elts] for n in ast.walk(tree)
+                   if isinstance(n, ast.Subscript) and isinstance(n.slice, ast.List))
+    ids = ["first_order", "kelsall", "klimpel", "gamma", "stretched_exponential"]
+    residence = pd.DataFrame({model_key: ids, columns[0]: [-2, -1, 0, 1, 2], columns[1]: [-3, -2, -1, 0, 1]})
+    state, _ = execute_plot_cell("02-flotation", "03-research-comparison.ipynb", "lesson-036", language,
+                                 residence=residence)
+    axis = state["ax"]
+    assert any(np.array_equal(line.get_xdata(), [0, 0]) for line in axis.lines)
+    for handle, container in zip(axis.get_legend().legend_handles, axis.containers):
+        assert np.array_equal(handle.get_facecolor(), container.patches[0].get_facecolor())
+    assert residence[model_key].tolist() == ids, "localization must not replace raw model IDs in the source table"
+    state["plt"].close("all")
+
+
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_released_prediction_levels_keep_percent_and_errors_keep_pp(language):
+    import numpy as np
+    import pandas as pd
+    from types import SimpleNamespace
+    state = released_helpers(language)
+    captured = []
+    state.update(pd=pd, display=captured.append, challenge_x=np.zeros((2, len(state["FEATURES"]))),
+                 challenge_y=np.array([[60, 1, 20], [80, 3, 40]]))
+    state["frozen"] = SimpleNamespace(targets=state["TARGETS"], judge=lambda row: {
+        "prediction": dict(zip(state["TARGETS"], [70, 2, 30]))})
+    source = "".join(next(c for c in notebook("03-learning", "03-research-comparison.ipynb", language)["cells"]
+                          if c["id"] == "released-015")["source"])
+    exec(compile(source, "<actual released prediction display>", "exec"), state)
+    frame = captured[-1]
+    unit = "Unit" if language == "en" else "Unidad"
+    assert frame[unit].iloc[0] == "%", "prediction levels are percentages; only recovery errors are pp"
+    scores = state["challenge_errors"](state["challenge_y"], state["challenge_prediction"], "fixture",
+                                       np.array([[0, 0, 0], [100, 4, 50]]))
+    assert scores[0]["unit"] == "pp" and scores[0]["rmse"] == 10
+
+
+@pytest.mark.parametrize("language", ["en", "es"])
+def test_preferences_annotate_actual_coincident_endpoints(language):
+    import numpy as np
+    run = {"status": "optimal", "optimum": {"values": {"energy_kwh_t": 19.145349},
+            "recovered_tph": 232.893406, "feasible": True}}
+    state, _ = execute_plot_cell("04-optimization", "02-the-method.ipynb", "lesson-022", language,
+                                 plain=run, metal_search=run, energy_search=run)
+    assert len(state["ax"].collections) == 3
+    assert all(np.allclose(c.get_offsets(), [[19.145349, 232.893406]]) for c in state["ax"].collections)
+    assert any("3" in t.get_text() for t in state["ax"].texts), "three overplotted preferences need a coincidence annotation"
+    state["plt"].close("all")
+
+
+@pytest.mark.parametrize("level,filename,cell", [(1,"01-the-record.ipynb","lesson-015"),
+    (2,"02-the-method.ipynb","lesson-019"), (3,"03-research-comparison.ipynb","lesson-020"),
+    (4,"04-screening-evidence.ipynb","lesson-021")])
+def test_spanish_trace_headings_preserve_internal_columns(level, filename, cell):
+    raw = [["success", 0.5, 0.1, -0.2, 3], ["mesh", 0.25, 0.1, -0.1, 6]]
+    state, shown = execute_plot_cell("04-optimization", filename, cell, "es", plain={"trace": raw})
+    assert shown, level
+    assert shown[-1].columns.tolist() == ["Resultado", "Malla", "Barrera", "Objetivo", "Evaluaciones"]
+    assert state["history"].columns.tolist() == ["Outcome", "Mesh", "Barrier", "Objective", "Evaluations"]
+    assert shown[-1].values.tolist() == state["history"].values.tolist()
+    state["plt"].close("all")
+
+
+@pytest.mark.parametrize("language", ["en", "es"])
+@pytest.mark.parametrize("topic,filename,cell", [
+    ("02-flotation", "02-the-method.ipynb", "lesson-013"),
+    ("02-flotation", "03-research-comparison.ipynb", "lesson-014"),
+    ("03-learning", "03-research-comparison.ipynb", "lesson-026")])
+def test_actual_dense_plot_legends_do_not_overlap_titles(topic, filename, cell, language):
+    import numpy as np
+    source_book = notebook(topic, filename, language)
+    values = {}
+    if topic == "02-flotation":
+        ids = ["first_order", "kelsall", "klimpel", "gamma", "stretched_exponential"]
+        times = np.array([1., 2., 3.])
+        models = [{"id": name, "fitted_pct": [50, 75, 90], "dense_pct": [50, 75, 90]} for name in ids]
+        kinetics = {"times_min": times, "dense_times_min": times, "batch_recovery_pct": [50, 75, 90], "models": models}
+        values = {"fits": kinetics, "kinetics": kinetics, "models": models}
+    else:
+        source = "".join(next(c for c in source_book["cells"] if c["id"] == cell)["source"])
+        pivot = next(n for n in ast.walk(ast.parse(source)) if isinstance(n, ast.Call)
+                     and isinstance(n.func, ast.Attribute) and n.func.attr == "pivot")
+        keys = {kw.arg: kw.value.value for kw in pivot.keywords}
+        names = ["Ridge", "Random forest", "Histogram boosting", "Gaussian process"] if language == "en" else [
+            "Ridge", "Bosque aleatorio", "Refuerzo por histogramas", "Proceso gaussiano"]
+        protocols = ["Interpolation", "Case holdout", "Ore-group holdout"] if language == "en" else [
+            "Interpolación", "Caso reservado", "Grupo mineral reservado"]
+        values["scores"] = [{keys["index"]: name, keys["columns"]: protocol, keys["values"]: 10+i+j}
+                            for i, name in enumerate(names) for j, protocol in enumerate(protocols)]
+    state, _ = execute_plot_cell(topic, filename, cell, language, **values)
+    figure, axis = state["fig"], state["ax"]
+    figure.canvas.draw()
+    renderer = figure.canvas.get_renderer()
+    title, legend = axis.title.get_window_extent(renderer), axis.get_legend().get_window_extent(renderer)
+    assert not title.overlaps(legend), (topic, language, title.bounds, legend.bounds)
+    if axis.get_ylabel():
+        ylabel = axis.yaxis.label.get_window_extent(renderer)
+        assert legend.y0 >= ylabel.y1 + 8, (topic, language, ylabel.bounds, legend.bounds)
+    assert legend.y0 >= axis.bbox.y1, "the legend must remain outside the data axes"
+    state["plt"].close("all")
+
+
 @pytest.mark.parametrize("language", ["en", "es"])
 def test_reference_markers_use_exact_calibration_and_physical_feed_is_mill_feed(language):
     import numpy as np
     state = execute_selected("01-comminution", "03-research-comparison.ipynb",
-                             ["f80 = nominal.grinding.feed_f80_um", "reference_curves =", "axes[1].scatter"], language)
+                             ["f80 = nominal.grinding.feed_f80_um", "reference_curves =", "panel_specs ="], language)
     assert state["f80"] == state["nominal"].grinding.feed_f80_um
     values = [state["calibration"][name][0] for name in ("bond", "rittinger", "kick")]
     assert np.allclose(values, values[0], rtol=0, atol=1e-12)
     for marker, value in zip(state["axes"][1].collections, values):
         assert np.allclose(marker.get_offsets(), [[state["reference_product"], value]], rtol=0, atol=1e-12)
+    assert state["axes"][0].figure is not state["axes"][1].figure
+    physical_title = state["axes"][0].get_title()
+    assert "F80" in physical_title and f'{state["f80"]:.1f}' in physical_title
+    assert ("Mill feed" if language == "en" else "molino") in physical_title
+    for axis in state["axes"]:
+        axis.figure.canvas.draw()
+        renderer = axis.figure.canvas.get_renderer()
+        assert not axis.title.get_window_extent(renderer).overlaps(axis.get_legend().get_window_extent(renderer))
+        assert "\n" in axis.get_ylabel() and "\\n" not in axis.get_ylabel()
     state["plt"].close("all")
 
 

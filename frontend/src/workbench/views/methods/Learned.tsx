@@ -193,9 +193,10 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor, lear
   }
 
   return (
-    <div className="of-split of-split-beside">
+    <div className="of-split of-split-beside of-learning-layout">
       {body}
-      <div className="of-aside">
+      <div className="of-aside of-learning-aside" role="region" tabIndex={0}
+        aria-label={lang === 'en' ? 'Learned results and evaluation evidence' : 'Resultados aprendidos y evidencia de evaluación'}>
         <div className="of-fields">
           <label className="of-field"><span>{TEXT.input[lang]}</span>
             <select value={xInput} onChange={e => setX(e.target.value)}>{names.map(n => <option key={n} value={n}>{declared[n].label[lang]}</option>)}</select></label>

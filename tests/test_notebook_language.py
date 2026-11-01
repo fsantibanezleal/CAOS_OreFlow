@@ -25,7 +25,8 @@ def test_each_notebook_step_uses_its_tree_language() -> None:
             assert comments, path
             if language == "es":
                 assert not any(comment.startswith(("# Run ", "# Plot ", "# Compare ", "# Import ", "# Re-solve ",
-                                                   "# Evaluate ", "# Separate ", "# Collect ", "# Resume "))
+                                                   "# Evaluate ", "# Separate ", "# Collect ", "# Resume ",
+                                                   "# Audit ", "# Preserve ", "# Qualify ", "# Interpret "))
                                for comment in comments), path
                 assert "Paso ejecutable del método OreFlow explicado" not in program, path
 
@@ -115,6 +116,7 @@ def test_spanish_instructions_and_summaries_keep_the_impersonal_register():
             assert not re.search(r"\b(?:Ejecutaste|Seguiste|seguiste|leíste|revisaste|separaste)\b", text), path
             assert not re.search(r"(?m)^(?:#\s*)?(?:Busca|Proyecta|Reproduce|Etiqueta|Imprime|Resume)\b", text), path
             assert not re.search(r"\b(?:y proyecta|y extrae|y reconoce|, inspecciona|, sigue el|así que conserva)\b", text), path
+            assert not re.search(r"\b(?:comienza aquí|confirma las|y recuerda|Interpreta|Construye|Integra|Superpone)\b", text), path
 
 
 def test_internal_tiers_are_absent_from_prose_code_and_outputs() -> None:

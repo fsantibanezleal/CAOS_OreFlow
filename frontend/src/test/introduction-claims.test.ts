@@ -2,7 +2,15 @@ import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
+import { createElement } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { MemoryRouter } from 'react-router';
+import { CitationsProvider, validateExecutive } from '@fasl-work/caos-app-shell';
 import { INTRODUCTION } from '../content/introduction';
+import { TopicView } from '../content/doc';
+import { CONTENT_CITATIONS, localizeCitations } from '../content/citations';
+import Introduction from '../pages/Introduction';
+import executive from '../../../content/executive.json';
 
 // The Introduction quotes the soft porphyry's plausibility ranges. Until 0.07.000 it still quoted the 0.05 ranges
 // (84 to 94% at 24 to 32% Cu) two releases after the case record changed, because no test read that line. This holds
@@ -11,6 +19,64 @@ const derived = process.env.OF_DERIVED ?? fileURLToPath(new URL('../../../data/d
 const record = JSON.parse(readFileSync(join(derived, 'cases', 'copper_porphyry_soft.json'), 'utf-8')) as { kpi_ranges: Record<string, [number, number]> };
 const text = (lang: 'en' | 'es') => INTRODUCTION.flatMap(g => g.topics).flatMap(t => t.paragraphs).map(p => p[lang]).join(' ');
 const es = (v: number) => String(v).replace('.', ',');
+
+// WB-017/018/019: source completeness and actual shared SSR are separate from browser readability.
+describe('Introduction shared reader ownership and depth', () => {
+  it('adversarial: executive evidence cannot disappear from the shared reader', () => {
+    expect(validateExecutive(executive)).toEqual([]);
+    const html = renderToStaticMarkup(createElement(MemoryRouter, null, createElement(Introduction)));
+    expect(html.match(/data-doc-page=""/g)).toHaveLength(1);
+    expect(html.match(/data-executive-view=""/g)).toHaveLength(1);
+    expect(html).toContain('data-executive-valid="true"');
+    expect(html).toContain('data-panel="executive"');
+    expect(html).not.toContain('data-doc-section=""');
+    for (const source of executive.sources) expect(html).toContain(`href="${source.url.replaceAll('&', '&amp;')}"`);
+    for (const field of ['pain.bearers', 'pain.figures', 'pain.causes', 'context.evidence',
+      'situation.state_of_the_art', 'proposal.actions', 'proposal.risks', 'proposal.unknowns']) {
+      const [section, key] = field.split('.');
+      expect((executive as unknown as Record<string, Record<string, unknown[]>>)[section][key].length).toBeGreaterThan(0);
+    }
+  });
+
+  it('adversarial: both introduction views retain Focus and onward navigation', () => {
+    const source = readFileSync(fileURLToPath(new URL('../pages/Introduction.tsx', import.meta.url)), 'utf-8');
+    expect(source).toMatch(/<SurfacePage\s+document\b/);
+    const executiveTab = source.slice(source.indexOf("{ id: 'executive'"), source.indexOf("{ id: 'technical'"));
+    const technicalTab = source.slice(source.indexOf("{ id: 'technical'"));
+    expect(executiveTab).toMatch(/focus:\s*true/);
+    expect(technicalTab).toMatch(/focus:\s*true/);
+    expect(executiveTab).toMatch(/onOpenTechnical=/);
+    expect(source).toMatch(/useUrlView\(\['executive', 'technical'\], 'view'\)/);
+    expect(source).toMatch(/value=\{view\}\s+onChange=\{selectView\}/);
+    expect(source).not.toContain('page-body');
+    expect(source).not.toContain('<DocPage');
+    expect(source).not.toContain('<DocSection');
+  });
+
+  it('adversarial: technical areas retain their content floors in both languages', () => {
+    for (const lang of ['en', 'es'] as const) {
+      const topics = INTRODUCTION.flatMap(group => group.topics);
+      expect(INTRODUCTION.map(group => group.id)).toEqual(['what', 'approach', 'mathematics', 'cases', 'scope', 'use']);
+      for (const area of ['problem', 'principles']) {
+        const topic = topics.find(topic => topic.area === area)!;
+        expect(topic.paragraphs.filter(p => p[lang].split(/\s+/).length >= 40).length).toBeGreaterThanOrEqual(2);
+      }
+      const render = (area: string) => renderToStaticMarkup(createElement(MemoryRouter, null,
+        createElement(CitationsProvider, { items: localizeCitations(CONTENT_CITATIONS, lang),
+          children: createElement(TopicView, { topic: topics.find(topic => topic.area === area)!, lang }) })));
+      const math = render('math');
+      expect(math).toContain('class="equation');
+      expect(math.match(/<dt>/g)).toHaveLength(10);
+      expect(math).toContain('data-glossary=""');
+      expect(render('honesty').match(/data-callout="honest"/g)).toHaveLength(1);
+      const pipeline = topics.find(topic => topic.area === 'pipeline')!;
+      expect(pipeline.steps?.length).toBeGreaterThanOrEqual(4);
+      expect(render('pipeline')).toContain('<ol>');
+      expect(topics.reduce((n, topic) => n + (topic.equations?.length ?? 0), 0)).toBeGreaterThanOrEqual(3);
+      expect(topics.some(topic => topic.figure)).toBe(true);
+    }
+  });
+});
 
 describe('the Introduction says what the case records hold', () => {
   it('the soft porphyry\'s plausibility ranges, in both languages', () => {

@@ -161,7 +161,7 @@ LESSONS = {
             {
                 "title": "Seguir un mineral de cobre por trituración y molienda",
                 "mins": 18,
-                "prereq": "Ninguno; comienza aquí.",
+                "prereq": "Ninguno; comenzar aquí.",
                 "objective": "Seguir el tamaño de alimentación a través del circuito de conminución a partir de un mineral OreFlow declarado y su punto operativo nominal. Distinguir un registro simulado de planta de una medición e identificar las magnitudes que calcula el motor.",
                 "data": "Responsable: autores del proyecto OreFlow. Fuente: escenario versionado y de autoría propia de pórfido cuprífero blando (licencia MIT del proyecto), `data/derived/cases/copper_porphyry_soft.json`; es un escenario de modelo, no un ensayo de mina ni una medición de planta. Los resúmenes de partículas provienen de casos construidos públicos de HZDR; consulta `data/derived/source/hzdr_particle_benchmark.json` y el dossier de procedencia HZDR. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El motor representa el tamaño en una malla logarítmica fija. La trituración transforma la distribución mediante el modelo de clasificación Whiten. La molienda aplica una función de selección específica por energía y una matriz de fractura; el clasificador envía cada clase de tamaño al rebose o al reciclaje. En estado estacionario, la alimentación fresca coincide con los productos finales dentro de la tolerancia del balance unitario. Aquí llamamos a `simulate` del pipeline OreFlow; no reimplementamos ecuaciones de conminución.",
@@ -275,7 +275,7 @@ LESSONS = {
                     (
                         [
                             "Overlay the fitted curves on the virtual batch observations using the same time points.",
-                            "Superpone las curvas ajustadas a las observaciones batch virtuales en los mismos tiempos.",
+                            "Superponer las curvas ajustadas a las observaciones batch virtuales en los mismos tiempos.",
                         ],
                         "fig, ax = plt.subplots(figsize=(8, 4.5))\nax.scatter(fits['times_min'], fits['batch_recovery_pct'], color='black', zorder=4, label='Virtual batch data')\nfor model in fits['models']:\n    ax.plot(fits['times_min'], model['fitted_pct'], marker='.', label=model['id'])\nax.set(xlabel='Batch time (min)', ylabel='Recovery (%)', title='Five fitted forms on one batch record')\nax.grid(True, alpha=.25); ax.legend(ncol=2); fig.tight_layout()",
                     ),
@@ -347,7 +347,7 @@ LESSONS = {
             {
                 "title": "Interpreta un banco de flotación como respuesta cinética",
                 "mins": 18,
-                "prereq": "Ninguno; comienza aquí.",
+                "prereq": "Ninguno; comenzar aquí.",
                 "objective": "Ejecuta el rougher Cu-Mo y distingue su curva batch virtual de la respuesta del banco alimentado de forma continua. Comprende por qué recuperación versus tiempo es una respuesta de proceso, no una animación decorativa.",
                 "data": "Responsable: autores de OreFlow; escenario Cu-Mo de autoría propia en `data/derived/cases/copper_molybdenum.json`, licencia MIT del proyecto. El motor genera la curva cinética; no se midió en laboratorio ni planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "OreFlow agrega tasas por clase mediante $R_b(t)=\\sum_j c_jx_j(1-e^{-k_jt})/\\sum_j c_jx_j$. Un banco continuo tiene otra distribución temporal y se calcula por separado. Llama a `simulate` y al constructor `trace` de producción.",
@@ -363,7 +363,7 @@ LESSONS = {
             {
                 "title": "Ajusta cinco modelos cinéticos y compara la proyección del banco",
                 "mins": 30,
-                "prereq": "Nivel 1: Interpreta un banco de flotación como respuesta cinética.",
+                "prereq": "Nivel 1: Interpretar un banco de flotación como respuesta cinética.",
                 "objective": "Ejecutar los ajustes no lineales acotados de OreFlow, inspeccionar límites y residuales, y comparar la predicción de banco con la referencia exacta de tasas distribuidas del motor.",
                 "data": "Responsable: autores de OreFlow; escenario nominal Cu-Mo y registro cinético generado en `data/derived/cases/copper_molybdenum.json`, licencia MIT del proyecto. La respuesta es simulada, no medida en planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "Los datos batch virtuales mezclan respuestas de primer orden por clase de partícula. OreFlow ajusta formas de primer orden, Kelsall, Klimpel, gamma y exponencial estirada con Levenberg–Marquardt acotado. Luego proyecta cada modelo a un banco; `kinetic_record` es la entrada de producción. Ajuste y proyección son verificaciones diferentes.",
@@ -524,7 +524,7 @@ LESSONS = {
             {
                 "title": "Construye un ejemplo de aprendizaje para procesamiento de minerales",
                 "mins": 20,
-                "prereq": "Ninguno; comienza aquí.",
+                "prereq": "Ninguno; comenzar aquí.",
                 "objective": "Usa las funciones propias de OreFlow para características y objetivos en un circuito de autoría propia. Identifica qué aprende el surrogate y por qué las filas generadas por el motor no son observaciones de planta.",
                 "data": "Responsable: autores de OreFlow; circuitos de autoría propia y resultados generados en `data/derived/learning.json`, licencia MIT del proyecto. El registro usa doce circuitos construidos, no datos históricos de planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El registro supervisado mapea descriptores físicos $x$ a recuperación, $\\log_{10}(G_c/G_f)$ y energía específica total. La identidad del caso se excluye para evitar una solución atajo. `features` y `targets` de `pipeline/methods/learning.py` crean la representación de producción.",
@@ -536,7 +536,7 @@ LESSONS = {
             {
                 "title": "Sigue el diseño y las particiones de validación sin fuga",
                 "mins": 32,
-                "prereq": "Nivel 1: Construye un ejemplo de aprendizaje para procesamiento de minerales.",
+                "prereq": "Nivel 1: Construir un ejemplo de aprendizaje para procesamiento de minerales.",
                 "objective": "Genera un diseño determinista pequeño con el pipeline OreFlow, inspecciona particiones de interpolación y caso completo no visto, y relaciónalas con la validación comprometida de tamaño completo.",
                 "data": "Responsable: autores de OreFlow; `data/derived/contract/operating_contract.json` y `data/derived/learning.json`, licencia MIT del proyecto. Las filas son simulaciones de escenarios propios, no mediciones de planta. Repositorio: https://github.com/fsantibanezleal/CAOS_OreFlow.",
                 "method": "El constructor muestrea entradas factibles dentro del Contrato 1, ejecuta el motor y crea objetivos y características físicas. Interpolación retiene filas con semilla dentro de cada caso. Leave-one-case-out retiene un caso completo; la transferencia por grupo retiene también casos hermanos. No son protocolos intercambiables: el segundo mide transferencia a un caso nunca visto.",
