@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.10.008] - 2026-10-31
+
+### Changed
+- Adopt CAOS Product Template 0.14.001, including structured deployment-target validation and its adversarial checks; retain the single ML VPS deployment.
+- Reconcile the shared-shell framework guide with the installed npm release 0.19.9 and the current contained workbench and Focus integration.
+- Use the shell's document-language synchronization, navigation overflow handling and themed architecture control; remove obsolete product copies and overrides.
+- Run the complete repository guard set from both local smoke commands, including manuscripts, notebooks, contracts, readiness, deployment and web-baseline checks.
+- Regenerate the release artifacts with the production pipeline and CUDA training at the current release version.
+- Validate nested operating and learning records in the browser and producer gates, generating consumer declarations from the shared schemas.
+- Replace generic notebook experiments with topic-specific fitting, simulation, optimization and uncertainty lessons in English and Spanish.
+- Add chart panning, heatmap scale and region controls, and linked response slices with keyboard navigation.
+- Resolve raw-data and checkpoint locations from configured external roots; make local launch honor the frontend lockfile.
+- Record dataset and trained-model licences, attribution and downstream reuse terms alongside source links.
+
+### Fixed
+- Treat numerically constant training features as unit scale rather than dividing by roundoff-sized variance, which could produce enormous held-out-ore predictions.
+- Check prediction finiteness and observable ranges during scoring and recheck persisted diagnostics before release; retain constant forecasts as explicitly identified negative evidence.
+
 ## [0.10.007] - 2026-10-31
 
 ### Changed

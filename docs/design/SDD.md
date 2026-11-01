@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.007, 2026-10-31. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.008, 2026-10-31. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -20,12 +20,6 @@ Non-goals, stated so they cannot be implied:
 - It is not a dynamic simulator. There is no control-loop or start-up behaviour.
 - It is not a substitute for metallurgical testwork, and no output is an operating recommendation.
 - It does not model hydrometallurgy (leaching, pressure oxidation, smelting).
-
-### Executive brief
-
-The executive view is the decision context and evidence inventory for the research system. Its bilingual source data is maintained separately so the shell can render the same claims and citations in either language.
-
-Data file: content/executive.json
 
 ## Executive brief
 
@@ -94,6 +88,8 @@ Pinned versions are read from the committed requirement files and npm lock. Shel
 | web | @types/react | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react-dom | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @vitejs/plugin-react | 6.1.1 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | ajv | 8.20.0 | Validate fetched operating-contract and learning payloads against canonical JSON Schemas at the browser boundary. | Handwritten property probes cannot constrain nested model and rule shapes consistently. |
+| web | json-schema-to-typescript | 16.0.0 | Generate consumer types from those same schemas; CI checks byte-for-byte freshness. | Independent handwritten interfaces can silently diverge from the producer schemas. |
 | development | fastapi | 0.116.1 | Directly pinned in `requirements-api.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | development | httpx | 0.28.1 | Directly pinned in `requirements-dev.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | notebooks | ipykernel | 7.4.0 | Directly pinned in `notebooks/requirements.txt`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
@@ -210,7 +206,7 @@ The detailed method inventory and its acceptance evidence follow this ladder. Th
 | Classical | Rittinger, Kick, Bond, Whiten, population balance, partition curves, first-order and distributed flotation kinetics | independent balances, limiting cases, direction tests and published example comparisons in the engine suite |
 | Statistical | constrained finite-grid search, uncertainty propagation and Sobol sensitivity | contract-valid states, deterministic seed records and explicitly labelled scenario uncertainty |
 | Learned | ridge, random forest, histogram gradient boosting, Gaussian process and multilayer perceptron | interpolation, leave-one-case-out, held-out ore groups, calibration/coverage and seed dispersion in `data/derived/learning.json` |
-| Frontier | none claimed | OreFlow makes no claim of superiority to the state of the art; its contribution is an integrated, inspectable research implementation with explicit validation limits |
+| Proposed search | surrogate-screened generalized pattern search | The paired 72-variant experiment measures 17.25% more exact-engine evaluations with screening. The evaluation-saving hypothesis is refuted on these authored cases; the method and its negative finding are documented in the separate screening manuscript. |
 
 ## Cases
 
@@ -303,6 +299,7 @@ verdict (ADR-0075). `scripts/check_sdd.py` checks that every live requirement na
 | GeoMet locked-cycle lane | live since 0.04.000; its verdict is in the process engine's tasks | GM-01 to GM-07 | [requirements](features/geomet-lct/requirements.md), [design](features/geomet-lct/design.md), [tasks](features/geomet-lct/tasks.md) |
 | Classifier-cut mode | live since 0.07.000; CM-09 added in 0.08.000 | CM-01 to CM-09 | [requirements](features/cut-mode/requirements.md), [design](features/cut-mode/design.md), [tasks and verdict](features/cut-mode/tasks.md) |
 | Live optimizer | live since 0.07.000 | OP-01 to OP-11 | [requirements](features/live-optimizer/requirements.md), [design](features/live-optimizer/design.md), [tasks and verdict](features/live-optimizer/tasks.md) |
+| Prediction observable | release validation in progress | LO-001 to LO-004 | [requirements](features/prediction-observable/requirements.md), [design](features/prediction-observable/design.md), [tasks](features/prediction-observable/tasks.md), [validation](features/prediction-observable/validation.md) |
 | Live uncertainty | live since 0.07.000 | UQ-01 to UQ-08 | [requirements](features/live-uncertainty/requirements.md), [design](features/live-uncertainty/design.md), [tasks and verdict](features/live-uncertainty/tasks.md) |
 | Real samples | live since 0.07.000 | RS-01 to RS-10 | [requirements](features/real-samples/requirements.md), [design](features/real-samples/design.md), [tasks and verdict](features/real-samples/tasks.md) |
 | Iron-plant soft sensor | live since 0.07.000 | IS-01 to IS-06 | [requirements](features/industrial-soft-sensor/requirements.md), [design](features/industrial-soft-sensor/design.md), [tasks and verdict](features/industrial-soft-sensor/tasks.md) |

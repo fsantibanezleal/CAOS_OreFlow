@@ -15,9 +15,9 @@
     "sha256": "ea89a19cf68c4ccab58a7f88b2b77764c95251442fb32ee4887b999aee62d113"
   },
   "oreflow-contract-v1": {
-    "version": "1.0.1",
+    "version": "2.0.0",
     "schema": "docs/contracts/schemas/oreflow-contract-v1.schema.json",
-    "sha256": "64386b231e50e392fbf6007da9fbb2809ccd676709d91957d777b006a88554ea"
+    "sha256": "78afe2849f14973de2d080e77ef13fd86126182c94076a1bf08a2eb271873311"
   },
   "oreflow-geomet-lct-v1": {
     "version": "1.0.1",
@@ -40,9 +40,9 @@
     "sha256": "2e61c2c84e5232ec86bd039de4aaf8b900f6a4539c241a944fb14cfe78207efe"
   },
   "oreflow-learning-v1": {
-    "version": "1.0.1",
+    "version": "2.0.0",
     "schema": "docs/contracts/schemas/oreflow-learning-v1.schema.json",
-    "sha256": "ab2dab00a43ee244dc74ef95aafcabe5480f6ed813a37926c127dc5409f17b31"
+    "sha256": "6e5378263e8a5d9fc70ac2a35ba48f50b407f7864002c93726b6a8e1c3da9a68"
   },
   "oreflow-manifest-v2": {
     "version": "1.0.1",

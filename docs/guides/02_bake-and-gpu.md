@@ -60,7 +60,7 @@ API.
 To see what a change would produce without touching the committed records:
 
 ```powershell
-./scripts/smoke.ps1 -Bake         # the whole local gate, then a bake into build/smoke (ignored by git)
+./scripts/smoke.ps1 -Bake         # the full local checks, then a bake under the configured external CAOS_TEMP_ROOT
 ```
 
 The sandbox is seeded with the committed measured lanes, their records and the particle lane's model

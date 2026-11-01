@@ -44,14 +44,6 @@
 .of-dg-frame { fill: none; stroke: var(--color-border); stroke-width: 1.2; stroke-dasharray: 5 4; }
 .of-dg-optional-edge { stroke: var(--color-fg-faint); stroke-width: 1.4; fill: none; stroke-dasharray: 5 3; }
 .of-dg-small { fill: var(--color-fg); font: 9.5px var(--font-sans); }
-/* Shell known defect 12 (D-29): the shell draws figure notes and ticks in --color-fg-faint (4.27:1 on the light page, 3.80:1 on the dark
-   surface), below WCAG AA for 11 px text; here they carry content (solve directions, legends, sample counts), so they
-   take the subtle text colour (at least 5.7:1 on every page and surface, both themes) */
-/* Shell known defect 13 (CAOS_APP_SHELL #29, open in 0.6.11): the architecture modal's full-size toggle is a native
-   button with size styles only, so in the dark theme it keeps the browser's light face under the page's light text and
-   cannot be read (found again in the 0.08 captures). It takes the theme's tokens here; the gate measures its contrast. */
-[role=dialog] button[aria-controls$='-diagram'] { color: var(--color-fg); background: var(--color-surface-2); border: 1px solid var(--color-border); border-radius: 6px; cursor: pointer; }
-
 /* artifact-bound tables and charts under a topic */
 .of-topic-data { margin: 1.2rem 0; min-width: 0; }
 .of-doc-table-data { max-width: none; font-variant-numeric: tabular-nums; }

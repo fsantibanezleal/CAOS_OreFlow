@@ -1,10 +1,10 @@
 import { useId } from 'react';
 
 /**
- * A controlled, accessible tab row owned by the workbench. The shell's `Tabs` keeps its
- * selection internally and reports no change, so a view held in the URL and the store cannot drive it;
- * this row keeps the shell's look and keyboard behaviour (arrows, Home, End, roving tabindex) and lets
- * the workbench own the state. Only the active panel is rendered by the caller (shell known defect 2).
+ * The process view selector, including views disabled for the measured-hour source. The shared Tabs
+ * supports controlled selection but has no disabled-tab contract. This product row keeps unavailable
+ * analytical views visible, skips them during keyboard navigation and shares its row with process flags.
+ * Only the selected process panel is rendered by Workbench.
  */
 export function ViewTabs<T extends string>({ views, active, onChange, label, names, disabled = [] }: {
   views: T[];

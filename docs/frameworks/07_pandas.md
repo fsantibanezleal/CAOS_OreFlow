@@ -16,7 +16,7 @@ engine never uses it: the process lanes work on NumPy arrays and plain JSON.
 | Declared in | `requirements-precompute.txt` |
 | Lane | Offline: the three measured lanes and the local GeoMet prediction script |
 | Used by | `data-pipeline/pipeline/stages/particle_experiment.py`, `stages/preprocess.py` (`read_excel`, `ExcelFile`), `data-pipeline/run_geomet.py` (`read_csv`, `to_numeric`, the assay validation), `data-pipeline/run_iron_plant.py` (`read_csv`, `groupby`, the hourly medians and the held labels) |
-| Raw data | never committed: `scripts/fetch-data.ps1` downloads the HZDR workbook and the GeoMet tables into `data/raw/` and verifies their hashes; `run_iron_plant.py` downloads its own archive and verifies its SHA-256 |
+| Raw data | never committed: `scripts/fetch-data.ps1` (or `.sh`) caches all five inputs under `<CAOS_DATA_ROOT>/oreflow/raw/` and verifies their original hashes; explicit offline runners can acquire a missing default-cache input |
 
 ## Read in order
 
@@ -31,3 +31,9 @@ engine never uses it: the process lanes work on NumPy arrays and plain JSON.
 
 Related: [04 scikit-learn](04_scikit-learn.md), [data contract 04](../data-contract/04_particle-lane.md)
 and [05](../data-contract/05_geomet-lane.md).
+
+Export the external root in the launching process; `.env` is not automatically loaded.
+The example uses the shared resolver and never downloads. Pass `--source` to read an existing source
+file explicitly (including an ignored legacy checkout file), or `--data-root` to select an external root.
+Without a configured root or explicit source, it runs the committed-record checks and explains why raw
+validation was skipped. An invalid configured root or missing explicit source is an error.

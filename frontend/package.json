@@ -1,6 +1,6 @@
 {
   "name": "oreflow-workbench",
-  "version": "0.10.7",
+  "version": "0.10.8",
   "private": true,
   "type": "module",
   "engines": {
@@ -15,10 +15,13 @@
     "preview": "vite preview --host 127.0.0.1 --port 4914 --strictPort",
     "gate": "node scripts/gate.mjs",
     "gate:oreflow": "node gate.mjs",
-    "gate:walkthrough": "node walkthrough-gate.mjs"
+    "gate:walkthrough": "node walkthrough-gate.mjs",
+    "contracts:generate": "node ../scripts/generate_contract_types.mjs",
+    "contracts:check": "node ../scripts/generate_contract_types.mjs --check"
   },
   "dependencies": {
     "@fasl-work/caos-app-shell": "0.19.9",
+    "ajv": "8.20.0",
     "katex": "0.19.1",
     "lucide-react": "1.43.0",
     "onnxruntime-web": "1.29.0",
@@ -33,6 +36,7 @@
     "@types/react": "19.3.0",
     "@types/react-dom": "19.3.0",
     "@vitejs/plugin-react": "6.1.1",
+    "json-schema-to-typescript": "16.0.0",
     "playwright": "1.61.0",
     "typescript": "7.0.2",
     "vite": "8.3.5",

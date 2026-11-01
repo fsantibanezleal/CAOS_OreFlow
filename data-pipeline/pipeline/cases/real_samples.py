@@ -29,10 +29,9 @@ from urllib.request import urlopen
 from ..engine.chemistry import formula_weight, parse_formula
 from ..engine.constants import atomic_weights, constant, mineral_table
 from ..engine.model import Carrier, MineralSpec, OperatingPoint, Ore, Payable
+from ..io.storage import external_path, source_path
 from .catalog import CASE_BY_ID, QUARTZ
 
-ROOT = Path(__file__).resolve().parents[3]
-RAW = ROOT / "data" / "raw"
 CASE_ID = "copper_porphyry_soft"
 RECORD = "https://zenodo.org/records/7051975"
 SOURCES = {
@@ -46,19 +45,35 @@ SOURCES = {
 COPPER_MINERALS = ("chalcopyrite", "bornite", "chalcocite")
 
 
-def source_bytes(name: str, raw: Path = RAW) -> bytes:
-    """A pinned table, read from data/raw or downloaded there; any other bytes are refused (RS-01)."""
+def source_bytes(name: str, raw: Path | None = None) -> bytes:
+    """Read a pinned table from the external cache (RS-01).
+
+    Existing ``raw=Path`` callers can read legacy files inside the checkout;
+    only external destinations may receive a missing table. Verify both pins
+    before writing, and never overwrite an existing file on checksum drift.
+    """
     pin = SOURCES[name]
-    path = raw / pin["file"]
-    if path.is_file():
-        data = path.read_bytes()
+    if raw is None:
+        path = source_path(pin["file"])
     else:
-        with urlopen(pin["url"], timeout=60) as response:
-            data = response.read()
-        path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_bytes(data)
-    if hashlib.md5(data).hexdigest() != pin["md5"] or hashlib.sha256(data).hexdigest() != pin["sha256"]:
-        raise ValueError(f"GeoMet {name} table does not match its pinned checksums")
+        candidate = Path(raw) / pin["file"]
+        path = source_path(pin["file"], candidate) if candidate.is_file() else external_path(candidate)
+
+    def checked(data: bytes) -> bytes:
+        if hashlib.md5(data).hexdigest() != pin["md5"] or hashlib.sha256(data).hexdigest() != pin["sha256"]:
+            raise ValueError(f"GeoMet {name} table does not match its pinned checksums")
+        return data
+
+    if path.is_file():
+        return checked(path.read_bytes())
+    with urlopen(pin["url"], timeout=60) as response:
+        data = checked(response.read())
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        with path.open("xb") as stream:
+            stream.write(data)
+    except FileExistsError:
+        return checked(path.read_bytes())
     return data
 
 

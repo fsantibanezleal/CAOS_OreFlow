@@ -260,6 +260,13 @@ def check_learning(derived: Path, models: Path, version: str, digest: str | None
         return ["missing learning.json"]
     record = _load(path)
     errors: list[str] = []
+    # Load the same stdlib-only range validator that scoring uses, without importing the training stack.
+    import importlib.util
+
+    spec = importlib.util.spec_from_file_location("oreflow_observable", ROOT / "data-pipeline" / "pipeline" / "methods" / "observable.py")
+    observable = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(observable)
+    errors.extend(observable.record_findings(record))
     if record.get("schema") != "oreflow.learning/v1" or record.get("models") != LEARNING_MODELS:
         errors.append("learning schema or model set")
     if record.get("engine_version") != version or record.get("contract_digest") != digest:

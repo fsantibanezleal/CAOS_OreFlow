@@ -6,6 +6,14 @@ turns the engine, the case catalog and the methods into the committed artifacts 
 `data/derived/` and `models/`. It never runs in CI (ADR-0074): the bake trains the learned lane, so
 it is a local job, and CI only re-validates what it produced.
 
+Export `CAOS_DATA_ROOT` and `CAOS_MODELS_ROOT` before an offline rebuild. Raw inputs are resolved at call
+time under `<CAOS_DATA_ROOT>/oreflow/raw/`; measured-lane checkpoints are kept under
+`<CAOS_MODELS_ROOT>/oreflow/`. The measured runners accept explicit roots and existing read-only source
+files; the process bake's real-samples reader uses the same configured raw cache. Neither the wrappers nor
+Python load `.env` automatically. Compact release JSON and declared browser assets remain in
+`data/derived/` and `models/`. [Local setup](../guides/01_run-locally.md) documents the environment and
+migration-free use of legacy source files.
+
 ## Stages
 
 | Stage | What it does | Output |
@@ -15,7 +23,7 @@ it is a local job, and CI only re-validates what it produced.
 | `cases` | per case, in parallel: each of the eight variants' trace, screened optimization and uncertainty records; the nominal variant's Sobol record | `cases/<case>.json` |
 | `benchmark` | the cross-case summary from this run's records and the recomputed oracles | `benchmark.json` |
 | `studies` | per case, in parallel: the mechanism ablations and the uncertainty seed study | `studies.json` |
-| `real_samples` | the GeoMet samples in the soft porphyry's circuit, from the pinned tables in `data/raw` | `real_samples.json` |
+| `real_samples` | the GeoMet samples in the soft porphyry's circuit, from the pinned tables in `<CAOS_DATA_ROOT>/oreflow/raw/` | `real_samples.json` |
 | `manifests` | removes any case file the catalog no longer has; byte counts, SHA-256, headline metrics and KPI checks per case; the index | `manifests/<case>.json`, `manifests/index.json` |
 | `validation` | `scripts/check_artifacts.py`, in process | `validation.json`; a failure fails the bake |
 

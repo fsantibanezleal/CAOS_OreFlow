@@ -22,10 +22,12 @@ OreFlow is a research workbench for mineral-processing circuits. It links commin
 ## Run locally
 
 ```powershell
-scripts/setup.ps1
-scripts/precompute.ps1
-cd frontend; npm ci; npm run dev
+scripts/dev.ps1
 ```
+
+The development launcher installs locked frontend dependencies when needed and uses the committed
+research artifacts. On POSIX, run `bash scripts/dev.sh`. Scientific data preparation and rebaking
+are explicit separate operations; see the [local-run guide](docs/guides/01_run-locally.md).
 
 See [the design and validation record](docs/design/SDD.md) for model assumptions, data provenance, evaluation limits and release gates.
 
@@ -34,3 +36,9 @@ See [the design and validation record](docs/design/SDD.md) for model assumptions
 The versioned research report, including the engine, methods, validation protocol, results and limitations, is archived on Zenodo under [concept DOI 10.5281/zenodo.23783845](https://doi.org/10.5281/zenodo.23783845) (CC BY 4.0).
 
 The paired optimizer-screening study is archived under its own Zenodo concept DOI, [10.5281/zenodo.23833134](https://doi.org/10.5281/zenodo.23833134) (CC BY 4.0).
+
+## Data and model terms
+
+Original software and authored simulator content are MIT. Measured data, models trained on those data
+and manuscript PDFs have the separate terms listed in [LICENSES.md](LICENSES.md), with source credits
+and transformations in [ATTRIBUTION.md](ATTRIBUTION.md).

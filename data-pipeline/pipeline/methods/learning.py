@@ -45,6 +45,7 @@ from ..engine.constants import constant
 from ..engine.model import OperatingPoint
 from ..engine.ore import grade_to_fraction, resolve
 from ..io.contract import validate
+from .observable import check_observable
 
 FEATURES = (
     "log_payable_fraction", "specific_throughput_t_h_mw", "target_p80_um", "circulating_load", "water_m3_t",
@@ -233,16 +234,23 @@ def leave_one_group_out(case_of: np.ndarray, groups: dict[str, str]) -> list[tup
 
 # ---- models ----
 
-def _scores(y: np.ndarray, pred: np.ndarray, cases: np.ndarray | None = None) -> dict[str, float]:
+def _scores(y: np.ndarray, pred: np.ndarray, cases: np.ndarray | None = None, *, reference: np.ndarray | None = None,
+            constant_baseline: bool = False) -> dict[str, Any]:
     """RMSE, MAE and R2 against the test rows' pooled mean; with the rows' cases, also R2 against each case's own mean,
     which subtracts what knowing the case alone explains (L-03)."""
+    observable = check_observable(y, pred, reference=reference, constant_baseline=constant_baseline)
     err = pred - y
     ss = float(np.sum((y - np.mean(y)) ** 2))
     out = {"rmse": float(np.sqrt(np.mean(err ** 2))), "mae": float(np.mean(np.abs(err))),
-           "r2": 1.0 - float(np.sum(err ** 2)) / ss if ss > 0.0 else 0.0, "rows": int(len(y))}
+           "r2": 1.0 - float(np.sum(err ** 2)) / ss if ss > 0.0 else 0.0, "rows": int(len(y)),
+           "observable": observable}
     if cases is not None:
         within = sum(float(np.sum((y[cases == c] - np.mean(y[cases == c])) ** 2)) for c in dict.fromkeys(cases.tolist()))
         out["r2_within_case"] = 1.0 - float(np.sum(err ** 2)) / within if within > 0.0 else 0.0
+        out["observable_by_case"] = {
+            str(c): check_observable(y[cases == c], pred[cases == c], reference=reference,
+                                     constant_baseline=constant_baseline)
+            for c in dict.fromkeys(cases.tolist())}
     return out
 
 
@@ -253,7 +261,7 @@ def case_mean_baseline(y: np.ndarray, train: np.ndarray, test: np.ndarray, case_
     for j, target in enumerate(TARGETS):
         means = {c: float(np.mean(y[train[case_of[train] == c], j])) for c in dict.fromkeys(case_of[test].tolist())}
         pred = np.array([means[c] for c in case_of[test]])
-        out[target] = _scores(y[test, j], pred, case_of[test])
+        out[target] = _scores(y[test, j], pred, case_of[test], reference=y[:, j], constant_baseline=True)
     return out
 
 
@@ -324,9 +332,14 @@ def _predict_network(model, x: np.ndarray) -> np.ndarray:
 
 class Standardizer:
     def __init__(self, data: np.ndarray) -> None:
-        self.mean = data.mean(axis=0)
-        scale = data.std(axis=0)
-        self.scale = np.where(scale > 0.0, scale, 1.0)
+        from sklearn.preprocessing import StandardScaler
+
+        # StandardScaler recognizes numerically constant training columns, including roundoff-sized
+        # variances. Dividing by their tiny positive np.std had amplified unseen-ore features by 1e16.
+        # Fit only the supplied training rows; the exported mean/scale keep the existing inference API.
+        fitted = StandardScaler().fit(data)
+        self.mean = fitted.mean_
+        self.scale = fitted.scale_
 
     def __call__(self, data: np.ndarray) -> np.ndarray:
         return (data - self.mean) / self.scale
@@ -365,7 +378,7 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         for name, est in estimators.items():
             est.fit(xs_tr, yt)
             out["identity"][name] = f"{type(est).__module__}.{type(est).__name__}"
-            out["models"].setdefault(name, {})[target] = _scores(ye, est.predict(xs_te), cases)
+            out["models"].setdefault(name, {})[target] = _scores(ye, est.predict(xs_te), cases, reference=y[:, j])
             if name == "hist_gradient_boosting":
                 out.setdefault("_hgb", {})[target] = est
         low, high = (float(v) for v in s["gp_length_scale_bounds"])
@@ -383,7 +396,7 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
         inside = np.abs(ye - mean) <= z * std
         out["identity"]["gaussian_process"] = f"{type(gp).__module__}.{type(gp).__name__}"
         out["models"].setdefault("gaussian_process", {})[target] = {
-            **_scores(ye, mean, cases), "coverage_95": float(np.mean(inside)), "mean_half_width": float(np.mean(z * std)),
+            **_scores(ye, mean, cases, reference=y[:, j]), "coverage_95": float(np.mean(inside)), "mean_half_width": float(np.mean(z * std)),
             "training_rows": int(len(gp_rows)), "kernel": str(gp.kernel_),
             "length_scales": {name: float(v) for name, v in zip(FEATURES, scales)},
             "switched_off": [name for name, v in zip(FEATURES, scales) if v >= high * float(s["gp_bound_margin"])],
@@ -393,12 +406,12 @@ def fit_and_score(x: np.ndarray, y: np.ndarray, train: np.ndarray, test: np.ndar
             # M-11: the GP sees a subsample; the other models refitted on the same rows rank it on equal data
             for name, est in estimators.items():
                 refit = clone(est).fit(fx(x[gp_rows]), y[gp_rows, j])
-                out.setdefault("equal_rows", {}).setdefault(name, {})[target] = _scores(ye, refit.predict(xs_te))
+                out.setdefault("equal_rows", {}).setdefault(name, {})[target] = _scores(ye, refit.predict(xs_te), reference=y[:, j])
     model, info, _ = _train_network(xs_tr, fy(y[train]), list(s["mlp_hidden"]), s, seed, "silu")
     pred = fy.inverse(_predict_network(model, xs_te))
     out["identity"]["mlp"] = f"torch.nn.Sequential ({info['device']})"
     for j, target in enumerate(TARGETS):
-        out["models"].setdefault("mlp", {})[target] = _scores(y[test, j], pred[:, j], cases)
+        out["models"].setdefault("mlp", {})[target] = _scores(y[test, j], pred[:, j], cases, reference=y[:, j])
     out["mlp_training"] = info
     return out
 
@@ -413,7 +426,7 @@ def mlp_seeds(x: np.ndarray, y: np.ndarray, splits: list[tuple[str, np.ndarray, 
             model, _, _ = _train_network(fx(x[tr]), fy(y[tr]), list(s["mlp_hidden"]), s, k, "silu")
             pred = fy.inverse(_predict_network(model, fx(x[te])))
             for j, target in enumerate(TARGETS):
-                runs.setdefault(name, {}).setdefault(target, []).append(_scores(y[te, j], pred[:, j]))
+                runs.setdefault(name, {}).setdefault(target, []).append(_scores(y[te, j], pred[:, j], reference=y[:, j]))
     folds = [name for name, _, _ in splits if name != "interpolation"]
     summary = {}
     for target in TARGETS:
@@ -422,7 +435,9 @@ def mlp_seeds(x: np.ndarray, y: np.ndarray, splits: list[tuple[str, np.ndarray, 
         summary[target] = {"interpolation_rmse": [r["rmse"] for r in runs["interpolation"][target]],
                            "loco_rmse_mean": loco_mean, "loco_r2_median": loco_median_r2,
                            "loco_rmse_by_case": {h: [r["rmse"] for r in runs[h][target]] for h in folds}}
-    return {"seeds": seeds, "summary": summary}
+    checks = {name: {target: [score["observable"] for score in scores] for target, scores in targets.items()}
+              for name, targets in runs.items()}
+    return {"seeds": seeds, "summary": summary, "observable_checks": checks}
 
 
 def guard(x: np.ndarray, train: np.ndarray, test: np.ndarray, s: dict[str, Any], seed: int) -> dict[str, Any]:

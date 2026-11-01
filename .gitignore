@@ -22,6 +22,7 @@ dist/
 node_modules/
 frontend/dist/
 frontend/qa-output/
+frontend/qa-output*/
 frontend/gate-*/
 frontend/gate-output/
 frontend/.vite/
@@ -67,3 +68,10 @@ Thumbs.db
 # Local browser QA captures
 gate-*/
 gate-*.log
+
+# TeX compiler intermediates; the manuscript sources and reviewed PDFs are retained.
+manuscripts/**/*.aux
+manuscripts/**/*.out
+manuscripts/**/*.toc
+manuscripts/**/*.fls
+manuscripts/**/*.fdb_latexmk

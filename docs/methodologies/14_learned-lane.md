@@ -10,6 +10,27 @@ and the error that matters depends on the question: predicting a state near stat
 on engine states and measures both, and it trains a guard that says when a state lies outside what
 the surrogates have seen.
 
+## Prediction scale and sensitivity
+
+Every model transform is fitted on its training rows. The standardizer uses the pinned
+scikit-learn [StandardScaler](https://scikit-learn.org/stable/modules/generated/sklearn.preprocessing.StandardScaler.html),
+including its handling of numerically constant columns. A mathematically constant decimal column can
+have a tiny positive variance from floating-point roundoff; treating that as a useful scale can
+amplify an unseen ore's feature by many orders of magnitude. Constant columns use unit scale.
+
+After prediction, a separate observable check rejects non-finite answers and forecasts wholly outside
+the observed target range widened by one full range on each side. The declared reference is the
+full authored evaluation design for that target, including held-out target values; it is used only to interpret prediction units,
+never for fitting transforms, model selection or clipping. The per-fold observed and predicted ranges,
+reference and widened bounds are persisted with every score and rechecked when artifacts are validated.
+The same full-design envelope applies to every method and seed in that design. This loose check is not an
+accuracy criterion, training-support envelope or independent transfer validation. It does not establish physical
+plausibility of every point: a fold with both an in-range point and an extreme outlier can pass its whole-range test.
+
+A constant forecast on varying observations is identified as loss of sensitivity. It remains visible
+as negative evidence beside its numerical error; the case-mean comparison is explicitly identified
+as a constant baseline. Poor transfer is retained rather than removed from the reported comparisons.
+
 ## Design
 
 For every case, a seeded scrambled Sobol sequence covers the case's Contract 1 envelope (every

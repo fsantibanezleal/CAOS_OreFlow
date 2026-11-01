@@ -9,17 +9,25 @@ the methodology pages.
 ## Source files
 
 GeoMet dataset, Zenodo 7051975 (doi:10.5281/zenodo.7051975, CC BY 4.0; Hoffimann et al. 2022,
-doi:10.1007/s11004-022-10013-1). `scripts/fetch-data.ps1` or `.sh` fetch the tables into `data/raw/` (ignored by git)
-and refuse a file whose MD5 differs from Zenodo's; the runs download a missing table themselves with the same check.
+doi:10.1007/s11004-022-10013-1). `scripts/fetch-data.ps1` or `.sh` fetch the tables into
+`<CAOS_DATA_ROOT>/oreflow/raw/`, outside the checkout, and refuse a file whose MD5 differs from Zenodo's.
+The offline runners download a missing default-cache table with the same check. The required external root is
+read from the process environment at call time or selected by `--data-root`; `.env` is not automatically loaded.
 
 | Table | Saved as | MD5 | Used by |
 |---|---|---|---|
-| `flotation.csv` (53 rows) | `data/raw/geomet-flotation.csv` | `f2e90da6bfa81de1261177ee85a91570` | the lane and the real samples |
-| `comminution.csv` (60 rows) | `data/raw/geomet-comminution.csv` | `1a33df8ba77f5d49c281ba3fff16b20b` | the real samples (since 0.07.000) |
-| `drillholes.csv` | `data/raw/geomet-drillholes.csv` | `bf48a6b1135113b6e6cf7b32f95315ad` | fetched, not used |
+| `flotation.csv` (53 rows) | `<CAOS_DATA_ROOT>/oreflow/raw/geomet-flotation.csv` | `f2e90da6bfa81de1261177ee85a91570` | the lane and the real samples |
+| `comminution.csv` (60 rows) | `<CAOS_DATA_ROOT>/oreflow/raw/geomet-comminution.csv` | `1a33df8ba77f5d49c281ba3fff16b20b` | the real samples (since 0.07.000) |
+| `drillholes.csv` | `<CAOS_DATA_ROOT>/oreflow/raw/geomet-drillholes.csv` | `bf48a6b1135113b6e6cf7b32f95315ad` | fetched, not used |
 
 The real samples also pin both used tables by SHA-256, and `scripts/check_artifacts.py` checks the flotation
 table's SHA-256 in the lane's record.
+
+Existing source files supplied to the lane with `--source` are read-only, including ignored legacy
+`data/raw/` files. A missing explicit file is an error. The real-samples reader preserves `raw=Path(...)`
+directory arguments: existing files are read-only; a missing table may only be cached outside the checkout.
+Both readers refuse changed checksums without overwriting the input; the real-samples reader validates both
+pins before caching a download. Neither workflow moves or deletes legacy inputs.
 
 ## Input fields
 
@@ -78,6 +86,7 @@ table's SHA-256 in the lane's record.
 [data contract 03](03_case-artifacts.md). Its `samples[].geomet_lane` carries each test's fold and out-of-fold
 predictions from the record above, so the workbench shows the lane beside the engine.
 
-`models/geomet_lct.joblib` (local, ignored): the four models fitted on all 52 tests, with the source's SHA-256, the
+`<CAOS_MODELS_ROOT>/oreflow/geomet_lct.joblib` (local, outside the checkout, or an external `--checkpoint` file):
+the four models fitted on all 52 tests, with the source's SHA-256, the
 feature list and the assay range of the training tests. It is a Python pickle: load only one this repository
 generated, on a trusted machine.

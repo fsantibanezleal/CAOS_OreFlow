@@ -49,7 +49,7 @@ export const FIGURE_TEXT_FLOOR_PX = 7.5;
 
 /**
  * A figure never shrinks its labels under the floor: it keeps the width at which its smallest label is drawn at
- * FIGURE_TEXT_FLOOR_PX and scrolls sideways in its own row, the hidden end faded as the route links' (NavOverflow).
+ * FIGURE_TEXT_FLOOR_PX and scrolls sideways in its own row, the hidden end faded as in the shell's route navigation.
  * Shrunk to a phone's width, the wide figures drew their labels at 4 to 5 px (0.08 gate captures, 390 x 844).
  */
 function FigureScroll({ children }: { children: ReactNode }) {
@@ -159,7 +159,7 @@ export function TopicGroups({ groups, lang, label }: { groups: Array<{ id: strin
  * A page's tab row that is wider than the page scrolls with its scrollbar hidden (shell known defect 11), and in
  * Spanish at 1280 px the Implementation row was cut at "Controles y publicaci" with nothing to say Despliegue followed
  * (0.08 gate captures): the row declares which end hides tabs, `data-fade-start` and `data-fade-end`, and that end
- * fades, as the route links do (NavOverflow). Rerun after every render, so a language change re-measures the row.
+ * fades, as in the shell's route navigation. Rerun after every render, so a language change re-measures the row.
  */
 function useTabRowFade(root: RefObject<HTMLDivElement | null>) {
   useEffect(() => {

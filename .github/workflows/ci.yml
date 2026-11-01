@@ -34,6 +34,8 @@ jobs:
           cache-dependency-path: frontend/package-lock.json
       - name: Install the web dependencies (the SDD guard validates the executive view against the shell's installed schema)
         run: cd frontend && npm ci
+      - name: Consumer types match the canonical boundary schemas
+        run: cd frontend && npm run contracts:check
       - name: Install the schema validator (the SDD guard and the planted-defect suite)
         run: pip install jsonschema==4.26.0
       - name: Lint

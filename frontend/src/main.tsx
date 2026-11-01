@@ -3,7 +3,6 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
 import {
   AppShell,
-  Landing,
   applyTheme,
   CitationsProvider,
   readTheme,
@@ -17,12 +16,9 @@ import { ARCHITECTURE } from "./content/architecture";
 import { CONTENT_CITATIONS, localizeCitations } from "./content/citations";
 import { Pickaxe } from "lucide-react";
 import { APP_VERSION } from "./lib/version";
-import { DocumentLanguage } from "./lib/DocumentLanguage";
-import { NavOverflow } from "./lib/NavOverflow";
 
-// the workbench is the landing route; the focus route and the content pages load when first opened
+// The workbench and technical content load when opened; the executive introduction is the landing route.
 const Workbench = React.lazy(() => import("./workbench/Workbench"));
-const FocusWorkbench = React.lazy(() => import("./workbench/FocusWorkbench"));
 // The root path lands directly on the Introduction's executive view. Load that page with the shell so the
 // landing never exposes a transient empty tab while its lazy chunk arrives (shell gate G4).
 import Introduction from "./pages/Introduction";
@@ -38,7 +34,7 @@ const config: ShellConfig = {
   license: { en: "MIT", es: "MIT" },
   visibility: "public",
   contain: true,
-  // only the workbench is a viewport-sized surface; the content pages keep the document scroll (ADR-0071)
+  // Global containment keeps the page inside the viewport; long content scrolls within the shell.
   fixedRoutes: ["/app"],
   architecture: ARCHITECTURE,
   routes: [
@@ -97,8 +93,6 @@ function AppRoutes() {
   }
   if (pathname === '/') return <Navigate to={search || hash ? `/app${search}${hash}` : '/introduction?view=executive'} replace />;
   return <AppShell config={config}>
-        <DocumentLanguage />
-        <NavOverflow />
         <Boundary>
           <Routes>
             <Route path="/" element={<Navigate to="/introduction?view=executive" replace />} />

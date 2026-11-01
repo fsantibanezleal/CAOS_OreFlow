@@ -13,7 +13,8 @@ checks, in order. For what the pieces are and why, see [architecture](architectu
 | [04 Add a case](guides/04_add-a-case.md) | add a thirteenth scenario to the catalog, with its prose, its tests and its pages |
 | [05 Read the workbench](guides/05_read-the-workbench.md) | understand what each view shows, what the flags mean, and how far each number can be trusted |
 | [08 Build and maintain the notebooks](guides/08_notebooks.md) | run the bilingual lessons, reproduce their outputs, and check the notebook contract |
-| [09 Methods and manuscripts](guides/09_method-tiers.md) | understand the internal method ladder and the evidence and Zenodo records required for release |
+| [09 Method comparisons and reports](guides/09_method-comparison-and-reports.md) | define fair method comparisons, interpret the screening result and maintain citable research reports |
+| [10 Chart navigation](guides/10_chart-navigation.md) | zoom, pan and inspect a linked slice of an operating-response surface |
 
 Every command is given for PowerShell on Windows, the development platform; each script has a bash twin
 with the same name and behaviour (`scripts/*.sh`).

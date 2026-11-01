@@ -3,6 +3,8 @@ Set-Location (Join-Path $PSScriptRoot "..")
 $vp = Join-Path ".venv-gpu" "Scripts\python.exe"
 if (-not (Test-Path $vp)) { $vp = Join-Path ".venv" "Scripts\python.exe" }
 if (-not (Test-Path $vp)) { throw "No .venv-gpu or .venv environment: run scripts/setup.ps1 first (never a global interpreter)." }
+& $vp data-pipeline/fetch.py --check-paths
+if ($LASTEXITCODE -ne 0) { throw "Set external CAOS_DATA_ROOT and CAOS_MODELS_ROOT before precompute." }
 # D-02: the measured lanes first, so the bake's real-samples stage reads the fresh GeoMet record and its validation
 # stage checks all three lane records
 & $vp data-pipeline/run_particles.py

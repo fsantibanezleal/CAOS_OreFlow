@@ -1,66 +1,662 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "oreflow-learning-v1",
-  "title": "oreflow-learning-v1",
+  "title": "LearningRecord",
   "type": "object",
   "properties": {
     "schema": {
-      "const": "oreflow.learning/v1",
-      "type": "string"
+      "type": "string",
+      "const": "oreflow.learning/v1"
     },
     "features": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "targets": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "models": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
+      "minItems": 1,
+      "uniqueItems": true
     },
     "design": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "per_case": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "seconds": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "method": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "per_case",
+        "cases",
+        "rows",
+        "seed",
+        "seconds",
+        "method"
+      ],
+      "additionalProperties": true
     },
     "settings": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "design_points_per_case": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "forest_trees": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "forest_min_leaf": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "hgb_iterations": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "gp_training_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "max_epochs": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "patience": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "permutation_repeats": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "seed": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "gp_restarts": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "ridge_alpha": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "hgb_learning_rate": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "interval_z": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "mlp_learning_rate": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "onnx_tolerance": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "gp_noise_initial": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308,
+          "exclusiveMinimum": 0
+        },
+        "mlp_weight_decay": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "ood_shift": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "test_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "validation_fraction": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "guard_quantile": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "gp_bound_margin": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "exclusiveMaximum": 1
+        },
+        "mlp_hidden": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "minItems": 1
+        },
+        "autoencoder_hidden": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "minItems": 1
+        },
+        "gp_noise_bounds": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "gp_length_scale_bounds": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "ood_shifts": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 1
+        },
+        "mlp_seed_offsets": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "device": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "design_points_per_case",
+        "forest_trees",
+        "forest_min_leaf",
+        "hgb_iterations",
+        "gp_training_rows",
+        "max_epochs",
+        "patience",
+        "permutation_repeats",
+        "seed",
+        "gp_restarts",
+        "ridge_alpha",
+        "hgb_learning_rate",
+        "interval_z",
+        "mlp_learning_rate",
+        "onnx_tolerance",
+        "gp_noise_initial",
+        "mlp_weight_decay",
+        "ood_shift",
+        "test_fraction",
+        "validation_fraction",
+        "guard_quantile",
+        "gp_bound_margin",
+        "mlp_hidden",
+        "autoencoder_hidden",
+        "gp_noise_bounds",
+        "gp_length_scale_bounds",
+        "ood_shifts",
+        "mlp_seed_offsets",
+        "device"
+      ],
+      "additionalProperties": true
     },
     "identity": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "ridge": {
+          "type": "string",
+          "minLength": 1
+        },
+        "random_forest": {
+          "type": "string",
+          "minLength": 1
+        },
+        "hist_gradient_boosting": {
+          "type": "string",
+          "minLength": 1
+        },
+        "gaussian_process": {
+          "type": "string",
+          "minLength": 1
+        },
+        "mlp": {
+          "type": "string",
+          "minLength": 1
+        }
+      },
+      "required": [
+        "ridge",
+        "random_forest",
+        "hist_gradient_boosting",
+        "gaussian_process",
+        "mlp"
+      ],
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "interpolation": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "train_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "test_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "models": {
+          "$ref": "#/$defs/MethodScores"
+        },
+        "mlp_training": {
+          "$ref": "#/$defs/Training"
+        },
+        "permutation_importance": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "number",
+                "minimum": -1.7976931348623157e+308,
+                "maximum": 1.7976931348623157e+308
+              }
+            },
+            "log_upgrade": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "number",
+                "minimum": -1.7976931348623157e+308,
+                "maximum": 1.7976931348623157e+308
+              }
+            },
+            "specific_energy_total_kwh_t": {
+              "type": "object",
+              "minProperties": 1,
+              "additionalProperties": {
+                "type": "number",
+                "minimum": -1.7976931348623157e+308,
+                "maximum": 1.7976931348623157e+308
+              }
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "type": "object",
+            "minProperties": 1,
+            "additionalProperties": {
+              "type": "number",
+              "minimum": -1.7976931348623157e+308,
+              "maximum": 1.7976931348623157e+308
+            }
+          }
+        }
+      },
+      "required": [
+        "train_rows",
+        "test_rows",
+        "models",
+        "mlp_training",
+        "permutation_importance"
+      ],
+      "additionalProperties": true
     },
     "guard": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "false_alarm_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "false_accept_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "false_accept_by_feature": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          }
+        },
+        "acceptance_by_distance": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "distance": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1.7976931348623157e+308
+              },
+              "upward": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "downward": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              }
+            },
+            "required": [
+              "distance",
+              "upward",
+              "downward"
+            ],
+            "additionalProperties": true
+          },
+          "minItems": 1
+        },
+        "in_envelope_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "probe_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "training": {
+          "$ref": "#/$defs/Training"
+        }
+      },
+      "required": [
+        "threshold",
+        "false_alarm_rate",
+        "false_accept_rate",
+        "false_accept_by_feature",
+        "acceptance_by_distance",
+        "in_envelope_rows",
+        "probe_rows",
+        "training"
+      ],
+      "additionalProperties": true
     },
     "leave_one_case_out": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/CaseFold"
+      },
+      "minItems": 1
     },
     "transfer_groups": {
-      "type": "object"
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "string",
+        "minLength": 1
+      }
     },
     "leave_one_group_out": {
-      "type": "array"
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/GroupFold"
+      },
+      "minItems": 0
     },
     "equal_rows": {
-      "type": "object"
+      "$ref": "#/$defs/MatchedRowScores"
     },
     "mlp_seeds": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "seeds": {
+          "type": "array",
+          "items": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "summary": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/SeedSummary"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/SeedSummary"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/SeedSummary"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/SeedSummary"
+          }
+        },
+        "observable_checks": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "recovery_pct": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/ObservableSummary"
+                }
+              },
+              "log_upgrade": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/ObservableSummary"
+                }
+              },
+              "specific_energy_total_kwh_t": {
+                "type": "array",
+                "minItems": 1,
+                "items": {
+                  "$ref": "#/$defs/ObservableSummary"
+                }
+              }
+            },
+            "required": [
+              "recovery_pct",
+              "log_upgrade",
+              "specific_energy_total_kwh_t"
+            ],
+            "additionalProperties": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "$ref": "#/$defs/ObservableSummary"
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "seeds",
+        "summary"
+      ],
+      "additionalProperties": true
     },
     "summary": {
-      "type": "object"
+      "$ref": "#/$defs/LearningSummary"
     },
     "final": {
-      "type": "object"
+      "type": "object",
+      "properties": {
+        "mlp_training": {
+          "$ref": "#/$defs/Training"
+        },
+        "guard_threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "exports": {
+          "type": "object",
+          "properties": {
+            "surrogate": {
+              "$ref": "#/$defs/OnnxExport"
+            },
+            "guard": {
+              "$ref": "#/$defs/OnnxExport"
+            },
+            "screen": {
+              "$ref": "#/$defs/ScreenExport"
+            }
+          },
+          "required": [
+            "surrogate",
+            "guard",
+            "screen"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/Export"
+          }
+        }
+      },
+      "required": [
+        "mlp_training",
+        "guard_threshold",
+        "exports"
+      ],
+      "additionalProperties": true
     },
     "seconds": {
-      "type": "number"
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1.7976931348623157e+308
     },
     "engine_version": {
-      "type": "string"
+      "type": "string",
+      "minLength": 1
     },
     "contract_digest": {
-      "type": "string"
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
     }
   },
   "required": [
@@ -84,5 +680,961 @@
     "engine_version",
     "contract_digest"
   ],
-  "additionalProperties": true
+  "additionalProperties": true,
+  "$defs": {
+    "TargetScores": {
+      "type": "object",
+      "properties": {
+        "rmse": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "mae": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "r2": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "r2_within_case": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "coverage_95": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "mean_half_width": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "training_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "kernel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "length_scales": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308,
+            "exclusiveMinimum": 0
+          }
+        },
+        "switched_off": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "noise_level": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "optimizer_notes": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "observable": {
+          "$ref": "#/$defs/ObservableSummary"
+        },
+        "observable_by_case": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "$ref": "#/$defs/ObservableSummary"
+          }
+        }
+      },
+      "required": [
+        "rmse",
+        "mae",
+        "r2",
+        "rows"
+      ],
+      "additionalProperties": true
+    },
+    "PerTargetScores": {
+      "type": "object",
+      "properties": {
+        "recovery_pct": {
+          "$ref": "#/$defs/TargetScores"
+        },
+        "log_upgrade": {
+          "$ref": "#/$defs/TargetScores"
+        },
+        "specific_energy_total_kwh_t": {
+          "$ref": "#/$defs/TargetScores"
+        }
+      },
+      "required": [
+        "recovery_pct",
+        "log_upgrade",
+        "specific_energy_total_kwh_t"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/TargetScores"
+      }
+    },
+    "MethodScores": {
+      "type": "object",
+      "properties": {
+        "ridge": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "random_forest": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "hist_gradient_boosting": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "gaussian_process": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/GaussianProcessScores"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/GaussianProcessScores"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/GaussianProcessScores"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/GaussianProcessScores"
+          }
+        },
+        "mlp": {
+          "$ref": "#/$defs/PerTargetScores"
+        }
+      },
+      "required": [
+        "ridge",
+        "random_forest",
+        "hist_gradient_boosting",
+        "gaussian_process",
+        "mlp"
+      ],
+      "additionalProperties": {
+        "$ref": "#/$defs/PerTargetScores"
+      }
+    },
+    "MatchedRowScores": {
+      "type": "object",
+      "properties": {
+        "ridge": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "random_forest": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "hist_gradient_boosting": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "gaussian_process": {
+          "$ref": "#/$defs/PerTargetScores"
+        },
+        "mlp": {
+          "$ref": "#/$defs/PerTargetScores"
+        }
+      },
+      "required": [],
+      "additionalProperties": {
+        "$ref": "#/$defs/PerTargetScores"
+      },
+      "description": "Empty when the GP uses all rows; otherwise every present method has complete target scores."
+    },
+    "Training": {
+      "type": "object",
+      "properties": {
+        "device": {
+          "type": "string",
+          "minLength": 1
+        },
+        "epochs_run": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "best_epoch": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "best_validation_mse": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "stopped_early": {
+          "type": "boolean"
+        },
+        "validation_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "fit_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "validation_history": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 1
+        },
+        "parameters": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        }
+      },
+      "required": [
+        "device",
+        "epochs_run",
+        "best_epoch",
+        "best_validation_mse",
+        "stopped_early",
+        "validation_rows",
+        "fit_rows",
+        "parameters"
+      ],
+      "additionalProperties": true
+    },
+    "SeedSummary": {
+      "type": "object",
+      "properties": {
+        "interpolation_rmse": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 1
+        },
+        "loco_rmse_mean": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 1
+        },
+        "loco_r2_median": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 1
+        },
+        "loco_rmse_by_case": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "minItems": 1
+          }
+        }
+      },
+      "required": [
+        "interpolation_rmse",
+        "loco_rmse_mean",
+        "loco_r2_median",
+        "loco_rmse_by_case"
+      ],
+      "additionalProperties": true
+    },
+    "SummaryScores": {
+      "type": "object",
+      "properties": {
+        "interpolation_rmse": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "interpolation_r2": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "interpolation_r2_within_case": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "case_mean_r2": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "loco_rmse_mean": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "loco_rmse_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "loco_r2_median": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "transfer_rmse_mean": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "transfer_rmse_max": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "transfer_r2_median": {
+          "type": "number",
+          "minimum": -1.7976931348623157e+308,
+          "maximum": 1.7976931348623157e+308
+        },
+        "interpolation_coverage": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "loco_coverage_pooled": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "loco_coverage_worst": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "loco_folds_below_80": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "seeds": {
+          "$ref": "#/$defs/SeedSummary"
+        }
+      },
+      "required": [
+        "interpolation_rmse",
+        "interpolation_r2",
+        "interpolation_r2_within_case",
+        "case_mean_r2",
+        "loco_rmse_mean",
+        "loco_rmse_max",
+        "loco_r2_median",
+        "transfer_rmse_mean",
+        "transfer_rmse_max",
+        "transfer_r2_median"
+      ],
+      "additionalProperties": true
+    },
+    "LearningSummary": {
+      "type": "object",
+      "properties": {
+        "ridge": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/SummaryScores"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/SummaryScores"
+          }
+        },
+        "random_forest": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/SummaryScores"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/SummaryScores"
+          }
+        },
+        "hist_gradient_boosting": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/SummaryScores"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/SummaryScores"
+          }
+        },
+        "gaussian_process": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/SummaryScores"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/SummaryScores"
+          }
+        },
+        "mlp": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "log_upgrade": {
+              "$ref": "#/$defs/SummaryScores"
+            },
+            "specific_energy_total_kwh_t": {
+              "$ref": "#/$defs/SummaryScores"
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "$ref": "#/$defs/SummaryScores"
+          }
+        }
+      },
+      "required": [
+        "ridge",
+        "random_forest",
+        "hist_gradient_boosting",
+        "gaussian_process",
+        "mlp"
+      ],
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "recovery_pct": {
+            "$ref": "#/$defs/SummaryScores"
+          },
+          "log_upgrade": {
+            "$ref": "#/$defs/SummaryScores"
+          },
+          "specific_energy_total_kwh_t": {
+            "$ref": "#/$defs/SummaryScores"
+          }
+        },
+        "required": [
+          "recovery_pct",
+          "log_upgrade",
+          "specific_energy_total_kwh_t"
+        ],
+        "additionalProperties": {
+          "$ref": "#/$defs/SummaryScores"
+        }
+      }
+    },
+    "Export": {
+      "type": "object",
+      "properties": {
+        "path": {
+          "type": "string",
+          "minLength": 1
+        },
+        "bytes": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "max_abs_difference": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "opset": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "gp_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "gp_max_abs_difference": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "gp_kernel": {
+          "type": "string",
+          "minLength": 1
+        },
+        "surrogate_max_abs_difference": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "guard_max_abs_difference": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1.7976931348623157e+308
+        },
+        "check_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "cholesky": {
+          "type": "object",
+          "properties": {
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
+            "bytes": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "path",
+            "bytes"
+          ],
+          "additionalProperties": true
+        }
+      },
+      "required": [
+        "path",
+        "bytes",
+        "max_abs_difference"
+      ],
+      "additionalProperties": true
+    },
+    "OnnxExport": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/Export"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "opset": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            }
+          },
+          "required": [
+            "opset"
+          ]
+        }
+      ]
+    },
+    "ScreenExport": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/Export"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "gp_rows": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "gp_max_abs_difference": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "gp_kernel": {
+              "type": "string",
+              "minLength": 1
+            },
+            "surrogate_max_abs_difference": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "guard_max_abs_difference": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "check_rows": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 9007199254740991
+            },
+            "cholesky": {
+              "type": "object",
+              "properties": {
+                "path": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "bytes": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 9007199254740991
+                }
+              },
+              "required": [
+                "path",
+                "bytes"
+              ],
+              "additionalProperties": true
+            }
+          },
+          "required": [
+            "gp_rows",
+            "gp_max_abs_difference",
+            "gp_kernel",
+            "surrogate_max_abs_difference",
+            "guard_max_abs_difference",
+            "check_rows",
+            "cholesky"
+          ]
+        }
+      ]
+    },
+    "CaseFold": {
+      "type": "object",
+      "properties": {
+        "held_out": {
+          "type": "string",
+          "minLength": 1
+        },
+        "train_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "test_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "models": {
+          "$ref": "#/$defs/MethodScores"
+        },
+        "spread": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "log_upgrade": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "specific_energy_total_kwh_t": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          }
+        },
+        "held_out_flag_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "equal_rows": {
+          "$ref": "#/$defs/MatchedRowScores"
+        },
+        "mlp_training": {
+          "$ref": "#/$defs/Training"
+        }
+      },
+      "required": [
+        "held_out",
+        "train_rows",
+        "test_rows",
+        "models",
+        "spread",
+        "held_out_flag_rate",
+        "equal_rows",
+        "mlp_training"
+      ],
+      "additionalProperties": true
+    },
+    "GroupFold": {
+      "type": "object",
+      "properties": {
+        "held_out_group": {
+          "type": "string",
+          "minLength": 1
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "train_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "test_rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "models": {
+          "$ref": "#/$defs/MethodScores"
+        },
+        "spread": {
+          "type": "object",
+          "properties": {
+            "recovery_pct": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "log_upgrade": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            },
+            "specific_energy_total_kwh_t": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1.7976931348623157e+308
+            }
+          },
+          "required": [
+            "recovery_pct",
+            "log_upgrade",
+            "specific_energy_total_kwh_t"
+          ],
+          "additionalProperties": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1.7976931348623157e+308
+          }
+        },
+        "held_out_flag_rate": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "required": [
+        "held_out_group",
+        "cases",
+        "train_rows",
+        "test_rows",
+        "models",
+        "spread",
+        "held_out_flag_rate"
+      ],
+      "additionalProperties": true
+    },
+    "ObservableSummary": {
+      "type": "object",
+      "properties": {
+        "schema": {
+          "type": "string",
+          "const": "oreflow.observable/v1"
+        },
+        "rows": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "observed_range": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "prediction_range": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "reference_range": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "allowed_range": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": -1.7976931348623157e+308,
+            "maximum": 1.7976931348623157e+308
+          },
+          "minItems": 2,
+          "maxItems": 2
+        },
+        "constant_baseline": {
+          "type": "boolean"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "passed",
+            "constant-prediction",
+            "declared-constant-baseline"
+          ]
+        }
+      },
+      "required": [
+        "schema",
+        "rows",
+        "observed_range",
+        "prediction_range",
+        "reference_range",
+        "allowed_range",
+        "constant_baseline",
+        "status"
+      ],
+      "additionalProperties": true,
+      "description": "Optional prediction-in-observable diagnostics. Status and range consistency are independently rechecked by check_artifacts.py."
+    },
+    "GaussianProcessScores": {
+      "allOf": [
+        {
+          "$ref": "#/$defs/TargetScores"
+        },
+        {
+          "type": "object",
+          "properties": {
+            "coverage_95": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          },
+          "required": [
+            "coverage_95"
+          ]
+        }
+      ]
+    }
+  }
 }

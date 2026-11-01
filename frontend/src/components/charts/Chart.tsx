@@ -35,6 +35,7 @@ import { formatTick, type Lang } from '../../lib/format';
 import { halfSpacing } from '../../lib/histogram';
 import { t, UI } from '../../lib/i18n';
 import { OverlayInset } from './inset';
+import { panRange, type Bounds } from './navigation';
 import { categoryTicks, tickLines, wrapLabel } from './ticks';
 
 export type Colour = 'accent' | 'accent-2' | 'good' | 'warn' | 'bad' | 'magenta' | 'subtle';
@@ -123,6 +124,8 @@ type Box = { x0: number; y0: number; x1: number; y1: number };
 const overlaps = (a: Box, b: Box) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
 
 export function Chart({ data, series, xLabel, yLabel, title, summary, marks, levels, categories, pointLabels, pointLabelFirst, logX, logY, yRange, onCursor, format }: ChartProps) {
+  const hintId = `chart-nav-${useId().replace(/:/g, '')}`;
+  const domainRef = useRef<Bounds | null>(null);
   const tableId = `chart-data-${useId().replace(/:/g, '')}`;
   const hostRef = useRef<HTMLDivElement>(null);
   const plotRef = useRef<uPlot | null>(null);
@@ -385,7 +388,8 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
       height: Math.max(120, host.clientHeight),
       // the top padding holds the mark labels' strip (one line of 11 px text), so a label never covers the data
       padding: [(marks?.length ? 16 : 12) + inset[0], 16 + inset[1], inset[2], inset[3]],
-      cursor: { drag: { x: !categories, y: false, setScale: !categories }, focus: { prox: 24 } },
+      cursor: { bind: { mousedown: (_self, _target, handler) => event => event.shiftKey ? null : handler(event),
+        dblclick: () => () => { reset(); return null; } }, drag: { x: !categories, y: false, setScale: !categories }, focus: { prox: 24 } },
       legend: { show: false },
       scales: { x: xScale, y: { ...(logY ? { distr: 3 } : {}), ...(yRange ? { range: yRange } : levelYs.length ? { range: withLevels } : { auto: true }) } },
       axes: [xAxis, yAxis],
@@ -416,10 +420,17 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         draw: [drawYTitle, drawMarks],
         setScale: [(self: uPlot, key: string) => {
           if (key !== 'x') return;
-          const xs = self.data[0] as number[];
-          const min = self.scales.x.min ?? xs[0];
-          const max = self.scales.x.max ?? xs[xs.length - 1];
-          setZoomed(min > Math.min(...xs) + 1e-12 || max < Math.max(...xs) - 1e-12);
+          const min = self.scales.x.min;
+          const max = self.scales.x.max;
+          if (min == null || max == null || !Number.isFinite(min) || !Number.isFinite(max)) return;
+          // uPlot calculates initial scales in a deferred commit, after its constructor returns.
+          if (!domainRef.current) {
+            domainRef.current = [min, max];
+            host.dataset.xDomain = JSON.stringify(domainRef.current);
+          }
+          host.dataset.xView = JSON.stringify([min, max]);
+          const domain = domainRef.current;
+          setZoomed(!!domain && (min > domain[0] + 1e-12 || max < domain[1] - 1e-12));
         }],
         setCursor: [(self: uPlot) => {
           const index = self.cursor.idx;
@@ -431,11 +442,40 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
         }],
       },
     };
+    domainRef.current = null;
+    cursorRef.current = null;
+    setZoomed(false);
     const plot = new uPlot(options, data, host);
     plotRef.current = plot;
+    // Shift-drag bypasses uPlot's brush handler. Pointer capture also ends a pan released off-plot.
+    let drag: { pointer: number; x: number; view: Bounds; width: number } | null = null;
+    const down = (event: PointerEvent) => {
+      if (categories || !event.shiftKey || event.button !== 0 || !domainRef.current) return;
+      if (!(event.target instanceof Element) || !event.target.closest('.u-over')) return;
+      event.preventDefault();
+      host.focus({ preventScroll: true });
+      drag = { pointer: event.pointerId, x: event.clientX, view: [plot.scales.x.min!, plot.scales.x.max!], width: plot.bbox.width / uPlot.pxRatio };
+      host.setPointerCapture(event.pointerId);
+    };
+    const move = (event: PointerEvent) => {
+      if (!drag || !domainRef.current) return;
+      const [min, max] = panRange(drag.view, domainRef.current, (drag.x - event.clientX) / drag.width, !!logX);
+      plot.setScale('x', { min, max });
+    };
+    const up = () => { drag = null; };
+    host.addEventListener('pointerdown', down);
+    host.addEventListener('pointermove', move);
+    host.addEventListener('pointerup', up);
+    host.addEventListener('pointercancel', up);
+    host.addEventListener('lostpointercapture', up);
     const observer = new ResizeObserver(() => plot.setSize({ width: Math.max(160, host.clientWidth), height: Math.max(120, host.clientHeight) }));
     observer.observe(host);
-    return () => { observer.disconnect(); plot.destroy(); plotRef.current = null; };
+    return () => {
+      observer.disconnect();
+      host.removeEventListener('pointerdown', down); host.removeEventListener('pointermove', move);
+      host.removeEventListener('pointerup', up); host.removeEventListener('pointercancel', up); host.removeEventListener('lostpointercapture', up);
+      plot.destroy(); plotRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dataKey, seriesKey, marksKey, theme, lang, xLabel, yLabel, logX, logY, yRange?.[0], yRange?.[1], inset[0], inset[1], inset[2], inset[3]]);
 
@@ -449,8 +489,8 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
   const reset = () => {
     const plot = plotRef.current;
     if (!plot) return;
-    const xs = plot.data[0] as number[];
-    plot.setScale('x', { min: Math.min(...xs), max: Math.max(...xs) });
+    const domain = domainRef.current;
+    if (domain && !categories) plot.setScale('x', { min: domain[0], max: domain[1] });
   };
 
   const onKey = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -459,7 +499,16 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
     if (event.key === 'Escape') { reset(); return; }
     if (event.key !== 'ArrowLeft' && event.key !== 'ArrowRight') return;
     event.preventDefault();
+    if (event.shiftKey && !categories) {
+      const domain = domainRef.current;
+      if (domain) {
+        const [min, max] = panRange([plot.scales.x.min!, plot.scales.x.max!], domain, event.key === 'ArrowRight' ? 0.2 : -0.2, !!logX);
+        plot.setScale('x', { min, max });
+      }
+      return;
+    }
     const n = (plot.data[0] as number[]).length;
+    if (!n) return;
     const current = cursorRef.current ?? (event.key === 'ArrowRight' ? -1 : n);
     const next = Math.max(0, Math.min(n - 1, current + (event.key === 'ArrowRight' ? 1 : -1)));
     const x = plot.valToPos((plot.data[0] as number[])[next], 'x');
@@ -491,7 +540,7 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
           )}
         </div>
       )}
-      <div className="of-plot-area" ref={hostRef} data-plot="" data-state-key={dataKey} aria-details={tableId} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
+      <div className="of-plot-area" ref={hostRef} data-plot="" data-log-x={logX ? 'true' : 'false'} data-categorical={categories ? 'true' : 'false'} data-state-key={dataKey} aria-details={tableId} aria-describedby={categories ? undefined : hintId} tabIndex={0} onKeyDown={onKey} role="img" aria-label={summary} />
       {keyed && categories && (
         <ol className="of-plot-key" aria-hidden="true">
           {categories.map((c, i) => <li key={i}><b>{i + 1}</b>{c}</li>)}
@@ -502,6 +551,9 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
           {(JSON.parse(markKey) as string[]).map((label, i) => <li key={i}><b>{i + 1}</b>{label}</li>)}
         </ol>
       )}
+      {!categories && <span id={hintId} className="of-chart-nav-hint">{lang === 'es'
+        ? 'Arrastre: zoom · Mayús+arrastre / Mayús+←→: desplazar · Esc / doble clic: restablecer'
+        : 'Drag: zoom · Shift+drag / Shift+←→: pan · Esc / double-click: reset'}</span>}
       {zoomed && <button type="button" className="of-plot-reset" onClick={reset}>{t(UI.resetZoom, lang)}</button>}
       <details className="of-chart-data">
         <summary>{lang === 'es' ? 'Tabla de datos' : 'Data table'}</summary>

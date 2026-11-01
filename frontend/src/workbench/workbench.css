@@ -202,10 +202,10 @@ input, select, textarea { font: inherit; }
   /* The optimizer's one full-width instrument was just below ADR-0071's painted-area floor at 1280x800.
    * Use the app-owned instrument inset to recover four pixels without restyling the shell's page container. */
   .of-bench { padding-block: 0; }
-  .of-view-response > .of-stage { margin: 0; padding: 0; }
+  .of-response-content > .of-stage { margin: 0; padding: 0; }
   .of-context-chart > .of-plot { height: 640px; }
 }
-.of-view-response > .of-stage { flex: 1 1 auto; }
+.of-response-content > .of-stage { flex: 1 1 auto; }
 .of-side, .of-panel, .of-aside {
   display: flex;
   flex-direction: column;
@@ -642,3 +642,52 @@ input, select, textarea { font: inherit; }
 /* U-33: the key of a category axis whose names did not fit (the Sobol factors on a phone) */
 .of-plot-key { flex: none; display: flex; flex-wrap: wrap; gap: 2px 14px; margin: 4px 0 0; padding: 0 4px; list-style: none; font-size: 0.75rem; color: var(--color-fg-subtle); }
 .of-plot-key b { margin-right: 4px; color: var(--color-fg); font-weight: 600; }
+
+/* Product analytical navigation: compact controls, no shell layout overrides. */
+.of-chart-nav-hint { flex: none; padding: 1px 4px; font-size: 0.65rem; line-height: 1.3; color: var(--color-fg-subtle); }
+.of-chart-tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 3px 6px; padding: 0 4px 3px; font-size: 0.7rem; }
+.of-chart-tools label { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
+.of-chart-tools select, .of-chart-tools button, .of-slice-control select { border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface-2); color: var(--color-fg); padding: 2px 5px; font: inherit; }
+.of-chart-tools button { cursor: pointer; }
+.of-chart-tools button:disabled, .of-chart-tools select:disabled { opacity: 0.5; cursor: default; }
+.of-chart-tools :focus-visible, .of-slice-control select:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 1px; }
+.of-heatmap-plot { position: relative; }
+.of-heatmap-plot canvas { display: block; touch-action: none; }
+.of-heatmap-empty { position: absolute; inset: 35% 12px auto; text-align: center; color: var(--color-fg-subtle); }
+.of-heatmap-selection { flex: none; min-height: 1.3em; padding: 1px 4px; color: var(--color-fg-subtle); font-size: 0.68rem; overflow-wrap: anywhere; }
+.of-heatmap-scale { flex-wrap: wrap; }
+.of-heatmap-ramp { width: auto; flex: 1 1 60px; max-width: 160px; }
+.of-response-analysis { display: flex; flex: 1 1 auto; min-width: 0; min-height: 0; gap: 6px; }
+.of-response-analysis > .of-heatmap { flex: 1 1 58%; }
+.of-response-analysis.has-slice > .of-heatmap .of-plot-title { white-space: normal; }
+.of-response-slice { display: flex; flex: 1 1 42%; flex-direction: column; min-width: 0; min-height: 0; }
+.of-response-slice > .of-plot { flex: 1 1 auto; }
+.of-response-slice .of-plot-title { white-space: normal; }
+.of-slice-control { display: flex; align-items: center; gap: 6px; font-size: 0.72rem; }
+.of-slice-source { flex: none; margin: 2px 0 4px; font-size: 0.68rem; color: var(--color-fg-subtle); }
+@media (max-width: 900px) {
+  .of-response-analysis { flex-direction: column; }
+  .of-response-analysis > .of-heatmap { flex: 1 0 420px; }
+  .of-response-slice { flex: 1 0 380px; }
+  .of-chart-tools select, .of-chart-tools button { min-height: 28px; }
+}
+
+/* Secondary heatmap controls expand over the instrument rather than spending its height. */
+.of-heatmap > .of-plot-head { padding-right: 90px; }
+.of-heatmap > .of-plot-head .of-plot-title { white-space: normal; flex: 1 1 auto; }
+.of-heatmap-tools { position: absolute; right: 8px; top: 5px; z-index: 3; font-size: 0.72rem; }
+.of-heatmap-tools > summary { cursor: pointer; color: var(--color-fg); padding: 2px 5px; border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface-2); }
+.of-heatmap-tools > .of-chart-tools { position: absolute; top: 100%; right: 0; width: min(320px, 75vw); padding: 8px; gap: 6px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); }
+.of-heatmap-tools > .of-chart-tools label { flex: 1 1 100%; justify-content: space-between; }
+
+.of-slice-head { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 2px 8px; margin-bottom: 3px; }
+.of-slice-head .of-slice-source { margin: 0; }
+
+/* Response consumes the existing Focus overlay top inset once, above its own controls. */
+.of-response-focus { overflow: hidden; }
+.of-response-content { display: flex; flex: 1 1 auto; flex-direction: column; min-width: 0; min-height: 0; gap: 8px; }
+.of-response-focus > .of-response-content { overflow: auto; }
+@media (max-width: 900px) {
+  .of-response-focus { padding-top: 128px; padding-bottom: 48px; }
+  .of-response-focus > .of-response-content > .of-stage { flex: 0 0 auto; min-height: 480px; }
+}
