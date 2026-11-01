@@ -14,8 +14,8 @@ def load(relative: str) -> dict:
     return json.loads((ROOT / relative).read_text(encoding="utf-8"))
 
 
-def check(name: str, relative: str, path: tuple[str, ...]) -> None:
-    schema = load(f"docs/contracts/schemas/oreflow-{name}-v1.schema.json")
+def check(name: str, schema_file: str, relative: str, path: tuple[str, ...]) -> None:
+    schema = load(schema_file)
     Draft202012Validator.check_schema(schema)
     validator = Draft202012Validator(schema)
     original = load(relative)
@@ -37,5 +37,8 @@ if __name__ == "__main__":
     contract = load("data/derived/contract/operating_contract.json")
     case_id = next(iter(contract["cases"]))
     input_id = next(iter(contract["cases"][case_id]["inputs"]))
-    check("contract", "data/derived/contract/operating_contract.json", ("cases", case_id, "inputs", input_id, "min"))
-    check("learning", "data/derived/learning.json", ("interpolation", "models", "ridge", "recovery_pct", "rmse"))
+    # Each path is the current schema declared in docs/contracts/catalog.md, not a fallback to an older record.
+    check("contract", "docs/contracts/schemas/oreflow-contract-v1.schema.json",
+          "data/derived/contract/operating_contract.json", ("cases", case_id, "inputs", input_id, "min"))
+    check("learning", "docs/contracts/schemas/oreflow-learning-v2.schema.json",
+          "data/derived/learning.json", ("interpolation", "models", "ridge", "recovery_pct", "rmse"))

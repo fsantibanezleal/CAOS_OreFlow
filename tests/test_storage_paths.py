@@ -3,6 +3,9 @@ from __future__ import annotations
 
 import hashlib
 import importlib
+import os
+import shutil
+import subprocess
 from pathlib import Path
 
 import pytest
@@ -297,18 +300,75 @@ def test_legacy_checkout_source_is_read_only_but_never_a_cache():
         raw_directory(existing.parent)
 
 
+def _directory_alias(link: Path, target: Path) -> str:
+    """Only Windows ERROR_PRIVILEGE_NOT_HELD permits a native junction substitute."""
+    assert link.parent.resolve().is_relative_to(ROOT) is False
+    assert not os.path.lexists(link)
+    target = target.resolve(strict=True)
+    try:
+        link.symlink_to(target, target_is_directory=True)
+        kind = 'symlink'
+    except OSError as error:
+        if os.name != 'nt' or getattr(error, 'winerror', None) != 1314:
+            raise
+        powershell = shutil.which('pwsh') or shutil.which('powershell')
+        assert powershell, 'Windows symlink privilege is absent and native PowerShell is unavailable'
+        script = """
+$ErrorActionPreference = 'Stop'
+$parent = Get-Item -LiteralPath $env:OREFLOW_ALIAS_PARENT
+$target = Get-Item -LiteralPath $env:OREFLOW_ALIAS_TARGET
+New-Item -ItemType Junction -Path $parent.FullName -Name $env:OREFLOW_ALIAS_NAME -Target $target.FullName | Out-Null
+$alias = Get-Item -LiteralPath $env:OREFLOW_ALIAS_PATH
+if ($alias.LinkType -ne 'Junction') { throw 'Directory alias is not a junction' }
+"""
+        result = subprocess.run(
+            [powershell, '-NoProfile', '-NonInteractive', '-Command', script],
+            env={**os.environ, 'OREFLOW_ALIAS_PARENT': str(link.parent.resolve()), 'OREFLOW_ALIAS_TARGET': str(target),
+                 'OREFLOW_ALIAS_NAME': link.name, 'OREFLOW_ALIAS_PATH': str(link)},
+            capture_output=True, encoding='utf-8', errors='replace', timeout=30,
+        )
+        assert result.returncode == 0, result.stdout + result.stderr
+        assert link.is_junction(), 'PowerShell did not create an actual directory junction'
+        kind = 'junction'
+    assert link.resolve(strict=True) == target
+    return kind
+
+
 def test_resolved_symlink_into_checkout_cannot_be_a_root(tmp_path):
     from pipeline.io.storage import checkpoint_directory, raw_directory
 
     link = tmp_path / 'checkout alias'
+    kind = _directory_alias(link, ROOT)
     try:
-        link.symlink_to(ROOT, target_is_directory=True)
-    except OSError:
-        pytest.skip('Creating directory symlinks is unavailable on this host')
-    with pytest.raises(ValueError, match='outside'):
-        raw_directory(link / 'data')
-    with pytest.raises(ValueError, match='outside'):
-        checkpoint_directory(link / 'models')
+        assert (link / 'data').resolve() == ROOT / 'data'
+        assert (link / 'models').resolve() == ROOT / 'models'
+        with pytest.raises(ValueError, match='outside'):
+            raw_directory(link / 'data')
+        with pytest.raises(ValueError, match='outside'):
+            checkpoint_directory(link / 'models')
+        print(f'{kind}: actual resolved checkout escape rejected for raw and checkpoint roots')
+    finally:
+        # Remove only the alias, never recursively traverse its target.
+        if kind == 'junction':
+            assert link.is_junction() and link.resolve() == ROOT
+            link.rmdir()
+        else:
+            assert link.is_symlink()
+            link.unlink()
+
+
+@pytest.mark.parametrize('winerror', [None, 5, 87])
+def test_directory_alias_does_not_hide_unrelated_os_errors(tmp_path, monkeypatch, winerror):
+    error = OSError('unrelated filesystem failure')
+    if winerror is not None:
+        error.winerror = winerror
+
+    def fail(*args, **kwargs):
+        raise error
+
+    monkeypatch.setattr(Path, 'symlink_to', fail)
+    with pytest.raises(OSError, match='unrelated filesystem failure'):
+        _directory_alias(tmp_path / 'alias', ROOT)
 
 
 def test_real_samples_unset_root_never_uses_checkout_or_network(monkeypatch):
