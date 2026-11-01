@@ -17,6 +17,26 @@ from build_technical_report import build_report  # noqa: E402 -- standalone scri
 DOI = "10.5281/zenodo.23899991"
 DATE = "2026-11-01"
 REAL_RUN = subprocess.run
+CURRENT_VERSION = (Path(__file__).resolve().parents[1] / "VERSION").read_text(encoding="utf-8").strip()
+MAJOR, MINOR, PATCH = (int(part) for part in CURRENT_VERSION.split("."))
+
+
+def previous_release(major, minor, patch):
+    if patch:
+        return f"{major}.{minor}.{patch-1}"
+    if minor:
+        return f"{major}.{minor-1}.999"
+    if major:
+        return f"{major-1}.99.999"
+    raise ValueError("The initial zero release has no preceding semantic version")
+
+
+# Unpadded derived neighbours also exercise numeric rather than lexical ordering.
+PRIOR_VERSION = previous_release(MAJOR, MINOR, PATCH)
+PRIOR_MINOR_VERSION = previous_release(MAJOR, MINOR, 0) if MAJOR or MINOR else PRIOR_VERSION
+FUTURE_VERSION = f"{MAJOR}.{MINOR}.{PATCH+1}"
+NEXT_MINOR_VERSION = f"{MAJOR}.{MINOR+1}.0"
+NEXT_MAJOR_VERSION = f"{MAJOR+1}.0.0"
 
 
 @pytest.fixture
@@ -24,12 +44,12 @@ def project(tmp_path):
     root = tmp_path / "product with spaces"
     report = root / "manuscripts/technical-report"
     report.mkdir(parents=True)
-    (root / "VERSION").write_text("0.10.008\n")
+    (root / "VERSION").write_text(CURRENT_VERSION + "\n")
     (root / "product.json").write_text(json.dumps({"holder": "Felipe Santibáñez-Leal", "manuscripts": [{
-        "kind": "technical-report", "version": "0.10.008", "concept_doi": "10.5281/zenodo.23783845",
+        "kind": "technical-report", "version": CURRENT_VERSION, "concept_doi": "10.5281/zenodo.23783845",
         "title": "A reproducible simulator report"}]}))
     (report / "zenodo.json").write_text(json.dumps({"metadata": {
-        "title": "A reproducible simulator report", "version": "0.10.008", "publication_date": DATE,
+        "title": "A reproducible simulator report", "version": CURRENT_VERSION, "publication_date": DATE,
         "license": "cc-by-4.0", "creators": [{"name": "Santibáñez-Leal, Felipe", "orcid": "0000-0002-0150-3246"}]}}))
     (report / "main.md").write_text("# Authored report\n\n```text\na = b\n```\n")
     (report / "report-template.tex").write_text("$title$ $author$ $docversion$ $docdate$ $versiondoi$ $conceptdoi$ $body$")
@@ -79,7 +99,7 @@ class FixtureTools:
         elif tool == "pdftotext":
             assert args[args.index("-f")+1] == "1" and args[args.index("-l")+1] == "1"
             text = ("A reproducible simulator report\nFelipe Santibáñez-Leal ORCID: 0000-0002-0150-3246\n"
-                    f"Technical report v0.10.008, 1 November 2026 Licence CC BY 4.0\nVersion DOI {DOI}\n"
+                    f"Technical report v{CURRENT_VERSION}, 1 November 2026 Licence CC BY 4.0\nVersion DOI {DOI}\n"
                     "concept DOI 10.5281/zenodo.23783845\nNot peer reviewed.")
             return SimpleNamespace(returncode=0, stdout=self.bad_text(text) if self.bad_text else text, stderr="")
         else:
@@ -119,7 +139,7 @@ def test_adversarial_invalid_identity_or_scratch(project, tools, tmp_path, damag
     elif damage == "date":
         date = "2026-02-30"
     elif damage == "version":
-        metadata(project, lambda m: m.update(version="0.10.007"))
+        metadata(project, lambda m: m.update(version=PRIOR_VERSION))
     elif damage == "metadata-date":
         metadata(project, lambda m: m.update(publication_date="2026-10-31"))
     elif damage == "creator":
@@ -151,7 +171,7 @@ def test_adversarial_failed_or_partial_compilation(project, tools, tmp_path, fai
 
 @pytest.mark.parametrize("damage", ["version", "doi", "date", "author", "orcid", "license", "header", "title", "pages", "signature", "overfull", "underfull", "warning"])
 def test_adversarial_invalid_pdf_preserves_canonical(project, tools, tmp_path, damage):
-    removed = {"version": "v0.10.008", "doi": DOI, "date": "1 November 2026", "author": "Felipe Santibáñez-Leal",
+    removed = {"version": f"v{CURRENT_VERSION}", "doi": DOI, "date": "1 November 2026", "author": "Felipe Santibáñez-Leal",
                "orcid": "0000-0002-0150-3246", "license": "CC BY 4.0", "header": "Technical report", "title": "A reproducible simulator report"}
     if damage in removed:
         tools.bad_text = lambda text: text.replace(removed[damage], "WRONG")
@@ -270,7 +290,7 @@ def test_clear_bounded_failures(project, tools, tmp_path, monkeypatch, damage):
     assert {p: p.read_bytes() for p in project.rglob("*") if p.is_file()} == before
 
 
-@pytest.mark.parametrize("declared", ["0.10.007", "0.9.999", "0.10.008"])
+@pytest.mark.parametrize("declared", [PRIOR_VERSION, PRIOR_MINOR_VERSION, CURRENT_VERSION])
 def test_candidate_build_preserves_previous_or_current_report_declaration(project, tools, tmp_path, declared):
     manifest = project / "product.json"
     product = json.loads(manifest.read_text())
@@ -278,14 +298,14 @@ def test_candidate_build_preserves_previous_or_current_report_declaration(projec
     manifest.write_text(json.dumps(product))
     before = {path: path.read_bytes() for path in project.rglob("*") if path.is_file()}
     receipt = build_report(root=project, doi=DOI, publication_date=DATE, temp_root=tmp_path / "scratch")
-    assert receipt["parameters"]["version"] == "0.10.008"
+    assert receipt["parameters"]["version"] == CURRENT_VERSION
     assert receipt["parameters"]["declared_report_version"] == declared
     assert receipt["inputs"]["product.json"]["sha256"] == hashlib.sha256(before[manifest]).hexdigest()
     assert tools.passes == 2
     assert {path: path.read_bytes() for path in project.rglob("*") if path.is_file()} == before
 
 
-@pytest.mark.parametrize("declared", ["0.10.009", "0.11.000", "1.0.000", "0.10", "v0.10.007", "0.10.bad", "", None, True])
+@pytest.mark.parametrize("declared", [FUTURE_VERSION, NEXT_MINOR_VERSION, NEXT_MAJOR_VERSION, "0.10", f"v{PRIOR_VERSION}", "0.10.bad", "", None, True])
 def test_adversarial_future_or_malformed_report_declaration_rejected(project, tools, tmp_path, declared):
     manifest = project / "product.json"
     product = json.loads(manifest.read_text())
@@ -299,11 +319,11 @@ def test_adversarial_future_or_malformed_report_declaration_rejected(project, to
     assert {path: path.read_bytes() for path in project.rglob("*") if path.is_file()} == before
 
 
-@pytest.mark.parametrize("candidate_metadata", ["0.10.007", "0.10.009"])
+@pytest.mark.parametrize("candidate_metadata", [PRIOR_VERSION, FUTURE_VERSION])
 def test_adversarial_authored_metadata_still_must_match_candidate(project, tools, tmp_path, candidate_metadata):
     manifest = project / "product.json"
     product = json.loads(manifest.read_text())
-    product["manuscripts"][0]["version"] = "0.10.007"
+    product["manuscripts"][0]["version"] = PRIOR_VERSION
     manifest.write_text(json.dumps(product))
     metadata(project, lambda m: m.update(version=candidate_metadata))
     before = canonical(project)

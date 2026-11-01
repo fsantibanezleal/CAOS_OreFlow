@@ -80,6 +80,12 @@ and null model summaries.
 
 ## Interpret with the denominator
 
+The optimizer's paired counters measure distinct cached trial states after each fixed-weight multistart
+search. Repeated states across starts count once; refused trials remain outcomes. Screened and unscreened
+runs have separate caches. The later weight-path calculation, uncached base/endpoint audits, fitting and
+screening inference are excluded. These counters describe the recorded search workload, not every
+simulator invocation or elapsed time.
+
 Conditional results describe each model's surviving folds. Different surviving
 sets cannot support an unqualified ranking. Use common-cohort tables to compare
 identical fold IDs and state exclusions. Seed summaries also have their own

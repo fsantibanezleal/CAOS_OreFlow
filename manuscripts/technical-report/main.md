@@ -41,55 +41,67 @@ is stored, so a grade changes only when a mass does. Liberation is described per
 
 ## Comminution
 
-The crusher is the Whiten form (Duarte et al. 2021), with a strictly lower-triangular breakage matrix `B` and
-a classification function `C` set by the closed-side setting:
+The crusher is the Whiten form (Duarte et al. 2021), with a strictly lower-triangular breakage matrix $\mathbf{B}$ and
+a classification function $\mathbf{C}$ set by the closed-side setting:
 
-```text
-p = (I - C)(I - B C)^-1 f
-```
+$$
+\mathbf{p}=(\mathbf{I}-\mathbf{C})(\mathbf{I}-\mathbf{B}\mathbf{C})^{-1}\mathbf{f}
+$$
 
 The ball mill is an energy-specific population balance (Herbst and Fuerstenau 1980) in the form of the
 Moly-Cop tools: three perfect mixers of volume fractions 0.70, 0.15 and 0.15 share the breakage operator
-`D = (I - B) diag(S^E)`, so the mill's inverse transfer at an energy per pass `e` is a cubic polynomial in `D`,
-and the closed circuit with the cyclone returning a fraction `C_i` of each class solves
+$\mathbf{D}=(\mathbf{I}-\mathbf{B})\operatorname{diag}(\boldsymbol{S}^{E})$, so the mill's inverse transfer at an energy per pass $e$ is a cubic polynomial in $\mathbf{D}$,
+and the closed circuit with the cyclone returning a fraction $C_i$ of each class solves
 
-```text
-(T^-1(e) - diag(C)) p = f,        T^-1(e) = I + c1 e D + c2 e^2 D^2 + c3 e^3 D^3
-```
+$$
+\begin{aligned}
+\left[\mathbf{T}^{-1}(e)-\operatorname{diag}(\boldsymbol{C})\right]\mathbf{p}
+  &=\mathbf{f},\\
+\mathbf{T}^{-1}(e)
+  &=\mathbf{I}+c_1e\mathbf{D}+c_2e^2\mathbf{D}^2+c_3e^3\mathbf{D}^3
+\end{aligned}
+$$
 
 per mineral. Two scalar unknowns, the energy per pass that meets the target P80 and the host cut that holds the
 design circulating load, are found by the Illinois method. The energy per pass is per tonne of mill feed, so the
-mill draws `e m`, with `m` the fresh feed plus the cyclone underflow (less what a gravity bleed takes from it);
-when that exceeds the installed power, the circuit runs at installed power, `e m(e) = P_inst` solved as a fixed
+mill draws $e\,m$, with $m$ the fresh feed plus the cyclone underflow (less what a gravity bleed takes from it);
+when that exceeds the installed power, the circuit runs at installed power, $e\,m(e)=P_{\mathrm{inst}}$ solved as a fixed
 point, with a coarser product, and says so. The reported grinding energy is that net energy per tonne of fresh
-feed, `e m / F`; the crushing energy is Bond's with the crushing work index, and the Bond requirement
-`E = 10 W_i (P^-1/2 - F^-1/2)` gives the operating work index and the efficiency ratio beside it, with Rittinger and
+feed, $\frac{e\,m}{F}$; the crushing energy is Bond's with the crushing work index, and the Bond requirement
+$E=10W_i\left(\frac{1}{\sqrt{P}}-\frac{1}{\sqrt{F}}\right)$ gives the operating work index and the efficiency ratio beside it, with Rittinger and
 Kick calibrated to agree with Bond at a reference reduction and never added to it (Bond 1952; GMG 2021).
 
 ## Classification and separation
 
-Hydrocyclones follow Plitt (1976): a Rosin-Rammler partition `y(d) = R_f + (1 - R_f)(1 - exp(-ln 2 (d/d50c)^m))`
-with a water bypass `R_f` from the water balance and a cut corrected for each mineral's density, so dense
+Hydrocyclones follow Plitt (1976): a Rosin-Rammler partition
+
+$$
+y(d)=R_f+(1-R_f)\left[1-\exp\!\left(-\ln 2\left(\frac{d}{d_{50c}}\right)^m\right)\right]
+$$
+
+with a water bypass $R_f$ from the water balance and a cut corrected for each mineral's density, so dense
 minerals classify as coarser particles and circulate. Plitt's sizing of the cyclone cluster is uncalibrated and
 fails its published check (section 3), so the cluster's count and pressure are reported as an estimate, never as
 a result. Flotation banks are perfect mixers in series; the rate constant of each particle class follows from the
-bubble surface area flux `S_b = 6 J_g / D_32` (Gorain et al. 1997, 1999) and a size window (Trahar 1981), a
-composite floats at the liberated rate scaled by its exposed surface, `P_comp = P_V phi^(2/3)` with `phi` the
+bubble surface area flux $S_b=\frac{6J_g}{D_{32}}$ (Gorain et al. 1997, 1999) and a size window (Trahar 1981), a
+composite floats at the liberated rate scaled by its exposed surface, $P_{\mathrm{comp}}=P_V\phi^{\frac{2}{3}}$ with $\phi$ the
 valuable mineral's volume share, entrainment follows Savassi et al. (1998), and cleaner and recleaner tails
 return to the preceding bank. Each cell's residence is its pulp volume, less the gas hold-up, over the flow that
 leaves it as tail, which depends on what the cell floats, so it is solved per cell as a fixed point:
 
-```text
-r_j = (k tau_j + ENT w_j) / (1 + k tau_j + ENT w_j)
-tau_j = V (1 - eps_g) / Q_tail,j
-R_N = 1 - prod_j (1 - r_j)
-```
+$$
+\begin{aligned}
+r_j&=\frac{k\tau_j+\mathrm{ENT}\,w_j}{1+k\tau_j+\mathrm{ENT}\,w_j},\\
+\tau_j&=\frac{V(1-\varepsilon_g)}{Q_{\mathrm{tail},j}},\\
+R_N&=1-\prod_j(1-r_j)
+\end{aligned}
+$$
 
 Gold follows the gravity-recoverable gold (GRG) model of Laplante, Woodcock and Noaparast as Vincent (1997)
 states it: the gold is a GRG component with its own size distribution, from a GRG test, plus a non-GRG
 component; the GRG's cyclone cut takes a density correction with an exponent of 1.0, fitted to measured GRG
 partitions where Stokes would give 0.5; the gravity unit on a bleed of the cyclone underflow, or of the mill
-discharge, recovers GRG by size at a per-pass recovery `R(d) = R_max (1 - exp(-(d/x_g)^2))`; and grinding moves
+discharge, recovers GRG by size at a per-pass recovery $R(d)=R_{\max}\left[1-\exp\!\left(-\left(\frac{d}{x_g}\right)^2\right)\right]$; and grinding moves
 GRG to non-GRG at a slowed breakage rate (Banisi et al.). Low-intensity magnetic drums capture liberated
 magnetite and composites by their magnetite content; desliming cyclones discard slimes ahead of flotation, with
 the water split following the solids sent down at a declared underflow density.
@@ -296,7 +308,14 @@ On the held-out interpolation experiment, the autoencoder flags 1.47% of 612 in-
 
 The engine produces kinetic, optimization and sensitivity records for each variant. Kinetic fits,
 sensitivity and unscreened optimization use the mechanistic engine. Screened optimization additionally
-consumes the exported neural surrogate, reconstruction guard and Gaussian-process interval:
+consumes the exported neural surrogate, reconstruction guard and Gaussian-process interval.
+
+For the paired search comparison, the recorded evaluation counter counts distinct trial states in each
+fixed-weight multistart search's cache; a state shared across starts is counted once. Screened and unscreened
+runs use separate caches, and refused trial outcomes remain recorded. These counters are captured before
+the subsequent warm-started weight-path study. They exclude uncached base/endpoint audits, model training
+and screening inference, so they are a bounded search-accounting measure rather than a tally of every
+simulator invocation or a wall-clock benchmark.
 
 - **Kinetic lumping.** Five lumped models fitted to a virtual batch test of the rougher feed, projected to
   the bank under the same residence distribution and compared with the exact bank recovery by true flotation,
@@ -313,8 +332,9 @@ consumes the exported neural surrogate, reconstruction guard and Gaussian-proces
   novelty measure for the perceptron rather than an interval on what it ranks; the poll and the optimum stay
 engine results. The screen did not save engine work: over the 72 screened variants it used 26,367 engine
 evaluations versus 22,487 without screening, 17.25% more. It saved calls in none, used more in
-  68 variants and tied in four. Mean absolute recovery error averaged 0.66 percentage points across variants;
-  across 5,811 proposals its mean was 0.71 points, median 0.48 and maximum 38.16. Both procedures had the same
+  68 variants and tied in four. Mean absolute recovery error averaged 0.66 percentage points across the
+  68 variants with evaluated proposals; four variants have no proposal-error estimate rather than zero error.
+  Across 5,811 evaluated proposals its mean was 0.71 points, median 0.48 and maximum 38.16. Both procedures had the same
   terminal outcome in 65 variants: 63 identical feasible decisions and two matching infeasible outcomes. Seven
   feasible pairs selected different decisions, with recovered-metal differences no greater than 0.002653 t/h
   (0.017%). Five favored the unscreened decision and two the screened decision.
@@ -404,7 +424,7 @@ surrogate preserves the ranking of operating decisions.
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
 the browser port, the service and the documentation are versioned together; the source, records and computational environment are versioned with the software release.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
-workstation with 32 logical cores and an RTX 4070 Laptop GPU, the GPU-accelerated final MLP fit is a computational component of a simulator study over authored cases; it is not plant deployment or evidence of plant-calibrated performance.
+workstation with 32 logical cores and an RTX 4070 Laptop GPU, the pipeline took 5643 s for the cases on 8 workers and 4813 s for the learned lane. These are run-specific wall times. The final MLP fit used CUDA for a simulator study over authored cases; this computation does not establish plant-calibrated performance.
 Independent evaluation folds and neural seed runs can execute in bounded spawned workers. External checkpoints
 are accepted only under the same scientific source, JSON constants, release version, case definitions, operating
 contract, settings, dependency versions and compute-runtime fingerprint. Each checkpoint has a verified JSON

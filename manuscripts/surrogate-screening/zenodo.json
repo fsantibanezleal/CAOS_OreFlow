@@ -1,0 +1,37 @@
+{
+  "metadata": {
+    "upload_type": "publication",
+    "publication_type": "preprint",
+    "title": "When a screened pattern search spends more simulator calls: evidence from mineral-processing circuit cases",
+    "creators": [
+      {
+        "name": "Santibáñez-Leal, Felipe",
+        "orcid": "0000-0002-0150-3246",
+        "affiliation": "CAOS open-research programme, Santiago, Chile"
+      }
+    ],
+    "description": "<p>Surrogate screening can add trial evaluations as well as avoid them. We evaluate a neural-surrogate search step, with a reconstruction guard and a Gaussian-process interval-width filter, within multistart generalized pattern search with a progressive barrier. Its unscreened control uses the same fixed objective weight, starts, bounds, stopping rules and circuit evaluator. Across 72 target-mode variants from twelve authored mineral-processing cases, the screened searches recorded 26,367 distinct cached trial states versus 22,487 without screening, a 17.25% increase. These counters exclude the later weight-path study, uncached audits and model costs. Counts were higher in 68 variants, tied in four and lower in none. Both procedures found feasible endpoints in 70 variants and no feasible endpoint in two; terminal outcomes matched in 65. The seven different feasible decisions differed by at most 0.0027 t/h (0.017%) in recovered primary metal. Of 5,811 evaluated surrogate-selected proposals, 901 improved the incumbent; absolute recovery error had mean 0.71, median 0.48 and maximum 38.16 percentage points. The screen did not reduce the recorded search workload on this suite. These finite-search results do not establish global optimality, elapsed-time savings or performance on operating plants.</p><p>Source code, data and computational records: https://github.com/fsantibanezleal/CAOS_OreFlow</p>",
+    "keywords": [
+      "mineral processing",
+      "process simulation",
+      "derivative-free optimization",
+      "generalized pattern search",
+      "surrogate models",
+      "Gaussian process",
+      "comminution",
+      "reproducible research"
+    ],
+    "license": "cc-by-4.0",
+    "language": "eng",
+    "version": "1.1",
+    "version_notes": "Recomputed paired optimization study using the corrected training-only constant-feature scaler and learning-v2 model exports. Corrects the scope of cached trial evaluations, separates the subsequent weight-path study and qualifies finite-search endpoint claims.",
+    "related_identifiers": [
+      {
+        "relation": "isSupplementedBy",
+        "identifier": "https://github.com/fsantibanezleal/CAOS_OreFlow",
+        "resource_type": "software"
+      }
+    ],
+    "publication_date": "2026-11-01"
+  }
+}

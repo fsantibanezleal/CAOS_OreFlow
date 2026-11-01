@@ -15,8 +15,13 @@ xelatex -interaction=nonstopmode -halt-on-error main.tex
 xelatex -interaction=nonstopmode -halt-on-error main.tex
 ```
 
-The figure generator checks the 72 paired records and their aggregate engine
-counts before writing `figure-results.pdf`. The article uses only the committed
+The figure generator checks the 72 paired records and their aggregate search
+counts before writing `figure-results.pdf`; count-order annotations and the ratio
+are computed from those same rows. The counters measure distinct cached trial
+states in the fixed-weight multistart runs, including refusals. They exclude the
+later weight path, uncached base/endpoint audits, fitting and screening inference.
+They do not instrument every simulator invocation or measure elapsed time.
+The article uses only the committed
 case records and cites its optimization and mineral-processing sources in
 `main.tex`.
 

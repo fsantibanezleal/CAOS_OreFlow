@@ -39,6 +39,12 @@ factor; the classifier cut's factor applies to the nominal state's solved cut, s
 - `sensitivity`: the Sobol record, on the nominal variant only; `status: "refused_draws"` with `refused` and no
   indices where any draw of the design has no steady state.
 
+The optimization `evaluations` field is the fixed-weight multistart cache size: distinct trial states,
+including refusals, with reuse across starts counted once. Its `without_screen.evaluations` comparator
+uses a separate cache at the same weight. Both are recorded before the subsequent warm-started `path`;
+path trials, uncached base/endpoint audits, fitting and screening inference are not included. These
+counters do not instrument every simulator invocation or measure elapsed time.
+
 Because the artifact embeds the definition and the point, the browser engine recomputes every
 variant from the artifact alone; `frontend/src/test/parity.test.ts` does exactly that for all 96
 variants (PE-31), and `optimizer-parity.test.ts` re-runs the optimizer (three variants in CI, all 96 at release).

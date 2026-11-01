@@ -190,8 +190,8 @@ def test_interval_and_guard_prose_retains_protocol_and_denominator():
     assert not _missing(phrases)
 
 
-def _proposal_error(optimization: list) -> float:
-    """The mean absolute surrogate error over every proposal the engine evaluated, from the case records."""
+def _proposal_errors(optimization: list) -> list[float]:
+    """Only proposals the engine actually evaluated contribute a residual or its denominator."""
     errors = []
     for case, variant, r in optimization:
         if not r["screened"]:
@@ -203,7 +203,7 @@ def _proposal_error(optimization: list) -> float:
                 engine = row[columns.index("engine_recovery_pct")]
                 if engine is not None:
                     errors.append(abs(row[columns.index("surrogate_recovery_pct")] - engine))
-    return sum(errors) / len(errors)
+    return errors
 
 
 def test_the_method_records_quote_the_benchmark():
@@ -219,6 +219,8 @@ def test_the_method_records_quote_the_benchmark():
     same_terminal = sum(bool(r["same_optimum_without_screen"]) for r in screened)
     same_infeasible = sum(r["status"] == "infeasible" for r in screened)
     same_feasible = same_terminal - same_infeasible
+    errors = [r["surrogate_abs_error_pp"] for r in screened if r["surrogate_abs_error_pp"] is not None]
+    proposal_errors = _proposal_errors(optimization)
     assert infeasible == ["iron_magnetite_fine:harder_ore", "iron_magnetite_fine:higher_throughput"]
     dominant = {t: Counter(u["dominant_input"][t] for u in bench["uncertainty"].values())
                 for t in ("recovery_pct", "concentrate_grade", "specific_energy_grinding_kwh_t", "recovered_primary_tph")}
@@ -233,7 +235,8 @@ def test_the_method_records_quote_the_benchmark():
         f"for {len(optimization) - len(infeasible)} of the {len(optimization)} variants",
         f"over the {len(screened)} screened variants it used {with_screen:,} engine evaluations versus {without:,} without screening, {100 * (with_screen / without - 1):.2f}% more",
         f"same terminal outcome in {same_terminal} variants: {same_feasible} identical feasible decisions and {words[same_infeasible]} matching infeasible outcomes",
-        f"across 5,811 proposals its mean was {_proposal_error(optimization):.2f} points",
+        f"{len(errors)} variants with evaluated proposals; {words[len(screened) - len(errors)]} variants have no proposal-error estimate rather than zero error",
+        f"Across {len(proposal_errors):,} evaluated proposals its mean was {sum(proposal_errors) / len(proposal_errors):.2f} points",
         "with recovered-metal differences no greater than 0.002653 t/h (0.017%)",
         f"floatability drives recovery in {words[dominant['recovery_pct']['floatability']]} cases",
         f"liberation size drives concentrate grade in {words[grade['liberation_size']]} and the head grade in the other {words[grade['head_grade']]}",

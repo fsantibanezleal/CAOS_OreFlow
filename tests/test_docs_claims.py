@@ -305,9 +305,10 @@ def test_page_12_quotes_the_optimizer_records():
         f"Of the {sum(r['screened_candidates'] for _, _, r in screened):,} candidates screened, the guard rejected {rejected['guard']:,} and the interval "
         f"{rejected['interval']:,}; the engine evaluated the best passing candidate {sum(r['proposed'] for _, _, r in screened):,} times, and "
         f"{sum(r['improved'] for _, _, r in screened)} of those became an incumbent",
-        f"in {same} of the {len(screened)} variants it ends at the same decisions",
+        f"terminal outcomes match in {same} of the {len(screened)} variants",
         f"the surrogate's recovery was on average {sum(errors) / len(errors):.2f} points from the engine's (the mean of the variants' means; "
         f"{max(errors):.2f} at worst)",
+        f"per-variant mean uses {len(errors)} of {len(screened)} paired variants with evaluated proposals",
         f"the nominal optima spend {min(t[1] for t in moved):.0f} to {max(t[1] for t in moved):.0f}% less energy per tonne and recover "
         f"{min(t[2] for t in moved):.0f} to {max(t[2] for t in moved):.0f}% less metal",
         f"beyond {worst:.1e} relative".replace("e-0", "e-"),
