@@ -1,0 +1,24 @@
+# Repository requirements
+
+| ID | Requirement | Gate |
+|---|---|---|
+| RP-011 | THE prerequisite entrypoint SHALL check Python, Node and git by default, accept newer compatible versions, and install missing system prerequisites only on explicit request. | `tests/test_local_bootstrap.py::test_adversarial_prerequisites_are_check_only` |
+| RP-012 | THE initializer SHALL preserve an existing ignored .env as literal data, provision only declared environments, and install locked frontend/requirements dependencies only when their fingerprints are absent or stale. | `tests/test_local_bootstrap.py::test_adversarial_init_preserves_env_and_installs_by_fingerprint` |
+| RP-013 | THE data entrypoint SHALL place every measured, checkpoint, model and process output under a fresh external temporary root by default. Initialization SHALL invoke that complete path only when required artifacts are absent. | `tests/test_local_bootstrap.py::test_adversarial_generation_is_sandboxed_and_absence_is_actionable` |
+| RP-014 | WHEN release promotion is explicitly requested, THE workflow SHALL revalidate a complete current-version staged set, reject partial/mixed or changed candidates before replacement, and restore all old targets on promotion failure. | `tests/test_local_bootstrap.py::test_adversarial_release_rejects_mixed_partial_and_rolls_back` |
+| RP-015 | THE dev entrypoint SHALL start the declared frontend and active API, refuse occupied ports, propagate failures and stop only its own child processes. A dormant API SHALL remain stopped. | `tests/test_local_bootstrap.py::test_adversarial_dev_supervises_api_and_frontend` |
+| RP-016 | THE numbered PowerShell and Bash entrypoints SHALL work from other directories and paths with spaces, propagate native exit codes without treating warnings as failures, and print actionable next/repair commands. | `tests/test_local_bootstrap.py::test_adversarial_shell_entrypoints_propagate_failure` |
+| RP-017 | Receipt identity SHALL bind recursive requirement/constraint pins and current catalog, schemas and validator sources; stale admission metadata SHALL refuse before promotion. | `tests/test_bootstrap_regressions.py::test_adversarial_receipt_current_contract_and_recursive_pins` |
+| RP-018 | Readiness admission SHALL match the actual producer inventory exactly, including the template's deliberate self-row exclusion and the product's included self-row. | `tests/test_bootstrap_regressions.py::test_adversarial_actual_readiness_inventory` |
+| RP-019 | The template inventory bridge SHALL use the actual pipeline.registry API and reject missing or duplicate case IDs. | `tests/test_bootstrap_regressions.py::test_adversarial_actual_template_registry` |
+| RP-020 | Rollback SHALL attempt every target despite restoration errors, preserve recovery trees if incomplete, and report original/rollback errors with recovery paths. | `tests/test_bootstrap_regressions.py::test_adversarial_rollback_continues_and_preserves_recovery` |
+| RP-021 | Development SHALL require current initialization fingerprints for every applicable Python runtime before preparation or service launch. | `tests/test_bootstrap_regressions.py::test_adversarial_dev_python_initialization_admission` |
+| RP-022 | Process ownership SHALL cover all descendants even after an immediate parent exits, without targeting pre-existing or unrelated processes. | `tests/test_bootstrap_regressions.py::test_adversarial_exited_parent_descendant_ownership` |
+| RP-023 | Declared ignored venv aliases MAY resolve outside the checkout; artifact and cleanup containment SHALL remain strict and lookup errors SHALL retain their cause. | `tests/test_bootstrap_regressions.py::test_adversarial_external_runtime_alias_and_cleanup` |
+| RP-024 | The existing CI base-integrity guard SHALL reject tracked shell entrypoints without mode100755. | `tests/test_bootstrap_regressions.py::test_adversarial_tracked_shell_modes` |
+| RP-025 | Prerequisite checks SHALL honor the matching package/lock Node range ^22.12.0 or ^24.0.0 or >=26.0.0, preserve compatible installations, and refuse 22.0/23/25 with repair advice. | `tests/test_bootstrap_regressions.py::test_adversarial_locked_node_engines` |
+| RP-026 | Template generation SHALL stage exact authored params bytes and bind them to source/admission identity, preserve genuine rejected-record and static-API readiness outcomes, and verify them with the real readiness producer. Other missing/partial payload rows and default product missing states SHALL remain refused. | `tests/test_bootstrap_regressions.py::test_adversarial_real_template_generation_admission` |
+
+Windows and POSIX cleanup address the recorded process group after leader exit; RP-022 exercises the existing
+venv and an independent HTTP control process. External venv directory aliases remain allowed
+for initialization and generation under RP-023. Actual generation and app launch remain owner integration gates.

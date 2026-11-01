@@ -21,12 +21,18 @@ OreFlow is a research workbench for mineral-processing circuits. It links commin
 
 ## Run locally
 
+Start with the [sequenced local workflow](scripts/local/README.md). Run the parallel PowerShell or Bash
+00 prerequisite check, 01 initialization and 03 development entrypoints. The 02 data entrypoint defaults
+to an external sandbox and requires explicit validated promotion before replacing shipped artifacts.
+
 ```powershell
-scripts/dev.ps1
+./scripts/local/03_dev.ps1
 ```
 
-The development launcher installs locked frontend dependencies when needed and uses the committed
-research artifacts. On POSIX, run `bash scripts/dev.sh`. Scientific data preparation and rebaking
+Run 00 and 01 from the linked workflow before 03. Initialization installs locked dependencies when needed;
+development supervises Vite and the bounded FastAPI service using the committed research artifacts.
+On POSIX, run `bash scripts/local/03_dev.sh`. The older flat dev command remains a frontend-only shortcut.
+Scientific data preparation and rebaking
 are explicit separate operations; see the [local-run guide](docs/guides/01_run-locally.md).
 
 See [the design and validation record](docs/design/SDD.md) for model assumptions, data provenance, evaluation limits and release gates.

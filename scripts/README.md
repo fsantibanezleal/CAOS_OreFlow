@@ -1,5 +1,8 @@
 # OreFlow scripts
 
+Start with the [numbered local workflow](local/README.md): check prerequisites, initialize, optionally generate
+into an external sandbox, then start the declared local frontend/API. Existing flat commands remain compatible.
+
 - `render_executive.py` renders the six bilingual executive SVGs from shared geometry and explicit display labels;
   `--check` verifies freshness. The conceptual diagrams contain no invented measurements and preserve theme tokens,
   bounded animation and reduced-motion behavior.
