@@ -647,11 +647,13 @@ def test_adversarial_real_template_generation_admission(workflow, tmp_path, monk
         )
 
     # A producer-computed partial artifact/model state is still incomplete, even though params may be partial.
-    for name in (
-        "models/surrogate.json",
-        "data/derived/manifests/EX02_epidemic.json",
-        "data/derived/EX02_epidemic/trace.json",
-    ):
+    index = workflow.json_read(stage / "data/derived/manifests/index.json")
+    manifest_name = "data/derived/" + index["cases"][0]["manifest_path"]
+    trace_name = next(
+        path.relative_to(stage).as_posix()
+        for path in (stage / "data/derived").rglob("trace.json")
+    )
+    for name in ("models/surrogate.json", manifest_name, trace_name):
         path = stage / name
         saved = path.read_bytes()
         path.unlink()
