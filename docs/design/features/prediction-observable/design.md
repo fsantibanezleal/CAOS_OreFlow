@@ -34,3 +34,10 @@ from the stored fold records.
 `oreflow.observable/v1` stores rows, observed/predicted/reference ranges, widened limits, baseline declaration and
 status. The validator recomputes allowed bounds and status rather than trusting the stored verdict. These summaries
 are sufficient for consistency checks, not an independent reconstruction of all predictions or scores.
+
+The live learned instrument distinguishes the final frozen network, fitted using every case family, from
+separately fitted fold models used to evaluate protocols. A guard decision describes reconstruction error relative
+to its threshold; acceptance does not prove support, and an alert does not prove a physical domain boundary.
+Both false alarms and missed shifts are possible. The active target's case/group counts accompany its conditional
+metrics. The full three-target evidence remains in a disclosure inside the existing aside, with the original
+plot/controls layout preserved; duplicate introductory blocks outside the instrument must not consume its stage.

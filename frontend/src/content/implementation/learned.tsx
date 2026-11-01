@@ -48,7 +48,7 @@ export function LearningEvidence({ record, lang, target, foldNames = {} }: {
           {protocol.folds.length > 0 && <div className="of-doc-scroll">
             <table className="of-doc-table of-doc-table-data">
               <caption>{`${protocol.title}: R²`}</caption>
-              <thead><tr><th scope="col">{TEXT.fold[lang]}</th><th scope="col">{lang === 'en' ? 'Guard flags' : 'Marcas del guardia'}</th>{record.models.map(model => <th scope="col" key={model}>{modelName(model)}</th>)}</tr></thead>
+              <thead><tr><th scope="col">{TEXT.fold[lang]}</th><th scope="col">{lang === 'en' ? 'Guard flags' : 'Alertas del detector'}</th>{record.models.map(model => <th scope="col" key={model}>{modelName(model)}</th>)}</tr></thead>
               <tbody>{protocol.folds.map(fold => <tr key={fold.id}><th scope="row" className="of-doc-soft">{name(fold.id)}</th>
                 <td>{formatFraction(fold.flagRate, lang, 0)}</td>
                 {record.models.map(model => <td key={model} className="of-doc-soft">{formatScore(fold.models[model][target], 'r2', lang)}</td>)}</tr>)}</tbody>

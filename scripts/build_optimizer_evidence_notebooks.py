@@ -61,130 +61,44 @@ def code(source: str) -> dict:
 
 
 def doc(lang: str) -> dict:
+    from build_advanced_notebook_extensions import enrich, md, code
+    from build_didactic_notebooks import PINS
     t = TEXT[lang]
-    h = t["headings"]
-    es = lang == "es"
-    opening = f"# {t['title']}\n\n**Question:** {t['question']}\n\nLevel: 4. Prerequisites: levels 1–3 in this topic. Reading time: 32 minutes."
-    if es:
-        opening = f"# {t['title']}\n\n**Pregunta:** {t['question']}\n\nNivel: 4. Prerrequisitos: niveles 1–3 de este tema. Lectura: 32 minutos."
-    setup = ("Pinned environment; install once in the repository environment with this command, not in the notebook:\n\n```bash\npip install numpy==2.2.6 pandas==2.2.3 matplotlib==3.11.2\n```\n\nThe notebook only reports installed versions and never writes to the source records."
-             if not es else "Entorno fijado; instala una vez en el entorno del repositorio con este comando, no dentro del notebook:\n\n```bash\npip install numpy==2.2.6 pandas==2.2.3 matplotlib==3.11.2\n```\n\nEl notebook solo informa las versiones instaladas y nunca modifica los registros de origen.")
-    root_comment = "# Load the committed paired records without changing them."
-    if es:
-        root_comment = "# Carga los registros pareados comprometidos sin modificarlos."
-    version_code = """# Record the exact analysis-library versions used by this lesson.
+    h = t['headings']
+    setup = """# Load the pipeline and analysis environment once.
 import importlib.metadata
-for package in ('numpy', 'pandas', 'matplotlib'):
-    print(package, importlib.metadata.version(package))"""
-    imports = """# Import the analysis tools and the production circuit engine.
 import json
 from pathlib import Path
 import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-
 repo = Path('../../../').resolve()
 sys.path.insert(0, str(repo / 'data-pipeline'))
-from pipeline.cases.catalog import CASES
-from pipeline.engine.circuit import simulate
-
-case_by_id = {case.id: case for case in CASES}
-print('scenario count:', len(case_by_id))
-print('engine method:', simulate.__module__ + '.' + simulate.__name__)"""
-    if es:
-        imports = imports.replace("# Import the analysis tools and the production circuit engine.", "# Importa las herramientas de análisis y el motor de circuito de producción.")
-        version_code = version_code.replace("# Record the exact analysis-library versions used by this lesson.", "# Registra las versiones exactas de las bibliotecas de análisis usadas en esta lección.")
-    load = f"""{root_comment}
-records = []
-for path in sorted((repo / 'data/derived/cases').glob('*.json')):
-    artifact = json.loads(path.read_text(encoding='utf-8'))
-    for variant in artifact['variants']:
-        result = variant['methods']['optimization']
-        if not result.get('screened') or 'without_screen' not in result:
-            continue
-        plain = result['without_screen']
-        optimum = result.get('optimum') or {{}}
-        records.append({{
-            'case_id': artifact['case_id'],
-            'variant_id': variant['id'],
-            'screened_evaluations': result['evaluations'],
-            'plain_evaluations': plain['evaluations'],
-            'metal_screened_tph': optimum.get('recovered_tph', np.nan),
-            'metal_plain_tph': plain.get('recovered_tph', np.nan),
-        }})
-paired = pd.DataFrame(records)
-paired['difference'] = paired.screened_evaluations - paired.plain_evaluations
-paired['relative_cost_pct'] = 100 * paired.difference / paired.plain_evaluations
-print('paired variants:', len(paired))
-display(paired.head())"""
-    plot1 = f"""# Plot the paired exact-engine counts for every screened variant.
-fig, ax = plt.subplots(figsize=(7.4, 5.2))
-ax.scatter(paired.plain_evaluations, paired.screened_evaluations, alpha=0.78, s=42)
-limit = max(paired.plain_evaluations.max(), paired.screened_evaluations.max()) * 1.04
-ax.plot([0, limit], [0, limit], color='black', linestyle='--', label={t['labels'][2]!r})
-ax.set(xlabel={t['labels'][1] + ' (count)'!r}, ylabel={t['labels'][0] + ' (count)'!r})
-ax.set_title({('Evaluaciones exactas por variante' if es else 'Exact-engine evaluations per variant')!r})
-ax.legend()
-ax.grid(alpha=0.2)
-fig.tight_layout()"""
-    plot2 = f"""# Summarize the paired evaluation difference within each authored case.
-by_case = paired.groupby('case_id', as_index=False).agg(
-    mean_relative_cost_pct=('relative_cost_pct', 'mean'),
-    variants=('variant_id', 'count'))
-by_case = by_case.sort_values('mean_relative_cost_pct')
-fig, ax = plt.subplots(figsize=(8.2, 5.4))
-colors = np.where(by_case.mean_relative_cost_pct > 0, '#b45f06', '#2878a0')
-ax.barh(by_case.case_id.str.replace('_', ' '), by_case.mean_relative_cost_pct, color=colors)
-ax.axvline(0, color='black', linewidth=1)
-ax.set(xlabel={t['labels'][3]!r}, ylabel={t['labels'][4]!r})
-ax.set_title({('Costo medio pareado por caso' if es else 'Mean paired cost by case')!r})
-ax.grid(axis='x', alpha=0.2)
-fig.tight_layout()"""
-    total = "screen_total = int(paired.screened_evaluations.sum())\nplain_total = int(paired.plain_evaluations.sum())\ndelta_total = screen_total - plain_total\nrelative_total = 100 * delta_total / plain_total\nprint('screened total:', screen_total)\nprint('unscreened total:', plain_total)\nprint('additional evaluations:', delta_total)\nprint('relative increase (%):', round(relative_total, 1))\nprint('variants with fewer evaluations:', int((paired.difference < 0).sum()))\nprint('variants with more evaluations:', int((paired.difference > 0).sum()))\nprint('unchanged variants:', int((paired.difference == 0).sum()))"
-    if es:
-        total = total.replace("screened total:", "total con filtro:").replace("unscreened total:", "total sin filtro:").replace("additional evaluations:", "evaluaciones adicionales:").replace("relative increase (%):", "aumento relativo (%):").replace("variants with fewer evaluations:", "variantes con menos evaluaciones:").replace("variants with more evaluations:", "variantes con más evaluaciones:").replace("unchanged variants:", "variantes sin cambio:")
-    cells = [
-        md(opening), md(f"## {h[0]}\n\n{t['objective']}"), md(f"## {h[1]}\n\n{setup}"),
-        md(f"## {h[2]}\n\n{t['data']}"), md(f"## {h[3]}\n\n{t['method']}"),
-        md(f"## {h[4]}\n\n{t['comparison']}"), md("Record the pinned library versions before importing the analysis and process methods." if not es else "Registra las versiones fijadas antes de importar los métodos de análisis y de proceso."), code(version_code),
-        md("Import the analysis tools and bind to OreFlow's production circuit method." if not es else "Importa las herramientas de análisis y vincúlate al método de circuito de producción de OreFlow."), code(imports),
-        md("Read the paired scenario records and calculate one row per screened variant; the raw files remain unchanged." if not es else "Lee los registros pareados y calcula una fila por variante con filtro; los archivos originales permanecen intactos."), code(load),
-        md("Re-evaluate a saved optimum with the engine. The small residual checks reproducibility; it is not plant validation." if not es else "Reevalúa un óptimo guardado con el motor. El residuo pequeño comprueba reproducibilidad; no valida frente a una planta."),
-    ]
-    for case_id in t["checks"]:
-        cells.append(md((f"Reconstruct the reported {case_id.replace('_', ' ')} optimum from its decisions and check the engine output against the stored record." if not es else f"Reconstruye el óptimo reportado de {case_id.replace('_', ' ')} desde sus decisiones y compara el resultado del motor con el registro guardado.")))
-        cells.append(code(f"""# Re-run this saved decision vector through the production circuit engine.
-case_id = {case_id!r}
-artifact = json.loads((repo / f'data/derived/cases/{{case_id}}.json').read_text(encoding='utf-8'))
-variant = next(v for v in artifact['variants'] if v['methods']['optimization'].get('optimum'))
-case = case_by_id[case_id]
-optimum = variant['methods']['optimization']['optimum']
-operating_point = case.nominal.with_values(**optimum['decisions'])
-trace = simulate(case.ore, case.plant, operating_point)
-recorded = optimum['recovered_tph']
-recomputed = trace.metrics['recovered_primary_tph']
-print(case_id, variant['id'], 'recorded:', round(recorded, 6),
-      'engine:', round(recomputed, 6), 'balance:', trace.metrics['balance_max_relative_error'])"""))
-    cells.extend([
-        md(f"## {h[5]}\n\n{t['evidence']}"), code(plot1),
-        md(("Points above the dashed identity line require more exact circuit evaluations with screening. A point below it is a saving for that one paired variant. Read the distribution together with the total: equal weighting of variants is transparent here, but the cases are authored and not sampled from operating plants. The plot describes this committed algorithm run only." if not es else "Los puntos sobre la línea de identidad discontinua requieren más evaluaciones exactas del circuito con el filtro. Un punto bajo la línea ahorra evaluaciones en esa variante pareada. Lee la distribución junto con el total: ponderar por igual las variantes es transparente, pero los casos fueron construidos y no muestreados de plantas en operación. El gráfico describe solo esta corrida comprometida del algoritmo.")),
-        md("Aggregate the paired changes by ore scenario to expose variation hidden by the total." if not es else "Resume los cambios pareados por escenario de mineral para mostrar la variación que oculta el total."), code(plot2),
-        md(("A positive bar means that the screen increased the mean exact-engine count across the case's controlled variants; a negative bar would mean fewer calls. Bars are descriptive summaries, not independent estimates. Variants within one case share ore, plant definition and most operating settings. This view therefore helps find case-specific cost patterns without making a claim about frequencies in industry." if not es else "Una barra positiva indica que el filtro aumentó el conteo medio de llamadas al motor exacto entre las variantes controladas del caso; una barra negativa indicaría menos llamadas. Las barras son resúmenes descriptivos, no estimaciones independientes. Las variantes de un caso comparten mineral, definición de planta y la mayoría de los parámetros operativos. Esta vista ayuda a detectar patrones de costo por caso sin afirmar frecuencias industriales.")),
-        md("Compute the paired totals and count how many variants save or add engine calls." if not es else "Calcula los totales pareados y cuenta cuántas variantes ahorran o añaden llamadas al motor."), code("# Sum the paired counts and report the direction of every variant.\n" + total),
-        md(f"## {h[6]}\n\n{t['results']}"), md(f"## {h[7]}\n\n{t['summary']}"),
-        md(f"## {h[8]}\n\n" + "\n".join(f"- {ref}" for ref in t["refs"])),
-    ])
-    for i, cell in enumerate(cells, 1):
-        cell["id"] = f"screen-study-{i:02d}"
-    return {"cells": cells, "metadata": {
-        "kernelspec": {"display_name": "Python 3", "language": "python", "name": "python3"},
-        "language_info": {"name": "python"},
-        "caos": {"language": lang, "topic": "04-optimization", "level": 4,
-                 "title": t["title"], "packages": ["numpy==2.2.6", "pandas==2.2.3", "matplotlib==3.11.2"],
-                 "data": [f"data/derived/cases/{case_id}.json" for case_id in t["checks"]] + ["data/derived/contract/operating_contract.json"],
-                 "sources": ["https://doi.org/10.1137/S1052623493250780", "https://doi.org/10.1137/040603371", "https://doi.org/10.1137/070692662", "https://doi.org/10.1007/BF01197708"],
-                 "methods": [], "beyond": ["BS-1"]}}, "nbformat": 4, "nbformat_minor": 5}
+for package in ('numpy', 'pandas', 'matplotlib', 'scikit-learn'):
+    print(package, importlib.metadata.version(package))"""
+    if lang == 'es':
+        setup = setup.replace('Load the pipeline and analysis environment once.',
+                              'Carga una vez el pipeline y el entorno de análisis.')
+    sections = [md('# ' + t['title']), md('## ' + h[0] + '\n\n' + t['objective']),
+                md('## ' + h[1] + '\n\n```bash\npip install ' + ' '.join(PINS) + '\n```'),
+                code(setup), md('## ' + h[2] + '\n\n' + t['data']),
+                md('## ' + h[3] + '\n\n' + t['method']),
+                md('## ' + h[4] + '\n\n' + t['comparison']),
+                md('## ' + h[5] + '\n\n' + t['evidence']),
+                md('## ' + h[6] + '\n\n' + t['results']),
+                md('## ' + h[7] + '\n\n' + t['summary']),
+                md('## ' + h[8] + '\n\n' + '\n'.join('- ' + ref for ref in t['refs']))]
+    notebook = {'cells': sections, 'metadata': {
+        'kernelspec': {'display_name': 'Python 3', 'language': 'python', 'name': 'python3'},
+        'language_info': {'name': 'python'},
+        'caos': {'language': lang, 'topic': '04-optimization', 'level': 4,
+                 'title': t['title'], 'packages': PINS,
+                 'data': ['data/derived/contract/operating_contract.json',
+                          'data/derived/cases/iron_magnetite_fine.json', 'models/process_screen.json'],
+                 'sources': ['https://doi.org/10.1007/BF01197708', 'https://doi.org/10.1137/070692662'],
+                 'methods': [], 'beyond': ['BS-1']}}, 'nbformat': 4, 'nbformat_minor': 5}
+    return enrich(notebook)
 
 
 def main() -> None:

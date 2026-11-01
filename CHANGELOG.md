@@ -1,10 +1,10 @@
 # Changelog
 
-## [0.10.008] - 2026-10-31
+## [0.10.008] - 2026-11-01
 
 ### Changed
 - Adopt CAOS Product Template 0.14.001, including structured deployment-target validation and its adversarial checks; retain the single ML VPS deployment.
-- Reconcile the shared-shell framework guide with the installed npm release 0.19.9 and the current contained workbench and Focus integration.
+- Adopt shared-shell npm release 0.19.10, including document surfaces and transformed executive-label bounds; remove the Introduction's duplicate framing and update the framework guide.
 - Use the shell's document-language synchronization, navigation overflow handling and themed architecture control; remove obsolete product copies and overrides.
 - Run the complete repository guard set from both local smoke commands, including manuscripts, notebooks, contracts, readiness, deployment and web-baseline checks.
 - Regenerate the release artifacts with the production pipeline and CUDA training at the current release version.
@@ -13,10 +13,12 @@
 - Add chart panning, heatmap scale and region controls, and linked response slices with keyboard navigation.
 - Resolve raw-data and checkpoint locations from configured external roots; make local launch honor the frontend lockfile.
 - Record dataset and trained-model licences, attribution and downstream reuse terms alongside source links.
+- Pin Vitest 5.0.5 with the manual-mock registration and Windows redirect-allowlist security fixes.
 
 ### Fixed
 - Treat numerically constant training features as unit scale rather than dividing by roundoff-sized variance, which could produce enormous held-out-ore predictions.
 - Check prediction finiteness and observable ranges during scoring and recheck persisted diagnostics before release; retain constant forecasts as explicitly identified negative evidence.
+- Preserve finite range-rejected transfers with null scores, complete fold denominators and matched comparisons; expose the rejected folds and seed instability in the app, notebooks and report.
 
 ## [0.10.007] - 2026-10-31
 

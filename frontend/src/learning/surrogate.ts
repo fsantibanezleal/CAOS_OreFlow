@@ -2,7 +2,8 @@
  * The exported surrogate and guard in the browser (onnxruntime-web, WebAssembly, one thread). A state's
  * features are standardized with the scalers written by the bake, the surrogate predicts the three
  * targets, and the guard's reconstruction error is compared with its threshold, so the workbench can
- * show the learned answer beside the engine's and say when the state lies outside the training design.
+ * show the learned answer beside the engine's and flag a reconstruction-threshold alert. This signal
+ * does not establish training support, physical feasibility or prediction accuracy.
  */
 import type { OperatingPoint, Ore, Plant } from '../engine/model';
 import { APP_VERSION } from '../lib/version';

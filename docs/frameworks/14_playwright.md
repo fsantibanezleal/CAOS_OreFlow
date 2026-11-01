@@ -15,7 +15,7 @@ says the code compiles; the gate says what a reader would see.
 | Version | 1.61.0 |
 | Licence | Apache-2.0 |
 | Declared in | `frontend/package.json` (devDependencies) |
-| Script | `frontend/gate.mjs`, run with `npm run gate` or `node gate.mjs` against a served build |
+| Script | `frontend/gate.mjs`, run with `npm run gate:oreflow` or `node gate.mjs` against a served build; `npm run gate` separately runs the installed shared-shell gate |
 | Browser | Chromium (headless shell), one per run |
 | Output | `gate.json` and a PNG per state in `OF_QA` (default `frontend/qa-output/`, ignored by git) |
 

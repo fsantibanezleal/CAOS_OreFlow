@@ -1,13 +1,14 @@
 /**
- * The learned lane in the browser (PE-29, PE-39): the exported surrogate (an MLP trained on the 3072
+ * The learned lane in the browser (PE-29, PE-39): the exported surrogate (an MLP trained on the
  * engine states of the learning design) and its autoencoder guard, run by onnxruntime-web. For the
  * current state the panel sets the surrogate's recovery, concentrate grade and specific energy beside
  * the engine's; on request it sweeps one contract input with the engine in the Web Worker and asks the
  * surrogate for the same states, so the two responses can be compared where the surrogate follows the
  * engine and where it departs, with the guard's reconstruction error against its threshold. The
- * protocol results of the bake say how far to trust it: the interpolation split and leave one case out.
+ * protocol results belong to separately fitted evaluation models, rather than the final frozen network.
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import type uPlot from 'uplot';
 import { cancelSweep, sweepInWorker } from '../../../engine/client';
 import { gridValues } from '../../../engine/sweep';
@@ -15,7 +16,8 @@ import type { OperatingContract } from '../../../engine/contract';
 import type { OperatingPoint } from '../../../engine/model';
 import type { Trace } from '../../../engine/trace';
 import { askSurrogate, type SurrogateAnswer } from '../../../learning/surrogate';
-import { loadLearning } from '../../../lib/artifacts';
+import { describeGuard, GUARD_LABELS } from '../../../learning/guard-description';
+import { formatFoldCounts, formatLearningMetric } from '../../../learning/evidence';
 import type { CaseArtifact, LearningRecord } from '../../../lib/artifacts.types';
 import { formatFraction, formatSignificant, formatValue, formatWithUnit, unitLabel, type Lang } from '../../../lib/format';
 import { metricLabel, t, UI } from '../../../lib/i18n';
@@ -30,10 +32,10 @@ const TEXT = {
   input: { en: 'Input (x)', es: 'Entrada (x)' },
   target: { en: 'Quantity', es: 'Cantidad' },
   engine: { en: 'Engine', es: 'Motor' },
-  surrogate: { en: 'Surrogate (ONNX)', es: 'Sustituto (ONNX)' },
-  outside: { en: 'Guard: outside the training design', es: 'Guardia: fuera del diseño de entrenamiento' },
-  guardError: { en: 'Guard reconstruction error', es: 'Error de reconstrucción del guardia' },
-  guardAxis: { en: 'Guard error', es: 'Error del guardia' },
+  surrogate: { en: 'Final MLP (ONNX)', es: 'MLP final (ONNX)' },
+  outside: GUARD_LABELS.alert,
+  guardError: GUARD_LABELS.error,
+  guardAxis: GUARD_LABELS.axis,
   points: { en: 'pts', es: 'pp' },
   short: {
     recovery_pct: { en: 'Recovery', es: 'Recuperación' },
@@ -44,35 +46,35 @@ const TEXT = {
   threshold: { en: 'threshold', es: 'umbral' },
   current: { en: 'current', es: 'actual' },
   difference: { en: 'Difference', es: 'Diferencia' },
-  verdictIn: { en: 'The guard accepts this state: it lies inside the training design.', es: 'El guardia acepta este estado: está dentro del diseño de entrenamiento.' },
-  verdictOut: { en: 'The guard flags this state: it lies outside the training design, so the surrogate is extrapolating.', es: 'El guardia marca este estado: está fuera del diseño de entrenamiento, así que el sustituto extrapola.' },
   hint: { en: 'Choose an input and compute: the engine sweeps it in the background and the surrogate answers for the same states.', es: 'Elija una entrada y calcule: el motor la barre en segundo plano y el sustituto responde para los mismos estados.' },
   loading: { en: 'Loading the ONNX models', es: 'Cargando los modelos ONNX' },
   failed: { en: 'The ONNX models could not be loaded', es: 'No se pudieron cargar los modelos ONNX' },
-  protocol: { en: 'How far to trust it (precompute protocols, exported MLP)', es: 'Cuánto confiar (protocolos del precálculo, MLP exportado)' },
-  interpolation: { en: 'Interpolation split R² (pooled / within case / a predictor that knows only the case)', es: 'R² en la partición de interpolación (conjunto / dentro de cada caso / un predictor que solo conoce el caso)' },
-  transfer: { en: 'One ore group out (transfer): median R²', es: 'Dejando fuera un grupo de mineral (transferencia): R² mediano' },
+  protocol: { en: 'Protocol evaluation: MLP models fitted separately for each fold', es: 'Evaluación de protocolos: modelos MLP ajustados por separado para cada partición' },
+  liveModel: { en: 'Live inference uses the final frozen MLP fitted on the complete learning design, including every case family.', es: 'La inferencia en vivo usa el MLP final congelado, ajustado con el diseño completo de aprendizaje, incluidas todas las familias de casos.' },
+  activeMetrics: { en: 'Active-target protocol metrics', es: 'Métricas de protocolos del objetivo activo' },
+  interpolation: { en: 'Fold interpolation R² (pooled / within case / case-mean baseline)', es: 'R² de interpolación por partición (conjunto / dentro de cada caso / media por caso)' },
+  transfer: { en: 'One ore group out: conditional median R²', es: 'Un grupo de mineral fuera: R² mediano condicional' },
   cutMode: { en: 'The learned lane describes the target mode: its features carry the grind target and the design load, which a set classifier cut ignores, so it does not answer here.', es: 'La vía aprendida describe el modo objetivo: sus atributos llevan el objetivo de molienda y la carga de diseño, que un corte del clasificador fijado ignora, así que aquí no responde.' },
-  loco: { en: 'One case out (near neighbours stay in training): median R²', es: 'Dejando un caso fuera (sus vecinos quedan en el entrenamiento): R² mediano' },
-  locoRmse: { en: 'Leave one case out: mean RMSE', es: 'Dejando un caso fuera: RMSE medio' },
-  guardRates: { en: 'Guard false alarms / false accepts', es: 'Guardia: falsas alarmas / falsas aceptaciones' },
-  heldOut: { en: 'States of the held-out case the guard flags', es: 'Estados del caso reservado que marca el guardia' },
+  loco: { en: 'One case out: conditional median R²', es: 'Un caso fuera: R² mediano condicional' },
+  locoRmse: { en: 'One case out: conditional mean RMSE', es: 'Un caso fuera: RMSE medio condicional' },
+  guardRates: { en: 'Protocol detector false alarms / false accepts', es: 'Detector de evaluación: falsas alarmas / falsas aceptaciones' },
+  heldOut: { en: 'Mean alert share on held-out cases', es: 'Fracción media de alertas en casos reservados' },
   bimodal: {
-    en: (low: string, high: string) => `The mean over the twelve folds. Held out, a plant is flagged in ${low} to ${high} of its states: in most of them for a plant unlike the others, in almost none for a copper sulphide plant like the others (see Benchmark, learned lane, for each plant).`,
-    es: (low: string, high: string) => `Media de las doce particiones. Reservada, una planta queda marcada en ${low} a ${high} de sus estados: en la mayoría para una planta distinta de las demás, en casi ninguno para una planta de sulfuros de cobre parecida a las demás (ver Benchmark, vía aprendida, para cada planta).`,
+    en: (low: string, high: string) => `Across held-out cases, alert rates range from ${low} to ${high}. These rates describe the detectors fitted separately for protocol evaluation.`,
+    es: (low: string, high: string) => `Entre los casos reservados, las tasas de alerta van de ${low} a ${high}. Estas tasas corresponden a los detectores ajustados por separado para evaluar los protocolos.`,
   },
   learnedAs: { en: 'learned as the log10 upgrade ratio', es: 'aprendida como log10 de la razón de enriquecimiento' },
   summary: { en: 'The engine and the surrogate over one contract input, other inputs held at the current state.', es: 'El motor y el sustituto sobre una entrada del contrato, con las demás en el estado actual.' },
-  guardSummary: { en: 'The guard reconstruction error over the same states, against its threshold.', es: 'El error de reconstrucción del guardia sobre los mismos estados, frente a su umbral.' },
+  guardSummary: { en: 'Reconstruction error over the same states, against the detector threshold; this signal does not establish training support or prediction accuracy.', es: 'Error de reconstrucción sobre los mismos estados, frente al umbral del detector; esta señal no demuestra pertenencia al dominio de entrenamiento ni precisión predictiva.' },
   progress: { en: 'states', es: 'estados' },
   changed: { en: 'The state changed since the last sweep, so its results were cleared; compute again.', es: 'El estado cambió desde el último barrido, así que sus resultados se borraron; calcule de nuevo.' },
 };
 
 type SweepResult = { xs: number[]; engine: (number | null)[]; surrogate: (number | null)[]; outside: (number | null)[]; guard: (number | null)[] };
 
-export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
+export function Learned({ contract, artifact, point, trace, lang, onCursor, learning, evidence }: {
   contract: OperatingContract; artifact: CaseArtifact; point: OperatingPoint; trace: Trace | null; lang: Lang;
-  onCursor: (text: string | null) => void;
+  onCursor: (text: string | null) => void; learning: LearningRecord | null; evidence?: ReactNode;
 }) {
   const caseId = artifact.case_id;
   const entry = contract.cases[caseId];
@@ -86,14 +88,12 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
   const [target, setTarget] = useState<Target>('recovery_pct');
   const [current, setCurrent] = useState<SurrogateAnswer | null>(null);
   const [status, setStatus] = useState<'loading' | 'ready' | 'failed'>('loading');
-  const [learning, setLearning] = useState<LearningRecord | null>(null);
   const [cells, setCells] = useState<Array<{ x: number; engine: Record<string, number> | null; point: OperatingPoint | null }>>([]);
   const [answers, setAnswers] = useState<SurrogateAnswer[] | null>(null);
   const [progress, setProgress] = useState<[number, number] | null>(null);
   const running = useRef<number | null>(null);
   const request = useRef(0);
 
-  useEffect(() => { loadLearning().then(setLearning, () => setLearning(null)); }, []);
   useEffect(() => () => { if (running.current !== null) cancelSweep(running.current); }, []);
   useEffect(() => { setCells([]); setAnswers(null); setProgress(null); }, [caseId, xInput]);
   // U-02: the sweep and the guard chart belong to the state they ran at; when it moves they are stopped and cleared
@@ -204,6 +204,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
           <button type="button" className="of-run" onClick={compute} disabled={status !== 'ready'}>{t(UI.runSweep, lang)}</button>
           {progress && running.current !== null && <span className="of-progress" role="status">{`${progress[0]} / ${progress[1]} ${TEXT.progress[lang]}`}</span>}
         </div>
+        <p className="of-footnote">{TEXT.liveModel[lang]}</p>
         {status === 'loading' && <p className="of-hint" role="status">{TEXT.loading[lang]}</p>}
         {current && trace && (
           <>
@@ -221,19 +222,21 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
             </table>}
             <p className={current.outside ? 'of-status-line warn' : 'of-status-line'}>
               {current.notApplicable ? TEXT.cutMode[lang]
-                : `${current.outside ? TEXT.verdictOut[lang] : TEXT.verdictIn[lang]} (${formatSignificant(current.guardError, lang, 3)} / ${formatSignificant(current.guardThreshold, lang, 3)})`}
+                : `${describeGuard(current.outside, lang)} (${formatSignificant(current.guardError, lang, 3)} / ${formatSignificant(current.guardThreshold, lang, 3)})`}
             </p>
           </>
         )}
         {summaryRow && learning && <p className="of-facts-title">{`${TEXT.protocol[lang]}${target === 'concentrate_grade' ? `; ${TEXT.learnedAs[lang]}` : ''}`}</p>}
         {summaryRow && learning && (
-          <dl className="of-facts">
+          <dl className="of-facts" aria-label={TEXT.activeMetrics[lang]}>
             <div><dt>{TEXT.interpolation[lang]}</dt><dd>{[summaryRow.interpolation_r2, summaryRow.interpolation_r2_within_case, summaryRow.case_mean_r2]
               .filter((v): v is number => v !== undefined).map(v => formatSignificant(v, lang, 3)).join(' / ')}</dd></div>
-            {summaryRow.transfer_r2_median !== undefined && <div><dt>{TEXT.transfer[lang]}</dt><dd>{formatSignificant(summaryRow.transfer_r2_median, lang, 3)}</dd></div>}
-            <div><dt>{TEXT.loco[lang]}</dt><dd>{formatSignificant(summaryRow.loco_r2_median, lang, 3)}</dd></div>
-            <div><dt>{TEXT.locoRmse[lang]}</dt><dd>{target === 'concentrate_grade' ? formatSignificant(summaryRow.loco_rmse_mean, lang, 3)
-              : target === 'recovery_pct' ? `${formatSignificant(summaryRow.loco_rmse_mean, lang, 3)} ${TEXT.points[lang]}` : formatWithUnit(summaryRow.loco_rmse_mean, unit, lang)}</dd></div>
+            <div><dt>{TEXT.transfer[lang]}</dt><dd>{formatLearningMetric(summaryRow.transfer_r2_median, lang)}<br /><small>{formatFoldCounts(summaryRow.transfer_folds, lang)}</small></dd></div>
+            <div><dt>{TEXT.loco[lang]}</dt><dd>{formatLearningMetric(summaryRow.loco_r2_median, lang)}<br /><small>{formatFoldCounts(summaryRow.loco_folds, lang)}</small></dd></div>
+            <div><dt>{TEXT.locoRmse[lang]}</dt><dd>{summaryRow.loco_rmse_mean === null ? formatLearningMetric(null, lang)
+              : target === 'concentrate_grade' ? formatSignificant(summaryRow.loco_rmse_mean, lang, 3)
+                : target === 'recovery_pct' ? `${formatSignificant(summaryRow.loco_rmse_mean, lang, 3)} ${TEXT.points[lang]}` : formatWithUnit(summaryRow.loco_rmse_mean, unit, lang)}
+              <br /><small>{formatFoldCounts(summaryRow.loco_folds, lang)}</small></dd></div>
             <div><dt>{TEXT.guardRates[lang]}</dt><dd>{`${formatFraction(learning.guard.false_alarm_rate, lang, 1)} / ${formatFraction(learning.guard.false_accept_rate, lang, 1)}`}</dd></div>
             {heldOut !== null && <div><dt>{TEXT.heldOut[lang]}</dt><dd>{formatFraction(heldOut, lang, 0)}</dd></div>}
           </dl>
@@ -241,6 +244,7 @@ export function Learned({ contract, artifact, point, trace, lang, onCursor }: {
         {summaryRow && learning && <p className="of-footnote">{TEXT.bimodal[lang](
           formatFraction(Math.min(...learning.leave_one_case_out.map(f => f.held_out_flag_rate)), lang, 0),
           formatFraction(Math.max(...learning.leave_one_case_out.map(f => f.held_out_flag_rate)), lang, 0))}</p>}
+        {evidence}
       </div>
     </div>
   );

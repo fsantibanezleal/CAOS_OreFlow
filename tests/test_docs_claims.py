@@ -442,51 +442,232 @@ def test_contract_06_and_03_quote_their_records():
     assert not missing, missing
 
 
-def test_the_framework_pages_quote_the_learning_record():
-    """Frameworks 04 and 05 quoted a learning record of 0.05 to 0.07 (MLP 55.5 points, magnetite 283, gold "failing")
-    four releases on, because no test read them (review of 2026-10-04). Every number they print is held here."""
-    learning = _read(DERIVED / "learning.json")
-    s = learning["summary"]
-    rec = {m: s[m]["recovery_pct"] for m in s}
-    folds = {f["held_out"]: f["models"] for f in learning["leave_one_case_out"]}
-    copper = ("copper_porphyry_soft", "copper_porphyry_hard", "copper_molybdenum", "mixed_ore_high_clay", "low_grade_copper")
-    gp = learning["interpolation"]["models"]["gaussian_process"]
-    seeds = learning["mlp_seeds"]["summary"]["recovery_pct"]["loco_rmse_mean"]
-    group = {g["held_out_group"]: g for g in learning["leave_one_group_out"]}["Cu:chalcopyrite"]["models"]
-    final = learning["final"]["mlp_training"]
-    closest = max(rec, key=lambda m: rec[m]["transfer_r2_median"])
-    names = {"ridge": "Ridge", "random_forest": "Random forest", "hist_gradient_boosting": "Histogram gradient boosting",
-             "gaussian_process": "Gaussian process", "mlp": "MLP (PyTorch, [05](../05_pytorch.md))"}
-    assert sorted(rec, key=lambda m: -rec[m]["loco_r2_median"])[:2] == ["mlp", "hist_gradient_boosting"] and closest == "mlp"
-    assert rec["mlp"]["transfer_r2_median"] > 0 and all(c in folds for c in copper)
-    def flat(rel: str) -> str:
-        return re.sub(r"\s+", " ", (ROOT / "docs" / "frameworks" / rel).read_text(encoding="utf-8"))
+def _learning_claim_record() -> dict:
+    """Canonical by default; isolated candidate tests substitute only DERIVED in memory."""
+    import runpy
 
-    sklearn = flat("04_scikit-learn/02_usage.md")
-    missing = [p for p in [
-        *[f"| {names[m]} | {rec[m]['interpolation_rmse']:.2f} | {rec[m]['loco_rmse_mean']:.2f} | {rec[m]['loco_rmse_max']:.2f} |" for m in names],
-        f"the MLP has the highest median fold R² ({rec['mlp']['loco_r2_median']:.3f})",
-        f"Held out, the hard porphyry costs the MLP {folds['copper_porphyry_hard']['mlp']['recovery_pct']['rmse']:.1f} points and ridge {folds['copper_porphyry_hard']['ridge']['recovery_pct']['rmse']:.1f}",
-        f"Its magnetite error is {folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.0f} points and phosphate error is"
-        f" {folds['phosphate_clay']['mlp']['recovery_pct']['rmse']:.1f}",
-        f"Across all seven payable/carrier labels, the MLP has median recovery R² {rec[closest]['transfer_r2_median']:.3f}",
-        f"cover {100 * gp['recovery_pct']['coverage_95']:.1f}% of interpolation recoveries ({100 * gp['log_upgrade']['coverage_95']:.1f}% and"
-        f" {100 * gp['specific_energy_total_kwh_t']['coverage_95']:.1f}% for the other two targets)",
-        "with each feature shuffled within each case",
-    ] if p not in sklearn]
-    torch = flat("05_pytorch/02_usage.md")
-    alone = [folds[c]["mlp"]["recovery_pct"]["rmse"] for c in copper]
-    missing += [p for p in [
-        f"({final['parameters']} parameters)",
-        f"lowest interpolation recovery RMSE ({rec['mlp']['interpolation_rmse']:.2f} points)",
-        f"At the record's seed its mean held-out-case RMSE is {rec['mlp']['loco_rmse_mean']:.1f} points ({min(seeds):.1f} to {max(seeds):.1f} over five seeds)",
-        f"Across the five chalcopyrite cases held out one at a time, its RMSE ranges from {min(alone):.1f} to {max(alone):.1f} points",
-        f"this average is enlarged by the magnetite fold ({folds['iron_magnetite_fine']['mlp']['recovery_pct']['rmse']:.1f} points)",
-        f"The five chalcopyrite cases held out together score recovery R² {group['mlp']['recovery_pct']['r2']:.3f}",
-        f"reached its {final['epochs_run']}-epoch cap with best validation loss at epoch {final['best_epoch']}, on {final['device'].upper()}"
-        if not final["stopped_early"] else f"stopped at epoch {final['epochs_run']} with its best validation loss at epoch {final['best_epoch']}",
-    ] if p not in torch]
-    assert not missing, missing
+    record = _read(DERIVED / "learning.json")
+    assert record["schema"] == "oreflow.learning/v2", "Learning prose requires v2; never upgrade historical scores"
+    assert record["engine_version"] == (ROOT / "VERSION").read_text(encoding="utf-8").strip()
+    assert re.fullmatch(r"[0-9a-f]{64}", record["contract_digest"])
+    observable = runpy.run_path(str(ROOT / "data-pipeline/pipeline/methods/observable.py"))
+    checker = runpy.run_path(str(ROOT / "scripts/check_artifacts.py"))
+    assert not observable["record_findings"](record)
+    assert not checker["check_learning_cohorts"](record)
+    return record
+
+
+def _learning_pages() -> dict[str, str]:
+    return {"method": (DOCS / "14_learned-lane.md").read_text(encoding="utf-8"),
+            "sklearn": (ROOT / "docs/frameworks/04_scikit-learn/02_usage.md").read_text(encoding="utf-8"),
+            "torch": (ROOT / "docs/frameworks/05_pytorch/02_usage.md").read_text(encoding="utf-8")}
+
+
+def _learning_table(text: str, heading: str) -> list[list[str]]:
+    lines = text.splitlines()
+    start = next(i for i, line in enumerate(lines) if line.startswith(f"| {heading} |"))
+    body = []
+    for line in lines[start + 2:]:
+        if not line.startswith("|"):
+            break
+        body.append([cell.strip() for cell in line.strip("|").split("|")])
+    return body
+
+
+def _learning_number(quoted: str, actual: float | None) -> None:
+    if actual is None:
+        assert quoted == "null", (quoted, actual)
+    else:
+        assert re.fullmatch(r"-?\d+(?:\.\d+)?", quoted), quoted
+        decimals = len(quoted.split(".")[1]) if "." in quoted else 0
+        assert quoted == f"{actual:.{decimals}f}", (quoted, actual)
+
+
+def _assert_learning_prose(record: dict, pages: dict[str, str]) -> None:
+    names = {"Ridge": "ridge", "Random forest": "random_forest", "Gradient boosting": "hist_gradient_boosting",
+             "Gaussian process": "gaussian_process", "MLP": "mlp"}
+    targets = ("recovery_pct", "log_upgrade", "specific_energy_total_kwh_t")
+    summary = record["summary"]
+    folds = {fold["held_out"]: fold for fold in record["leave_one_case_out"]}
+    magnetite = folds["iron_magnetite_fine"]["models"]["mlp"]["recovery_pct"]
+    assert magnetite["status"] == "rejected-transfer" and magnetite["valid_for_scoring"] is False
+    assert all(magnetite[key] is None for key in ("rmse", "mae", "r2"))
+    assert magnetite["rejection"]["affected_rows"] == magnetite["rows"]
+    common = record["common_cohorts"]
+    for protocol, attempted, excluded in (("leave_one_case_out", 12, "iron_magnetite_fine"), ("transfer", 7, "Fe:magnetite")):
+        cohort = common[protocol]["recovery_pct"]
+        assert cohort["attempted"] == attempted and cohort["excluded"] == [excluded]
+        assert len(cohort["folds"]) == attempted - 1
+    for model in summary:
+        for target in targets:
+            for prefix, attempted in (("loco", 12), ("transfer", 7)):
+                rejected = int(model == "mlp" and target == "recovery_pct")
+                assert summary[model][target][f"{prefix}_folds"] == {
+                    "attempted": attempted, "scored": attempted-rejected, "rejected": rejected}
+
+    method = pages["method"].split("## Findings", 1)[1].split("## Verification", 1)[0]
+    counts_rows = _learning_table(method, "Conditional recovery model")
+    assert [r[0] for r in counts_rows] == list(names)
+    for row in counts_rows:
+        expected = []
+        for prefix in ("loco", "transfer"):
+            counts = summary[names[row[0]]]["recovery_pct"][f"{prefix}_folds"]
+            expected.append("/".join(str(counts[k]) for k in ("attempted", "scored", "rejected")))
+        assert row[1:] == expected
+    for heading, columns in (("Model", ("interpolation_r2", "loco_r2_median", "loco_rmse_mean")),
+                             ("Model, within case and one group out", ("interpolation_r2_within_case", "transfer_r2_median", "transfer_rmse_mean"))):
+        rows = _learning_table(method, heading)
+        assert [r[0] for r in rows] == list(names)
+        for row in rows:
+            assert len(row) == 10
+            for quoted, (target, column) in zip(row[1:], ((t, c) for t in targets for c in columns), strict=True):
+                _learning_number(quoted, summary[names[row[0]]][target][column])
+    for heading, protocol in (("Matched LOCO model", "leave_one_case_out"), ("Matched transfer model", "transfer")):
+        rows = _learning_table(method, heading)
+        assert [r[0] for r in rows] == list(names)
+        for row in rows:
+            assert len(row) == 7
+            for quoted, (target, metric) in zip(row[1:], ((t, m) for t in targets for m in ("rmse_mean", "r2_median")), strict=True):
+                _learning_number(quoted, common[protocol][target]["models"][names[row[0]]][metric])
+    cohort_rows = _learning_table(method, "Matched protocol/target")
+    assert len(cohort_rows) == len(common)*len(targets)
+    for row, (protocol, target) in zip(cohort_rows, ((p, t) for p in common for t in targets), strict=True):
+        cohort = common[protocol][target]
+        assert row == [f"{protocol}/{target}", str(cohort["attempted"]), str(len(cohort["folds"])),
+                       ", ".join(cohort["excluded"]) or "none"]
+    case_rows = _learning_table(method, "Recovery held-out case ID")
+    assert [r[0] for r in case_rows] == list(folds)
+    for row in case_rows:
+        score = folds[row[0]]["models"]["mlp"]["recovery_pct"]
+        assert row[1] == score["status"] and int(row[2]) == score["rows"]
+        _learning_number(row[3], score["rmse"])
+        assert row[4] == str(score["rejection"]["affected_rows"]) if not score["valid_for_scoring"] else row[4] == "none"
+
+    for key, page in pages.items():
+        flat = re.sub(r"\s+", " ", page)
+        for phrase in ("Conditional means do not rank models with different surviving folds.",
+                       "Null means rejected/unavailable, never zero.", "11/12 case folds and 6/7 transfer groups"):
+            assert phrase in flat, (key, phrase)
+        assert "full-design" in flat and "held-out target" in flat and "physical validity at every row" in flat
+        assert "percentage points" in flat and "kWh/t" in flat and "dimensionless" in flat
+
+    sklearn_rows = _learning_table(pages["sklearn"], "Model")
+    assert [r[0] for r in sklearn_rows] == list(names)
+    for row in sklearn_rows:
+        s = summary[names[row[0]]]["recovery_pct"]
+        assert len(row) == 7
+        for i, key in ((1, "interpolation_rmse"), (2, "loco_rmse_mean"), (3, "loco_rmse_max"), (5, "transfer_rmse_mean")):
+            _learning_number(row[i], s[key])
+        for i, prefix in ((4, "loco"), (6, "transfer")):
+            counts = s[f"{prefix}_folds"]
+            assert row[i] == "/".join(str(counts[k]) for k in ("attempted", "scored", "rejected"))
+    matched_rows = _learning_table(pages["sklearn"], "Matched recovery model")
+    assert [r[0] for r in matched_rows] == list(names)
+    for row in matched_rows:
+        assert len(row) == 5
+        expected = [common[p]["recovery_pct"]["models"][names[row[0]]][m]
+                    for p in ("leave_one_case_out", "transfer") for m in ("rmse_mean", "r2_median")]
+        for quoted, actual in zip(row[1:], expected, strict=True):
+            _learning_number(quoted, actual)
+
+    seed_records = record["mlp_seeds"]
+    seed_scores = seed_records["scores"]["iron_magnetite_fine"]["recovery_pct"]
+    assert sum(s["status"] == "rejected-transfer" for s in seed_scores) == 4
+    assert seed_scores[-1]["status"] == "scored" and seed_scores[-1]["rmse"] > 200
+    for page in pages.values():
+        flat = re.sub(r"\s+", " ", page)
+        assert "Four of five neural seeds reject magnetite recovery" in flat
+        last = seed_scores[-1]
+        assert f"RMSE {last['rmse']:.2f} percentage points" in flat
+        bounds = last["observable"]["prediction_range"]
+        assert f"{bounds[0]:.2f} to {bounds[1]:.2f}%" in flat
+    seed_common = [case for case in folds if all(s["valid_for_scoring"] for s in seed_records["scores"][case]["recovery_pct"])]
+    assert seed_common == common["leave_one_case_out"]["recovery_pct"]["folds"]
+    for key in ("method", "torch"):
+        rows = _learning_table(pages[key], "Recovery seed")
+        assert len(rows) == len(seed_records["seeds"])
+        for i, row in enumerate(rows):
+            score = seed_scores[i]
+            assert len(row) == 6 and int(row[0]) == seed_records["seeds"][i] and row[1] == score["status"]
+            _learning_number(row[2], score["rmse"])
+            counts = seed_records["summary"]["recovery_pct"]["loco_folds"][i]
+            assert row[3] == "/".join(str(counts[k]) for k in ("attempted", "scored", "rejected"))
+            _learning_number(row[4], seed_records["summary"]["recovery_pct"]["loco_rmse_mean"][i])
+            _learning_number(row[5], statistics.mean(seed_records["scores"][case]["recovery_pct"][i]["rmse"] for case in seed_common))
+
+    gp = record["interpolation"]["models"]["gaussian_process"]
+    for key in ("method", "sklearn"):
+        rows = _learning_table(pages[key], "GP coverage target")
+        assert [r[0] for r in rows] == list(targets)
+        for row in rows:
+            _learning_number(row[1], 100*gp[row[0]]["coverage_95"])
+            _learning_number(row[2], 100*summary["gaussian_process"][row[0]]["loco_coverage_pooled"])
+            assert int(row[3]) == sum(f["models"]["gaussian_process"][row[0]]["rows"] for f in folds.values())
+        assert "intervals are centred on GP means" in pages[key]
+    final = record["final"]["mlp_training"]
+    torch = re.sub(r"\s+", " ", pages["torch"])
+    assert final["device"] == "cuda" and f"({final['parameters']} parameters)" in torch
+    fit = (f"reached its {final['epochs_run']}-epoch cap with best validation loss at epoch {final['best_epoch']}, on {final['device'].upper()}"
+           if not final["stopped_early"] else f"stopped at epoch {final['epochs_run']} with its best validation loss at epoch {final['best_epoch']}")
+    assert fit in torch
+    assert f"{final['fit_rows']} fitting and {final['validation_rows']} validation rows" in torch
+    for key in ("method", "torch"):
+        assert f"{record['final']['exports']['surrogate']['max_abs_difference']:.8f}" in pages[key]
+    for key in ("method", "torch"):
+        flat = re.sub(r"\s+", " ", pages[key])
+        guard = record["guard"]
+        for phrase in (f"false-alarm rate is {100*guard['false_alarm_rate']:.2f}%", f"false-accept rate is {100*guard['false_accept_rate']:.1f}%"):
+            assert phrase in flat, (key, phrase)
+        assert f"{guard['probe_rows']:,} shifted probes ({guard['in_envelope_rows']} in-envelope test rows)" in flat
+        distance = next(d for d in guard["acceptance_by_distance"] if d["distance"] == 0.5)
+        assert f"{100*distance['upward']:.1f}%; at -0.5, {100*distance['downward']:.1f}%" in flat
+        for feature, name in (("crusher_css_mm", "crusher CSS"), ("water_m3_t", "water"), ("circulating_load", "circulating load")):
+            assert f"{name} {100*guard['false_accept_by_feature'][feature]:.1f}%" in flat
+    assert f"threshold is {record['guard']['threshold']:.3f}" in torch
+    assert f"exported guard uses {record['final']['guard_threshold']:.3f}" in torch
+    assert f"best epoch {record['guard']['training']['best_epoch']}" in method
+    diag = magnetite["observable"]
+    for label, field in (("Observed recovery", "observed_range"), ("Predictions", "prediction_range"),
+                         ("Full-design reference", "reference_range"), ("Widened bounds", "allowed_range")):
+        bounds = diag[field]
+        assert f"{label}: {bounds[0]:.2f} to {bounds[1]:.2f}%" in method
+
+
+def test_the_framework_pages_quote_the_learning_record():
+    """All three learning pages bind exact tables, rejection evidence and CUDA metadata to canonical v2."""
+    _assert_learning_prose(_learning_claim_record(), _learning_pages())
+
+
+def test_adversarial_learning_prose_rejects_zero_and_changed_cohort():
+    import pytest
+
+    record, pages = _learning_claim_record(), _learning_pages()
+    _assert_learning_prose(record, pages)
+    for changed in (
+        pages["method"].replace("| rejected-transfer | 256 | null |", "| rejected-transfer | 256 | 0 |", 1),
+        pages["method"].replace("11/12 case folds and 6/7 transfer groups", "12/12 case folds and 7/7 transfer groups", 1),
+    ):
+        assert changed != pages["method"]
+        with pytest.raises(AssertionError):
+            _assert_learning_prose(record, {**pages, "method": changed})
+
+
+def test_adversarial_learning_prose_rejects_numeric_drift_and_missing_failure():
+    import pytest
+
+    record, pages = _learning_claim_record(), _learning_pages()
+    _assert_learning_prose(record, pages)
+    s = record["summary"]["mlp"]["recovery_pct"]
+    old = f"{s['loco_rmse_mean']:.2f}"
+    changed = pages["sklearn"].replace(old, "999.99", 1)
+    assert changed != pages["sklearn"]
+    with pytest.raises(AssertionError):
+        _assert_learning_prose(record, {**pages, "sklearn": changed})
+    lines = pages["torch"].splitlines()
+    changed = "\n".join(line for line in lines if not line.startswith("| 20260927 |"))
+    assert changed != pages["torch"]
+    with pytest.raises(AssertionError):
+        _assert_learning_prose(record, {**pages, "torch": changed})
 
 
 def test_page_08_quotes_the_density_corrected_cuts():

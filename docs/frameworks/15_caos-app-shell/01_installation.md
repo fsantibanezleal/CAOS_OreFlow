@@ -8,14 +8,14 @@ Return to [15 The CAOS app shell](../15_caos-app-shell.md).
 The dependency entries in `frontend/package.json` are:
 
 ```json
-"@fasl-work/caos-app-shell": "0.19.9",
+"@fasl-work/caos-app-shell": "0.19.10",
 "lucide-react": "1.43.0"
 ```
 
-The installed shell's package version is `0.19.9`; its `VERSION` file says `0.19.009`, corresponding
-to release `v0.19.009`. The dependency has no caret or tilde. `frontend/package-lock.json` records
-version `0.19.9`, the resolved registry tarball
-`https://registry.npmjs.org/@fasl-work/caos-app-shell/-/caos-app-shell-0.19.9.tgz`, and its SHA-512
+The installed shell's package version is `0.19.10`; its `VERSION` file says `0.19.010`, corresponding
+to release `v0.19.010`. The dependency has no caret or tilde. `frontend/package-lock.json` records
+version `0.19.10`, the resolved registry tarball
+`https://registry.npmjs.org/@fasl-work/caos-app-shell/-/caos-app-shell-0.19.10.tgz`, and its SHA-512
 integrity value. The lockfile is part of the installation contract.
 
 From `frontend/`, install the locked dependency graph with:

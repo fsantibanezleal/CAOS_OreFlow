@@ -1,7 +1,9 @@
-\section*{Abstract}
+\begin{abstract}
 
 
-Learned surrogates of process simulators are often evaluated on random states from plants they have already seen. We compare that interpolation setting with leave-one-case-out and leave-one-ore-group-out evaluation for five models trained on a steady-state mineral-processing simulator. The simulator tracks mineral mass over 63 size classes, water, closed grinding circuits and unit-level balance closure; its limitations against published examples are reported alongside the comparisons. On a 3,072-state design over twelve authored cases, the multilayer perceptron gives the lowest interpolation recovery RMSE (3.38 percentage points), but has a 26.24-point mean RMSE when each case is held out. The Gaussian process has the lowest mean held-out-case RMSE (10.95 points), while the perceptron has the highest median case-fold R² (0.547). Under ore-group holdout, the perceptron's median recovery R² is 0.437 across seven groups, but varies from 0.795 for the five chalcopyrite cases to -10.2 for the two gold-in-pyrite cases. Log-upgrade transfer is poor for every model. Thus interpolation, case holdout and ore-group holdout answer different questions, and their results depend on both target and ore family. The records and tests bind every reported score to the bake. The cases are authored; these results do not establish performance on operating plants.
+Learned surrogates of process simulators are often evaluated on random states from simulated plants they have already seen. We compare interpolation, leave-one-case-out and leave-one-ore-group-out evaluation for five models trained on a steady-state mineral-processing simulator. The simulator tracks mineral mass over 63 size classes, water and closed grinding circuits, with unit-level balance audits and explicit misses against published examples. On a 3,072-state design over twelve authored cases, the multilayer perceptron has an interpolation recovery RMSE of 3.38 percentage points. Its magnetite transfer forecast is wholly outside a declared gross-range diagnostic and remains a rejected fold with null error metrics. Over the eleven case folds admissible for all models, mean recovery RMSE is 6.86 points for the perceptron, 8.67 for gradient boosting and 9.40 for the Gaussian process. These conditional results do not describe performance on the excluded case. Four of five neural seeds reject magnetite; the remaining seed retains a 217.18-point error, exposing instability that an interpolation score conceals. The perceptron's recovery R² is 0.795 on five chalcopyrite cases held out together and -10.2 on two gold-in-pyrite cases. Group-held-out log-upgrade median R² is negative for every model. Results therefore depend on the target, held-out unit, admissibility diagnostic and cohort denominator. The cases are authored; these results do not establish performance on operating plants.
+
+\end{abstract}
 
 # Introduction
 
@@ -21,12 +23,11 @@ reproduced. Its contributions are three:
 2. a test protocol that scores learned surrogates of it by interpolation, by leaving one case out and by leaving
    one ore group out over twelve authored plants in four circuit families, with interval coverage and an
    out-of-envelope guard;
-3. the findings that holding out one plant is not a transfer test when other plants share its ore, that transfer
-   failure is concentrated in the plants unlike the others, that the ranking of models changes between the
-   protocols and with the statistic that summarizes them, and that the guard misses shifts of inputs its training
-   features do not correlate with.
+3. a measured transfer failure and seed instability on magnetite, conditional comparisons that retain the failed
+   fold, distinct results for whole-case and ore-group holdouts, and a reconstruction guard whose missed feature
+   shifts remain visible by input and distance.
 
-# The engine
+# Process model
 
 The record reproduces all 96 committed states within 1e-6 in the browser port and all 96 committed states close within 1e-9 at every unit in the Python engine. The port shares constants and is a translation check, not an independent validation of physical assumptions.
 
@@ -131,9 +132,9 @@ almost all finer than about 37 µm, leaves by the overflow; without the GRG fine
 within 1.1 points from the 20% row on, and the circulating load stays 50 to 69% low. The magnetite example checks a
 direction and a proportion, not a level, because its ore is not the engine's case.
 
-# The test
+# Evaluation design
 
-## The plants
+## Authored circuits
 
 Twelve authored cases in four circuit families: nine copper, nickel, zinc and refractory-gold rougher-cleaner
 flotation circuits (`rougher`), free-milling gold with a gravity bleed (`gravity_rougher`), fine magnetite with
@@ -143,26 +144,37 @@ to a plant. Five of the twelve are copper sulphide plants on chalcopyrite, and t
 gold in pyrite (55%, beside electrum in the free-milling ore and arsenopyrite in the refractory one); the other five
 each have a payable and dominant carrier no other case shares.
 
-## The design, the features and the targets
+## Design, features and targets
 
 For each case a scrambled Sobol sequence draws 256 states the contract accepts over the case's whole
-envelope and two ore factors (liberation size and floatability within their uncertainty half-widths), 3072 in
-all; the engine simulates every state. Each state is described by 22 physical features computed before
+envelope and two ore factors (liberation size and floatability within their uncertainty half-widths), except
+that magnetite varies liberation alone. There are 3072 states in all; the engine simulates every state. Each state is described by 22 physical features computed before
 simulation: the payable fraction, throughput per installed megawatt, the grind, circulating load, water, crusher
 setting and work index, the payable carriers' share-weighted liberation size, composite content, density,
 floatability and dose ratio, the rougher gas velocity, cells and volume per t/h, the gravity bleed, the desliming
 cut and four circuit descriptors. The case identity is never a feature. The targets are recovery (%), the
 log10 upgrade ratio (concentrate over head grade) and the total specific energy (kWh/t).
 
-## The models and the protocols
+## Models and protocols
 
 Ridge (alpha 1); a random forest (300 trees; Breiman 2001); histogram gradient boosting (300 iterations;
 Friedman 2001); a Gaussian process with a squared-exponential kernel with one length scale per feature and a
 noise term, on a seeded subsample of 500 training rows (Rasmussen and Williams 2006); and a perceptron of two
 hidden layers of 64 units, trained by full-batch AdamW with early stopping on a 15% validation split (Loshchilov
-and Hutter 2019). Features and targets are standardized on the training rows of each split. Because the Gaussian
-process sees fewer rows, the other models are also refitted on the same 500 rows; and because one training seed
-is one draw, the perceptron is retrained with four more seeds on every split.
+and Hutter 2019). Features are standardized on the training rows of each split. Perceptron targets are standardized
+on those same rows; the Gaussian process normalizes its own training responses, while ridge and the tree models
+fit targets in their declared units. Because the Gaussian process sees fewer rows, ridge, random forest and
+gradient boosting are also refitted on the same 500 rows for a separate comparison. The perceptron's ordinary
+scores retain the full training subset. Because one training seed is one draw, the perceptron is retrained with
+four more seeds for interpolation and each of the twelve case holdouts. The two multi-case ore-group fits use
+the base seed; no five-seed group-transfer stability claim follows from this study.
+
+The standardization fits the training subset alone. Numerically constant training columns retain unit scale,
+including columns whose small positive variance comes from summation roundoff. An unseen value is therefore not
+amplified by division through a spurious near-zero scale. Neither held-out features nor held-out targets determine
+the fitted transformation. The interpolation comparison also retains a case-mean baseline fitted on each case's
+training rows, and an R² denominator based on within-case variation, separating case recognition from response
+prediction.
 
 *Interpolation* holds out 20% of the states inside every case (2460 training, 612 test rows). *Leave one case
 out* holds out each case in turn; the models that predict a case never saw any of its states, but they may have
@@ -171,36 +183,66 @@ payable and dominant carrier mineral: the five chalcopyrite plants together (179
 gold plants together (2560 training, 512 test rows), and each of the other five alone, where it is the same fold as leaving one
 case out; seven groups in all. An autoencoder
 (16, 6 and 16 units) trained on the features gives a guard: its threshold is the 99th percentile of the
-reconstruction errors of its validation rows; its false-alarm rate is measured on the 612 held-out in-envelope
-states, and its false-accept rate on 11 016 probes, each a held-out state pushed past the training range of one
-continuous feature, at six distances from 0.02 to 1.0 of the range, above the maximum and below the minimum.
+reconstruction errors of its validation rows. Its false-alarm rate is measured on the 612 held-out in-envelope
+states. Its headline false-accept rate uses 11,016 probes, each a held-out state pushed half a training span above
+the maximum of one continuous feature. Separate acceptance curves repeat those probes at six distances from
+0.02 to 1.0 spans, independently above the maximum and below the minimum.
+
+## Prediction diagnostics and admissible comparisons
+
+Shape and finiteness are checked before an error is computed. A further gross-range diagnostic compares the
+prediction range with the target range over the complete authored design, expanded by one observed span on each
+side. For reference limits $a$ and $b$, the diagnostic interval is
+
+$$[a-(b-a),\ b+(b-a)].$$
+
+This is a post-inference diagnostic and includes held-out target values. It is not a training-support test,
+an operational constraint, an independent transfer validation or a rule for selecting fitted parameters. No
+prediction is clipped or refitted using these limits. Because the test concerns disjoint ranges, it can miss
+extreme individual predictions when other predictions overlap the interval; passing it does not establish
+physical validity at every state.
+
+A finite transfer forecast wholly outside that interval is retained as a rejected transfer, with null RMSE, MAE
+and R², unmodified observed/predicted/reference ranges, affected-row count and model, target, protocol, fold and
+seed identifiers. The same check applies to every constituent case of a grouped fold, so pooled overlap cannot
+conceal an entirely invalid case. Nonfinite, shape, fitting and programming failures abort evaluation;
+interpolation range failures also abort. Finite poor forecasts inside the diagnostic envelope retain their errors
+and negative R². Unexpected constant forecasts are identified separately from the intentionally constant baseline.
+
+Conditional summaries report attempted, scored and rejected counts beside their error statistics. A missing
+admissible cohort has null metrics. Comparisons across models additionally use the intersection of folds
+admissible for every model, with all excluded identifiers retained. These matched summaries remain conditional
+descriptions of that intersection; they do not erase a model's failed transfers or rank performance over the
+complete planned design. Complete per-fold, per-case and per-seed evidence is retained in the release record.
 
 # Results
 
-## Interpolation and held-out cases answer different questions
+## Interpolation and case holdout
 
-**Table 1.** Recovery, RMSE in percentage points. The last column is the median R² over seven held-out ore groups.
+**Table 1.** Recovery interpolation and conditional leave-one-case-out scores. RMSE is in percentage points. Case counts are scored folds out of twelve attempts; the remaining fold is retained as rejected. Case means, maxima and medians use only each model's scored folds, so their denominators differ.
 
-| Model | Interpolation RMSE | Interpolation R² | Leave one case out: mean RMSE | worst case | median R² | Leave one ore group out: median R² |
-|---|---:|---:|---:|---:|---:|---:|
-| Ridge | 9.46 | 0.617 | 13.68 | 23.05 | -0.127 | -0.774 |
-| Random forest | 6.49 | 0.820 | 13.16 | 48.86 | 0.359 | 0.129 |
-| Histogram gradient boosting | 4.60 | 0.909 | 12.66 | 56.61 | 0.512 | 0.287 |
-| Gaussian process | 5.34 | 0.878 | 10.95 | 27.91 | 0.481 | 0.171 |
-| Perceptron | 3.38 | 0.951 | 26.24 | 239.51 | 0.547 | 0.437 |
+| Model | Interp. RMSE | Interp. R² | Cases scored/12 | Case mean RMSE | Case maximum RMSE | Case median R² |
+|--------------------------|------------:|-----------:|----------:|-----------:|-----------:|-----------:|
+| Ridge | 9.46 | 0.617 | 12 | 13.68 | 23.05 | -0.127 |
+| Random forest | 6.49 | 0.820 | 12 | 13.16 | 48.86 | 0.359 |
+| Histogram gradient boosting | 4.60 | 0.909 | 12 | 12.66 | 56.61 | 0.512 |
+| Gaussian process | 5.34 | 0.878 | 12 | 10.95 | 27.91 | 0.481 |
+| Perceptron | 3.38 | 0.951 | 11 | 6.86 | 12.76 | 0.573 |
 
-The perceptron has the lowest interpolation RMSE (3.38 points) and highest pooled interpolation R² (0.951), while its mean leave-one-case-out RMSE is highest (26.24 points) because the magnetite fold is difficult. The Gaussian process has the lowest mean leave-one-case-out error (10.95 points); the perceptron has the highest median fold R² (0.547). The five-seed record gives the MLP interpolation RMSE range of 3.00 to 3.54 points and mean held-out-case RMSE of 25.05 to 30.10 points. These are different summaries and support no single model ranking for every use.
+The perceptron has the lowest interpolation recovery RMSE (3.38 points) on the common 612-row test set. Its conditional case mean is 6.86 points over eleven scored folds, with one rejected recovery fold. Comparing that value directly with another model's twelve-fold mean would confound model error with cohort selection. Table 3 instead compares the same eleven folds for every model.
 
-## Case-level errors identify where interpolation fails
+The five-seed record gives interpolation RMSE from 3.00 to 3.54 points. The first four seeds each score eleven case folds and reject magnetite; their conditional mean RMSE ranges from 6.86 to 7.63 points. The fifth scores all twelve folds, with a 217.18-point magnetite RMSE and a 25.05-point case mean. The range diagnostic admits that last forecast because its prediction range overlaps the widened reference interval. This very poor finite error remains scored. The five conditional means therefore cannot be interpreted as a stability interval over an identical cohort.
+
+## Case transfer errors
 
 **Table 2.** Recovery RMSE (points) on each held-out case.
 
 | Held-out case | Ridge | Random forest | Gradient boosting | Gaussian process | Perceptron |
-|---|---:|---:|---:|---:|---:|
+|----------------------------------------|-----------:|-----------:|-----------:|-----------:|-----------:|
 | Soft copper porphyry | 12.54 | 11.59 | 9.47 | 11.09 | 5.98 |
-| Hard copper porphyry | 9.62 | 6.72 | 4.82 | 5.07 | 1.72 |
+| Hard copper porphyry | 9.62 | 6.72 | 4.82 | 5.08 | 1.72 |
 | Free-milling gold with gravity | 8.55 | 12.48 | 10.53 | 15.83 | 12.76 |
-| Fine magnetite concentration | 21.01 | 48.86 | 56.61 | 27.91 | 239.51 |
+| Fine magnetite concentration | 21.01 | 48.86 | 56.61 | 27.91 | Rejected |
 | Nickel sulphide with serpentine slimes | 13.47 | 8.49 | 6.80 | 6.66 | 6.61 |
 | Phosphate with clay slimes | 15.85 | 10.04 | 10.05 | 10.83 | 8.93 |
 | Copper-molybdenum bulk flotation | 9.38 | 6.12 | 4.03 | 6.33 | 1.91 |
@@ -208,13 +250,35 @@ The perceptron has the lowest interpolation RMSE (3.38 points) and highest poole
 | Zinc sulphide | 10.87 | 11.88 | 10.18 | 8.49 | 7.26 |
 | Copper ore with clay | 10.69 | 5.99 | 6.06 | 9.47 | 6.57 |
 | Low-grade copper at high throughput | 9.68 | 6.25 | 4.48 | 6.41 | 2.23 |
-| Refractory gold in sulphides | 19.44 | 15.41 | 13.77 | 10.32 | 9.86 |
+| Refractory gold in sulphides | 19.44 | 15.41 | 13.77 | 10.33 | 9.86 |
 
-The copper cases are not uniformly easy: holding out the soft porphyry costs the perceptron 6.0 points, while its error on the hard porphyry, molybdenum and low-grade copper cases is 1.7 to 2.2 points. Mixed high-clay copper is 6.6 points. The magnetite fold remains the largest perceptron error (239.5 points); the tree models also extrapolate poorly there. These model errors are measured against this authored simulator, not a plant assay.
+The copper cases are not uniformly easy: holding out the soft porphyry costs the perceptron 6.0 points, while its error on the hard porphyry, molybdenum and low-grade copper cases is 1.7 to 2.2 points. Mixed high-clay copper is 6.6 points. For all 256 magnetite rows, the base-seed recovery forecast ranges from -195.41 to -127.94%, wholly below the diagnostic interval of -92.94 to 196.38%; the observed simulator recovery is 68.93 to 93.32%. No clipped prediction or replacement error enters Table 2. The tree models also have large finite errors on magnetite. These model errors are measured against the authored simulator, not a plant assay.
+
+**Table 3.** Matched admissible recovery cohorts. Each case column uses eleven of twelve planned folds; each group column uses six of seven. Magnetite is excluded from both intersections because the neural forecast was rejected. RMSE means are unweighted fold means, in percentage points. These are conditional descriptions, not rankings over the complete planned design.
+
+| Model | Case mean RMSE | Case median R² | Group mean RMSE | Group median R² |
+|--------------------------------|----------------:|----------------:|----------------:|----------------:|
+| Ridge | 13.01 | 0.013 | 15.15 | -0.638 |
+| Random forest | 9.92 | 0.430 | 11.53 | 0.209 |
+| Histogram gradient boosting | 8.67 | 0.581 | 10.87 | 0.365 |
+| Gaussian process | 9.40 | 0.498 | 10.95 | 0.318 |
+| Perceptron | 6.86 | 0.573 | 14.60 | 0.455 |
 
 ## Whole-ore-group transfer
 
-When an ore group is held out, median recovery R² across seven groups ranges from -0.774 for ridge to 0.437 for the perceptron. The MLP scores 0.795 on the five chalcopyrite cases held out together and -10.2 on the two gold-in-pyrite cases; the group result is strongly dependent on ore family. Three of five models have a positive median recovery R² across groups, but no such aggregate removes the poor individual-group results. The release therefore reports per-case and per-group errors alongside pooled scores.
+Seven effective ore-group folds are planned: two multi-case groups and five single-case groups. The single-case groups use their already fitted case folds. The perceptron's magnetite rejection therefore also appears in group transfer; its group summary scores six folds, while the other models score seven.
+
+**Table 4.** Conditional ore-group recovery scores. RMSE is in percentage points; counts are scored groups out of seven attempts. The perceptron's one rejected group remains in the record. Table 3 supplies the common six-group comparison.
+
+| Model | Groups scored/7 | Mean RMSE | Maximum RMSE | Median R² |
+|--------------------------------|-------------:|-------------:|-------------:|-------------:|
+| Ridge | 7 | 15.99 | 23.05 | -0.774 |
+| Random forest | 7 | 16.86 | 48.86 | 0.129 |
+| Histogram gradient boosting | 7 | 17.40 | 56.61 | 0.287 |
+| Gaussian process | 7 | 13.37 | 27.91 | 0.171 |
+| Perceptron | 6 | 14.60 | 46.45 | 0.455 |
+
+The MLP scores 0.795 on the five chalcopyrite cases held out together and -10.2 on the two gold-in-pyrite cases, with recovery RMSE of 6.72 and 46.45 points respectively. Over the common six groups, gradient boosting has mean RMSE 10.87 points and the perceptron 14.60 points. The smaller neural case-fold mean does not persist in this grouped comparison. Per-case and per-group evidence is required to locate these differences; an aggregate does not remove the rejected transfer or the poor gold-group result.
 
 ## Energy and upgrade targets
 
@@ -222,15 +286,17 @@ The one-case-out median R² for total specific energy ranges from 0.652 (ridge) 
 
 ## Interval coverage
 
-The Gaussian process intervals are compared with their empirical coverage in the committed record. Coverage is target- and split-specific; the point estimates are not used as a substitute for uncertainty validation. The authored-plant split does not establish calibrated intervals on real plants.
+Nominal 95% Gaussian-process recovery intervals cover 90.7% of interpolation rows and 82.9% of pooled case-held-out rows. The worst case-fold coverage is 35.5%, and four case folds cover fewer than 80% of their rows. These intervals use the GP's own mean and predictive standard deviation. Coverage is target- and split-specific; the authored-plant split does not establish calibrated intervals on real plants.
 
-## The guard
+## Reconstruction guard
 
-The autoencoder guard is evaluated both on in-envelope states and on deliberately shifted probes. Its per-feature and per-distance acceptance rates are recorded in `learning.json`; a low reconstruction error is not treated as proof that an input shift is physically safe. The guard is a screening signal, not a process constraint or a substitute for the operating contract.
+On the held-out interpolation experiment, the autoencoder flags 1.47% of 612 in-envelope states and accepts 15.51% of 11,016 upward-shift probes at half a training span. Its per-feature and per-distance acceptance rates remain in `learning.json`. This validation guard differs from the final guard refitted for deployment. A low reconstruction error is a screening signal, not a process constraint, a guarantee of physical safety or a substitute for the operating contract.
 
-# The method records
+# Kinetic, optimization and sensitivity studies
 
-The engine produces, for each variant, records that do not depend on learning:
+The engine produces kinetic, optimization and sensitivity records for each variant. Kinetic fits,
+sensitivity and unscreened optimization use the mechanistic engine. Screened optimization additionally
+consumes the exported neural surrogate, reconstruction guard and Gaussian-process interval:
 
 - **Kinetic lumping.** Five lumped models fitted to a virtual batch test of the rougher feed, projected to
   the bank under the same residence distribution and compared with the exact bank recovery by true flotation,
@@ -257,10 +323,10 @@ evaluations versus 22,487 without screening, 17.25% more. It saved calls in none
   in seven and the head grade in the other five, the work index drives grinding energy and the head grade
   drives recovered metal in all twelve.
 
-# Measured data, which calibrate nothing
+# Measured-data comparisons
 
-The engine calibrates nothing and is calibrated by nothing. Measured data feed three lanes, and one of them also
-runs through the engine as inputs.
+The authored circuit parameters are not fitted to these datasets. Three measured-data studies are evaluated
+separately; GeoMet assays also supply inputs to an explicit mechanistic comparison.
 
 **Particles.** The HZDR constructed-case workbook (Pereira et al. 2021; RODARE 336, CC BY 4.0) keeps its
 training sheet (68 008 particles with A/B labels) and its test sheet (29 147 particles with constructed
@@ -319,14 +385,15 @@ twelve plants share its structural assumptions. That is a feature of the design,
 is exact and reproducible, and a limit of the conclusion, since a real plant can depart from all twelve at
 once.
 
-Four findings should carry over to any surrogate of a flowsheet model. First, interpolation and transfer are
-different questions, and the model that answers the first best can answer the second worst. Second, holding out
-one plant tests transfer only to the extent that no training plant shares its ore: five copper plants on one
-mineral each look transferable alone and transfer far worse when held out together, so the held-out unit has to be
-the ore, not the plant. Third, transfer error is an average over held-out plants that hides where it fails; the plants unlike
-the others dominate it, and reporting the worst held-out case matters as much as the mean. Fourth, a reconstruction
-guard misses shifts in inputs that do not move with the others, so its false-accept rate must be reported by input
-and by distance.
+Four interpretation limits emerge from this simulator study. First, interpolation and transfer answer
+different questions: a good interpolation score coexists with a rejected transfer and a large finite error
+under another seed. Second, the held-out unit changes the evidence. Sharing a dominant mineral does not make
+whole-case and whole-group tests interchangeable; the two gold cases expose a large grouped error. Third,
+admissibility diagnostics change the scored denominator. A lower conditional mean cannot be presented as an
+improvement over a complete-design mean, and even a matched comparison remains conditional on the shared
+admissible folds. Fourth, reconstruction errors miss some controlled feature shifts, so their acceptance
+rates need the feature, distance and tested population beside them. These observations motivate a measured
+study on real operating periods; they do not prove the same rankings or rates on a plant.
 
 A calibrated study would replace the authored targets by measured metallurgy across operating periods, calibrate the
 engine on some periods and hold out an entire period and an ore family, and score both point error and whether the
@@ -338,11 +405,21 @@ The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The eng
 the browser port, the service and the documentation are versioned together; the source, records and computational environment are versioned with the software release.
 `./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
 workstation with 32 logical cores and an RTX 4070 Laptop GPU, the GPU-accelerated final MLP fit is a computational component of a simulator study over authored cases; it is not plant deployment or evidence of plant-calibrated performance.
+Independent evaluation folds and neural seed runs can execute in bounded spawned workers. External checkpoints
+are accepted only under the same scientific source, JSON constants, release version, case definitions, operating
+contract, settings, dependency versions and compute-runtime fingerprint. Each checkpoint has a verified JSON
+checksum and scientific diagnostics; corrupt or foreign records fail rather than being silently reused.
+Execution metadata distinguishes planned, computed and resumed jobs. Final deployed-model fitting and ONNX parity
+checks remain part of the completed bake. Checkpoint reuse within that identical candidate is distinct from the
+development-only reuse of an earlier release's learning record, which is rejected for publication.
 `./scripts/smoke.ps1` runs the checks: the guards, the Python and frontend suites and the build, with the counts
 of each release in `docs/release-verification.md`. The workbench at
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of any case.
 
 \section*{References}
+
+\begingroup
+\raggedright
 
 - Audet, C. and Dennis, J.E. (2006). Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization 17(1):188-217. doi:10.1137/040603371
 - Audet, C. and Dennis, J.E. (2009). A progressive barrier for derivative-free nonlinear programming. SIAM Journal on Optimization 20(1):445-472. doi:10.1137/070692662
@@ -373,3 +450,5 @@ https://oreflow.ml.fasl-work.com runs the engine in the browser on any state of 
 - Torczon, V. (1997). On the convergence of pattern search algorithms. SIAM Journal on Optimization 7(1):1-25. doi:10.1137/S1052623493250780
 - Trahar, W.J. (1981). A rational interpretation of the role of particle size in flotation. International Journal of Mineral Processing 8(4):289-327. doi:10.1016/0301-7516(81)90019-3
 - Vinnett, L. and Waters, K.E. (2025). The use of compressed exponentials for kinetic modelling of batch flotation. Minerals Engineering 226:109246. doi:10.1016/j.mineng.2025.109246
+
+\endgroup

@@ -551,9 +551,12 @@ export function Chart({ data, series, xLabel, yLabel, title, summary, marks, lev
           {(JSON.parse(markKey) as string[]).map((label, i) => <li key={i}><b>{i + 1}</b>{label}</li>)}
         </ol>
       )}
-      {!categories && <span id={hintId} className="of-chart-nav-hint">{lang === 'es'
-        ? 'Arrastre: zoom · Mayús+arrastre / Mayús+←→: desplazar · Esc / doble clic: restablecer'
-        : 'Drag: zoom · Shift+drag / Shift+←→: pan · Esc / double-click: reset'}</span>}
+      {!categories && <details className="of-chart-help">
+        <summary>{lang === 'es' ? 'Navegación' : 'Navigation'}</summary>
+        <span id={hintId} className="of-chart-nav-hint">{lang === 'es'
+          ? 'Arrastre: zoom · Mayús+arrastre / Mayús+←→: desplazar · Esc / doble clic: restablecer'
+          : 'Drag: zoom · Shift+drag / Shift+←→: pan · Esc / double-click: reset'}</span>
+      </details>}
       {zoomed && <button type="button" className="of-plot-reset" onClick={reset}>{t(UI.resetZoom, lang)}</button>}
       <details className="of-chart-data">
         <summary>{lang === 'es' ? 'Tabla de datos' : 'Data table'}</summary>

@@ -8,7 +8,7 @@ OreFlow charts inspect the data already displayed. Navigation never invokes a ne
 - Hold **Shift** while dragging to pan the zoomed window; the data follows the pointer. **Shift+Left/Right** moves the window by 20% of its current span.
 - **Left/Right** without Shift keeps the existing sample cursor. The existing view readout reports its values.
 - **Escape**, a double-click, or **Reset zoom / Restablecer zoom** restores the original displayed x domain, including histogram half bins and the chart's original padding.
-- The visible navigation hint describes the gesture in the interface language. The focused chart references that hint and its accessible data table.
+- Open **Navigation / Navegación** beside **Data table / Tabla de datos** for the gesture instructions in the interface language. The native disclosure is keyboard-operated and opens over the chart; it does not reserve a permanent instruction row in every instrument. The focused chart references the complete instructions and its accessible data table.
 
 Pan is horizontal, stays within the original displayed numeric domain, and preserves the visible span. On logarithmic x axes it preserves the visible ratio by translating in log space. Y scales, annotations, legend toggles and inset ownership are unchanged. Categorical charts keep their existing cursor and legend behavior and have no pan/brush navigation.
 
@@ -52,6 +52,6 @@ node chart-interactions-gate.mjs
 
 Evidence storage uses explicit `OF_CHART_EVIDENCE` first, otherwise `CAOS_TEMP_ROOT/oreflow-chart-interactions`, otherwise `OF_CHART_TASK_ROOT/oreflow-chart-interactions` for a configured external task root. With none configured the gate stops before browser launch. Product-repository and system-temp destinations are rejected; there is no implicit system-temp or repository fallback.
 
-For a focused rerun, `OF_CHART_SCENARIO` can match a scenario tag; leave it unset for the complete gate. Phone Focus keeps its content in a product scroller between the existing label/actions and HUD overlays, with the full chart width available.
+For a focused rerun, `OF_CHART_SCENARIO` can match a scenario tag; leave it unset for the complete gate. Phone Focus keeps its controls, heatmap and linked slice in a product scroller between the existing label/actions and HUD overlays. The heatmap height follows that visible scroller (with legible bounded dimensions), so lower source cells can actually be touched rather than remaining clipped below the HUD. The full chart width and existing font sizes are preserved.
 
 The gate launches Playwright against the real UI and actual worker grid. It checks pointer/keyboard line pan, including log axes; source-exact slices; reversible scale/viewport/selection; invalidation; and desktop/phone, normal/Focus, EN/ES, light/dark combinations. It saves screenshots to the evidence directory and prints a final check count. The default base is port 4914; a bounded dev server can be supplied through `OF_BASE`. A local interaction pass is scoped evidence; main owns final integrated release, full shell/browser matrix, pipeline and deployment validation.

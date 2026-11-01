@@ -9,7 +9,7 @@ Return to [15 The CAOS app shell](../15_caos-app-shell.md).
 public visibility, MIT licence, the architecture modal, the repository link and bilingual footer
 attribution, provenance and research disclaimer. `applyTheme(readTheme())` runs before rendering.
 
-The configuration sets both `contain: true` and `fixedRoutes: ["/app"]`. In installed shell `0.19.9`,
+The configuration sets both `contain: true` and `fixedRoutes: ["/app"]`. In installed shell `0.19.10`,
 `contain: true` makes the shell contained on every route; `fixedRoutes` does not restrict containment
 to the workbench. The shell owns the viewport and its main content scroll area. Its CSS gives document
 pages internal vertical scrolling and has a narrow-screen fallback to page scrolling at 860 px.
@@ -26,6 +26,10 @@ The old product reset of `html`, `body` and `#root` heights is absent.
 
 The Introduction is imported eagerly for the landing view. The other content pages and workbench
 load lazily behind a suspense boundary. Focus is not a separate mounted route outside `AppShell`.
+
+The Introduction composes `SurfacePage` with `document`, retaining its tabs and Focus behavior. The shell owns
+the full-column document framing, padding and lede. The product passes the lede as text and supplies no second
+`page-body` wrapper or local framing override. This adopts the shared document mode released in `0.19.10`.
 
 ## Workbench and focus composition
 
@@ -67,7 +71,7 @@ styles use shell tokens for process views, figures, tables and controls.
 ## Customizations still present
 
 These are source observations, not newly measured browser results. Historical defect comments in
-product source are not proof that the same defect remains in `0.19.9`.
+product source are not proof that the same defect remains in `0.19.10`.
 
 | Location | Current customization and scope |
 |---|---|

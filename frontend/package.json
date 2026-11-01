@@ -20,7 +20,7 @@
     "contracts:check": "node ../scripts/generate_contract_types.mjs --check"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "0.19.9",
+    "@fasl-work/caos-app-shell": "0.19.10",
     "ajv": "8.20.0",
     "katex": "0.19.1",
     "lucide-react": "1.43.0",
@@ -40,6 +40,6 @@
     "playwright": "1.61.0",
     "typescript": "7.0.2",
     "vite": "8.3.5",
-    "vitest": "5.0.0"
+    "vitest": "5.0.5"
   }
 }

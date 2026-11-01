@@ -145,7 +145,7 @@ notebooks/
   ladder has a level 3 notebook that names it in `caos.methods` (from 0.13.000, [guide 09](09_method-comparison-and-reports.md)).
 - Every component the SDD claims beyond the state of the art has a level 4 notebook (next section).
 
-## 3. Claim and cover a component beyond the state of the art
+## 3. Document and test a proposed research method
 
 The SDD's section `## Beyond the state of the art` lists the product's proposed methods beyond the state of the art (a
 product must propose at least one; `None claimed.` is valid only in the template's own example,

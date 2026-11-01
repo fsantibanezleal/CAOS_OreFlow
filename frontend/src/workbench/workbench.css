@@ -326,6 +326,7 @@ input, select, textarea { font: inherit; }
   border-radius: 8px;
   background: var(--color-surface);
 }
+.of-plot { padding: 2px 2px 0; }
 .of-stage > .of-plot, .of-stage > .of-heatmap, .of-split > .of-plot, .of-stack > .of-plot { flex: 1 1 auto; }
 .of-plot-head { flex: none; display: flex; align-items: baseline; gap: 10px; min-width: 0; padding: 0 4px 4px; }
 .of-plot-title { flex: none; font-size: 0.78rem; font-weight: 650; color: var(--color-fg); white-space: nowrap; }
@@ -644,7 +645,11 @@ input, select, textarea { font: inherit; }
 .of-plot-key b { margin-right: 4px; color: var(--color-fg); font-weight: 600; }
 
 /* Product analytical navigation: compact controls, no shell layout overrides. */
-.of-chart-nav-hint { flex: none; padding: 1px 4px; font-size: 0.65rem; line-height: 1.3; color: var(--color-fg-subtle); }
+/* Gestures remain discoverable beside the data table, without a permanent row per chart.
+   Both are native keyboard-operated disclosures; the plot retains its full description. */
+.of-chart-help { position: absolute; right: 10px; bottom: 2px; z-index: 4; font-size: 0.72rem; }
+.of-chart-help > summary { cursor: pointer; width: fit-content; margin-left: auto; color: var(--color-fg-subtle); }
+.of-chart-nav-hint { position: absolute; bottom: calc(100% + 6px); right: 0; width: min(400px, 70vw); padding: 10px; border: 1px solid var(--color-border); border-radius: 6px; background: var(--color-surface); font-size: 0.75rem; line-height: 1.4; color: var(--color-fg); }
 .of-chart-tools { display: flex; flex: none; flex-wrap: wrap; align-items: center; gap: 3px 6px; padding: 0 4px 3px; font-size: 0.7rem; }
 .of-chart-tools label { display: inline-flex; align-items: center; gap: 4px; min-width: 0; }
 .of-chart-tools select, .of-chart-tools button, .of-slice-control select { border: 1px solid var(--color-border); border-radius: 4px; background: var(--color-surface-2); color: var(--color-fg); padding: 2px 5px; font: inherit; }
@@ -689,5 +694,9 @@ input, select, textarea { font: inherit; }
 .of-response-focus > .of-response-content { overflow: auto; }
 @media (max-width: 900px) {
   .of-response-focus { padding-top: 128px; padding-bottom: 48px; }
+  .of-response-focus > .of-response-content { container-type: size; }
   .of-response-focus > .of-response-content > .of-stage { flex: 0 0 auto; min-height: 480px; }
+  /* The canvas must fit the visible scroller: an oversized canvas can be centred while
+     its lower cells remain clipped under the HUD. Keep controls/slices in that scroller. */
+  .of-response-focus .of-response-analysis > .of-heatmap { flex: 0 0 auto; height: clamp(320px, 100cqh, 420px); }
 }

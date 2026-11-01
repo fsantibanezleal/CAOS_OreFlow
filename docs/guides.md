@@ -15,6 +15,7 @@ checks, in order. For what the pieces are and why, see [architecture](architectu
 | [08 Build and maintain the notebooks](guides/08_notebooks.md) | run the bilingual lessons, reproduce their outputs, and check the notebook contract |
 | [09 Method comparisons and reports](guides/09_method-comparison-and-reports.md) | define fair method comparisons, interpret the screening result and maintain citable research reports |
 | [10 Chart navigation](guides/10_chart-navigation.md) | zoom, pan and inspect a linked slice of an operating-response surface |
+| [11 Collect release results](guides/11_release-results.md) | export source-verified conditional and matched model results, rejected transfers and paired optimizer evidence |
 
 Every command is given for PowerShell on Windows, the development platform; each script has a bash twin
 with the same name and behaviour (`scripts/*.sh`).

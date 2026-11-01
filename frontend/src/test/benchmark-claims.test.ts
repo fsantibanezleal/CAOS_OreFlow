@@ -1,7 +1,18 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
+import { createElement, type ComponentProps } from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { readLearningRecord } from '../contracts/boundaries';
+import type { LearningRecord, TargetScores } from '../generated/oreflow-learning-v2';
+import { transferFoldEvidence } from '../contracts/learning-evidence';
+import { LearningEvidence } from '../content/implementation/learned';
+import { LearningComparison } from '../learning/comparison';
+import * as ChartModule from '../components/charts/Chart';
+import { formatFixed, formatFraction, formatSignificant, type Lang } from '../lib/format';
+import { learningSeries, LEARNING_MODELS } from '../learning/evidence';
+import authoredLearningFixture from '../../../tests/contracts/fixtures/learning-v2.json';
 import { ENGINE_BENCHMARK } from '../content/benchmark';
 
 // The Benchmark page states the published-example checks, the method records' findings, the learned
@@ -43,12 +54,150 @@ const benchmark = read<{
   optimization: Record<string, Record<string, Opt>>;
   uncertainty: Record<string, { recovery_pct: Record<string, number>; probabilities: Record<string, number>; dominant_input: Record<string, string> }>;
 }>('benchmark.json');
-const learning = read<{
-  summary: Record<string, Record<string, { interpolation_r2: number; loco_r2_median: number; loco_rmse_mean: number; transfer_r2_median: number; transfer_rmse_mean: number }>>;
-  interpolation: { models: { gaussian_process: Record<string, { coverage_95: number }> } };
-  guard: { false_alarm_rate: number; false_accept_rate: number; false_accept_by_feature: Record<string, number> };
-  leave_one_case_out: Array<{ held_out: string; held_out_flag_rate: number; models: Record<string, Record<string, { rmse: number; r2: number }>> }>;
-}>('learning.json');
+// Keep real-data adoption as one failing boundary, rather than crashing test collection
+// or reporting obsolete numeric/ranking failures for every learning assertion.
+const readRealLearning = (): LearningRecord => readLearningRecord(read<unknown>('learning.json'));
+
+const cellText = (html: string): string => html.replace(/<[^>]+>/g, '')
+  .replace(/&#x27;|&#39;/g, "'").replace(/&quot;/g, '"').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&');
+
+function tableRows(html: string, caption: string): string[][] {
+  const table = [...html.matchAll(/<table\b[^>]*>([\s\S]*?)<\/table>/g)]
+    .find(match => cellText(match[1].match(/<caption[^>]*>([\s\S]*?)<\/caption>/)?.[1] ?? '') === caption);
+  expect(table, `missing rendered table: ${caption}`).toBeDefined();
+  const body = table![1].match(/<tbody>([\s\S]*?)<\/tbody>/)?.[1];
+  expect(body, `missing body: ${caption}`).toBeDefined();
+  return [...body!.matchAll(/<tr\b[^>]*>([\s\S]*?)<\/tr>/g)]
+    .map(row => [...row[1].matchAll(/<(?:th|td)\b[^>]*>([\s\S]*?)<\/(?:th|td)>/g)].map(cell => cellText(cell[1])));
+}
+
+const unavailable = (lang: Lang) => lang === 'en' ? 'Unavailable' : 'No disponible';
+const metricText = (value: number | null | undefined, lang: Lang) => value == null ? unavailable(lang) : formatSignificant(value, lang, 3, true);
+const coverageText = (value: number | null | undefined, lang: Lang) => value == null ? unavailable(lang) : formatFraction(value, lang, 1);
+const countsText = (attempted: number, scored: number, rejected: number, lang: Lang) => lang === 'en'
+  ? `${formatFixed(attempted, lang, 0)} planned / ${formatFixed(scored, lang, 0)} scored / ${formatFixed(rejected, lang, 0)} rejected`
+  : `${formatFixed(attempted, lang, 0)} previstas / ${formatFixed(scored, lang, 0)} evaluadas / ${formatFixed(rejected, lang, 0)} rechazadas`;
+
+function expectMetric(actual: number | null, expected: number | null): void {
+  if (expected === null) expect(actual).toBeNull();
+  else { expect(actual).not.toBeNull(); expect(actual!).toBeCloseTo(expected, 9); }
+}
+
+function conditionalMetrics(scores: TargetScores[]) {
+  const scored = scores.filter(score => score.status === 'scored');
+  const r2s = scored.map(score => score.r2).sort((a, b) => a - b);
+  return {
+    attempted: scores.length, scored: scored.length, rejected: scores.length - scored.length,
+    mean: scored.length ? scored.reduce((sum, score) => sum + score.rmse, 0) / scored.length : null,
+    max: scored.length ? Math.max(...scored.map(score => score.rmse)) : null,
+    median: r2s.length ? (r2s[Math.floor((r2s.length - 1) / 2)] + r2s[Math.floor(r2s.length / 2)]) / 2 : null,
+  };
+}
+
+function expectScoreCell(cell: string, score: TargetScores, lang: Lang): void {
+  if (score.status === 'scored') {
+    expect(cell).toBe(metricText(score.r2, lang));
+    expect(score.valid_for_scoring).toBe(true);
+    expect([score.rmse, score.mae, score.r2].every(Number.isFinite)).toBe(true);
+    return;
+  }
+  expect(score.valid_for_scoring).toBe(false);
+  expect([score.rmse, score.mae, score.r2]).toEqual([null, null, null]);
+  expect(score.rejection.code).toBe('observable-range');
+  expect(score.rejection.reason.trim()).not.toBe('');
+  expect(score.rejection.affected_rows).toBeGreaterThan(0);
+  const diagnostic = [score.observable, ...Object.values(score.observable_by_case ?? {})].find(item => item.status === 'rejected-outside-range');
+  expect(diagnostic).toBeDefined();
+  expect(cell).toContain(lang === 'en' ? 'Rejected: prediction range' : 'Rechazado: rango de predicción');
+  expect(cell).toContain(lang === 'en' ? 'outside allowed envelope' : 'fuera de la envolvente admisible');
+  for (const range of [diagnostic!.prediction_range, diagnostic!.allowed_range]) {
+    expect(cell).toContain(`[${range.map(value => formatSignificant(value, lang, 4)).join('; ')}]`);
+  }
+  expect(cell).toContain(formatFixed(score.rejection.affected_rows, lang, 0));
+  expect(cell).not.toMatch(/NaN|Infinity/);
+}
+
+function expectRenderedLearning(record: LearningRecord): void {
+  for (const lang of ['en', 'es'] as const) {
+    const names = record.models.map(model => LEARNING_MODELS[model][lang]);
+    for (const target of record.targets) {
+      const html = renderToStaticMarkup(createElement(LearningEvidence, { record, target, lang }));
+      const protocols = [
+        { id: 'leave_one_case_out' as const, prefix: 'loco' as const, title: lang === 'en' ? 'One case out' : 'Un caso fuera', folds: record.leave_one_case_out.map(fold => ({ id: fold.held_out, models: fold.models, flagRate: fold.held_out_flag_rate })) },
+        { id: 'transfer' as const, prefix: 'transfer' as const, title: lang === 'en' ? 'One ore group out' : 'Un grupo de mineral fuera', folds: transferFoldEvidence(record) },
+      ];
+      for (const protocol of protocols) {
+        const conditionalCaption = `${protocol.title}: ${lang === 'en' ? 'Conditional performance' : 'Rendimiento condicional'}`;
+        const expectedRows = record.models.map((model, i) => {
+          const summary = record.summary[model][target], counts = summary[`${protocol.prefix}_folds`];
+          return [names[i], metricText(summary[`${protocol.prefix}_r2_median`], lang), metricText(summary[`${protocol.prefix}_rmse_mean`], lang), countsText(counts.attempted, counts.scored, counts.rejected, lang)];
+        });
+        expect(tableRows(html, conditionalCaption)).toEqual(expectedRows);
+
+        const cohort = record.common_cohorts[protocol.id][target];
+        const commonTitle = lang === 'en' ? 'Matched common folds' : 'Particiones comunes entre modelos';
+        const commonCaption = `${commonTitle}: ${formatFixed(cohort.folds.length, lang, 0)} / ${formatFixed(cohort.attempted, lang, 0)}`;
+        // Scope each common table to its protocol: equal coverage counts can give
+        // both protocol tables the same caption while their metrics differ.
+        const section = [...html.matchAll(/<section aria-label="([^"]+)">([\s\S]*?)<\/section>/g)].find(match => match[1] === protocol.title)?.[2];
+        expect(section).toBeDefined();
+        expect(tableRows(section!, commonCaption)).toEqual(record.models.map((model, i) => [names[i], metricText(cohort.models[model].r2_median, lang), metricText(cohort.models[model].rmse_mean, lang)]));
+        const excluded = cohort.excluded.length ? cohort.excluded.join(', ') : lang === 'en' ? 'None' : 'Ninguna';
+        expect(cellText(section!)).toContain(`${lang === 'en' ? 'Excluded folds' : 'Particiones excluidas'}: ${excluded}.`);
+        if (!cohort.folds.length) expect(cellText(section!)).toContain(lang === 'en' ? 'No common admissible folds. Model comparison is unavailable.' : 'No hay particiones admisibles comunes. La comparación entre modelos no está disponible.');
+        else expect(cellText(section!)).toContain(`${commonTitle}: ${cohort.folds.join(', ')}.`);
+
+        if (protocol.folds.length) {
+          const rows = tableRows(html, `${protocol.title}: R²`);
+          expect(rows).toHaveLength(protocol.folds.length);
+          protocol.folds.forEach((fold, i) => {
+            expect(rows[i].slice(0, 2)).toEqual([fold.id, formatFraction(fold.flagRate, lang, 0)]);
+            record.models.forEach((model, j) => expectScoreCell(rows[i][j + 2], fold.models[model][target], lang));
+          });
+        }
+      }
+
+      const seedSummary = record.mlp_seeds.summary[target];
+      expect(tableRows(html, lang === 'en' ? 'MLP seed stability: conditional one-case-out metrics' : 'Estabilidad del MLP entre semillas: métricas condicionales con un caso fuera'))
+        .toEqual(record.mlp_seeds.seeds.map((seed, i) => {
+          const counts = seedSummary.loco_folds[i];
+          return [formatFixed(seed, lang, 0), metricText(seedSummary.loco_r2_median[i], lang), metricText(seedSummary.loco_rmse_mean[i], lang), countsText(counts.attempted, counts.scored, counts.rejected, lang)];
+        }));
+      const seedRows = tableRows(html, `${lang === 'en' ? 'One case out / Interpolation' : 'Un caso fuera / Interpolación'}: R²`);
+      expect(seedRows).toHaveLength(Object.keys(record.mlp_seeds.scores).length);
+      Object.entries(record.mlp_seeds.scores).forEach(([split, targets], i) => {
+        expect(seedRows[i][0]).toBe(split === 'interpolation' ? lang === 'en' ? 'Interpolation' : 'Interpolación' : split);
+        targets[target].forEach((score, j) => expectScoreCell(seedRows[i][j + 1], score, lang));
+      });
+      const text = cellText(html), gp = record.summary.gaussian_process[target];
+      expect(text).toContain(`${lang === 'en' ? 'Case-mean baseline R²' : 'R² de la referencia de media por caso'}: ${metricText(record.interpolation.case_mean_baseline[target].r2, lang)}.`);
+      expect(text).toContain(`${lang === 'en' ? 'Gaussian-process interpolation interval coverage' : 'Cobertura de intervalos del proceso gaussiano en interpolación'}: ${formatFraction(record.interpolation.models.gaussian_process[target].coverage_95, lang, 1)}.`);
+      expect(text).toContain(`${lang === 'en' ? 'Gaussian-process interval coverage with one case out (conditional pooled / worst fold): ' : 'Cobertura de intervalos del proceso gaussiano con un caso fuera (agrupada condicional / peor partición): '}${coverageText(gp.loco_coverage_pooled, lang)} / ${coverageText(gp.loco_coverage_worst, lang)}`);
+      expect(text).not.toMatch(/NaN|Infinity/);
+      if (lang === 'es') expect(text).not.toMatch(/Unavailable|Rejected|planned|scored|prediction range/);
+    }
+
+    const plots: Array<ComponentProps<typeof ChartModule.Chart>> = [];
+    const chart = vi.spyOn(ChartModule, 'Chart').mockImplementation(props => {
+      plots.push(props); return createElement('figure', { 'aria-label': props.title }, props.summary);
+    });
+    try {
+      const html = renderToStaticMarkup(createElement(LearningComparison, { record, lang }));
+      expect(plots).toHaveLength(1);
+      const target = 'recovery_pct', cohort = record.common_cohorts.transfer[target];
+      expect(plots[0].data).toEqual([record.models.map((_, i) => i), record.models.map(model => record.summary[model][target].interpolation_r2), record.models.map(model => cohort.models[model].r2_median)]);
+      expect(plots[0].categories).toEqual(names);
+      expect(plots[0].series[1].label).toBe(lang === 'en' ? 'Matched common folds' : 'Particiones comunes entre modelos');
+      expect(plots[0].summary).toContain(lang === 'en' ? 'gaps' : 'huecos');
+      for (const model of record.models) {
+        const counts = record.summary[model][target].transfer_folds;
+        expect(cellText(html)).toContain(countsText(counts.attempted, counts.scored, counts.rejected, lang));
+      }
+      const comparisonSelect = [...html.matchAll(/<select[^>]*>([\s\S]*?)<\/select>/g)][2]?.[1];
+      expect(comparisonSelect).toMatch(/<option(?=[^>]*value="common")(?=[^>]*selected="")[^>]*>/);
+    } finally { chart.mockRestore(); }
+  }
+}
 
 describe('the Benchmark page says what the records hold', () => {
   it('published examples: Moly-Cop, GMG, Laplante and Zandrivierspoort as quoted', () => {
@@ -251,52 +400,113 @@ describe('the Benchmark page says what the records hold', () => {
     expect(limits).toMatch(/Sobol indices are precomputed only/);
   });
 
-  it('learned lane: interpolation and transfer rank the models as quoted, and the guard behaves as described', () => {
-    const s = learning.summary, models = Object.keys(s);
-    expect(round(s.mlp.recovery_pct.interpolation_r2, 3)).toBe(0.951);
-    expect(models.every(m => s[m].recovery_pct.interpolation_r2 <= s.mlp.recovery_pct.interpolation_r2)).toBe(true);
-    expect([round(s.mlp.recovery_pct.loco_r2_median, 3), round(s.mlp.recovery_pct.loco_rmse_mean, 1)]).toEqual([0.547, 26.2]);
-    expect(round(s.mlp.recovery_pct.loco_rmse_mean, 1)).toBe(26.2);
-    const gb = s.hist_gradient_boosting.recovery_pct, rf = s.random_forest.recovery_pct;
-    expect([round(gb.loco_r2_median, 3), round(gb.loco_rmse_mean, 1), round(rf.loco_rmse_mean, 1)]).toEqual([0.512, 12.7, 13.2]);
-    // the MLP has the best median one-case-out R² on recovery, gradient boosting next
-    const byMedian = [...models].sort((a, b) => s[b].recovery_pct.loco_r2_median - s[a].recovery_pct.loco_r2_median);
-    expect(byMedian.slice(0, 2)).toEqual(['mlp', 'hist_gradient_boosting']);
-    expect(round(s.gaussian_process.recovery_pct.loco_rmse_mean, 1)).toBe(10.9);
-    const folds = learning.leave_one_case_out, fold = (id: string) => folds.find(f => f.held_out === id)!;
-    const magnetite = fold('iron_magnetite_fine'), phosphate = fold('phosphate_clay');
-    const worstFold = folds.reduce((a, b) => (b.models.mlp.recovery_pct.rmse > a.models.mlp.recovery_pct.rmse ? b : a));
-    expect([worstFold.held_out, Math.round(phosphate.models.mlp.recovery_pct.rmse), Math.round(magnetite.models.mlp.recovery_pct.rmse)]).toEqual(['iron_magnetite_fine', 9, 240]);
-    expect(magnetite.models.mlp.recovery_pct.rmse).toBeGreaterThan(100); // only predictions outside 0 to 100% can give this
-    const copper = ['copper_porphyry_soft', 'copper_porphyry_hard', 'copper_molybdenum', 'mixed_ore_high_clay', 'low_grade_copper'];
-    for (const id of copper) {
-      const m = fold(id).models;
-      if (id === 'mixed_ore_high_clay') expect(m.random_forest.recovery_pct.rmse).toBeLessThan(m.mlp.recovery_pct.rmse);
-      else expect(m.mlp.recovery_pct.rmse).toBeLessThan(Math.min(...Object.entries(m).filter(([k]) => k !== 'mlp').map(([, v]) => v.recovery_pct.rmse)));
+  it('learning-v2: real artifact boundary, conditional denominators, matched cohorts and rendered evidence', () => {
+    // This read must fail on a v1 production artifact. Every assertion below then
+    // waits on the same explicit data dependency, without skips or fallback data.
+    const record = readRealLearning();
+    expect(record.schema).toBe('oreflow.learning/v2');
+    expect(record.leave_one_case_out.map(fold => fold.held_out).sort()).toEqual([...record.design.cases].sort());
+
+    // Reconstruct the transfer denominator independently: grouped holdouts and
+    // each singleton group's case holdout contribute once each.
+    const groups = new Map<string, string[]>();
+    for (const [id, group] of Object.entries(record.transfer_groups)) groups.set(group, [...groups.get(group) ?? [], id]);
+    const transfer = [...groups].map(([id, members]) => {
+      if (members.length === 1) {
+        const fold = record.leave_one_case_out.find(fold => fold.held_out === members[0]);
+        expect(fold, `missing singleton transfer ${id}`).toBeDefined();
+        return { id, models: fold!.models };
+      }
+      const fold = record.leave_one_group_out.find(fold => fold.held_out_group === id);
+      expect(fold, `missing grouped transfer ${id}`).toBeDefined();
+      expect([...fold!.cases].sort()).toEqual([...members].sort());
+      return { id, models: fold!.models };
+    });
+    const protocols = [
+      { id: 'leave_one_case_out' as const, prefix: 'loco' as const, folds: record.leave_one_case_out.map(fold => ({ id: fold.held_out, models: fold.models })) },
+      { id: 'transfer' as const, prefix: 'transfer' as const, folds: transfer },
+    ];
+    for (const target of record.targets) {
+      for (const model of record.models) {
+        const interpolation = record.interpolation.models[model][target], summary = record.summary[model][target];
+        expect(interpolation.status).toBe('scored');
+        expect(interpolation.rows).toBe(record.interpolation.test_rows);
+        expectMetric(summary.interpolation_rmse, interpolation.rmse);
+        expectMetric(summary.interpolation_r2, interpolation.r2);
+        expectMetric(summary.interpolation_r2_within_case, interpolation.r2_within_case ?? null);
+        expectMetric(summary.case_mean_r2, record.interpolation.case_mean_baseline[target].r2);
+      }
+      for (const protocol of protocols) {
+        const matched = protocol.folds.filter(fold => record.models.every(model => fold.models[model][target].status === 'scored'));
+        const excluded = protocol.folds.filter(fold => !matched.includes(fold));
+        const cohort = record.common_cohorts[protocol.id][target];
+        expect(cohort.attempted).toBe(protocol.folds.length);
+        expect([...cohort.folds].sort()).toEqual(matched.map(fold => fold.id).sort());
+        expect([...cohort.excluded].sort()).toEqual(excluded.map(fold => fold.id).sort());
+        expect(new Set([...cohort.folds, ...cohort.excluded]).size).toBe(protocol.folds.length);
+        for (const model of record.models) {
+          const scores = protocol.folds.map(fold => fold.models[model][target]);
+          const expected = conditionalMetrics(scores), summary = record.summary[model][target];
+          expect(summary[`${protocol.prefix}_folds`]).toEqual({ attempted: expected.attempted, scored: expected.scored, rejected: expected.rejected });
+          expectMetric(summary[`${protocol.prefix}_rmse_mean`], expected.mean);
+          expectMetric(summary[`${protocol.prefix}_rmse_max`], expected.max);
+          expectMetric(summary[`${protocol.prefix}_r2_median`], expected.median);
+          const common = conditionalMetrics(matched.map(fold => fold.models[model][target]));
+          expectMetric(cohort.models[model].rmse_mean, common.mean);
+          expectMetric(cohort.models[model].r2_median, common.median);
+          for (const [comparison, values] of [
+            ['conditional', record.models.map(model => record.summary[model][target][`${protocol.prefix}_r2_median`])],
+            ['common', record.models.map(model => cohort.models[model].r2_median)],
+          ] as const) expect(learningSeries(record, target, protocol.id, comparison)).toEqual(values);
+        }
+      }
+
+      const seeds = record.mlp_seeds;
+      expect(Object.keys(seeds.scores).sort()).toEqual(['interpolation', ...record.design.cases].sort());
+      for (const [split, targets] of Object.entries(seeds.scores)) {
+        expect(targets[target]).toHaveLength(seeds.seeds.length);
+        targets[target].forEach((score, i) => {
+          expect(score.evaluation).toMatchObject({ method: 'mlp', target, fold: split, seed: seeds.seeds[i] });
+          if (split !== 'interpolation') expect(seeds.summary[target].loco_rmse_by_case[split][i]).toBe(score.rmse);
+        });
+      }
+      seeds.seeds.forEach((_, i) => {
+        const expected = conditionalMetrics(record.design.cases.map(id => seeds.scores[id][target][i]));
+        expect(seeds.summary[target].loco_folds[i]).toEqual({ attempted: expected.attempted, scored: expected.scored, rejected: expected.rejected });
+        expectMetric(seeds.summary[target].loco_rmse_mean[i], expected.mean);
+        expectMetric(seeds.summary[target].loco_r2_median[i], expected.median);
+        expect(seeds.summary[target].interpolation_rmse[i]).toBe(seeds.scores.interpolation[target][i].rmse);
+      });
+
+      const gp = record.interpolation.models.gaussian_process[target];
+      expect(gp.training_rows).toBe(Math.min(record.settings.gp_training_rows, record.interpolation.train_rows));
+      expect(gp.kernel).toBeTypeOf('string');
+      expect(Object.keys(gp.length_scales ?? {}).sort()).toEqual([...record.features].sort());
+      if (gp.training_rows! < record.interpolation.train_rows) for (const model of ['ridge', 'random_forest', 'hist_gradient_boosting']) {
+        const equalRows = record.equal_rows[model];
+        expect(equalRows, `missing equal-training-row score for ${model}`).toBeDefined();
+        expect(equalRows![target]).toMatchObject({ status: 'scored', rows: record.interpolation.test_rows, evaluation: { method: model, target, protocol: 'interpolation' } });
+      }
+      const covered = record.leave_one_case_out.map(fold => fold.models.gaussian_process[target]).filter(score => score.status === 'scored');
+      const coveredRows = covered.reduce((sum, score) => sum + score.rows, 0);
+      expectMetric(record.summary.gaussian_process[target].loco_coverage_pooled ?? null, covered.length ? covered.reduce((sum, score) => sum + score.coverage_95 * score.rows, 0) / coveredRows : null);
+      expectMetric(record.summary.gaussian_process[target].loco_coverage_worst ?? null, covered.length ? Math.min(...covered.map(score => score.coverage_95)) : null);
     }
-    const energy = models.filter(m => m !== 'ridge').map(m => s[m].specific_energy_total_kwh_t.loco_r2_median);
-    expect([round(Math.min(...energy), 3), round(Math.max(...energy), 3)]).toEqual([0.900, 0.952]);
-    expect(models.filter(m => m !== 'mlp').every(m => s[m].log_upgrade.loco_r2_median < 0)).toBe(true);
-    expect(round(s.mlp.log_upgrade.loco_r2_median, 3)).toBe(0.243);
-    const gp = learning.interpolation.models.gaussian_process;
-    const coverage = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'].map(t => 100 * gp[t].coverage_95);
-    expect(coverage.map(c => round(c, 1))).toEqual([90.7, 91.3, 93.8]);
-    expect(coverage.every(c => c < 95)).toBe(true);
-    expect(round(100 * learning.guard.false_alarm_rate, 1)).toBe(1.5);
-    expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(15.5);
-    const byFeature = learning.guard.false_accept_by_feature;
-    const blind = ['crusher_css_mm', 'water_m3_t', 'circulating_load'];
-    expect(Object.keys(byFeature).sort((a, b) => byFeature[b] - byFeature[a]).slice(0, 3)).toEqual(blind);
-    expect(blind.map(f => Math.round(100 * byFeature[f]))).toEqual([95, 69, 42]);
-    const accepted = Object.values(byFeature).reduce((a, b) => a + b, 0), fromBlind = blind.reduce((a, f) => a + byFeature[f], 0);
-    expect(Math.round(100 * fromBlind / accepted)).toBe(74);
-    const flagged = folds.filter(f => f.held_out_flag_rate === 1).map(f => f.held_out).sort();
-    expect(flagged).toEqual(['copper_oxide', 'iron_magnetite_fine', 'phosphate_clay', 'refractory_gold']);
-    expect([Math.round(100 * fold('nickel_sulphide').held_out_flag_rate), Math.round(100 * fold('zinc_sulfide').held_out_flag_rate)]).toEqual([71, 9]);
-    expect(round(100 * fold('mixed_ore_high_clay').held_out_flag_rate, 1)).toBe(95.3);
-    const copper_sulphides = copper.filter(id => id !== 'mixed_ore_high_clay');
-    expect(round(100 * Math.max(...copper_sulphides.map(id => fold(id).held_out_flag_rate)), 1)).toBe(16.0);
-    expect(folds.filter(f => f.models.mlp.recovery_pct.r2 < 0).map(f => f.held_out).sort()).toEqual(['gold_free_milling', 'iron_magnetite_fine']);
+    const distances = record.guard.acceptance_by_distance;
+    expect(distances.map(probe => probe.distance)).toEqual(record.settings.ood_shifts);
+    const headline = distances.find(probe => probe.distance === record.settings.ood_shift);
+    expect(headline).toBeDefined();
+    expect(record.guard.false_accept_rate).toBeCloseTo(headline!.upward, 12);
+    for (const rate of [record.guard.false_alarm_rate, record.guard.false_accept_rate, ...Object.values(record.guard.false_accept_by_feature), ...distances.flatMap(probe => [probe.upward, probe.downward]), ...record.leave_one_case_out.map(fold => fold.held_out_flag_rate)]) {
+      expect(Number.isFinite(rate)).toBe(true); expect(rate).toBeGreaterThanOrEqual(0); expect(rate).toBeLessThanOrEqual(1);
+    }
+    expectRenderedLearning(record);
+  });
+
+  it('learning-v2: table and comparison rendering probe uses an explicitly authored fixture', () => {
+    // Independent rendering coverage can run while the real-data test above
+    // remains red. This fixture never satisfies or replaces that real boundary.
+    expectRenderedLearning(readLearningRecord(authoredLearningFixture));
   });
 
   it('measured lanes: the GeoMet bootstrap and the HZDR probability errors as quoted', () => {
@@ -340,11 +550,8 @@ describe('the Benchmark page says what the records hold', () => {
 // The review of 2026-10-02 (dimension 2, M items; E-10): every statistic the rewritten paragraphs quote is recomputed
 // here from the records, so the next precompute cannot leave a number the record no longer holds
 describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () => {
-  const learning = read<any>('learning.json'), studies = read<any>('studies.json'), bench = read<any>('benchmark.json');
+  const studies = read<any>('studies.json'), bench = read<any>('benchmark.json');
   const en = (topic: { paragraphs: Array<{ en: string }> }) => topic.paragraphs.map(p => p.en).join(' ');
-  const folds: any[] = learning.leave_one_case_out;
-  const fold = (id: string) => folds.find(f => f.held_out === id);
-  const copper = ['copper_porphyry_soft', 'copper_porphyry_hard', 'copper_molybdenum', 'mixed_ore_high_clay', 'low_grade_copper'];
   const median = (v: number[]) => { const s = [...v].sort((a, b) => a - b); return s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2; };
 
   it('M-06: the spreads and extremes over the seed study', () => {
@@ -388,88 +595,21 @@ describe('the Benchmark statistics say what they hold (M-06 to M-23, E-10)', () 
     expect(text).toMatch(/Among the 43 feasible-start target variants, gains run from 0\.3% .* to 20\.0%/);
   });
 
-  it('M-11, M-21, M-23: the seeds, the equal training rows and the forest against boosting', () => {
-    const ms = learning.mlp_seeds.summary.recovery_pct;
-    const range = (v: number[], d: number) => [round(Math.min(...v), d), round(Math.max(...v), d)];
-    expect(range(ms.interpolation_rmse, 1)).toEqual([3.0, 3.5]);
-    expect(range(copper.flatMap(c => ms.loco_rmse_by_case[c]), 1)).toEqual([1.7, 9.1]);
-    expect(range(ms.loco_rmse_by_case.iron_magnetite_fine, 0)).toEqual([217, 277]);
-    expect(range(ms.loco_rmse_by_case.phosphate_clay, 0)).toEqual([7, 19]);
-    expect(range(ms.loco_rmse_mean, 1)).toEqual([25.0, 30.1]);
-    const rfBetter = folds.filter(f => f.models.random_forest.recovery_pct.rmse < f.models.hist_gradient_boosting.recovery_pct.rmse).map(f => f.held_out).sort();
-    expect(rfBetter).toEqual(['copper_oxide', 'iron_magnetite_fine', 'mixed_ore_high_clay', 'phosphate_clay']);
-    const eq = learning.equal_rows;
-    expect([eq.random_forest.recovery_pct.rows, round(eq.random_forest.recovery_pct.r2, 3), round(eq.hist_gradient_boosting.recovery_pct.r2, 3),
-      round(learning.interpolation.models.gaussian_process.recovery_pct.r2, 3), learning.interpolation.models.gaussian_process.recovery_pct.training_rows, learning.interpolation.train_rows])
-      .toEqual([612, 0.683, 0.813, 0.878, 500, 2460]);
-    const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/R² 0\.951 at the record seed; RMSE 3\.0 to 3\.5 points over five training seeds/);
-    expect(text).toMatch(/RMSE 1\.7 to 9\.1 across cases and seeds/);
-    expect(text).toMatch(/240 points at the record seed; 217 to 277 over seeds/);
-    expect(text).toMatch(/25\.0 to 30\.1 across seeds, 26\.2 at the record seed/);
-    expect(text).toMatch(/median one-case-out recovery R² is 0\.547, followed by gradient boosting at 0\.512/);
-    expect(text).toMatch(/most accurate on four of the five copper sulphide plants/);
-    expect(text).toMatch(/On 612 matched training rows the forest and gradient boosting score R² 0\.683 and 0\.813; the Gaussian process uses 500 of 2,460 rows and scores 0\.878/);
-  });
-
-  it('M-07, M-08, M-12: the upgrade among the copper plants, the coverage under both protocols, the energy failures', () => {
-    const med = (m: string) => round(median(copper.map(c => fold(c).models[m].log_upgrade.r2)), 2);
-    expect([med('gaussian_process'), med('mlp'), med('hist_gradient_boosting'), med('random_forest'), med('ridge')]).toEqual([0.92, 0.95, 0.11, 0.23, -5.88]);
-    const gp = learning.summary.gaussian_process, targets = ['recovery_pct', 'log_upgrade', 'specific_energy_total_kwh_t'];
-    expect(targets.map(t => round(100 * gp[t].loco_coverage_pooled, 1))).toEqual([82.9, 68.1, 86.9]);
-    expect(targets.map(t => round(100 * gp[t].loco_coverage_worst, 1))).toEqual([35.5, 0.0, 43.8]);
-    const phosphate = fold('phosphate_clay').models;
-    expect([round(phosphate.gaussian_process.specific_energy_total_kwh_t.r2, 1), Math.round(phosphate.mlp.specific_energy_total_kwh_t.r2)]).toEqual([-0.9, 0]);
-    const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/copper-group median upgrade R² is 0\.92 for the Gaussian process, 0\.95 for the MLP, 0\.11 for gradient boosting, 0\.23 for the forest and -5\.88 for ridge/);
-    expect(text).toMatch(/coverage is 90\.7, 91\.3 and 93\.8% under interpolation and 82\.9, 68\.1 and 86\.9% with one case out/);
-    expect(text).toMatch(/on phosphate the Gaussian process and MLP score -0\.9 and 0\.0/);
-  });
-
-  // L-01: the figure and the equation name the protocols they show; until 0.09.000 they called one case out the transfer
-  it('L-01: the learned figure and equation captions name the protocols', () => {
-    const learned = ENGINE_BENCHMARK.LEARNED as { figure?: { caption: { en: string } }; equations?: Array<{ caption: { en: string } }> };
-    expect(learned.figure!.caption.en).toMatch(/against the median one-ore-group-out R²/);
-    expect(learned.equations!.map(e => e.caption.en).join(' ')).toMatch(/the seven ore groups with one group out, the transfer score/);
-    expect(learned.equations!.map(e => e.caption.en).join(' ')).not.toMatch(/The transfer score: the median over the twelve folds/);
-  });
-
-  it('L-01: one ore group out, the transfer the page quotes', () => {
-    const s = learning.summary, models = Object.keys(s);
-    // seven groups by (payable, dominant carrier): the five chalcopyrite plants and the two gold plants are held out together
-    expect(new Set(Object.values(learning.transfer_groups)).size).toBe(7);
-    const groups = learning.leave_one_group_out as any[], group = (id: string) => groups.find(g => g.held_out_group === id);
-    expect(group('Cu:chalcopyrite').cases).toEqual(copper);
-    // no model keeps a positive median recovery R² over the groups; the random forest comes closest
-    expect(models.every(m => Number.isFinite(s[m].recovery_pct.transfer_r2_median))).toBe(true);
-    const closest = [...models].sort((a, b) => s[b].recovery_pct.transfer_r2_median - s[a].recovery_pct.transfer_r2_median)[0];
-    expect([closest, round(s[closest].recovery_pct.transfer_r2_median, 3), round(s[closest].recovery_pct.transfer_rmse_mean, 1)]).toEqual(['mlp', 0.437, 46.7]);
-    const cu = group('Cu:chalcopyrite').models;
-    expect([round(cu.gaussian_process.recovery_pct.r2, 3), round(cu.mlp.recovery_pct.r2, 3)]).toEqual([0.539, 0.795]);
-    const alone = copper.map(c => fold(c).models.mlp.recovery_pct.r2);
-    expect([round(Math.min(...alone), 2), round(Math.max(...alone), 2)]).toEqual([0.52, 0.99]);
-    // the upgrade does not transfer to the copper plants held out together: -0.15 for the MLP to -20 for ridge
-    const upgrade = models.map(m => cu[m].log_upgrade.r2);
-    expect([round(cu.mlp.log_upgrade.r2, 2), Math.round(cu.ridge.log_upgrade.r2), Math.max(...upgrade) === cu.mlp.log_upgrade.r2, Math.min(...upgrade) === cu.ridge.log_upgrade.r2]).toEqual([-0.60, -23, false, true]);
-    const energy = models.filter(m => m !== 'ridge').map(m => s[m].specific_energy_total_kwh_t.transfer_r2_median);
-    expect([round(Math.min(...energy), 2), round(Math.max(...energy), 2)]).toEqual([0.88, 0.91]);
-    const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/highest median recovery R² across seven groups \(0\.437\), but mean error is 46\.7 points/);
-    expect(text).toMatch(/five chalcopyrite plants held out together score 0\.795 for the MLP and 0\.539 for the Gaussian process/);
-    expect(text).toMatch(/and 0\.88 to 0\.91 with a whole ore group out/);
-    expect(text).toMatch(/holding out the two pyrite gold plants gives it R² -10\.2/);
-  });
-
-  it('M-16, M-17: the guard over its probe distances, and its flags against the errors', () => {
-    const by = learning.guard.acceptance_by_distance as Array<{ distance: number; upward: number; downward: number }>;
-    const at = (d: number) => by.find(x => x.distance === d)!;
-    expect([round(100 * at(0.5).upward, 1), round(100 * at(0.5).downward, 1), Math.round(100 * at(0.1).upward), Math.round(100 * at(0.1).downward), Math.round(100 * at(1.0).upward)]).toEqual([15.5, 19.9, 48, 60, 6]);
-    expect(round(100 * learning.guard.false_accept_rate, 1)).toBe(round(100 * at(0.5).upward, 1));
-    const soft = fold('copper_porphyry_soft'), refractory = fold('refractory_gold');
-    expect([Math.round(100 * soft.held_out_flag_rate), round(soft.models.hist_gradient_boosting.log_upgrade.r2, 2), Math.round(100 * refractory.held_out_flag_rate), round(refractory.models.hist_gradient_boosting.recovery_pct.r2, 2)]).toEqual([16, -1.46, 100, 0.17]);
-    const text = en(ENGINE_BENCHMARK.LEARNED);
-    expect(text).toMatch(/At half a training range beyond the maximum it accepts 15\.5% of probes \(19\.9% below the minimum\); at one tenth it accepts 48% \(60% below\), and at one full range 6%/);
-    expect(text).toMatch(/it flags 16% of soft-porphyry states while gradient boosting upgrade R² is -1\.46, and all refractory-gold states while gradient boosting recovery R² is 0\.17/);
+  it('L-01: learned prose and captions qualify conditional and common-fold protocols in both languages', () => {
+    const topic = ENGINE_BENCHMARK.LEARNED;
+    for (const lang of ['en', 'es'] as const) {
+      const prose = topic.paragraphs.map(paragraph => paragraph[lang]).join(' ');
+      expect(prose).toMatch(lang === 'en' ? /planned denominator/ : /total previsto/);
+      expect(prose).toMatch(lang === 'en' ? /ordinary RMSE, MAE and R² are unavailable/ : /RMSE, el MAE y el R² ordinarios no están disponibles/);
+      expect(prose).toMatch(lang === 'en' ? /Finite constant predictions remain scored negative evidence/ : /predicciones constantes finitas siguen siendo evidencia negativa evaluada/);
+      expect(topic.figure!.caption[lang]).toMatch(lang === 'en' ? /default comparison uses matched common folds/ : /comparación inicial usa particiones comunes/);
+      expect(topic.figure!.caption[lang]).toMatch(lang === 'en' ? /conditional results.*coverage/ : /resultados condicionales.*cobertura/);
+      const equation = topic.equations![0];
+      const tex = typeof equation.tex === 'string' ? equation.tex : equation.tex[lang];
+      expect(tex).toContain('A_{common}=\\bigcap_m A_m');
+      expect(equation.caption[lang]).toMatch(lang === 'en' ? /intersection of admissible fold IDs across all models/ : /intersección de los identificadores admisibles entre todos los modelos/);
+      expect(prose).not.toMatch(/highest median recovery|most accurate on four|240 points|217 to 277/);
+    }
   });
 
   it('E-10: the Zandrivierspoort levels, silica and rougher beside the step', () => {

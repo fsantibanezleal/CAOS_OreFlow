@@ -1,5 +1,4 @@
-"""The manuscript quotes the committed records; this pins its result numbers and counts to them (the test counts are
-the release record's, which the draft points to).
+"""The canonical technical report quotes the committed records.
 
 Tables 1 and 2 are parsed and compared with ``data/derived/learning.json`` at the precision they print; the
 numbers in the prose are formatted from the records and must appear in the text. A new bake therefore cannot
@@ -13,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PAPER = ROOT / "manuscript" / "oreflow-digital-twin.md"
+PAPER = ROOT / "manuscripts" / "technical-report" / "main.md"
 DERIVED = ROOT / "data" / "derived"
 MODELS = {"Ridge": "ridge", "Random forest": "random_forest", "Histogram gradient boosting": "hist_gradient_boosting",
           "Gaussian process": "gaussian_process", "Perceptron": "mlp"}
@@ -52,9 +51,11 @@ def _missing(phrases: list[str]) -> list[str]:
     return [p for p in phrases if p not in flat]
 
 
-def test_the_draft_names_the_version_of_its_records():
+def test_the_report_names_the_version_of_its_records():
     version = (ROOT / "VERSION").read_text(encoding="utf-8").strip()
-    assert f"written against OreFlow {version}" in _text()
+    tex = (PAPER.parent / "main.tex").read_text(encoding="utf-8")
+    assert rf"\newcommand{{\docversion}}{{v{version}}}" in tex
+    assert _read(PAPER.parent / "zenodo.json")["metadata"]["version"] == version
     for record in ("learning.json", "benchmark.json"):
         assert _read(DERIVED / record)["engine_version"] == version, record
 
@@ -63,10 +64,14 @@ def test_table_1_quotes_the_record():
     summary = _read(DERIVED / "learning.json")["summary"]
     rows = _table("**Table 1.**")
     assert [r[0] for r in rows] == list(MODELS)
-    columns = ("interpolation_rmse", "interpolation_r2", "loco_rmse_mean", "loco_rmse_max", "loco_r2_median", "transfer_r2_median")
+    columns = ("interpolation_rmse", "interpolation_r2", "loco_rmse_mean", "loco_rmse_max", "loco_r2_median")
     for cells in rows:
         record = summary[MODELS[cells[0]]]["recovery_pct"]
-        for quoted, column in zip(cells[1:], columns, strict=True):
+        counts = record["loco_folds"]
+        assert counts["attempted"] == 12
+        assert int(cells[3]) == counts["scored"]
+        assert counts["scored"] + counts["rejected"] == counts["attempted"]
+        for quoted, column in zip(cells[1:3] + cells[4:], columns, strict=True):
             assert _matches(quoted, record[column]), (cells[0], column, quoted, record[column])
 
 
@@ -78,12 +83,51 @@ def test_table_2_quotes_every_held_out_case():
     assert sorted(r[0] for r in rows) == sorted(folds)
     for cells in rows:
         for quoted, model in zip(cells[1:], ORDER, strict=True):
-            actual = folds[cells[0]]["models"][model]["recovery_pct"]["rmse"]
-            assert _matches(quoted, actual), (cells[0], model, quoted, actual)
+            score = folds[cells[0]]["models"][model]["recovery_pct"]
+            if score["valid_for_scoring"]:
+                assert score["status"] == "scored"
+                assert _matches(quoted, score["rmse"]), (cells[0], model, quoted, score["rmse"])
+            else:
+                assert quoted == "Rejected"
+                assert score["status"] == "rejected-transfer"
+                assert all(score[k] is None for k in ("rmse", "mae", "r2"))
+                assert score["rejection"]["affected_rows"] > 0
+
+
+def test_table_3_quotes_identical_admissible_cohorts():
+    learning = _read(DERIVED / "learning.json")
+    case = learning["common_cohorts"]["leave_one_case_out"]["recovery_pct"]
+    group = learning["common_cohorts"]["transfer"]["recovery_pct"]
+    assert (case["attempted"], len(case["folds"]), case["excluded"]) == (12, 11, ["iron_magnetite_fine"])
+    assert (group["attempted"], len(group["folds"]), group["excluded"]) == (7, 6, ["Fe:magnetite"])
+    rows = _table("**Table 3.**")
+    assert [r[0] for r in rows] == list(MODELS)
+    for cells in rows:
+        model = MODELS[cells[0]]
+        actual = [case["models"][model]["rmse_mean"], case["models"][model]["r2_median"],
+                  group["models"][model]["rmse_mean"], group["models"][model]["r2_median"]]
+        assert all(_matches(q, v) for q, v in zip(cells[1:], actual, strict=True)), cells
+    assert "eleven of twelve planned folds" in _flat()
+    assert "six of seven" in _flat()
+    assert "not rankings over the complete planned design" in _flat()
+
+
+def test_table_4_quotes_conditional_group_counts_and_scores():
+    summary = _read(DERIVED / "learning.json")["summary"]
+    rows = _table("**Table 4.**")
+    assert [r[0] for r in rows] == list(MODELS)
+    for cells in rows:
+        record = summary[MODELS[cells[0]]]["recovery_pct"]
+        counts = record["transfer_folds"]
+        assert counts["attempted"] == 7 and int(cells[1]) == counts["scored"]
+        assert counts["rejected"] == counts["attempted"] - counts["scored"]
+        columns = ("transfer_rmse_mean", "transfer_rmse_max", "transfer_r2_median")
+        for quoted, key in zip(cells[2:], columns, strict=True):
+            assert _matches(quoted, record[key]), (cells[0], key, quoted, record[key])
 
 
 def test_the_learning_prose_quotes_the_record():
-    """Check the current conclusions against the current records, not a prior bake's ranking."""
+    """Keep the failed transfer and changing denominators beside every conditional conclusion."""
     learning = _read(DERIVED / "learning.json")
     summary = learning["summary"]
     folds = {f["held_out"]: f for f in learning["leave_one_case_out"]}
@@ -92,22 +136,58 @@ def test_the_learning_prose_quotes_the_record():
     assert len(set(learning["transfer_groups"].values())) == 7
     assert learning["design"]["rows"] == 3072
     assert min(summary, key=lambda m: summary[m]["recovery_pct"]["interpolation_rmse"]) == "mlp"
-    assert min(summary, key=lambda m: summary[m]["recovery_pct"]["loco_rmse_mean"]) == "gaussian_process"
     copper = groups["Cu:chalcopyrite"]["models"]["mlp"]["recovery_pct"]["r2"]
     gold = groups["Au:pyrite"]["models"]["mlp"]["recovery_pct"]["r2"]
     assert copper > 0 and gold < 0
     text = _flat()
     for phrase in (
         f"lowest interpolation recovery RMSE ({summary['mlp']['recovery_pct']['interpolation_rmse']:.2f}",
-        f"lowest mean held-out-case RMSE ({summary['gaussian_process']['recovery_pct']['loco_rmse_mean']:.2f} points)",
-        f"highest median case-fold R² ({summary['mlp']['recovery_pct']['loco_r2_median']:.3f})",
+        f"conditional case mean is {summary['mlp']['recovery_pct']['loco_rmse_mean']:.2f} points over eleven scored folds",
         f"MLP scores {copper:.3f} on the five chalcopyrite cases held out together",
         f"and {gold:.1f} on the two gold-in-pyrite cases",
         "Log-upgrade median R² is negative for every model under group holdout",
+        "post-inference diagnostic and includes held-out target values",
+        "No prediction is clipped or refitted using these limits",
+        "can miss extreme individual predictions",
+        "one rejected recovery fold",
     ):
         assert phrase in text, phrase
-    assert "no model keeps a positive median recovery R² over the seven groups" not in text
-    assert "median held-out R² 0.923 to 0.968" not in text
+    rejected = folds["iron_magnetite_fine"]["models"]["mlp"]["recovery_pct"]
+    assert rejected["status"] == "rejected-transfer" and rejected["rmse"] is None
+    for key in ("prediction_range", "allowed_range", "observed_range"):
+        low, high = rejected["observable"][key]
+        assert f"{low:.2f} to {high:.2f}%" in text, (key, low, high)
+    seeds = learning["mlp_seeds"]["summary"]["recovery_pct"]
+    counts = seeds["loco_folds"]
+    assert [c["scored"] for c in counts] == [11, 11, 11, 11, 12]
+    assert [c["rejected"] for c in counts] == [1, 1, 1, 1, 0]
+    means = seeds["loco_rmse_mean"]
+    bad_case = seeds["loco_rmse_by_case"]["iron_magnetite_fine"]
+    assert bad_case[:4] == [None] * 4
+    for phrase in (
+        f"interpolation RMSE from {min(seeds['interpolation_rmse']):.2f} to {max(seeds['interpolation_rmse']):.2f}",
+        f"conditional mean RMSE ranges from {min(means[:4]):.2f} to {max(means[:4]):.2f}",
+        f"{bad_case[-1]:.2f}-point magnetite RMSE and a {means[-1]:.2f}-point case mean",
+        "cannot be interpreted as a stability interval over an identical cohort",
+    ):
+        assert phrase in text, phrase
+    assert all(s["log_upgrade"]["transfer_r2_median"] < 0 for s in summary.values())
+
+
+def test_interval_and_guard_prose_retains_protocol_and_denominator():
+    learning = _read(DERIVED / "learning.json")
+    gp = learning["summary"]["gaussian_process"]["recovery_pct"]
+    guard = learning["guard"]
+    phrases = [
+        f"cover {100 * gp['interpolation_coverage']:.1f}% of interpolation rows",
+        f"{100 * gp['loco_coverage_pooled']:.1f}% of pooled case-held-out rows",
+        f"worst case-fold coverage is {100 * gp['loco_coverage_worst']:.1f}%",
+        f"flags {100 * guard['false_alarm_rate']:.2f}% of {guard['in_envelope_rows']} in-envelope states",
+        f"accepts {100 * guard['false_accept_rate']:.2f}% of {guard['probe_rows']:,} upward-shift probes",
+        "These intervals use the GP's own mean and predictive standard deviation",
+        "This validation guard differs from the final guard refitted for deployment",
+    ]
+    assert not _missing(phrases)
 
 
 def _proposal_error(optimization: list) -> float:

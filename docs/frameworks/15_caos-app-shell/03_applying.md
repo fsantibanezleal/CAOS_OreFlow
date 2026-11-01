@@ -11,7 +11,8 @@ Return to [15 The CAOS app shell](../15_caos-app-shell.md).
    with `npm install` from `frontend/`. Review the resolved registry URL and integrity entry together
    with the manifest. Use `npm ci` for subsequent reproducible installations.
 3. Adopt the shared APIs required by the release. Compose `AppShell`, `WorkbenchLayout` and
-   `FocusShell` rather than recreating their structure. Keep canonical selector IDs consistent with
+   `FocusShell` rather than recreating their structure. For a document surface, use `SurfacePage document`
+   without a duplicate `page-body` wrapper; keep its tabs, Focus and plain-text lede. Keep canonical selector IDs consistent with
    URL state and the workbench markers. Keep language-dependent citation preprocessing tied to the
    current language. Preserve the product's disabled-view semantics when evaluating a replacement
    for `ViewTabs`: the installed `TabDef` has no disabled option, while measured-hour analytical views
