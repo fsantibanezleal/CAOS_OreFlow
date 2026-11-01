@@ -2,6 +2,39 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+## Local optimizer parity protocol
+
+CI still runs the same three nominal variants by default. The existing serial release command remains
+available by setting `OF_PARITY=full` and running `npm --prefix frontend test -- src/test/optimizer-parity.test.ts`.
+The release-only process runner partitions all 96 declared case/variant IDs deterministically; each child
+is one Vitest process with one worker and a validated `OF_PARITY_SHARD=index/count`. It does not train models.
+
+```powershell
+# Use a fresh absolute output directory outside the repository; its parent must already exist.
+$env:OF_PARITY_TIMEOUT='900000'
+node frontend/scripts/optimizer-parity.mjs --workers 8 --out "$env:CAOS_TEMP_ROOT/optimizer-parity-release"
+```
+
+`--workers` defaults to 2 and accepts 1 through 8. `--plan` writes only inventory, assignments and
+input hashes, explicitly without claiming parity. The output directory must be new. Alternate
+`OF_DERIVED`/`OF_MODELS` roots remain supported; missing artifacts/models fail. Each shard writes a bounded
+log and its actual Vitest JSON report. The aggregate admits only exact, unique, completed passing coverage
+with zero child exits, no pending/failed/unexpected assertions, and identical before/after input hashes.
+`result.json` records success only after all those checks; a plan or individual green exit is insufficient.
+Source snapshots include engine/learning/test sources, runner, Python pipeline, contracts, data/models,
+version, frontend configuration and package metadata/lock. Python cache directories are excluded.
+Do not change these inputs during a run, including package metadata. Main owns the complete release run.
+
+The original 2026-11-01 serial run completed 95/96 variants: its sole discrepancy was a dimensionless
+runner-up margin, JavaScript zero versus Python `1.1102230246251565e-16` at a selected normalized objective
+of `0.999379591139013`. Both formulas subtract selected and runner-up predicted objectives. Only margins
+and differences within `2 * Number.EPSILON * S` (S: largest absolute objective operand across both runtimes)
+receive the diagnostic-zero allowance. Four rounded operands contribute at most four unit roundoffs at
+this local operand scale; near-equal subtraction itself is exact. This does not bound upstream model error.
+The existing relative checks still apply to the objective operands, physical values and meaningful nonzero
+margins. Nulls never equal finite values; iteration/count/status/proposal flags stay exact. Full release
+success must be observed independently after this comparator change; the old 95/96 is not a passing run.
+
 ## 0.10.007 release, 2026-10-31
 
 ### Local gate
