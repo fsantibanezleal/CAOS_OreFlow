@@ -57,3 +57,15 @@ other.
   The build is not affected by the setting; the dev server is.
 - **The type check is part of the build.** `npm run build` runs `tsc --noEmit` first; a build that skips it
   can ship a type error that Vite's transpiler ignores.
+
+## Local ONNX module loading
+
+The learned lane uses the same copied ONNX runtime module and WebAssembly binary in development
+and production. Vite marks dynamic imports with an `import` query; its public middleware normally
+leaves those requests to source transformation, which rejects a public module. The development-only
+configuration removes that marker for the single declared ONNX module and delegates its bytes to
+Vite's existing static middleware. Other public-module imports retain the normal rule. The real-server
+regression checks exact SDK bytes and that boundary; the application gate runs the actual learned view.
+
+Sources: [Vite import analysis](https://github.com/vitejs/vite/blob/main/packages/vite/src/node/plugins/importAnalysis.ts),
+[ONNX module loading](https://github.com/microsoft/onnxruntime/blob/main/js/web/lib/wasm/wasm-utils-import.ts).

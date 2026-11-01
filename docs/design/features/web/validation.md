@@ -8,6 +8,7 @@
 | WB-017 | Remove executive content, linked sources or sole document ownership; the source/SSR regression must fail. Actual readability additionally requires reaching every field, card/flip face and source through the shared reader. | `frontend/src/test/introduction-claims.test.ts::adversarial: executive evidence cannot disappear from the shared reader`; installed shell ADR-0017.2 |
 | WB-018 | Remove Technical's Focus opt-in or ExecutiveView's explicit onward callback; require regression failure. Actual Focus navigation/return and direct URLs are additionally exercised in the browser. | `frontend/src/test/introduction-claims.test.ts::adversarial: both introduction views retain Focus and onward navigation` |
 | WB-019 | Remove the bilingual technical prose, equations, glossary, scope callout or ordered pipeline; require the registered floor regression to fail. Readability must additionally be verified through real scrolling. | `frontend/src/test/introduction-claims.test.ts::adversarial: technical areas retain their content floors in both languages`; installed shell ADR-0017.2 |
+| WB-020 | Start the real development server with the copied SDK bytes; require both ordinary and runtime-import URLs to return those exact bytes with a JavaScript content type. A separate existing public module retains Vite's import rejection. The original configuration returns HTTP500 for the runtime-import URL. | `frontend/src/test/ort-dev-assets.test.ts::adversarial: the development server serves the copied ONNX module unchanged` |
 
 ## Introduction bounded validation, 2026-11-01
 
@@ -41,3 +42,14 @@ readability/hidden-pane checks; no local gate, installed package or CSS was chan
 The upstream defect is tracked as [shell issue170](https://github.com/fsantibanezleal/CAOS_APP_SHELL/issues/170).
 This bounded validation does not establish a passed full release gate; the corrected shared gate
 must be published, adopted and run against the complete production build.
+
+## Published shell 0.19.11 verification
+
+
+The preceding failure describes the initial 0.19.10 measurement. Shell issue170 is now closed and
+0.19.11 is published and pinned exactly. Its unmodified complete installed gate passes 1,412 measured
+states with zero failures on the production build, including actual document scrolling and restored
+state. Captures were inspected. The separate application gate passes 1,346 desktop/default-small checks
+and 76 additional checks for the remaining small-screen language/theme combinations: 1,422 checks in
+total across all sixteen desktop and eight phone/tablet modes. Numerical, Focus, source-data and
+interaction checks remain active. Public serving verification is recorded with the release.

@@ -33,3 +33,16 @@ shared rendering. Source/SSR checks protect Executive-only ownership, both Focus
 technical area depth. The browser matrix covers eight size/theme/language combinations, keyboard
 tabs, both Focus views, retained nested selection, source destinations and direct URLs. The exact
 installed gate runs on an external candidate build; main owns canonical dist, full gates and release.
+
+Development inference uses the same copied `/ort/` runtime as production. Vite adds an `import`
+query marker to the runtime's dynamic module import; its public-file middleware skips such requests
+and the source transformer rejects the public module. A development-only middleware removes that
+marker for the single declared `ort-wasm-simd-threaded.mjs` asset and delegates serving to Vite's
+existing public-file middleware. Other requests and production bundling retain their normal paths.
+No runtime, model or scientific-engine bytes are modified. The regression starts the actual Vite
+server with the actual copied SDK bytes and checks response bytes, module content type and the
+normal rejection of an unrelated public module.
+
+References: [Vite import analysis](https://github.com/vitejs/vite/blob/main/packages/vite/src/node/plugins/importAnalysis.ts),
+[ONNX runtime module loading](https://github.com/microsoft/onnxruntime/blob/main/js/web/lib/wasm/wasm-utils-import.ts)
+and [the public directory](https://vite.dev/guide/assets#the-public-directory).
