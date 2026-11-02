@@ -20,7 +20,7 @@
     "contracts:check": "node ../scripts/generate_contract_types.mjs --check"
   },
   "dependencies": {
-    "@fasl-work/caos-app-shell": "0.19.11",
+    "@fasl-work/caos-app-shell": "0.19.12",
     "ajv": "8.20.0",
     "katex": "0.19.1",
     "lucide-react": "1.43.0",

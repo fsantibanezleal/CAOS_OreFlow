@@ -2,6 +2,10 @@
 
 ## [0.10.009] - 2026-11-01
 
+### Updated
+- Adopt the released CAOS Product Template 0.14.003 (tag v0.14.003) using the official three-way adoption workflow; the product-owned and scientific-content files were reviewed and left under OreFlow ownership.
+- Upgrade the exact shared shell pin to published npm 0.19.12 and regenerate the lock from the public registry; complete OreFlow shell-gate validation is part of this release candidate.
+
 ### Fixed
 - Declare pending artifact-backed documents through the shared loading-state contract, so public-network loads finish before idle measurements.
 - Validate model artifacts independently of response reads interrupted by page navigation, using the corrected shared shell gate.
