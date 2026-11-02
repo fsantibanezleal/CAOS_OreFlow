@@ -130,6 +130,8 @@ jobs:
           python-version: "3.12"
       - name: Install
         run: cd frontend && npm ci
+      - name: Install the Playwright Chromium binary and Linux dependencies
+        run: cd frontend && npx playwright install --with-deps chromium
       - name: Build (copy the declared artifacts, type-check, bundle, materialise the routes)
         run: cd frontend && npm run build
       - name: Unit tests (contract both ways, engine parity, artifact layer)
