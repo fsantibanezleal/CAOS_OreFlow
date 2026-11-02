@@ -423,14 +423,7 @@ surrogate preserves the ranking of operating decisions.
 
 The repository is https://github.com/fsantibanezleal/CAOS_OreFlow (MIT). The engine, the bake, the records,
 the browser port, the service and the documentation are versioned together; the source, records and computational environment are versioned with the software release.
-`./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. On a
-workstation with 32 logical cores and an RTX 4070 Laptop GPU, the 0.10.009 learned stage recorded 5073 s
-after resuming the same candidate with one learning worker. An earlier parallel attempt ended on a memory
-allocation failure. The resumed candidate verified and reused one completed 3072-row design and nine
-evaluation checkpoints, computed the remaining six evaluations and executed all 65 neural seed jobs.
-That elapsed time excludes computation completed before the resume; it is neither the cost of a wholly fresh
-learning run nor evidence of a speed improvement. The final MLP fit used CUDA for a simulator study over
-authored cases; this computation does not establish plant-calibrated performance.
+`./scripts/setup.ps1` builds the environments and `./scripts/precompute.ps1` regenerates every record. The validation record for the committed 0.10.009 bake took 8637 s for the cases on 4 workers and 220 s for the learned lane; studies took 762 s and real-sample processing took 340 s. On a workstation with 32 logical cores and an RTX 4070 Laptop GPU, the resumed learning computation recorded 5073 s across the resumed execution and reused a completed 3,072-row design and nine evaluation checkpoints, computed the remaining six evaluations and executed all 65 neural seed jobs. That elapsed time excludes computation completed before the resume; it is neither the cost of a wholly fresh learning run nor evidence of a speed improvement. The final MLP fit used CUDA for a simulator study over authored cases; this computation does not establish plant-calibrated performance.
 Independent evaluation folds and neural seed runs can execute in bounded spawned workers. External checkpoints
 are accepted only under the same scientific source, JSON constants, release version, case definitions, operating
 contract, settings, dependency versions and compute-runtime fingerprint. Each checkpoint has a verified JSON

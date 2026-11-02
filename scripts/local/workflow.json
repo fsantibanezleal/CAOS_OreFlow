@@ -1,5 +1,8 @@
 {
   "readiness_excludes": [],
+  "stage_inputs": [
+    "data/derived/README.md"
+  ],
   "primary_environment": ".venv",
   "generation_environments": [
     ".venv-gpu",

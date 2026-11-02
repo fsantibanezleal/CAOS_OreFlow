@@ -567,7 +567,7 @@ def test_adversarial_real_template_generation_admission(workflow, tmp_path, monk
             bad["contracts"][0]["state"] = state
             with pytest.raises(workflow.Failure, match="Partial readiness"):
                 workflow.check_readiness_states(ROOT, config, bad, ROOT)
-        assert not config.get("readiness_exceptions") and not config.get("stage_inputs")
+        assert not config.get("readiness_exceptions") and config.get("stage_inputs") == ["data/derived/README.md"]
         return
 
     python = workflow.venv_python(ROOT, config["primary_environment"])

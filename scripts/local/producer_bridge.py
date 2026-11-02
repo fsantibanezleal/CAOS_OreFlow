@@ -48,6 +48,14 @@ def main():
             repo_root=stage, derived_root=stage / "data/derived", models_dir=stage / "models"
         )
         readiness.write(stage / "data/derived", document)
+        if mode == "oreflow-finalize":
+            # OreFlow's catalog includes readiness.json in its own inventory. The
+            # first write materializes that declared output; recompute once so its
+            # self-row reflects the complete staged payload.
+            document = readiness.compute(
+                repo_root=stage, derived_root=stage / "data/derived", models_dir=stage / "models"
+            )
+            readiness.write(stage / "data/derived", document)
         return
     if mode == "template-validate":
         from pipeline import registry
