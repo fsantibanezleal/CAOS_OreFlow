@@ -2,6 +2,23 @@
 
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
+
+## 0.10.009 release candidate, 2026-11-02
+
+### Local verification
+
+- Promoted a fresh, source-bound CUDA bake: 12 authored cases, 96 variants, all studies and measured-data lanes; `validation.json` reports `passed: true`, no errors, and contract digest `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`. HZDR particle training and the learned final fit ran on the RTX 4070 Laptop GPU. The 15 evaluation and 65 neural seed jobs were verified; checkpoint reuse is same-candidate only.
+- Executed all 32 English and Spanish notebooks top to bottom in fresh kernels. Four generated learning/screening comparison notebooks were refreshed against the candidate record; no authored experiment source changed.
+- `scripts/check_artifacts.py`, document/readiness checks, all repository guards, Ruff, the full Python suite and all framework examples passed. Framework examples recomputed the 12-case learning comparisons, ran CUDA training and ONNX parity, recalculated GeoMet samples, and checked API success and rejection behavior.
+- Frontend: 606 tests passed with zero skips, typecheck passed, production build passed. The exact pinned Playwright Chromium was installed because the initial local environment lacked it. The build emits the existing >500 kB main-chunk advisory; build and tests pass.
+- Complete optimizer parity passed: 96/96 exact case/variant IDs over eight shards, with unchanged input hashes.
+- Application browser matrix passed 1,346 checks across 1280x800, 1600x900, 1920x1080, 2560x1440, phone 390x844 and tablet 768x1024, English/Spanish, light/dark, all routes and analytical controls. The shared-shell gate passed all 1,412 measured states, including Focus. Captures were inspected; there were zero gate failures.
+- Rebuilt the 12-page technical report for v0.10.009, DOI `10.5281/zenodo.23864184`, from the validated record. The release tool froze 111,976 bytes with SHA-256 `de3a016545ac1c4618329fe907746292ce305efe64ee1df021a69fe3baa99172`; the reserved Zenodo draft was verified read-only and has zero files before upload.
+
+### Remote verification
+
+The technical report is published as [v0.10.009](https://doi.org/10.5281/zenodo.23864184), record 23864184 under concept DOI `10.5281/zenodo.23783845`. Its public file inventory contains exactly the frozen 111,976-byte PDF; Zenodo verified the MD5 and a fresh unauthenticated download against SHA-256 `de3a016545ac1c4618329fe907746292ce305efe64ee1df021a69fe3baa99172`. Pending: exact-commit CI, governed promotion to main, VPS deployment, and live HTTPS/API/browser verification. No software release or 0.10.009 deployment is claimed yet.
+
 ## Local optimizer parity protocol
 
 CI still runs the same three nominal variants by default. The existing serial release command remains
@@ -76,9 +93,21 @@ success must be observed independently after this comparator change; the old 95/
 
 ### Remote verification
 
-Exact-commit CI, release/source identity, the software archive, deployment and post-deployment API and
-browser results are recorded in the [versioned GitHub release](https://github.com/fsantibanezleal/CAOS_OreFlow/releases/tag/v0.10.008).
-The ML VPS remains the product's sole deployment.
+The complete public installed-shell gate recorded 14 failures in 1,412 measured states: thirteen G8
+events during pending-content arrival and one G4 artifact read interrupted by navigation. The separate
+complete application matrix passed 1,422 checks. Publication preceded completion of the public shell
+gate, so this release has no overall public-gate clearance. The
+[release notice](https://github.com/fsantibanezleal/CAOS_OreFlow/releases/tag/v0.10.008) records that
+result. Corrective work addresses explicit pending-content readiness and complete artifact transport
+verification; the latter is tracked in [shared-shell issue 174](https://github.com/fsantibanezleal/CAOS_APP_SHELL/issues/174).
+
+Source commit `a0a0c4a32c244747818df4f7826e0a872757965f` passed its
+[exact-main CI](https://github.com/fsantibanezleal/CAOS_OreFlow/actions/runs/41324054715).
+The [software archive](https://doi.org/10.5281/zenodo.23862389) retains the tagged source.
+The deployed checkout was verified independently, and all seventeen public API checks passed against
+fresh references computed in the native Linux runtime, using absolute tolerance 1e-12 and exact discrete
+comparisons. That check covers the four nominal circuit families; it does not establish bit-identical
+Windows-bake and Linux results. The ML VPS remains the product's sole deployment.
 
 ## 0.10.007 release, 2026-10-31
 

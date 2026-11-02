@@ -46,3 +46,19 @@ normal rejection of an unrelated public module.
 References: [Vite import analysis](https://github.com/vitejs/vite/blob/main/packages/vite/src/node/plugins/importAnalysis.ts),
 [ONNX runtime module loading](https://github.com/microsoft/onnxruntime/blob/main/js/web/lib/wasm/wasm-utils-import.ts)
 and [the public directory](https://vite.dev/guide/assets#the-public-directory).
+
+## Pending document artifacts (WB-021)
+
+Artifact-backed document panels use `useArtifact` and `Loaded` from `frontend/src/content/data.tsx`.
+The pending branch declares `data-state="loading"` on its existing accessible status surface.
+Each panel retains that declaration until its actual required data resolves; a mounted shell or
+another completed panel does not establish that this panel is ready. The successful branch removes
+the pending surface when rendering real children. A failed request replaces it with the existing
+localized alert and reason, without drawing fabricated values or remaining indefinitely pending.
+The installed shell's readiness protocol and idle thresholds remain unchanged.
+
+The regression serves the actual React hook/component through a private Vite fixture, holds two
+independent HTTP artifact responses, and invokes the installed shell's real in-page readiness
+function in Chromium. It checks both languages, partial arrival, complete arrival and failure with
+another request still pending. Fixtures/cache remain external; no production build or dist writes
+are involved. Full public idle/cancellation gates remain release integration checks.
