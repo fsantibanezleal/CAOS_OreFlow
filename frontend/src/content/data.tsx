@@ -29,6 +29,6 @@ const TEXT = {
 export function Loaded({ lang, errors, ready, children }: { lang: Lang; errors: Array<string | null>; ready: boolean; children: () => ReactNode }) {
   const error = errors.find(Boolean);
   if (error) return <div className="of-doc-state" role="alert">{`${TEXT.failed[lang]}: ${error}`}</div>;
-  if (!ready) return <div className="of-doc-state" role="status">{`${TEXT.loading[lang]}...`}</div>;
+  if (!ready) return <div className="of-doc-state" role="status" data-state="loading">{`${TEXT.loading[lang]}...`}</div>;
   return <>{children()}</>;
 }

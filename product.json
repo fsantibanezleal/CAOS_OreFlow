@@ -15,7 +15,7 @@
       "kind": "technical-report",
       "concept_doi": "10.5281/zenodo.23783845",
       "title": "How far does a learned surrogate of a flowsheet simulator transfer across ores? A closed-circuit, size-by-mineral engine, with cases and ore groups held out",
-      "version": "0.10.008",
+      "version": "0.10.009",
       "covers": []
     },
     {
