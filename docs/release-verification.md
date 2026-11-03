@@ -3,6 +3,22 @@
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
 
+## 0.10.010 release candidate, 2026-11-03
+
+### Local verification
+
+- Fresh GPU bake: 12 authored cases and 96 variants; all study, benchmark and measured-data lanes validated. `validation.json` records `passed: true`, no errors, and contract digest `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`. The learned lane ran on the RTX 4070 Laptop GPU; all 15 evaluation jobs and 65 neural-seed jobs ran fresh with no resumed checkpoints. Independent `scripts/check_artifacts.py` recomputed balances and method records.
+- The direct pipeline entry now stages the committed HZDR particle, iron-plant soft-sensor and particle-model inputs when absent, without overwriting run-specific inputs. Its regression test passes.
+- Readiness is current for 17 contracts. All repository guards, artifact checks, version coherence, manuscript release/Zenodo checks, 32-notebook structure checks, and use-case page generation checks pass. The fresh pytest run exposed two stale timing-text assertions; the assertions and bake timing tables were corrected, and the two focused regression tests pass. No product/scientific test failure was reported in that run.
+- All scientific framework examples completed, including a fresh 12-case learned-design comparison, fresh PyTorch/ONNX training and parity, SALib's 1,536-run committed sensitivity reproduction, GeoMet fold reproduction and accepted/rejected API examples. The GPU example reports its measured magnetite transfer rejection.
+- Frontend contract generation, typecheck, all 606 tests and production build pass. The build emits the existing advisory for the 518 kB main JavaScript chunk.
+- Shared-shell browser gate passed 1,412 measured states on the rebuilt bundle. OreFlow's browser gate passed 248 checks; the Focus walkthrough advanced, played, paused and verified all 12 case circuits (7 topology families, 12 result signatures) with no browser-console errors.
+- The 38-page technical report for 0.10.010 is published at version DOI `10.5281/zenodo.23905019`, concept DOI `10.5281/zenodo.23783845`. The public file was freshly downloaded and SHA-256 verified as `a9a35dceaadba42fdc76efad0560c57d6023d3ccbffe774dfef33f2e65b2ab0c` (344,698 bytes). Manuscript checks read the published Zenodo record.
+
+### Remote verification
+
+Pending: commit, CI on the governed task-to-develop pull request, promotion to `main`, tag/release, VPS deployment, and live HTTPS/API/browser verification. No 0.10.010 software deployment is claimed yet.
+
 ## 0.10.009 release candidate, 2026-11-02
 
 ### Local verification

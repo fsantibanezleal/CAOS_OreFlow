@@ -1,0 +1,209 @@
+{
+  "paired": {
+    "n": 72,
+    "screened": 26367,
+    "plain": 22487,
+    "change_pct": 17.254413661226486,
+    "cost_change_case_cluster_ci95_pct": [
+      9.282440497270773,
+      25.875462405494446
+    ],
+    "same_terminal_outcome": 65,
+    "agreement_case_cluster_ci95": [
+      0.8055555555555556,
+      0.9861111111111112
+    ],
+    "proposals": 5811,
+    "guard_rejected": 19,
+    "interval_rejected": 48268,
+    "proposed": 5811,
+    "improved": 901,
+    "mean_absolute_error_pp": 0.7115223305643207,
+    "mean_absolute_error_case_cluster_ci95_pp": [
+      0.48729736774682,
+      0.9754571791761669
+    ]
+  },
+  "ablation": {
+    "plain": 3683,
+    "designed": 3974,
+    "one_step": 3753
+  },
+  "guard_ablation": {
+    "policies": [
+      [
+        "no screen",
+        1007,
+        "+0.00%",
+        "4/4"
+      ],
+      [
+        "full",
+        1171,
+        "+16.29%",
+        "4/4"
+      ],
+      [
+        "without reconstruction guard",
+        1171,
+        "+16.29%",
+        "4/4"
+      ],
+      [
+        "without interval filter",
+        1332,
+        "+32.27%",
+        "4/4"
+      ],
+      [
+        "without both filters",
+        1332,
+        "+32.27%",
+        "4/4"
+      ]
+    ],
+    "cases": [
+      [
+        "copper porphyry soft",
+        "no screen",
+        266,
+        "5.195311",
+        "same"
+      ],
+      [
+        "copper porphyry soft",
+        "full",
+        309,
+        "5.195311",
+        "same"
+      ],
+      [
+        "copper porphyry soft",
+        "without reconstruction guard",
+        309,
+        "5.195311",
+        "same"
+      ],
+      [
+        "copper porphyry soft",
+        "without interval filter",
+        377,
+        "5.195311",
+        "same"
+      ],
+      [
+        "copper porphyry soft",
+        "without both filters",
+        377,
+        "5.195311",
+        "same"
+      ],
+      [
+        "copper porphyry hard",
+        "no screen",
+        418,
+        "2.548871",
+        "same"
+      ],
+      [
+        "copper porphyry hard",
+        "full",
+        526,
+        "2.548871",
+        "same"
+      ],
+      [
+        "copper porphyry hard",
+        "without reconstruction guard",
+        526,
+        "2.548871",
+        "same"
+      ],
+      [
+        "copper porphyry hard",
+        "without interval filter",
+        528,
+        "2.548871",
+        "same"
+      ],
+      [
+        "copper porphyry hard",
+        "without both filters",
+        528,
+        "2.548871",
+        "same"
+      ],
+      [
+        "iron magnetite fine",
+        "no screen",
+        57,
+        "232.893406",
+        "same"
+      ],
+      [
+        "iron magnetite fine",
+        "full",
+        68,
+        "232.893406",
+        "same"
+      ],
+      [
+        "iron magnetite fine",
+        "without reconstruction guard",
+        68,
+        "232.893406",
+        "same"
+      ],
+      [
+        "iron magnetite fine",
+        "without interval filter",
+        68,
+        "232.893406",
+        "same"
+      ],
+      [
+        "iron magnetite fine",
+        "without both filters",
+        68,
+        "232.893406",
+        "same"
+      ],
+      [
+        "gold free milling",
+        "no screen",
+        266,
+        "0.000878",
+        "same"
+      ],
+      [
+        "gold free milling",
+        "full",
+        268,
+        "0.000878",
+        "same"
+      ],
+      [
+        "gold free milling",
+        "without reconstruction guard",
+        268,
+        "0.000878",
+        "same"
+      ],
+      [
+        "gold free milling",
+        "without interval filter",
+        359,
+        "0.000878",
+        "same"
+      ],
+      [
+        "gold free milling",
+        "without both filters",
+        359,
+        "0.000878",
+        "same"
+      ]
+    ],
+    "screen_sha256": "7d67fe0c4a5fd28a554522cbc48112cc8b830ec1edeaf01caded73f156674a7f"
+  }
+}

@@ -19,7 +19,7 @@ The repository itself: [`../README.md`](../README.md), [`architecture/01-oreflow
 Records of past work:
 
 - [release-verification.md](release-verification.md): what was checked, where and when, for each release.
-- [Technical report sources](../manuscripts/technical-report/main.md) and [published report](https://doi.org/10.5281/zenodo.23783845): the process simulator, surrogate-transfer protocols, data and results.
+- [Technical report sources](../manuscripts/technical-report/main.tex) and [published report](https://doi.org/10.5281/zenodo.23783845): the process simulator, surrogate-transfer protocols, data and results.
 - [Screening study sources](../manuscripts/surrogate-screening/main.tex) and [published article](https://doi.org/10.5281/zenodo.23833134): paired screened and unscreened pattern-search results, including the negative cost finding.
 - [Earlier research draft](../manuscript/oreflow-digital-twin.md): the retained working account and record-derived claims; the published manuscripts above are the citable reports.
 - [`../CHANGELOG.md`](../CHANGELOG.md): the releases, newest first.

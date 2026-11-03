@@ -51,9 +51,12 @@ def project(tmp_path):
     (report / "zenodo.json").write_text(json.dumps({"metadata": {
         "title": "A reproducible simulator report", "version": CURRENT_VERSION, "publication_date": DATE,
         "license": "cc-by-4.0", "creators": [{"name": "Santibáñez-Leal, Felipe", "orcid": "0000-0002-0150-3246"}]}}))
-    (report / "main.md").write_text("# Authored report\n\n```text\na = b\n```\n")
-    (report / "report-template.tex").write_text("$title$ $author$ $docversion$ $docdate$ $versiondoi$ $conceptdoi$ $body$")
-    (report / "main.tex").write_bytes(b"existing canonical TeX")
+    (report / "main.tex").write_text(
+        r"\documentclass{article}\newcommand{\docversion}{v" + CURRENT_VERSION + "}"
+        r"\newcommand{\docdate}{1 November 2026}\newcommand{\versiondoi}{" + DOI + "}"
+        r"\newcommand{\conceptdoi}{10.5281/zenodo.23783845}"
+        r"\title{A reproducible simulator report}\author{Felipe Santibáñez-Leal (ORCID: 0000-0002-0150-3246)}"
+        r"\begin{document}\maketitle\end{document}", encoding="utf-8")
     (report / "main.pdf").write_bytes(b"existing canonical PDF")
     return root
 
@@ -66,6 +69,7 @@ class FixtureTools:
         self.warning = ""
         self.bad_text = None
         self.pages = 11
+        self.clip = False
         self.signature = b"%PDF-1.7\nfixture body\n%%EOF\n"
         self.drift = None
 
@@ -77,12 +81,7 @@ class FixtureTools:
         if "--version" in args or "-v" in args:
             return SimpleNamespace(returncode=0, stdout=f"{tool} fixture-version\n", stderr="")
         directory = Path(kwargs["cwd"])
-        if tool == "pandoc":
-            assert "--syntax-highlighting=none" in args
-            output = Path(args[args.index("--output")+1])
-            assert output == directory / "main.tex"
-            output.write_text("complete fixture TeX", encoding="utf-8")
-        elif tool == "xelatex":
+        if tool == "xelatex":
             self.passes += 1
             assert f"-output-directory={directory}" in args
             assert all("$" not in arg for arg in args)
@@ -97,6 +96,13 @@ class FixtureTools:
         elif tool == "pdfinfo":
             return SimpleNamespace(returncode=0, stdout=f"Pages: {self.pages}\n", stderr="")
         elif tool == "pdftotext":
+            if "-bbox" in args:
+                output = Path(args[-1])
+                x_max = "613" if self.clip else "540"
+                pages = "".join(f'<page width="612" height="792"><word xMin="10" yMin="10" xMax="{x_max}" yMax="20">visible</word></page>'
+                                for _ in range(self.pages))
+                output.write_text(f"<html><body>{pages}</body></html>", encoding="utf-8")
+                return SimpleNamespace(returncode=0, stdout="", stderr="")
             assert args[args.index("-f")+1] == "1" and args[args.index("-l")+1] == "1"
             text = ("A reproducible simulator report\nFelipe Santibáñez-Leal ORCID: 0000-0002-0150-3246\n"
                     f"Technical report v{CURRENT_VERSION}, 1 November 2026 Licence CC BY 4.0\nVersion DOI {DOI}\n"
@@ -119,7 +125,7 @@ def tools(tmp_path, monkeypatch):
 
 def canonical(root):
     report = root / "manuscripts/technical-report"
-    return {name: (report / name).read_bytes() for name in ("main.md", "report-template.tex", "main.tex", "main.pdf", "zenodo.json")}
+    return {name: (report / name).read_bytes() for name in ("main.tex", "main.pdf", "zenodo.json")}
 
 
 def metadata(root, mutate):
@@ -151,7 +157,7 @@ def test_adversarial_invalid_identity_or_scratch(project, tools, tmp_path, damag
     elif damage == "scratch":
         scratch = project / "scratch"
     elif damage == "empty-source":
-        (project / "manuscripts/technical-report/main.md").write_text("")
+        (project / "manuscripts/technical-report/main.tex").write_text("")
     before = canonical(project)
     with pytest.raises(ValueError):
         build_report(root=project, doi=doi, publication_date=date, temp_root=scratch, write="false" if damage == "write-type" else True)
@@ -169,7 +175,7 @@ def test_adversarial_failed_or_partial_compilation(project, tools, tmp_path, fai
     assert tools.passes == int(failure[-1])
 
 
-@pytest.mark.parametrize("damage", ["version", "doi", "date", "author", "orcid", "license", "header", "title", "pages", "signature", "overfull", "underfull", "warning"])
+@pytest.mark.parametrize("damage", ["version", "doi", "date", "author", "orcid", "license", "header", "title", "pages", "signature", "underfull", "warning", "clipped"])
 def test_adversarial_invalid_pdf_preserves_canonical(project, tools, tmp_path, damage):
     removed = {"version": f"v{CURRENT_VERSION}", "doi": DOI, "date": "1 November 2026", "author": "Felipe Santibáñez-Leal",
                "orcid": "0000-0002-0150-3246", "license": "CC BY 4.0", "header": "Technical report", "title": "A reproducible simulator report"}
@@ -179,13 +185,21 @@ def test_adversarial_invalid_pdf_preserves_canonical(project, tools, tmp_path, d
         tools.pages = 1
     elif damage == "signature":
         tools.signature = b"%PDF-1.7 partial"
+    elif damage == "clipped":
+        tools.clip = True
     else:
-        tools.warning = {"overfull": r"Overfull \hbox (1.0pt too wide)", "underfull": r"Underfull \vbox (badness 10000)",
+        tools.warning = {"underfull": r"Underfull \vbox (badness 10000)",
                          "warning": "Package hyperref Warning: unsupported token"}[damage]
     before = canonical(project)
     with pytest.raises(ValueError):
         build_report(root=project, doi=DOI, publication_date=DATE, temp_root=tmp_path / "scratch", write=True)
     assert canonical(project) == before
+
+
+def test_measured_overfull_box_is_accepted_when_every_glyph_is_inside_page(project, tools, tmp_path):
+    tools.warning = r"Overfull \hbox (39.5pt too wide) in introduction"
+    receipt = build_report(root=project, doi=DOI, publication_date=DATE, temp_root=tmp_path / "scratch")
+    assert receipt["layout"] == {"overfull_boxes_within_page_bounds": 1, "pages_with_text_bounds": 11}
 
 
 def test_adversarial_candidate_identity_and_write_boundary(project, tools, tmp_path):
@@ -199,15 +213,15 @@ def test_adversarial_candidate_identity_and_write_boundary(project, tools, tmp_p
     for name, evidence in receipt["outputs"].items():
         assert evidence["sha256"] == hashlib.sha256((directory / name).read_bytes()).hexdigest()
     assert json.loads((directory / "receipt.json").read_text(encoding="utf-8")) == receipt
-    assert set(receipt["tools"]) == {"pandoc", "xelatex", "pdfinfo", "pdftotext"}
+    assert set(receipt["tools"]) == {"xelatex", "pdfinfo", "pdftotext"}
     written = build_report(root=project, doi=DOI, publication_date=DATE, temp_root=tmp_path / "external scratch", write=True)
     assert written["candidate_dir"] != receipt["candidate_dir"]
     after = canonical(project)
     assert after["main.tex"] == (Path(written["candidate_dir"]) / "main.tex").read_bytes()
     assert after["main.pdf"] == (Path(written["candidate_dir"]) / "main.pdf").read_bytes()
-    assert all(after[name] == before[name] for name in ("main.md", "report-template.tex", "zenodo.json"))
+    assert after["zenodo.json"] == before["zenodo.json"]
     # A source edit during the next build must stop installation; do not relabel its receipt.
-    tools.drift = lambda: (project / "manuscripts/technical-report/main.md").write_text("source changed")
+    tools.drift = lambda: (project / "VERSION").write_text("source changed")
     existing_children = set((tmp_path / "external scratch").iterdir())
     with pytest.raises(ValueError, match="changed"):
         build_report(root=project, doi=DOI, publication_date=DATE, temp_root=tmp_path / "external scratch", write=True)
@@ -224,7 +238,7 @@ def test_external_root_environment_and_missing_tools(project, tools, tmp_path, m
     receipt = build_report(root=project, doi=DOI, publication_date=DATE)
     assert Path(receipt["candidate_dir"]).parent == tmp_path / "role scratch"
     monkeypatch.setattr(builder.shutil, "which", lambda name: None)
-    with pytest.raises(ValueError, match="pandoc"):
+    with pytest.raises(ValueError, match="xelatex"):
         build_report(root=project, doi=DOI, publication_date=DATE)
 
 
@@ -268,7 +282,7 @@ def test_clear_bounded_failures(project, tools, tmp_path, monkeypatch, damage):
     import build_technical_report as builder
 
     if damage == "missing-source":
-        (project / "manuscripts/technical-report/main.md").unlink()
+        (project / "manuscripts/technical-report/main.tex").unlink()
     elif damage == "missing-root":
         monkeypatch.delenv("CAOS_TEMP_ROOT", raising=False)
     else:

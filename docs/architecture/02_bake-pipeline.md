@@ -75,7 +75,7 @@ workload and machine contention. The current bake's stage times (cases, then lea
 - 605 s and 4622 s for its predecessor that day, also loaded.
 
 The current validation record carries the timings of the 0.10.009 bake:
-- 8637 s and 220 s for the committed 0.10.009 bake (cases, then learning), with studies in 762 s and real samples in 340 s on 4 case workers and 4 learning workers. Learning stage time reflects verified checkpoint reuse; it excludes compute completed before the resumed stage.
+- 4606 s and 3350 s for the committed 0.10.010 bake (cases, then learning), with studies in 360 s and real samples in 149 s on 4 case workers and 4 learning workers. All 15 evaluation jobs and 65 neural-seed jobs ran fresh; no learning checkpoints were resumed.
 
 The preceding validation record for 0.10.007 reported:
 - 5633 s and 6592 s for the committed 0.10.007 bake (cases, then learning).

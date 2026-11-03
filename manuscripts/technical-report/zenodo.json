@@ -25,7 +25,7 @@
     ],
     "license": "cc-by-4.0",
     "language": "eng",
-    "version": "0.10.009",
+    "version": "0.10.010",
     "related_identifiers": [
       {
         "relation": "isSupplementedBy",
@@ -33,7 +33,7 @@
         "resource_type": "software"
       }
     ],
-    "publication_date": "2026-11-01",
-    "version_notes": "Retains rejected transfer forecasts with their diagnostics, distinguishes conditional and matched cohorts, reports neural seed instability and completes the released-model notebook experiments. Numerical claims are bound to the release artifacts; simulator findings do not establish plant performance."
+    "publication_date": "2026-11-03",
+    "version_notes": "Expanded scientific report and reproducibility evidence for the 0.10.010 release."
   }
 }

@@ -12,7 +12,7 @@ from collections import Counter
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-PAPER = ROOT / "manuscripts" / "technical-report" / "main.md"
+PAPER = ROOT / "manuscripts" / "technical-report" / "main.tex"
 DERIVED = ROOT / "data" / "derived"
 MODELS = {"Ridge": "ridge", "Random forest": "random_forest", "Histogram gradient boosting": "hist_gradient_boosting",
           "Gaussian process": "gaussian_process", "Perceptron": "mlp"}
@@ -29,16 +29,41 @@ def _text() -> str:
     return PAPER.read_text(encoding="utf-8")
 
 
+def _plain_tex(text: str) -> str:
+    """Expose authored text and table values while ignoring LaTeX presentation commands."""
+    text = re.sub(r"\\(?:textbf|textit|emph|texttt|textrm|mathrm|mathbf)\{([^{}]*)\}", r"\1", text)
+    text = re.sub(r"\\(?:cite|label|ref|url)\{([^{}]*)\}", r"\1", text)
+    text = re.sub(r"\\[A-Za-z]+\*?(?:\[[^]]*\])?", " ", text)
+    return (text.replace(r"\%", "%").replace(r"\&", "&").replace(r"\_", "_")
+            .replace(r"\#", "#").replace(r"\$", "$"))
+
+
 def _flat() -> str:
-    """The manuscript with its line wrapping undone, so a quoted phrase can span lines."""
-    return re.sub(r"\s+", " ", _text())
+    """The report's authored LaTeX text with line wrapping and presentation commands removed."""
+    return re.sub(r"\s+", " ", _plain_tex(_text()))
 
 
 def _table(caption: str) -> list[list[str]]:
     text = _text()
-    start = text.index("\n\n", text.index(caption)) + 2
-    lines = text[start:text.index("\n\n", start)].splitlines()
-    return [[c.strip() for c in line.strip().strip("|").split("|")] for line in lines[2:]]
+    if caption.startswith("**Table "):
+        number = re.search(r"Table (\d+)", caption).group(1)
+        start = text.index(rf"\textbf{{Table {number}.}}")
+    else:
+        start = text.index(caption)
+    start = text.index(r"\begin{longtable}", start)
+    end = text.index(r"\end{longtable}", start)
+    body = text[start:end]
+    body = body.split(r"\endlastfoot", 1)[-1]
+    rows: list[list[str]] = []
+    pending = ""
+    for line in body.splitlines():
+        pending += " " + line.strip()
+        if line.rstrip().endswith(r"\\"):
+            cells = [_plain_tex(c).strip() for c in pending.rstrip()[:-2].split("&")]
+            if len(cells) > 1 and not any(token in pending for token in (r"\toprule", r"\midrule", r"\bottomrule")):
+                rows.append(cells)
+            pending = ""
+    return [row for row in rows if any(cell for cell in row)]
 
 
 def _matches(quoted: str, value: float) -> bool:
@@ -255,7 +280,8 @@ def test_the_counts_and_the_verification_claims_quote_the_records():
     assert f"reproduces all {index['n_variants']} committed states within 1e-6" in flat
     assert f"All {index['n_variants']} committed states close within 1e-9" in flat
     assert f"{learning['design']['rows']:,}-state design" in flat
-    assert f"took {validation['seconds']['cases']:.0f} s for the cases on {validation['workers']} workers and {validation['seconds']['learning']:.0f} s for the learned lane" in flat
+    assert f"validation record reports {validation['seconds']['cases']:,.0f} s for the twelve cases on four" in flat
+    assert f"workers, {validation['seconds']['learning']:,.0f} s for the learning stage" in flat
     assert "independent browser implementation" not in flat and "independent second implementation" not in flat
 
 
