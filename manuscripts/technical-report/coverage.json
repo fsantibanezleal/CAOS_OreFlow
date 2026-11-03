@@ -1,0 +1,34 @@
+{
+  "kind": "technical-report",
+  "title_support": [
+    "tab:learning-summary",
+    "fig:case-transfer"
+  ],
+  "methods": {
+    "M-1": "method-bond",
+    "M-2": "method-random-forest",
+    "M-3": "method-energy-laws",
+    "M-4": "method-kinetics",
+    "M-5": "method-optimization",
+    "M-6": "method-sobol"
+  },
+  "contracts": {
+    "oreflow-benchmark-v2": "contract-authored",
+    "oreflow-case-v2": "contract-authored",
+    "oreflow-contract-probes-v1": "contract-operating-validation",
+    "oreflow-contract-v1": "contract-operating-validation",
+    "oreflow-geomet-lct-v1": "contract-external-data",
+    "oreflow-hzdr-summary-v1": "contract-external-data",
+    "oreflow-index-v2": "contract-authored",
+    "oreflow-iron-plant-soft-sens": "contract-operating-validation",
+    "oreflow-learning-v2": "contract-learning-artifacts",
+    "oreflow-manifest-v2": "contract-authored",
+    "oreflow-particle-benchmark-v": "contract-external-data",
+    "oreflow-process-surrogate-v1": "contract-learning-artifacts",
+    "oreflow-real-samples-v1": "contract-external-data",
+    "oreflow-screen-v1": "contract-learning-artifacts",
+    "oreflow-studies-v1": "contract-learning-artifacts",
+    "oreflow-validation-v2": "contract-operating-validation",
+    "readiness": "contract-operating-validation"
+  }
+}

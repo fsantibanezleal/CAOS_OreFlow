@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.10.010] - 2026-11-03
+
+### Changed
+- Adopt the official CAOS Product Template 0.14.005 and keep the shared shell pinned to the released npm 0.19.12 package.
+- Expand the technical report into a LaTeX research document with source-derived evidence, equations, implementation detail, experimental protocols, limitations, and reproducibility instructions.
+- Complete the bilingual notebook curriculum with method, sensitivity, case, and measured-data lessons; execute every lesson in fresh kernels.
+- Add source-bound publication evidence for the screened optimizer study and document its four-case filter-removal limits.
+
+### Fixed
+- Make direct pipeline invocation generate the required pinned GeoMet benchmark lane before expensive bake stages when the artifact is absent.
+- Localize Spanish uncertainty and optimization plot labels, and keep notebook prose in the required formal register.
+
+
 ## [0.10.009] - 2026-11-01
 
 ### Updated

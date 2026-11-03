@@ -10,7 +10,7 @@
         "affiliation": "CAOS open-research programme, Santiago, Chile"
       }
     ],
-    "description": "<p>Surrogate screening can add trial evaluations as well as avoid them. We evaluate a neural-surrogate search step, with a reconstruction guard and a Gaussian-process interval-width filter, within multistart generalized pattern search with a progressive barrier. Its unscreened control uses the same fixed objective weight, starts, bounds, stopping rules and circuit evaluator. Across 72 target-mode variants from twelve authored mineral-processing cases, the screened searches recorded 26,367 distinct cached trial states versus 22,487 without screening, a 17.25% increase. These counters exclude the later weight-path study, uncached audits and model costs. Counts were higher in 68 variants, tied in four and lower in none. Both procedures found feasible endpoints in 70 variants and no feasible endpoint in two; terminal outcomes matched in 65. The seven different feasible decisions differed by at most 0.0027 t/h (0.017%) in recovered primary metal. Of 5,811 evaluated surrogate-selected proposals, 901 improved the incumbent; absolute recovery error had mean 0.71, median 0.48 and maximum 38.16 percentage points. The screen did not reduce the recorded search workload on this suite. These finite-search results do not establish global optimality, elapsed-time savings or performance on operating plants.</p><p>Source code, data and computational records: https://github.com/fsantibanezleal/CAOS_OreFlow</p>",
+    "description": "<p>Surrogate screening can add trial evaluations as well as avoid them. This study compares neural surrogate screening with an unscreened generalized pattern search on 72 paired target-mode variants from twelve authored mineral-processing circuit cases. Screening recorded 26,367 distinct cached trial states versus 22,487 without screening, a 17.25% increase (case-cluster bootstrap 95% interval 9.28 to 25.88%). Counts were higher in 68 variants, tied in four and lower in none. Terminal outcomes matched in 65 pairs; seven different feasible decisions differed by at most 0.0027 t/h in recovered metal. Of 5,811 exact-evaluated proposals, 901 improved an incumbent. Mean absolute recovery error was 0.71 percentage points (case-cluster interval 0.49 to 0.98), with a 38.16-point maximum. A separate twelve-case radius ablation recorded 3,683 evaluations without screening, 3,753 with one-step screening and 3,974 with one-and-two-step screening.</p><p>A filter-removal experiment on four selected authored cases recorded 1,007 evaluations without screening and 1,171 with the full policy. Removing the reconstruction guard did not change counts because it rejected no candidate in those runs. Removing the interval-width filter increased the count to 1,332; all policies returned the same exact endpoint decisions in this selected subset. These local results do not establish universal decision equivalence, global optimality, elapsed-time savings or performance on operating plants.</p><p>Source code, data and computational records: https://github.com/fsantibanezleal/CAOS_OreFlow</p>",
     "keywords": [
       "mineral processing",
       "process simulation",
@@ -23,8 +23,8 @@
     ],
     "license": "cc-by-4.0",
     "language": "eng",
-    "version": "1.1",
-    "version_notes": "Recomputed paired optimization study using the corrected training-only constant-feature scaler and learning-v2 model exports. Corrects the scope of cached trial evaluations, separates the subsequent weight-path study and qualifies finite-search endpoint claims.",
+    "version": "1.2",
+    "version_notes": "Adds a completed four-case filter-removal study and regenerates the evidence figures and tables from persisted records. The reconstruction guard rejected no candidates in the selected subset, so its removal had no measured effect there; interval-filter removal increased exact proposals and cached evaluations. The paper states these subset limits and does not claim overall compute savings.",
     "related_identifiers": [
       {
         "relation": "isSupplementedBy",
@@ -32,6 +32,6 @@
         "resource_type": "software"
       }
     ],
-    "publication_date": "2026-11-01"
+    "publication_date": "2026-11-02"
   }
 }

@@ -2,7 +2,7 @@
 \usepackage[margin=25mm]{geometry}
 \usepackage{fontspec}
 \usepackage{unicode-math}
-\usepackage{amsmath,booktabs,longtable,array,graphicx,xurl}
+\usepackage{amsmath,booktabs,longtable,array,graphicx,xurl,algorithm,algpseudocode}
 \usepackage{calc}
 \usepackage{microtype}
 \usepackage{fancyvrb}
@@ -12,11 +12,11 @@
 \hypersetup{colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue}
 \setlength{\parskip}{0.45em}
 \setlength{\parindent}{0pt}
-\setlength{\emergencystretch}{3em}
+\setlength{\emergencystretch}{5em}
 \newcommand{\doctype}{Technical report}
-\newcommand{\docversion}{v0.10.009}
-\newcommand{\docdate}{1 November 2026}
-\newcommand{\versiondoi}{10.5281/zenodo.23864184}
+\newcommand{\docversion}{v0.10.010}
+\newcommand{\docdate}{3 November 2026}
+\newcommand{\versiondoi}{10.5281/zenodo.23905019}
 \newcommand{\conceptdoi}{10.5281/zenodo.23783845}
 \newcommand{\docrepo}{https://github.com/fsantibanezleal/CAOS\_OreFlow}
 \newcommand{\headerblock}{%
@@ -24,9 +24,9 @@
 \fbox{\parbox{0.94\textwidth}{\small\raggedright
 \textbf{\doctype} \quad$\cdot$\quad \docversion, \docdate \quad$\cdot$\quad Licence CC BY 4.0\\[2pt]
 CAOS open-research programme \quad$\cdot$\quad mineral-processing simulator\\[2pt]
-Version DOI \href{https://doi.org/\versiondoi}{\texttt{\versiondoi}} \quad$\cdot$\quad
-concept DOI (always latest) \href{https://doi.org/\conceptdoi}{\texttt{\conceptdoi}}\\[2pt]
-Not peer reviewed. Source code, data and computational records: \href{https://github.com/fsantibanezleal/CAOS_OreFlow}{\texttt{github.com/fsantibanezleal/CAOS\_OreFlow}}
+Version DOI \href{https://doi.org/\versiondoi}{\texttt{\versiondoi}}\\[2pt]
+Concept DOI (always latest) \href{https://doi.org/\conceptdoi}{\texttt{\conceptdoi}}\\[2pt]
+Not peer reviewed. Source code, data and computational records: \href{https://github.com/fsantibanezleal/CAOS_OreFlow}{project repository}
 }}
 \end{center}
 \vspace{4pt}}
@@ -80,6 +80,1251 @@ three:
   whose missed feature shifts remain visible by input and distance.
 \end{enumerate}
 
+Published comminution and simulator studies provide context for the
+controlled engine comparison; their plant-specific results are not
+transferred as OreFlow calibration data \cite{whiten1972,koh2021}.
+
+Grinding and flotation couple particle-size transformation to
+classification, water circulation and mineral-specific recovery. Finer
+grinding can improve liberation while increasing energy and changing the
+flotation feed. A control selected from one unit response may therefore
+violate a downstream constraint.
+
+OreFlow exposes these couplings through stream and unit records. It
+creates a controlled teacher for method comparison and a transparent
+setting for testing how validation units alter conclusions; it does not
+replace plant sampling or metallurgical accounting.
+
+The report distinguishes numerical closure within implemented equations,
+reproduction of external reference cases and predictive agreement on
+held-out records. Passing one category does not imply passing another.
+
+\section{Problem formulation}\label{problem-formulation}
+
+Let \(c\) index one of twelve authored circuit cases and let \(v\) index
+one of its declared operating variants. OreFlow evaluates the map
+
+\[z=\mathcal{E}(c,u;\theta),\]
+
+where \(u\) is the case's operating point and \(\theta\) contains its
+mineralogy, size distribution, liberation, density, hardness and
+equipment declarations. The output \(z\) contains size-by-mineral
+streams, water flows, equipment loads and derived assays. A call returns
+a converged steady state or a structured refusal. Refusal is a
+first-class outcome: it is not a zero recovery and cannot be silently
+omitted from a denominator.
+
+For mineral \(m\), unit feed rate \(F_m\) and output rates \(O_{m,k}\),
+conservation requires
+
+\[r_m=F_m-\sum_k O_{m,k}=0.\]
+
+Water has a separate balance. Recovery is the payable mineral in the
+selected product divided by payable feed; grade is elemental payable
+mass divided by total concentrate solids. Because the two denominators
+differ, they are not interchangeable. Increasing mass pull can raise
+recovery while lowering grade. The engine checks the balances at unit
+boundaries, then aggregates the case record only when its invariants
+pass.
+
+The forward question is to compute the steady state for an admissible
+case and operating point. The learning question is to approximate a
+vector of outputs from a feature vector, with recovery, log upgrade and
+specific energy as separate targets. Its estimand is not simply
+``accuracy'': interpolation within a known case, transfer to an entire
+held-out case, and transfer to a held-out ore group define distinct
+deployment questions. The optimization question chooses bounded controls
+to maximize normalized recovered metal and energy subject to grade,
+installed-power and water limits. The uncertainty question propagates
+declared ranges in work index, head grade, liberation size and
+floatability through the same engine. None of these quantities is an
+economic value: OreFlow has no prices, reagent costs, capital model or
+production schedule.
+
+This formulation also marks what the product does not claim.
+\(\mathcal{E}\) is steady state, not a start-up or control-loop model.
+Its authored parameters are not calibrated to operating-plant
+observations. An optimum is a finite-search feasible candidate from the
+declared equations; it is not an operating set point. The externally
+measured datasets have their own lanes and protocols. They neither alter
+the authored cases nor validate their circuit parameters. These
+separations are necessary to interpret every downstream score and to
+avoid promoting a modeled output into a plant measurement.
+
+\section{Notation}\label{notation}
+
+Bold capitals denote size-class operators and vectors. Scalar rates are
+in tonnes per hour unless otherwise stated; the case record retains the
+exact field unit. Indices identify mineral \(m\), size class \(i\),
+equipment unit \(j\) and sampled state \(n\). The same letter can denote
+different domain objects only where its unit and subscript make that
+role explicit: \(F_m\) is a mineral mass rate, while \(F\) in the Bond
+equation is a characteristic feed size. The probability operator is
+written \(\Pr\); installed power is \(P_{inst}\).
+
+{\def\LTcaptype{none} % do not increment counter
+\renewcommand{\arraystretch}{1.2}
+\begin{longtable}[]{@{}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\toprule\noalign{}
+\begin{minipage}[b]{\linewidth}\raggedright
+Symbol
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Meaning
+\end{minipage} & \begin{minipage}[b]{\linewidth}\raggedright
+Unit or domain
+\end{minipage} \\
+\midrule\noalign{}
+\endhead
+\bottomrule\noalign{}
+\endlastfoot
+\(c,v\) & authored case and declared variant & identifiers \\
+\(u,\theta\) & operating controls and case parameters & mixed; each
+field has its schema unit \\
+\(z,\mathcal{E}\) & steady-state streams and exact engine map & state
+and deterministic map \\
+\(F_m,O_{m,k}\) & mineral feed and unit-output rates & t/h \\
+\(r_m\) & mineral balance residual & t/h \\
+\(\mathbf B,\mathbf C,\mathbf T\) & breakage, classification and mill
+operators & dimensionless matrices \\
+\(d_{50c},P_{80}\) & corrected classifier cut and product size & µm \\
+\(W_i,E\) & work index and specific energy & kWh/t \\
+\(R,M,G\) & recovery, recovered payable and concentrate grade & \%, t/h,
+\% \\
+\(x,y,\hat y\) & feature, target and model prediction & declared target
+units \\
+\(T_q,n_q\) & held-out rows and count under protocol \(q\) & set and
+count \\
+\(\Delta,h\) & normalized search mesh and constraint violation &
+dimensionless \\
+\(S_i,S_{T_i}\) & first-order and total sensitivity indices &
+dimensionless \\
+\end{longtable}
+}
+
+The notation separates a requested setting from a solved state. The
+input vector \(u\) is what the user or a study requests; the result
+\(z\) is what the engine converges to. In a power-limited grind,
+requested \(P_{80}\) and achieved \(P_{80}\) differ, and only the latter
+belongs in a size-based energy equation. Likewise, the optimizer's
+normalized decision coordinate is not a physical control until it is
+mapped back through the case contract. These distinctions matter in
+figures: an axis labelled with a target must not be read as an observed
+outcome.
+
+The index \(q\) denotes an evaluation protocol, not a model.
+Interpolation, case holdout and grouped transfer define different
+training and test sets, so \(T_q\) is retained in equations to make the
+denominator explicit. The sample count \(n_q\) changes after a
+rejection, while the attempted count remains fixed. A score computed
+from only admitted rows is conditional on that admission rule. In the
+process methods, \(i\) can index size classes and \(j\) can index
+flotation cells; the corresponding vector dimensions make the intended
+summation clear. Bold operators act on the size grid and are applied
+separately for every mineral before stream totals are formed.
+
+\(E\) is used for specific energy in kWh/t, while \(e\) denotes mill
+energy per pass on the internal mill-feed basis. Their denominators
+differ. \(M\) is recovered payable rate in t/h, not total concentrate
+mass. \(G\) is grade on the stated elemental basis, not mineral mass
+fraction unless the case defines it so. The report names recovery units
+as percentages, and any difference in recovery is a percentage-point
+difference. These conventions prevent common scale errors when comparing
+kinetic percentage recovery, a mass-flow response and a dimensionless
+model score.
+
+Dimensionless normalized objectives are used only inside the optimizer;
+displayed process metrics retain physical units. Recovery is reported in
+percent, while the difference between two recoveries is in percentage
+points. Specific energy is power divided by solids throughput and is not
+interchangeable with total power. Water intensity is volume per solids
+mass, whereas water flow is a volume rate. These distinctions keep
+throughput changes from being mistaken for changes in process water
+demand. Subscripts identify the stream, mineral, size class or sampled
+state when the role is not already explicit. The conventions are carried
+into schema units, serialized traces and table captions.
+
+\section{Data and data contracts}\label{data-and-data-contracts}
+
+The twelve case definitions are project-authored scenarios under the
+repository's MIT licence, not a measured plant dataset. Each definition
+identifies process family, category, scientific question, provenance,
+sources, KPI ranges, nominal controls and eight variants. The committed
+0.10.010 bake contains 96 variant records generated with contract digest
+\texttt{0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7}.
+The learning design contains 3,072 simulator states, 256 per authored
+case. Labels are exact relative to the implemented engine. They are not
+ground truth about an operating mill.
+
+The catalog in \texttt{docs/contracts/catalog.md} is the human-readable
+authority for every contract's identifier, version, schema, producer,
+consumer, missing-data behavior and status. The operating contract
+supplies units, bounds, applicability and refusal rules. Case and
+manifest contracts bind authored inputs and solved outputs. Benchmark
+and studies contracts bind comparisons; learning, surrogate and screen
+contracts bind feature order, target order, model identity, scaling and
+eligibility decisions. Probe and validation contracts preserve boundary
+challenges and checks. Source contracts keep the GeoMet LCT, HZDR
+particle, iron-plant soft-sensor and other records distinct by
+provenance and use. A missing required artifact blocks its dependent
+result; it is never replaced with a default value. A failed steady state
+is retained with its refusal code and denominator.
+
+The learning data use three separate held-out protocols. Interpolation
+divides rows within case; case transfer withholds all rows of a case;
+group transfer withholds related ore cases together. Every scaler is fit
+only on the training portion of each fold. The measured-data lanes use
+source-specific records and splits. The iron-plant lane, for example,
+groups consecutive hours and applies a temporal embargo; it does not
+feed measurements into the circuit engine. The locked-cycle GeoMet data
+lack grind, reagent and residence controls, so they cannot identify all
+parameters that the model would need for calibration. Field names that
+resemble operating controls do not make the missing measurements
+available.
+
+For auditability, schema validation and physical validation are
+separate. JSON schemas check shape, types, required values and
+enumerations. Domain gates check conservation, allowed ranges, engine
+identity and cross-field invariants. Producer and consumer tests
+exercise the same record from creation to use, while adversarial tests
+change nested boundaries and malformed identities. A contract digest
+binds the operating definition used in the bake, and each derived
+artifact carries its engine version. This lets the reader distinguish a
+schema-valid record from a physically accepted state and from an
+independent empirical observation.
+
+\subsection{Authored case, manifest and aggregate evidence
+contracts}\label{authored-case-manifest-and-aggregate-evidence-contracts}
+
+\label{contract-authored}
+
+The case definition is the upstream scientific input: it binds the case
+identifier, process family, descriptive question, provenance, cited KPI
+ranges, nominal controls and labeled perturbations. The manifest is its
+run-level companion. It identifies the engine version and
+operating-contract digest, the exact artifact file, its variants,
+nominal result and KPI summaries. A manifest therefore cannot be
+interpreted as a new independent observation: it is an index to a named
+deterministic bake. The aggregate index collects case and variant counts
+and links the case-level records; consumers use it to discover the
+committed suite without duplicating every stream array.
+
+The benchmark record has a different role. It groups selected oracle
+comparisons, kinetic fits, optimizer results, uncertainty outputs,
+learning metrics and lane summaries under one engine identity. Its
+fields summarize the scientific comparison; detailed per-case data
+remain in their child records. This separation lets a reader inspect one
+reported number and then follow the record that produced it. The studies
+record collects the switchable studies by case, including
+method-specific diagnostics and their denominators. The five artifacts
+are produced by distinct pipeline stages and consumed by validation, the
+web workbench, notebooks and release checks. If a case record or engine
+digest is missing, the aggregate stage stops or omits only the dependent
+section with an explicit status; it does not interpolate a missing case.
+Version strings and digests must agree before cross-case aggregation,
+because mixing engine revisions can turn a code change into apparent ore
+variability.
+
+These contracts carry authored provenance, not measurement provenance.
+\texttt{case\_id}, category and family explain grouping; the localized
+title and question identify the teaching problem; \texttt{sources},
+\texttt{kpi\_sources} and \texttt{provenance} distinguish literature
+ranges from project assumptions. \texttt{nominal} and \texttt{variants}
+declare what changed between solves. The output record stores the result
+and the methods tied to that setting. To extend the suite, add a new
+case with explicit source or ``authored'' status, validate its operating
+point against the canonical bounds, run all declared variants, and
+produce the manifest from the same engine version. A benchmark summary
+should be regenerated only after each child artifact passes schema and
+physical checks. This prevents stale indexes from implying that every
+case was recomputed.
+
+\subsection{Operating-input and validation
+contracts}\label{operating-input-and-validation-contracts}
+
+\label{contract-operating-validation}
+
+The operating contract declares the admissible fields, units, bounds,
+case applicability and refusal behavior used by the engine and
+optimizer. It is the boundary between user controls and numerical
+methods. A control outside its bound is not silently clipped: the engine
+returns a structured refusal that keeps the requested value and reason
+visible. The nested validation checks ensure that a valid top-level
+point cannot hide an invalid nested decision. Browser and Python
+consumers share this declaration, and parity tests check that both
+accept or refuse the same boundary values.
+
+The contract-probe record is deliberately adversarial. It stores a
+digest of the contract plus probes that test lower and upper edges,
+just-outside values, wrong types, missing fields and cross-field
+combinations. These probes are test evidence, not operating scenarios.
+Their expected response is compared with the implementation so a UI can
+distinguish a disabled control, a refused replay and a numerical result.
+The validation record summarizes whether stages passed, the
+stage-specific diagnostics, error list, worker count and elapsed-time
+groups. A \texttt{passed} flag is an aggregate status; it does not
+replace the individual errors or prove scientific validity of model
+assumptions.
+
+The validation artifact is produced after the bake and consumed by
+release readiness, CI records and documentation. A missing probe or
+validation file blocks the corresponding gate. A test must fail when a
+required boundary changes without updating the contract; accepting a
+changed schema merely because the nominal case still runs would leave
+the contract drift undetected. \texttt{contract\_digest} is computed
+from canonical contract content and tied into downstream artifacts. Thus
+a case record with the right schema but an obsolete contract digest is
+not an equivalent input to a newly declared optimizer. The reviewer
+should inspect both the declared domain and the refusal evidence before
+interpreting model coverage.
+
+\subsection{Learning design and model-inference
+contracts}\label{learning-design-and-model-inference-contracts}
+
+\label{contract-learning-artifacts}
+
+The learning design record defines feature order, target order, model
+names, sample design, split identity, settings and the interpolation,
+case-held-out and group-held-out results. Its fold arrays preserve
+attempted, scored and rejected populations. The earlier schema version
+remains declared for historical records, while the current version
+carries the expanded identities and transfer diagnostics. A consumer
+must not treat those versions as interchangeable: it checks the
+\texttt{schema} value and the expected fields before interpreting a
+score. The case group is not supplied as a predictive feature in the
+transfer protocol.
+
+The process-surrogate record binds the numerical inference transform. It
+stores ordered features and targets, feature means and scales, target
+means and scales, separate reconstruction-guard scaling, guard threshold
+and reference ranges. These arrays are positional: changing feature
+order without changing the record could produce finite but meaningless
+predictions. The screen record binds the exported network and GP
+metadata, covariance factor identity and the references used by the
+optimizer's preflight. Inference checks model and contract identity
+before evaluating a candidate. The solver uses the neural response only
+to rank proposals; exact-engine evaluation remains the source of
+objective and constraint values.
+
+The learning stage produces the design and fold results; training and
+export produce the model records; the notebook and workbench consume
+them. Artifact hashes, engine version, contract digest, target order and
+declared thresholds let the consumer reject a stale or incomplete
+export. Missing scaler values, a wrong target count, non-finite model
+weights or a mismatched GP factor are hard failures. They are not filled
+with identity scaling or a broad interval. The frozen-model challenge
+records attempted and accepted samples so guard sensitivity can be
+inspected without deleting misses. Its known-case seed is a
+reproducibility design, not a new-ore test. A prospective plant lane
+would require a separate contract for time, sampling, assays and
+production-period splits.
+
+\subsection{External datasets and measured-source
+contracts}\label{external-datasets-and-measured-source-contracts}
+
+\label{contract-external-data}
+
+External-data interpretation retains the original sample and source
+identity, including the gravity-recovery sources and the stated particle
+benchmark protocol \cite{laplante2005,laplantestaunton,pereira2021}. The
+Geomet locked-cycle record holds source identity, sampling protocol and
+the paired assay/recovery rows used for whole-hole and spatial-zone
+evaluation. It retains which measurements are missing: grind, collector,
+residence and plant circuit controls are not inferred from the assay
+columns. The iron-plant soft-sensor record stores source and
+data-quality descriptions, temporal split protocol, pooled scores, model
+comparisons, repeated-label share, held-label definition and fold
+results. The embargoed future windows and repeated laboratory values
+must be read together; the raw row count is not the effective
+independent sample count.
+
+The HZDR summary declares the dataset DOI, source URL, licence, feature
+groups, row counts and whether the raw file is locally available. The
+particle benchmark stores the raw source identity, protocol,
+standardization, fitted sparse-logistic coefficients and results per
+constructed case. Test-set probabilities and author predictions are not
+observed particle labels, so agreement with them is a comparison to a
+constructed reference. The real-samples record preserves the source,
+label meaning, assumed floatability ratios, plant or laboratory context,
+comminution linkage, excluded rows, per-sample estimates and sensitivity
+summaries. The GeoMet assays are not direct controls for the authored
+circuit; the record therefore keeps the transformation and assumptions
+explicit.
+
+The GeoMet, HZDR, iron-plant and real-sample artifacts are produced by
+separate preprocessing or evaluation stages. Their consumers include
+research notebooks and the report, not the authored case generator. Each
+source contract preserves its licence, stable source reference, row
+exclusions and protocol boundary. A missing raw source or changed file
+digest blocks reproduction of that lane while leaving independent
+simulator records valid. It must not be replaced with a synthetic row
+under the external-source label. Conversely, a source record that is
+available and schema-valid still needs its study-specific leakage,
+provenance and measurement checks before a result can be described as
+measured evidence. This explicit lineage is what allows the report to
+compare different evidence types without merging their denominators.
+
+\section{System architecture}\label{system-architecture}
+
+The pipeline is an artifact chain. Case definitions and the operating
+contract enter preprocessing; the steady-state engine solves the closed
+circuit and emits streams, equipment values and balance diagnostics. The
+cases stage writes each nominal and variant record. The benchmark stage
+compares selected results with published worked examples and retains
+discrepancies. Separate stages build the particle, source-sample and
+studies records. The learning stage creates a seeded design, fits the
+declared models under the split protocols, and exports scalers, target
+metadata, neural weights and the GP factor used by inference. Every
+stage uses versioned inputs and emits its contract identity; no stage
+fills a missing prerequisite by inventing a score.
+
+Python is the research reference implementation. The TypeScript engine
+is a second implementation used for the interactive workbench and is
+checked against the same committed cases. That parity check detects
+translation errors but is not independent validation of the physical
+model, since the equations and authored constants are shared. The client
+reads baked data for reported evidence and runs local calculations for
+explicit user changes. The optimizer evaluates accepted candidates
+through the exact process engine; the learned models may prioritize
+proposals but do not supply final objective values. The app has no plant
+telemetry connection.
+
+The UI therefore exposes three value origins: a committed result, a
+local engine replay, and a learned estimate. The provenance, active
+case, controls and replay status accompany the relevant view. Focus mode
+changes available screen area and navigation while preserving those
+identities. A browser-generated state is still a result of authored
+steady-state assumptions; interactive controls do not make it a plant
+recommendation. This architecture is intended to make the method
+inspectable: controls feed a named call, contracts constrain its domain,
+artifacts bind reproducible comparisons, and the interface presents the
+resulting state without implying an unrecorded source.
+
+The artifact flow is summarized in Figure 1: versioned inputs pass
+through the exact engine and stage-specific validations before reaching
+the evidence records and the browser workbench. Arrows indicate handoffs
+between versioned artifacts, not a live plant data feed.
+
+A pipeline stage owns the artifact it writes, and consumers validate the
+schema instead of reaching into an upstream stage's private
+implementation. This arrangement makes a method replaceable without
+changing the meaning of its contract. For example, a new kinetic fit may
+add diagnostics to its study record, but it cannot reorder case features
+or reinterpret a recovery field used by the workbench. The manifest
+supplies the link from a displayed case to the exact source record,
+while the contract digest ties that record to the admissible operating
+domain.
+
+The desktop and browser paths have different responsibilities. Python is
+used for full scientific recomputation, model fitting and the committed
+bake; TypeScript serves the interactive circuit with constrained local
+state changes. A browser response may be deterministic and numerically
+close to Python, but that does not make it an observation. It remains a
+local calculation under the same authored assumptions. The product's API
+serves versioned artifacts and health metadata; it does not proxy a
+control system or receive sensor streams. Consequently, network
+availability is not a model-validity test, and a successful API call is
+not evidence that the nominal assumptions hold at a real site.
+
+The release chain preserves those boundaries through version checks,
+template alignment, static artifact verification, notebook execution and
+the release-specific simulation bake. A candidate is not promoted
+because a page renders: its engine and artifacts must first agree, and
+the public bundle must then be checked against the candidate identity.
+This report records the 0.10.010 release candidate and its completed
+source-derived bake. Its version record is reserved under the DOI shown
+on the title page. The software release remains subject to the product
+repository gates, publication record synchronization and deployment
+verification described below.
+
+\section{Methods}\label{methods}
+
+The following subsections describe the implemented methods and the
+evidence they produce. They distinguish equations used to compute a
+circuit response from statistical procedures used to evaluate a learned
+approximation. Every comparison is conditional on the authored cases,
+contract, seeds and declared acceptance criteria. Model names denote
+implementations in this repository; the equations below do not imply
+that their parameters were calibrated on a plant.
+
+\subsection{Bond work-index estimate and
+applicability}\label{bond-work-index-estimate-and-applicability}
+
+\label{method-bond}
+
+The equations are used as engineering estimates and interpreted against
+the industrial work-index procedure
+\cite{bond1952,gmg2021,kick1885,rittinger1867}. \begin{equation}
+E_B=W_i\left(\frac{10}{\sqrt{P_{80}}}-\frac{10}{\sqrt{F_{80}}}\right).
+\end{equation} \begin{equation}
+W_{i,\mathrm{op}}=\frac{E_{\mathrm{op}}}{10/\sqrt{P_{80}}-10/\sqrt{F_{80}}},
+\qquad \eta_B=\frac{E_B}{E_{\mathrm{op}}}.
+\end{equation}
+
+For feed and product with distributions rather than single measured
+percentiles, the percentile is obtained by mass interpolation on the
+documented grid. If \(F(d)\) is cumulative passing, the selected size
+solves \(F(d_p)=p\). The mill balance then uses the full distribution
+while the Bond diagnostic uses only \(F_{80}\) and \(P_{80}\); this
+difference in information explains why their outputs need not move in
+lockstep. The reported efficiency ratio is defined as
+\(\eta_B=E_B/E_{op}\), with the report retaining the numerator and
+denominator so that a ratio above or below one cannot hide a changed
+circuit boundary. A missing percentile is a refusal, not an arbitrary
+extrapolation.
+
+The approximation is most useful for comparing a declared size reduction
+under a consistent test convention. It becomes unreliable as a stand-in
+for circuit simulation when feed composition, recycle, liberation or
+power limit changes. The method is included because engineers recognize
+it and can check the arithmetic; OreFlow's stronger process question
+requires the distributional model described next.
+
+Bond's work-index relation is applied to the solved feed and product
+size distributions, rather than to a single visual setting on the
+workbench. The characteristic sizes \(F_{80}\) and \(P_{80}\) are the
+sizes below which eighty percent of the corresponding solids mass
+passes. With sizes in micrometres and work index in the contract's
+conventional units, the specific energy estimate is
+
+\[E_B=10W_i\left(\frac{1}{\sqrt{P_{80}}}-\frac{1}{\sqrt{F_{80}}}\right).\]
+
+The equation is an empirical comminution relation. \(W_i\) is not a
+universal ore constant inferred by OreFlow: each case carries an
+authored value or a documented source, and the result inherits that
+provenance. The model's purpose here is to expose the familiar
+inverse-root dependence and compare it with the energy accounting of the
+closed-circuit engine. It cannot resolve the full size-by-mineral
+breakage distribution, recirculation or installed-power clipping by
+itself. It is therefore reported next to the population-balance mill
+result, never added to it as another energy contribution.
+
+The operating work index reverses the same relation using the observed
+engine energy and the solved size reduction. This makes it possible to
+ask whether the simulation's net circuit energy is consistent with its
+selected size range under the Bond convention. The efficiency ratio
+compares the required estimate with that operating value. A ratio is
+interpretable only when the reference size convention, unit conversion
+and circuit boundary match; it is not a standalone equipment-efficiency
+measurement. Bond's standard-circuit assumptions exclude several effects
+represented elsewhere in the engine, including classification recycle
+and power-limited coarse product, so discrepancy is expected when these
+boundaries differ.
+
+Rittinger's surface-area law and Kick's size-similarity law are included
+as alternative functional relations. OreFlow calibrates both through the
+declared reference reduction so that all three return the Bond result at
+that point. Away from the reference, their curves diverge because they
+encode different size dependence. This calibration is pedagogical and
+does not establish that the three laws are interchangeable or that one
+is universally more accurate. The meaningful comparison uses the same
+feed, work index and size interval, records the reference point, and
+reports divergence as a function of product size. If a case enters an
+installed-power branch, an energy-only law cannot claim that the nominal
+target was achieved; the solved \(P_{80}\) must be used.
+
+The calculation uses fresh-feed tonnes as the denominator for circuit
+specific energy. The mill's energy per pass is applied to its actual
+circulating mill feed, which can exceed fresh feed. The report's
+operating value is therefore reconstructed from mill power and
+fresh-feed throughput, not copied from the per-pass quantity. Crusher
+work is accounted separately with the crushing work index. These
+boundaries avoid double counting and explain why a familiar Bond
+estimate need not equal the complete circuit KPI. The oracle tests
+compare a published worked example with explicit tolerances and preserve
+any miss; agreement at one example is a calibration check on
+implementation arithmetic, not universal physical validation.
+
+For a new dataset, the method requires mass-weighted size distributions
+at feed and product, a work-index test with its test protocol,
+throughput, and an explicit circuit energy boundary. Sieves reported on
+a volume basis must not be treated as mass fractions without a
+conversion. Missing coarse or fine tails can move \(P_{80}\) materially,
+so the measured size range and extrapolation rule must be stated. A
+developer can call the energy-law function with the contract-normalized
+sizes, then reconcile its estimate against equipment power and the
+independently closed engine record. Uncertainty should vary the measured
+size distribution and test-derived work index together where their
+errors are correlated. A single nominal \(W_i\) and a precise calculator
+output do not quantify that uncertainty.
+
+\subsection{Size-by-mineral population balance and closed
+circuits}\label{size-by-mineral-population-balance-and-closed-circuits}
+
+\label{method-population-balance}
+
+The size-class balance and liberation framing follow continuous
+grinding, quantitative liberation and classifier treatments
+\cite{herbst1980,king1979,plitt1976}. \begin{equation}
+\frac{d\mathbf{m}}{dt}=(\mathbf{B}-\mathbf{D})\mathbf{m}+\mathbf{f}.
+\end{equation} \begin{equation}
+\mathbf{s}_{\mathrm{return}}=\mathbf{C}\mathbf{s}_{\mathrm{mill}},
+\qquad
+\mathbf{r}=\mathbf{f}_{\mathrm{fresh}}+\mathbf{s}_{\mathrm{return}}-\mathbf{s}_{\mathrm{product}}-\mathbf{s}_{\mathrm{tail}}.
+\end{equation}
+
+\begin{algorithm}
+\caption{Solve and audit a closed circuit}
+\label{alg:closed-circuit}
+\begin{algorithmic}[1]
+\Require Case contract, bounded operating point, solver tolerances
+\State Validate units, bounds, mineral fractions, and circuit topology
+\State Initialize recycle streams from the declared operating state
+\Repeat
+\State Apply breakage and unit transformations to size-by-mineral streams
+\State Route classified products and update recycle streams
+\State Check nonnegativity, water balance, and component mass residuals
+\Until{state change and residual are within declared tolerances}
+\State Return the trace only if all closure and finiteness checks pass
+\end{algorithmic}
+\end{algorithm}
+
+The operator solve also supplies a numerical stability diagnostic. The
+linear system \(A p=f\) is accepted only when its solution is finite,
+nonnegative within numerical tolerance and satisfies the reconstructed
+residual \(\|Ap-f\|_\infty\) below the engine tolerance. The condition
+number is informative for a new size grid: near-singularity magnifies
+small changes in classification return into large changes in predicted
+size fractions. The current artifact does not claim a global
+condition-number bound, so the refusal and residual checks are essential
+safeguards.
+
+The solved cut must also preserve the declared design load. The scalar
+root function compares the generated circulating load with its target
+and is bracketed over the contract interval. When no sign-changing
+bracket exists, a root-finder cannot justify an extrapolated cut; the
+engine should report that domain failure. Root convergence for these
+scalar design equations is distinct from convergence of the mill matrix
+solve. The pipeline records both outcomes so a coarse returned product
+is not mistaken for a silently converged target.
+
+The engine represents each stream by a vector over 63 size classes for
+every declared mineral. Crushing and grinding are linear transformations
+of these vectors for a fixed operating point, while recycles introduce a
+closed-loop solve. For one mineral, let \(f\) be the fresh feed vector,
+\(B\) a lower-triangular breakage operator whose columns distribute a
+broken particle to finer sizes, and \(C\) a diagonal classification
+return operator. The crusher product is obtained by solving the
+classification and breakage relation; the mill's closed-circuit balance
+has the general form
+
+\[\left[T^{-1}(e)-C\right]p=f,\]
+
+where \(T^{-1}(e)\) is the inverse mill transfer at energy per pass
+\(e\). The matrix structure preserves mineral identity while allowing
+each mineral's density, breakage and liberation attributes to alter its
+path through the circuit. The operator is evaluated for each mineral and
+uses the same size grid, so summing across minerals yields the solids
+stream used for grade and throughput.
+
+The breakage distribution and selection function determine different
+physical effects. The breakage matrix says where mass goes after a
+breakage event; the selection function describes the energy-specific
+rate at which each size class breaks. Their product constructs the
+breakage operator. The three perfectly mixed mill compartments use
+declared volume fractions, and their combined inverse transfer is
+expanded as a cubic in energy and the breakage operator. This
+approximation is a specified model, not a numerical solution of a fully
+resolved residence-time distribution. It is useful because it captures a
+size-dependent response and remains computationally tractable for
+repeated circuit solves.
+
+Classification returns coarse material according to a partition curve.
+The water bypass and corrected cut create a size-dependent return
+fraction; mineral density modifies the cut so that dense particles can
+report coarser than lighter particles at the same nominal size. This
+feedback changes mill feed, circulating load and power. OreFlow solves
+the cut and energy conditions jointly with scalar root methods. When an
+installed-power constraint becomes active, it solves for an attainable
+coarser product rather than reporting an impossible target. The result
+records the power-limited branch so that a viewer cannot confuse a
+requested target with the solved product.
+
+For a closed circuit, the balance is a fixed point: the underflow
+generated by classification returns to the mill, and the new mill
+product changes the next underflow. The solver must converge both the
+size distribution and scalar design conditions. A singular or
+ill-conditioned transfer matrix, a circulating load above its declared
+bound, or failure of the scalar bracket produces a structured refusal.
+These are meaningful model-domain outcomes and are not repaired by
+clipping a stream to make the arithmetic continue. Numerical tolerances
+and maximum iterations are taken from the engine implementation and are
+exercised by tests against balance residuals and known records.
+
+A useful audit starts with a small hand-computable vector and verifies
+that each operator preserves nonnegative mass and the total mass
+expected under its declared yield. One can then compare the open-circuit
+transform against the closed-loop solve as return fraction tends to
+zero. In the full model, mineral-specific classification means the bulk
+size distribution cannot be substituted before the loop is solved; doing
+so would erase density separation. The engine therefore retains vectors
+until streams have passed the unit boundaries. Only then are total
+solids and elemental grades derived.
+
+The population-balance calculation does not model transient load, liner
+wear, breakage changes with time, particle-particle interactions, or a
+calibrated mill survey. Each case's breakage and selection parameters
+are authored or sourced with their evidence status. A sensitivity sweep
+can show how a parameter changes the solved product, but it cannot turn
+an assumed parameter into a measured one. Validation combines
+matrix/solver checks, unit balances, published reference examples and
+Python/TypeScript parity. These checks establish computational
+consistency within the implemented assumptions, not fidelity to a
+particular plant.
+
+\subsection{Random-forest surrogate and case-aware
+evaluation}\label{random-forest-surrogate-and-case-aware-evaluation}
+
+\label{method-random-forest}
+
+The reported estimator and comparison families are grounded in tree
+ensembles, boosting, Gaussian-process prediction and neural fitting
+\cite{breiman2001,friedman2001,rasmussen2006,loschchilov2019,hoffimann2022}.
+\begin{equation}
+\widehat{f}_{\mathrm{RF}}(\mathbf{x})=\frac{1}{T}\sum_{t=1}^{T}h_t(\mathbf{x}).
+\end{equation} \begin{equation}
+\operatorname{RMSE}_{\mathcal{F}}=
+\sqrt{\frac{1}{|\mathcal{F}|}\sum_{i\in\mathcal{F}}(y_i-\widehat{f}(\mathbf{x}_i))^2}.
+\end{equation}
+
+\begin{algorithm}
+\caption{Fit and score a case-aware surrogate}
+\label{alg:case-aware-learning}
+\begin{algorithmic}[1]
+\Require Authored design rows, target, model configuration, held-out cases
+\For{each held-out case}
+\State Exclude all its rows before fitting any preprocessing
+\State Fit preprocessing and model on remaining case groups
+\State Predict every held-out row and apply the declared observable-range diagnostic
+\If{the fold passes the diagnostic}
+\State Store RMSE, MAE, and test-fold $R^2$ with the fold denominator
+\Else
+\State Store a rejected status and null score metrics
+\EndIf
+\EndFor
+\State Summarize only the explicitly named admissible cohort
+\end{algorithmic}
+\end{algorithm}
+
+The primary held-out score is computed as
+\(\mathrm{RMSE}=\sqrt{n^{-1}\sum_i(y_i-\hat y_i)^2}\), where the rows
+\(i\) belong only to the declared test fold. The held-out coefficient is
+\(R^2=1-\mathrm{SSE}/\mathrm{SST}\), with the test-fold mean in
+\(\mathrm{SST}\). It can be negative; in such a fold the predictions are
+worse than the constant test-mean benchmark. Neither score is averaged
+across target units. The recovery target is in percentage points, log
+upgrade is dimensionless, and energy is in kWh/t.
+
+A forest's tree spread is not used as a calibrated uncertainty interval.
+Prediction error is assessed against exact engine outputs on the
+reserved rows, while the frozen GP lane reports its own interval
+coverage. These distinct estimands prevent an ensemble heuristic from
+being mislabeled as a probability statement. The published reference
+implementations run on the same feature matrix and fold boundaries; the
+comparison is not copied from literature tables.
+
+The learning lane predicts three outputs from a fixed vector of process
+and ore features. The design contains 256 engine-generated operating
+points per case. A row is an exact engine label for the authored circuit
+state; the feature map includes normalized throughput, target size, work
+index, water and mineralogical descriptors, plus circuit-presence
+indicators. Case identity and group identity are not supplied as
+categorical shortcuts. This design asks whether the measurable
+engineered features carry transferable information, rather than whether
+a model can memorize the case name.
+
+The random forest prediction is the mean of the trees' leaf outputs.
+With trees \(b=1,\dots,B\), the fitted response is
+
+\[\hat f(x)=\frac{1}{B}\sum_{b=1}^{B}T_b(x).\]
+
+The ensemble captures nonlinear interactions without requiring a linear
+response surface, but each leaf prediction is built from observed
+training targets. The finite training range therefore limits
+extrapolation, and tree disagreement is not automatically a calibrated
+predictive interval. OreFlow compares the forest against ridge,
+histogram gradient boosting, Gaussian process and a multilayer
+perceptron under identical split definitions. These alternatives
+represent different inductive biases, not a search over every possible
+model family.
+
+The interpolation split retains rows from each case in training and
+test. The case holdout removes all rows for one case. The ore-group
+protocol removes related cases together; otherwise a sibling ore could
+leak distinctive mineral properties into training and make a nominal
+``new ore'' test answer a narrower interpolation question. Every fold
+performs scaling inside the training partition. RMSE is computed in the
+physical target units and \(R^2\) is compared with the held-out mean
+baseline. Negative \(R^2\) is retained. If a fold fails the predeclared
+gross-range admissibility diagnostic, its error is null, not a large
+number chosen after seeing the residual.
+
+The method's sensitivity is principally to the unit held out, the sample
+design and the response scale. A random split can make an interpolation
+result look strong while leaving the case or group challenge weak. Group
+folds have different row counts and target variance, so an average fold
+\(R^2\) is not equivalent to a pooled prediction score. For neural fits,
+the saved seed outcomes expose training instability; the forest is
+deterministic under its declared random state but still depends on its
+sample and hyperparameters. Feature scaling, tree depth and minimum leaf
+size can change fit complexity. This report uses the settings recorded
+with the learning artifact and does not tune against a held-out fold.
+
+The separate frozen-model challenge evaluates already exported artifacts
+on a fresh seed within the same authored case families. That is not a
+new-case transfer test. Neural outputs are inverse-scaled with the exact
+released target order. An autoencoder reconstruction score is compared
+with its frozen threshold, and a separate GP supplies mean and standard
+deviation for interval coverage. The neural prediction is not
+substituted as the GP interval centre. Controlled direct-field shifts
+beyond global case bounds are synthetic probes; they test whether the
+guard detects those vectors, not whether a real plant can occupy them.
+Accepted shifts remain false negatives in the denominator.
+
+For reuse with measured data, the response and feature definitions must
+first be mapped to an explicit schema, with ore, production-period and time
+identities retained for splitting. Replicate rows and consecutive
+periods cannot cross a holdout boundary when the target is future
+operation. Preprocessing is fit only on training data. Report error by
+target and by held-out group, include the number of attempted, scored
+and refused folds, and compare with a simple baseline. The learned lane
+is an approximation to the authored engine; it is not a substitute for
+exact process simulation or an empirical plant model unless new data,
+calibration and prospective tests support that claim.
+
+\subsection{Bond alternatives and energy-law
+comparison}\label{bond-alternatives-and-energy-law-comparison}
+
+\label{method-energy-laws}
+
+The three energy-size assumptions are compared at shared inputs and a
+declared common anchor \cite{bond1952,kick1885,rittinger1867,gmg2021}.
+\begin{equation}
+E_R=K_R\left(\frac{1}{P}-\frac{1}{F}\right),
+\qquad E_K=K_K\ln\left(\frac{F}{P}\right).
+\end{equation} \begin{equation}
+E_B=W_i\left(\frac{10}{\sqrt{P}}-\frac{10}{\sqrt{F}}\right).
+\end{equation}
+
+Rittinger's surface-area hypothesis can be written \(E_R=K_R(1/P-1/F)\),
+while Kick's size-similarity relation is \(E_K=K_K\log(F/P)\). For the
+shared reference reduction \((F_r,P_r)\), the constants are set by
+\(K_R=E_B(F_r,P_r)/(1/P_r-1/F_r)\) and
+\(K_K=E_B(F_r,P_r)/\log(F_r/P_r)\). The fitted crossing is therefore a
+chosen anchor, not an independent prediction check. These formulae
+separate the assumptions: linearity in inverse size, logarithmic
+similarity, and Bond's inverse square-root difference.
+
+The equations are evaluated only for \(0<P<F\) and a positive work
+index. A degenerate reduction would make the calibration denominator
+zero, and the code rejects it. Away from the anchor, the ratio
+\(E_R/E_B\) and \(E_K/E_B\) is the useful dimensionless comparison. This
+ratio says how alternative assumptions diverge over the sampled size
+range; it does not say which law is empirically best.
+
+For a new ore, estimate \(W_i\) with a documented test and hold out size
+reductions for validation. Fitting the scale and evaluating at the same
+anchor is not validation. A robust comparison should include repeated
+test work, uncertainty in the percentile estimates, and a held-out feed
+class. OreFlow's current agreement at one worked example only verifies
+implementation at that example.
+
+The energy comparison fixes feed size, product size and work index
+across Bond, Rittinger and Kick. Bond's inverse-square-root formulation
+supplies the reference value at the calibrated size reduction.
+Rittinger's relation makes energy proportional to newly created surface;
+Kick's relation uses a logarithmic size ratio. In OreFlow, two scale
+constants are selected at a declared reference pair \((F_r,P_r)\) so
+that the alternative predictions intersect Bond there. Away from that
+pair, the slope rather than the reference level separates the curves.
+This design makes a comparison of functional assumptions visible without
+pretending that the constants were independently fitted to plant tests.
+
+The curves have an important dimensional caveat. Bond's empirical
+constant carries the units needed by the chosen size convention; the
+alternative constants also inherit their calibration scale. If one
+changes micrometres to millimetres without transforming constants,
+apparent divergence is a unit error. The code converts at the method
+boundary and tests the reference equality. The report's plotted x-axis
+is a solved product size, with the same feed size for every law. The
+response is a law estimate, not mill power measured from equipment. When
+a closed-circuit engine output is shown alongside, the reader must
+account for recycle and actual mill feed before comparing it with a
+fresh-feed specific-energy value.
+
+The method does not adjudicate a universal winner. The Bond relation
+embeds a conventional test and reference circuit, while Rittinger and
+Kick are idealized size laws. Their divergence is informative about
+model-form sensitivity. Application to coarse crushing, ultrafine
+grinding, mixed mineral breakage or a power-limited mill needs evidence
+that is absent from the calibration point. The right extension is a set
+of size-resolved tests with replicate energy measurements and declared
+apparatus boundaries. Fit the constants on a training set and hold out
+an entire ore or size regime; otherwise matching the anchor point
+creates a tautological ``validation.''
+
+The code reports Bond required energy, operating work index and
+efficiency ratio together. The operating index is reconstructed by
+reversing the relation on the engine's actual solved size reduction; it
+can differ from the authored case work index because circuit energy
+includes crusher, recycle, installed-power clipping and denominator
+conventions. The efficiency ratio is therefore a within-model
+diagnostic. It is not an industrial plant efficiency certification. A
+test report should retain throughput, measured power, size
+distributions, moisture basis, and whether the denominator is fresh feed
+or internal mill feed.
+
+For a developer extending this comparison, add a candidate law behind
+the same method interface, assert dimensional conversion and exact
+agreement at its declared calibration point, then render its curve for
+all cases without changing the existing formulas. The result artifact
+should include formula identity, parameter provenance and solved sizes.
+A missing or invalid size distribution should return a refusal. Do not
+catch an exception and substitute zero energy, since zero would pass
+into an optimizer as a highly attractive but physically meaningless
+candidate.
+
+\subsection{Five flotation kinetic forms and bank
+projection}\label{five-flotation-kinetic-forms-and-bank-projection}
+
+\label{method-kinetics}
+
+The fitted curves and bank projection are interpreted with published
+flotation kinetics, bubble-area, entrainment and particle-size evidence
+\cite{polat2000,vinnett2025,gorain1997,gorain1999,savassi1998,trahar1981}.
+\begin{equation}
+R_1(t)=R_\infty(1-e^{-kt}),
+\qquad
+R_{\mathrm{fs}}(t)=R_\infty[1-f e^{-k_f t}-(1-f)e^{-k_s t}].
+\end{equation} \begin{equation}
+R_{\mathrm{str}}(t)=R_\infty[1-e^{-(kt)^\beta}],
+\qquad
+R_{\mathrm{bank}}=1-\prod_{j=1}^{N}[1-R_j(\tau_j)].
+\end{equation}
+
+For a first-order batch model, the unfloated fraction is
+\(U(t)=e^{-kt}\) and recovery is \(R(t)=R_\infty(1-U(t))\). The
+fast/slow form mixes two survival terms,
+\(U(t)=f e^{-k_f t}+(1-f)e^{-k_s t}\), with \(0\leq f\leq1\) and
+nonnegative rates. A gamma distribution of rates yields a heavy-tailed
+survival curve, while a compressed exponential
+\(R(t)=R_\infty[1-e^{-(kt)^\beta}]\) uses shape \(\beta\) to alter early
+and late response. Klimpel's form adds a rate-limiting response; each
+fitted family has a different parameter interpretation and cannot be
+compared solely by parameter magnitude.
+
+The fit minimizes a declared residual objective on the common virtual
+batch time grid. If \(R_i\) is the reference recovery and \(\hat R_i\)
+the model value, the reported RMSE is
+\(\sqrt{n^{-1}\sum_i(R_i-\hat R_i)^2}\). Bank projection then propagates
+survival through each mixer with its own residence time. The batch
+residual and the projected bank error are separate checks: a fit may
+reproduce observed batch points yet extrapolate the late-time tail
+poorly. The exact distributed-rate generator provides a known synthetic
+truth but not external validation.
+
+The kinetic comparison fits five forms to the same virtual batch record:
+first order, Kelsall fast/slow, Klimpel, gamma-distributed rates and a
+compressed exponential. The exact synthetic reference is generated from
+a declared rate distribution and noise process. This enables a
+controlled recovery of known parameters and a bank projection, but it
+does not provide an independent plant test. Fits use the same time
+points and objective so differences arise from model form and fitting
+behavior rather than a changed dataset.
+
+For a single first-order population, remaining floatable material
+follows an exponential survival relation. A distribution of rates
+averages that survival over a nonnegative rate density. A two-component
+Kelsall form uses a fast fraction and slow fraction; gamma and
+compressed-exponential alternatives summarize continuous heterogeneity
+with fewer reported parameters. Parameter bounds enforce physically
+admissible rates and fractions. The fit uses numerical optimization and
+reports convergence status and residual measures; a parameter at a bound
+or a flat objective may indicate that the data do not identify the
+chosen form.
+
+A batch curve is not itself the recovery of a continuous bank. OreFlow
+projects the fitted survival through tanks in series using the declared
+residence time per tank and flow. If a batch rate is \(k\) and each
+ideal mixer has residence \(\tau\), the single-stage recovery
+contribution follows the competing-rate balance, and the un-recovered
+fraction compounds across the bank. Consequently, changing the number of
+tanks or total residence changes the bank response even when the batch
+fit is unchanged. This is a mechanistic projection under perfect-mixing
+assumptions, not a measured continuous-cell calibration.
+
+The comparison reports both batch fit error and bank projection against
+the exact distributed-rate reference. A lower batch residual need not
+yield a more accurate bank result: correlated parameter errors can be
+amplified when survival is composed across stages. The bank projection
+also makes the kinetic form's tail important. A small slow fraction can
+dominate long residence, while a fast-only curve may fit early time
+points but miss the late recovery. Residual plots and parameter
+estimates are therefore interpreted alongside the aggregate RMSE. The
+rates are not fitted to a species-specific plant database, and the
+synthetic data generator's chosen truth is known to the experiment
+designer.
+
+Sensitivity is evaluated by resampling noise and changing the time
+window or residence basis under a predeclared design. Such repeats
+quantify variability conditional on the synthetic generator, not
+between-plant variability. A batch test with sparse late samples weakly
+identifies a slow component; a continuous circuit with recycle violates
+the isolated-batch assumption. Feed mineralogy and liberation can also
+change the effective rate distribution. The method should not
+extrapolate beyond the tested concentration, aeration and reagent domain
+merely because an exponential curve remains mathematically defined.
+
+With new data, preserve replicate test identity, sampling time, assay
+error, initial mass, concentrate and tail mass, and residence-time
+definition. Close species balances first. Fit every kinetic form on the
+same training replicates, reserve whole tests for evaluation, and
+project all fitted curves through the same bank geometry. Report
+convergence, parameter-bound hits, batch residuals, endpoint recovery,
+bank error and the mass-balance closure. Distinguish water recovery from
+valuable-mineral recovery and identify whether a record is batch,
+continuous-cell or modeled. These checks allow the method comparison to
+be extended without mixing different physical estimands.
+
+\subsection{Constrained pattern search and guarded
+proposals}\label{constrained-pattern-search-and-guarded-proposals}
+
+\label{method-optimization}
+
+The baseline mesh search, progressive barrier and surrogate safeguards
+are compared with their stated derivative-free optimization frameworks
+\cite{torczon1997,audet2006,audet2009,booker1999}. \begin{equation}
+\max_{\mathbf{x}\in[\mathbf{l},\mathbf{u}]}J(\mathbf{x})
+\quad\text{subject to}\quad
+g_j(\mathbf{x})\leq0,\quad h_k(\mathbf{x})=0.
+\end{equation} \begin{equation}
+\mathbf{x}_{n+1}\in\{\mathbf{x}_n+\Delta_n\mathbf{d}:\mathbf{d}\in D_n\},
+\qquad
+\text{an exact engine result is required before an incumbent update}.
+\end{equation}
+
+\begin{algorithm}
+\caption{Guard a surrogate proposal with exact evaluation}
+\label{alg:guarded-search}
+\begin{algorithmic}[1]
+\Require Feasible incumbent, mesh, learned guard, exact circuit engine
+\State Generate bounded poll and mesh-neighbour candidates
+\State Rank eligible candidates using the learned objective estimate
+\For{each selected proposal}
+\State Apply reconstruction and uncertainty-width guards
+\If{both guards pass}
+\State Evaluate the proposal with the exact process engine
+\If{the result is finite, feasible under the barrier, and improves the incumbent}
+\State Update incumbent and record the exact result
+\EndIf
+\EndIf
+\EndFor
+\State Retain ordinary exact polling and record calls, refusals, and termination
+\end{algorithmic}
+\end{algorithm}
+
+The search's reported finite result depends on initialization, mesh,
+coordinate order, constraint tolerance and evaluation budget. Each
+decision is mapped to \([0,1]\) using its contract bounds. Poll points
+outside the cube are never evaluated. A candidate with engine status
+refused cannot update either incumbent. For a valid evaluation, the
+objective is compared only after checking status and finite values. This
+explicit status handling prevents a failure, NaN or clipped metric from
+becoming a spurious optimum.
+
+The progressive barrier tracks the best feasible objective and a
+least-violating infeasible incumbent. Feasible dominance is
+objective-based; infeasible progress is ordered by violation and
+objective under the current barrier. The threshold is nonincreasing, so
+an infeasible incumbent cannot become acceptable by relaxing the
+criterion after the fact. The implementation's convergence status is
+tied to its own stop rule. Classical pattern-search convergence theorems
+require assumptions on continuity, polling directions and refinement
+that the learned proposal insertion does not automatically establish;
+this report claims observed finite-suite behavior only.
+
+A useful method ablation disables the reconstruction guard and the
+GP-width threshold separately, while keeping proposals, objective,
+starts and budget fixed. It should report exact calls, rejected
+candidates, endpoint feasibility and same-start differences, with
+repetitions across declared cases. The existing 72-pair evidence tests
+the integrated screen against the unscreened baseline and gives a
+negative compute result; it does not identify which filter component
+caused the extra calls.
+
+The optimization method is a generalized pattern search with a
+progressive feasibility barrier. Its decision vector is normalized to
+the unit cube of the case-specific operating contract. At each mesh,
+fixed coordinate directions generate trial points around the feasible
+and least-violating incumbents. The process engine evaluates
+objective and constraints. Contract-bound violations are rejected by an
+extreme barrier. Grade, power and water remain relaxable process
+constraints whose violations are aggregated as
+
+\[h(u)=\sum_{k}\max(0,-s_k(u)-\epsilon)^2,\]
+
+where \(s_k\) is a normalized constraint slack and \(\epsilon\) is the
+declared feasibility tolerance. Feasibility and objective improvement
+are separate: an infeasible point can reduce violation without becoming
+the best feasible solution.
+
+Each start begins with mesh \(\Delta=1/4\). A dominating trial may
+expand or retain the mesh according to the recorded outcome; an
+unsuccessful poll contracts it. The search stops at the minimum mesh or
+at its distinct-evaluation budget, with a reason stored in the result. A
+budget stop is not convergence. Up to six starts are evaluated and
+duplicate starts are removed. The engine reevaluates the selected
+terminal point from a fresh state before it is reported. If no feasible
+start exists, the record retains an infeasible status and the
+least-violating point rather than fabricating an optimum. The objective
+weights recovered payable metal and specific energy relative to the base
+state; the baked primary result uses the declared metal-only weight and
+companion weight-path records are separate.
+
+The screen proposes candidates one or two mesh steps from incumbents. A
+frozen neural model predicts their outputs, an autoencoder guard rejects
+features outside its learned reconstruction threshold, and a Gaussian
+process rejects candidates whose recovery half-width exceeds the
+configured limit. Passing candidates are ranked by the neural objective,
+then the exact engine performs the evaluation. The GP mean is not
+substituted for the neural prediction, and the interval is not claimed
+to be calibrated plant uncertainty. The normal pattern poll remains
+available. This arrangement preserves exact objective values but does
+not by itself prove convergence of the modified finite implementation.
+
+The experiment compares paired searches with the same case, starts,
+objective, bounds, tolerances and budget, differing only by screening.
+Distinct cached trial-state counters measure the declared workload; they
+exclude model fitting, inference latency, uncached audits and the later
+weight path. The observed 72-variant suite has 26,367 screened versus
+22,487 unscreened recorded evaluations, a 17.25\% increase; counts rise
+in 68 variants, tie in four, and fall in none. Thus the negative result
+directly refutes a compute-saving claim for this suite and measure. It
+does not prove that every screen increases runtime or calls.
+
+Decision agreement is reported separately from work. Both searches
+return feasible endpoints in 70 cases and infeasible outcomes in two;
+terminal outcomes match in 65. The seven differing feasible decisions
+have small recovered-metal differences, yet close endpoints do not
+compensate for added exact work. The proposal record includes 5,811
+exact evaluations, of which 901 improve the incumbent, and maximum
+absolute recovery error of 38.158 percentage points. That maximum
+demonstrates that the uncertainty-width rule is not a universal error
+guarantee. These outcomes motivate ablations by guard and interval
+threshold, but any new threshold must be fixed a priori for a new paired
+run.
+
+A new application should freeze case identity, starting points, decision
+bounds, objective weights, exact-call accounting and stopping rules
+before comparison. Store every proposal, evaluated or not, its
+prediction and exact outcome when available, guard decision, slacks, and
+termination status. Compare paired counts and endpoint feasibility, and
+instrument wall time separately. A model that rejects an invalid plant
+state should not be credited with savings unless those rejected calls
+would otherwise have reached the exact engine. The operating endpoint
+must be reevaluated and reviewed by the responsible process team before
+any plant trial; this research optimizer is not an operational
+controller.
+
+\subsection{Latin-hypercube propagation and Sobol
+decomposition}\label{latin-hypercube-propagation-and-sobol-decomposition}
+
+\label{method-sobol}
+
+The sampling and estimator follow variance-based sensitivity analysis;
+the separate geomet uncertainty study motivates retaining spatial-group
+structure \cite{saltelli2010,herman2017,hoffimann2022}. \begin{equation}
+S_i=\frac{\operatorname{Var}_{X_i}(\operatorname{E}[Y\mid X_i])}{\operatorname{Var}(Y)},
+\qquad
+S_{T_i}=1-\frac{\operatorname{Var}_{X_{\sim i}}(\operatorname{E}[Y\mid X_{\sim i}])}{\operatorname{Var}(Y)}.
+\end{equation} \begin{equation}
+\widehat{S}_{T_i}=
+\frac{\frac{1}{2N}\sum_{n=1}^{N}(Y_{A,n}-Y_{AB_i,n})^2}{\widehat{\operatorname{Var}}(Y)}.
+\end{equation}
+
+The sensitivity estimator is meaningful only for independent factors and
+a nonconstant output over the specified box. If the total-order estimate
+exceeds the first-order estimate by more than its numerical tolerance,
+the difference is interpreted as interaction contribution, but
+finite-sample estimators can reverse that ordering slightly. If the
+response variance is effectively zero, the ratio is undefined in
+practice and the method reports a constant response rather than
+assigning a high index to floating-point noise. The bootstrap is
+retained as a conservative sampling diagnostic; a low-discrepancy design
+violates the bootstrap's independent-row premise, so the reported
+half-width is not a calibrated 95\% interval.
+
+A convergence study should vary both the base sample count and seed,
+compare index ranks and uncertainty widths, and track refused draws.
+Increasing \(N\) multiplies the engine budget by \(D+2\), so a
+higher-resolution result has a declared computational cost. The current
+baked \(N=256\) and stored bootstrap design define the values displayed
+in the application. A user-triggered seed or sample-count replay is a
+separate calculation and must not replace the committed result without
+creating a new artifact and identity.
+
+The uncertainty lane perturbs four inputs around each case's nominal
+operating point: work index, head grade, liberation size and, for
+flotation cases, floatability. The declared half-width is uniform and
+independent across the sampled factors. A seeded Latin hypercube
+stratifies each marginal into \(N\) bins and applies a randomized
+permutation. This provides broad marginal coverage with fewer runs than
+unstructured Monte Carlo for the same sample count, while retaining
+reproducible finite-sample design. It does not encode correlations among
+ore properties, because a dependence model is not present in the
+contract.
+
+For each admitted row, the exact engine recomputes a circuit state. The
+artifact stores the sample inputs, seed, solved/refused identity, output
+vector, quantiles, mean, standard deviation and constraint
+probabilities. Refused draws are excluded from solved-output moments but
+count as failures in feasibility probabilities. This denominator split
+is necessary: the distribution of the outputs conditional on a steady
+state is not the distribution of all attempted inputs. A chart showing
+only solved responses without the attempted count would conceal the most
+important domain boundary.
+
+The sensitivity study uses Saltelli's variance-based design with base
+matrices \(A\) and \(B\) and one hybrid matrix per input. For response
+\(Y=f(X)\), the first-order and total-effect estimators are
+
+\[\hat S_i=\frac{N^{-1}\sum_j f(B)_j\{f(A_B^{(i)})_j-f(A)_j\}}{\widehat{\operatorname{Var}}(Y)},\qquad
+\hat S_{T_i}=\frac{(2N)^{-1}\sum_j\{f(A)_j-f(A_B^{(i)})_j\}^2}{\widehat{\operatorname{Var}}(Y)}.\]
+
+The design costs \(N(D+2)\) evaluations for \(D\) inputs. OreFlow uses a
+scrambled Sobol sequence and bootstrap estimates from SALib. These
+resampled-row half-widths are conservative diagnostics for this
+low-discrepancy design, not calibrated confidence intervals; a separate
+validation on analytic test functions found substantial overcoverage.
+Small negative estimates and total effects slightly below first-order
+estimates are sampling artifacts, not negative physical contributions.
+When response variance is below the declared constant-output tolerance,
+the record says the output is constant instead of dividing numerical
+noise by numerical noise.
+
+If any Saltelli row is refused, the full matrix cannot be evaluated
+consistently; the artifact records the refusal and omits indices. This
+is not equivalent to dropping that draw and recomputing the estimator.
+The same rule applies in the browser replay. A structural check is
+available: energy should not depend on floatability when that input does
+not enter the energy calculation, so its effect should be exactly zero
+under the paired design. Such negative controls reveal accidental
+dependencies or a variable-order error.
+
+Interpretation is bounded by the four selected ranges, independence
+assumption, sample count and steady-state solver. A high total index
+means the output varies strongly over this designed box; it is not a
+universal ranking over all deposits. To reuse the method, define
+supported input ranges and any dependencies before generating the
+design, keep refused rows, use exact engine outputs, and report
+attempted and solved denominators. Increase sample size as a convergence
+study rather than relying on one seed. If domain knowledge requires
+correlated inputs, use a method that preserves the joint distribution
+and document how its estimands differ from the independent Sobol
+decomposition.
+
 \section{Process model}\label{process-model}
 
 The record reproduces all 96 committed states within 1e-6 in the browser
@@ -98,19 +1343,33 @@ only when a mass does. Liberation is described per valuable mineral by
 size (King 1979): a liberated fraction, and composites whose content and
 host are declared.
 
+Each stream is represented by nonnegative mass rates indexed by mineral
+and size class, alongside a separate water rate. The representation
+retains class fractions until all units in a circuit have been
+evaluated; converting to a single bulk size or head grade before
+classification would erase mineral-specific partitioning. Mineral assays
+are derived from elemental composition and mineral fractions after the
+mass streams close. Every input grid is ordered and checked for
+duplicate or invalid class edges. Fractions are normalized only where
+the contract explicitly defines a distribution, and an invalid sum is
+rejected with the field path. This makes the state suitable for both
+physical balance equations and downstream comparison of per-mineral size
+curves.
+
 \subsection{Comminution}\label{comminution}
 
-The crusher is the Whiten form (Duarte et al.~2021), with a strictly
-lower-triangular breakage matrix \(\mathbf{B}\) and a classification
-function \(\mathbf{C}\) set by the closed-side setting:
+The crusher is the Whiten form (Duarte et al.~2021) \cite{duarte2021},
+with a strictly lower-triangular breakage matrix \(\mathbf{B}\) and a
+classification function \(\mathbf{C}\) set by the closed-side setting:
 
 \[
 \mathbf{p}=(\mathbf{I}-\mathbf{C})(\mathbf{I}-\mathbf{B}\mathbf{C})^{-1}\mathbf{f}
 \]
 
 The ball mill is an energy-specific population balance (Herbst and
-Fuerstenau 1980) in the form of the Moly-Cop tools: three perfect mixers
-of volume fractions 0.70, 0.15 and 0.15 share the breakage operator
+Fuerstenau 1980) in the form of the Moly-Cop tools \cite{molycoptools}:
+three perfect mixers of volume fractions 0.70, 0.15 and 0.15 share the
+breakage operator
 \(\mathbf{D}=(\mathbf{I}-\mathbf{B})\operatorname{diag}(\boldsymbol{S}^{E})\),
 so the mill's inverse transfer at an energy per pass \(e\) is a cubic
 polynomial in \(\mathbf{D}\), and the closed circuit with the cyclone
@@ -202,7 +1461,19 @@ everywhere. A state the engine cannot solve, such as a classifier cut at
 which the mill cannot draw its installed power, is refused with a reason
 rather than answered.
 
-\section{Verification}\label{verification}
+The engine records residuals before reducing the trace to headline KPIs.
+For each mineral, fresh input equals the sum of product, tail and
+declared inventory change at the modeled steady state; water is checked
+separately because its units and routing differ. The contract specifies
+relative and absolute tolerances so small streams are not judged only
+against a large plant-wide denominator. A refusal preserves the failing
+unit, residual and reason in the run record. The report evaluates
+closure at internal boundaries and for the complete circuit, which can
+detect a duplicated recycle even when the final aggregate mass appears
+plausible. Closure verifies the implementation's accounting identity,
+not the accuracy of authored process parameters.
+
+\section{Validation}\label{validation}
 
 \textbf{Balances.} All 96 committed states close within 1e-9 relative at
 every unit and for the circuit, as recomputed from the stored streams by
@@ -253,9 +1524,10 @@ the unit on 10 to 60\% of the mill discharge) & GRG recovery 79.8 to
 95.9\%, GRG circulating load 2016 to 413\% & GRG recovery 69.5 to
 90.7\%, GRG circulating load 696 to 84\%: outside the 5-point and 35\%
 tolerances \\
-Zandrivierspoort magnetite (a different ore; the 45 µm product is a
-regrind) & 64.9 and 69.0\% Fe at 75 and 45 µm & 63.8 and 67.8\% Fe: a
-step of 4.0 points against 4.1, at levels 1.1 and 1.2 points below \\
+Zandrivierspoort magnetite (Muthaphuli 2014; a different ore; the 45 µm
+product is a regrind) \cite{muthaphuli2014} & 64.9 and 69.0\% Fe at 75
+and 45 µm & 63.8 and 67.8\% Fe: a step of 4.0 points against 4.1, at
+levels 1.1 and 1.2 points below \\
 \end{longtable}
 }
 
@@ -267,7 +1539,23 @@ circulating load stays 50 to 69\% low. The magnetite example checks a
 direction and a proportion, not a level, because its ore is not the
 engine's case.
 
-\section{Evaluation design}\label{evaluation-design}
+Validation is layered because no single comparison establishes physical
+validity. Unit tests exercise formula limits, shape constraints,
+finite-value checks and refusal paths. Manufactured inputs test
+conservation and classification behavior where an analytic answer is
+available. Reference cases compare named outputs with the source's
+published values and preserve the discrepancy rather than fitting it
+away. A separate TypeScript implementation is run against the same
+serialized inputs and its outputs are compared under declared
+tolerances; this is an implementation parity check, not independent
+plant validation. Release gates also check schema identity, units,
+artifact hashes, variant counts and browser/API parity. Numerical
+agreement at those boundaries establishes that a committed record can be
+regenerated and consumed consistently. It cannot establish that the
+steady-state model captures an unobserved plant mechanism or that the
+authored parameter range covers a future ore.
+
+\section{Experimental protocol}\label{experimental-protocol}
 
 \subsection{Authored circuits}\label{authored-circuits}
 
@@ -283,6 +1571,19 @@ two gold plants carry most of their gold in pyrite (55\%, beside
 electrum in the free-milling ore and arsenopyrite in the refractory
 one); the other five each have a payable and dominant carrier no other
 case shares.
+
+Cases cover rougher flotation, magnetic separation, gravity recovery,
+leaching and desliming configurations represented by the engine. Their
+identifiers, provenance notes, mineralogy and equipment declarations are
+preserved in each case record. The nominal operating point is not
+treated as a measured baseline: it is an authored reference state for
+controlled perturbations. Variant definitions change one named operating
+or ore factor at a time where the contract permits, while classifier-cut
+modes remain separate when their input features are outside the learned
+screen. The case table reports the number of variants and the response
+quantities available for each family, so an absent KPI is not read as a
+zero. Group labels are retained for transfer evaluation but are withheld
+from the model features.
 
 \subsection{Design, features and
 targets}\label{design-features-and-targets}
@@ -300,6 +1601,19 @@ rougher gas velocity, cells and volume per t/h, the gravity bleed, the
 desliming cut and four circuit descriptors. The case identity is never a
 feature. The targets are recovery (\%), the log10 upgrade ratio
 (concentrate over head grade) and the total specific energy (kWh/t).
+
+The design contains 3,072 simulated states, allocated across twelve
+cases and generated from a versioned space-filling plan. Each row
+retains its case, ore group and source variant outside the predictor
+matrix so that grouping remains possible without leaking the identity
+into training. Features describe feed composition, size and liberation,
+hardness, water and operating controls; targets are trained separately
+because recovery, log upgrade and specific energy have different units
+and error meanings. The stored design seed and feature order are part of
+the artifact identity. Duplicate states are audited before splitting.
+These details permit another researcher to reconstruct the training
+table and detect changes in case balance, target scaling or group
+membership.
 
 \subsection{Models and protocols}\label{models-and-protocols}
 
@@ -402,13 +1716,13 @@ folds, so their denominators differ.
 
 {\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}
-  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2653}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1327}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1224}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1122}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1224}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1224}}
-  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1224}}@{}}
+  >{\raggedright\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.2441}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1221}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1032}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}
+  >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}@{}}
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Model
@@ -616,6 +1930,19 @@ negative for every model under group holdout, so the recovery transfer
 result does not generalize to grade-upgrade prediction. The held-out
 protocols and target definitions remain separate in the record.
 
+Specific energy is measured in kilowatt-hours per tonne of solids at the
+declared circuit boundary. The upgrade target is the logarithm of
+concentrate grade divided by feed grade, which reduces the scale
+difference between low- and high-grade cases but changes the error unit
+to a dimensionless log ratio. Predictions are inverse-transformed before
+computing grade-scale diagnostics; averaging log errors is not
+equivalent to averaging percentage-point errors. Recovery remains an
+independent target because it is a valuable-mineral fraction and does
+not determine grade without mass pull. The separate heads prevent an
+apparently good composite score from hiding a severe error in one
+process objective. All three target arrays remain paired with the
+identical held-out rows.
+
 \subsection{Interval coverage}\label{interval-coverage}
 
 Nominal 95\% Gaussian-process recovery intervals cover 90.7\% of
@@ -626,6 +1953,18 @@ standard deviation. Coverage is target- and split-specific; the
 authored-plant split does not establish calibrated intervals on real
 plants.
 
+Coverage is computed from the held-out reference falling between the
+model's lower and upper predictive quantiles, divided by the number of
+scored rows in that fold. The nominal level is a design target, not a
+guarantee. Coverage should be read beside interval width: intervals can
+cover nearly every point by being too broad to inform a decision. The
+report uses interpolation coverage as a diagnostic and separately shows
+transfer-fold behavior; pooling those records would obscure changes in
+the test distribution. Rejected folds do not contribute to scored-row
+coverage and remain visible in the attempted/scored/rejected
+denominator. A calibration procedure would need a prospective split and
+recalibration data not used to choose the model or its guard.
+
 \subsection{Reconstruction guard}\label{reconstruction-guard}
 
 On the held-out interpolation experiment, the autoencoder flags 1.47\%
@@ -635,6 +1974,19 @@ acceptance rates remain in \texttt{learning.json}. This validation guard
 differs from the final guard refitted for deployment. A low
 reconstruction error is a screening signal, not a process constraint, a
 guarantee of physical safety or a substitute for the operating contract.
+
+The reconstruction guard compares a candidate feature vector with the
+learned model's training representation and applies a threshold frozen
+from the declared calibration records. The guard is a support diagnostic
+rather than a calibrated probability of correctness. It can accept an
+unusual vector if reconstruction error is low, or reject a valid vector
+if the representation cannot encode a legitimate process combination.
+The direct-shift probes deliberately vary individual fields beyond
+global case ranges to measure missed detections under controlled
+perturbations; they are not observed plant states. The full record
+identifies shifted feature, magnitude, threshold, decision and exact
+engine response where one was requested. A new deployment would require
+prospective challenge cases and a documented false-acceptance cost.
 
 \section{Kinetic, optimization and sensitivity
 studies}\label{kinetic-optimization-and-sensitivity-studies}
@@ -773,20 +2125,67 @@ circuit, the breakage, the liberation and the flotation are authored for
 another ore, and a locked-cycle test is not a plant.
 
 \textbf{Plant hours.} One iron-ore plant's reverse flotation record
-(Kaggle dataset 6294, CC0; 737,453 rows) gives hourly laboratory silica
-beside 21 feed, reagent, pulp and column sensors. Dropping the 310 hours
-whose silica label was interpolated leaves 3,701 pairs of consecutive
-hours. Scored on three future windows after at least 24 hours of
-embargo, the previous assay alone forecasts the next hour's silica with
-a mean absolute error of 0.464 points, and the best sensor-only model,
-ridge, is 0.001 points below the training mean's 0.766. In 461 of those
-pairs the laboratory value is one carried over unchanged for three or
-more consecutive hours; without them the previous assay's error is 0.510
-points, still the lowest, and ridge is 0.014 points above the training
-mean. The engine has no reverse cationic flotation family, so these
-hours are shown and never simulated.
+(Kaggle dataset 6294, CC0; 737,453 rows) \cite{oliveira2017} gives
+hourly laboratory silica beside 21 feed, reagent, pulp and column
+sensors. Dropping the 310 hours whose silica label was interpolated
+leaves 3,701 pairs of consecutive hours. Scored on three future windows
+after at least 24 hours of embargo, the previous assay alone forecasts
+the next hour's silica with a mean absolute error of 0.464 points, and
+the best sensor-only model, ridge, is 0.001 points below the training
+mean's 0.766. In 461 of those pairs the laboratory value is one carried
+over unchanged for three or more consecutive hours; without them the
+previous assay's error is 0.510 points, still the lowest, and ridge is
+0.014 points above the training mean. The engine has no reverse cationic
+flotation family, so these hours are shown and never simulated.
 
-\section{Discussion and limitations}\label{discussion-and-limitations}
+\section{Results evidence}\label{results-evidence}
+
+The artifact-derived evidence is assembled below rather than manually
+re-entered. Figure \ref{fig:case-kpis} displays the case-to-case range
+of modeled recovery and concentrate grade; the grade axis is absent
+where a case has no defined concentrate-grade quantity. Table
+\ref{tab:case-summary} preserves the corresponding case identifiers and
+values. Figure \ref{fig:transfer-protocols} and Table
+\ref{tab:learning-summary} show how the recovery error changes when the
+held-out unit changes from an operating state to a whole case or ore
+group. The aggregate columns use each model's recorded admissible folds,
+so they must be read together with the scored and rejected denominators.
+
+Figure \ref{fig:case-transfer} and Table \ref{tab:transfer-folds} expose
+the neural model's result for each held-out case. The red, labelled bar
+denotes a diagnostic rejection and is not a zero-error case. Figure
+\ref{fig:group-transfer} and Table \ref{tab:group-transfer} retain
+negative group-held-out coefficients of determination, which indicate
+that the model can be worse than a cohort-mean predictor. Figure
+\ref{fig:kinetic-models} and Table \ref{tab:kinetics} compare batch-fit
+errors for five fitted kinetic forms; their bank-lumping errors are
+separate measures and do not imply that the lowest batch error will
+yield the lowest circuit error.
+
+Figure \ref{fig:optimization-cost} and Table \ref{tab:optimization}
+compare exact cached engine evaluations for paired nominal case
+searches. The points above the identity line have a higher screened
+count; they are not elapsed-time measurements. Figure
+\ref{fig:measured-recovery} and Table \ref{tab:measured-data} keep the
+external measured-sample lane distinct from the authored simulator
+benchmark. The offset is a model-domain mismatch to investigate, not
+evidence that these measurements calibrated the engine.
+
+Figure \ref{fig:interval-coverage} checks empirical coverage against the
+nominal interpolation interval level. It uses the interpolation test
+partition and cannot establish calibration under case or ore-group
+transfer. Figure \ref{fig:uncertainty-ranges} and Table
+\ref{tab:uncertainty} show output quantiles within authored input boxes;
+the intervals are not population-frequency statements. Finally, Figure
+\ref{fig:particle-reference-calibration} and Table
+\ref{tab:particle-reference} reproduce the archived particle-reference
+calibration, with marker size denoting test-row support. These results
+are limited to the source's constructed probabilities and its documented
+protocol.
+
+\input{evidence.tex}
+
+\section{Discussion}\label{discussion}
 
 The test bounds transfer between authored plants. A thirteenth authored
 plant is not a real one: the engine is a steady-state model with
@@ -817,6 +2216,110 @@ periods and hold out an entire period and an ore family, and score both
 point error and whether the surrogate preserves the ranking of operating
 decisions.
 
+The strongest product result is reproducibility of a declared
+computational experiment, not generalization to a mine. A closed balance
+is necessary for a meaningful simulator response, but mass closure alone
+cannot identify a wrong breakage law, liberation curve or floatability
+parameter. Similarly, close Python and browser outputs show that two
+implementations agree on the same equations and inputs; they can share
+the same structural error. The measured-data lane shows this distinction
+in practice: the engine has a sizeable recovery bias against GeoMet
+samples, while data-lane regressors reduce that particular error under a
+different target and feature contract. Those regressors do not repair
+the mechanistic model because they estimate from the external data lane
+and cannot be substituted for the circuit equations. The negative screen
+result is also useful: it rules out a claimed call saving under the
+evaluated finite settings and motivates targeted ablations before
+further claims.
+
+\section{Limitations}\label{limitations}
+
+OreFlow represents a steady-state, deterministic flowsheet with authored
+equipment and ore parameters. It does not model plant transients, sensor
+delay, control logic, froth stability, stochastic equipment failure,
+maintenance, reagent cost, energy tariffs, concentrate penalties, water
+scarcity prices, capital expenditure or mine scheduling. An optimized
+decision in this engine therefore maximizes a declared simulator
+objective and satisfies declared simulator constraints; it is not an
+economic optimum or an operating recommendation.
+
+The twelve cases are designed research scenarios, not a probability
+sample of mines. Their shared equations and parameterization make
+within-engine experiments reproducible, but create structural dependence
+among cases. The 3,072 learning states come from a designed simulator
+grid, so even whole-case and ore-group partitions test transfer within
+that authored domain. The measured GeoMet samples come from a different
+data lane and show a substantial mechanistic recovery bias; the missing
+plant controls, equipment states and process-time alignment prevent
+attributing that bias to one physical cause. The particle reference has
+constructed test probabilities rather than observed liberation labels.
+Neither source supplies prospective validation on a production plant.
+
+The uncertainty calculations vary declared factors under an
+independent-factor design. They do not encode geological covariance,
+temporal drift or measurement uncertainty. Bootstrap widths quantify
+sensitivity-estimator variation under the chosen design, not confidence
+in a plant parameter. The screening experiment uses finite budgets and
+cached distinct-state counters. It has no wall-clock instrumentation,
+and the observed increase in exact calls is a negative result for this
+suite, not a universal claim about all surrogates or optimizers. These
+boundaries constrain interpretation until time-aligned plant data,
+prospective holdouts and an independently reviewed deployment protocol
+are available.
+
+OreFlow is a steady-state deterministic simulator with authored ore and
+equipment parameters. It does not model plant transients, sensor delay,
+control logic, froth stability, equipment failure, maintenance, reagent
+cost, energy tariffs, concentrate penalties, capital expenditure or mine
+scheduling. Its optimizer therefore returns a finite simulator decision,
+not an economic optimum or operating recommendation. The twelve cases
+are research scenarios rather than a probability sample of mines, and
+their shared equations create structural dependence. The 3,072 learning
+rows test transfer within this authored domain. The GeoMet samples lack
+time-aligned plant controls and equipment states, preventing attribution
+of the large mechanistic bias to one physical cause. The particle
+benchmark uses constructed probabilities rather than observed liberation
+labels. The uncertainty analysis assumes independent factors over
+authored boxes and does not encode geological covariance or temporal
+drift. The screening counters exclude inference and elapsed time; the
+measured increase in exact calls is limited to this suite and budget.
+
+\section{Conclusions}\label{conclusions}
+
+OreFlow provides a reproducible steady-state process engine and an
+explicit set of learning, optimization and uncertainty experiments over
+twelve authored mineral-processing cases. Its strongest evidence is
+computationally bounded: the Python engine closes the modeled balances,
+the TypeScript workbench reproduces the committed states within declared
+tolerances, and the report preserves misses against published or
+measured references rather than treating them as calibration. None of
+these checks converts the authored circuits into plant-calibrated
+models.
+
+The learning results show why validation unit matters. Interpolation
+performance can coexist with a rejected magnetite fold, seed instability
+and negative grouped-transfer scores for log upgrade. A score averaged
+over admitted folds must retain its denominator and cannot be presented
+as performance on the excluded ore. The optimizer comparison is also
+negative for its stated goal: in 72 paired target-mode variants, its
+learned screen increased recorded cached engine evaluations by 17.25\%,
+with more evaluations in 68 cases, ties in four and savings in none.
+Similar feasible endpoints do not negate that cost result. The
+uncertainty analysis describes output variation inside authored
+independent-factor boxes; its Sobol bootstrap widths are conservative
+diagnostics rather than calibrated confidence intervals.
+
+Taken together, the product is a research workbench for inspecting
+mechanistic assumptions and evaluation design. It is not a plant digital
+twin, an economic optimizer or an operating recommendation system. The
+next scientifically useful step is not to broaden claims from these
+finite records; it is to acquire time-aligned plant metallurgy, process
+controls and equipment data, define prospective ore and production-period holdouts,
+calibrate only on designated periods, and compare against untouched
+periods with uncertainty and a documented safety review. Until those
+data exist, OreFlow provides transparent computation, not
+a claim of industrial prediction.
+
 \section{Reproducibility}\label{reproducibility}
 
 The repository is https://github.com/fsantibanezleal/CAOS\_OreFlow
@@ -825,17 +2328,13 @@ and the documentation are versioned together; the source, records and
 computational environment are versioned with the software release.
 \texttt{./scripts/setup.ps1} builds the environments and
 \texttt{./scripts/precompute.ps1} regenerates every record. The
-validation record for the committed 0.10.009 bake took 8637 s for the
-cases on 4 workers and 220 s for the learned lane; studies took 762 s
-and real-sample processing took 340 s. On a workstation with 32 logical
-cores and an RTX 4070 Laptop GPU, the resumed learning computation
-recorded 5073 s across the resumed execution and reused a completed
-3,072-row design and nine evaluation checkpoints, computed the remaining
-six evaluations and executed all 65 neural seed jobs. That elapsed time
-excludes computation completed before the resume; it is neither the cost
-of a wholly fresh learning run nor evidence of a speed improvement. The
-final MLP fit used CUDA for a simulator study over authored cases; this
-computation does not establish plant-calibrated performance. Independent
+0.10.010 validation record reports 4,606 s for the twelve cases on four
+workers, 3,350 s for the learning stage, 360 s for studies and 149 s for
+real-sample processing. The learning design, all fifteen evaluation jobs
+and all 65 neural-seed jobs were executed fresh, with no resumed
+checkpoints. The learned stage records CUDA execution on an RTX 4070
+Laptop GPU. Its fit and evaluation concern authored simulator cases;
+this computation does not establish plant-calibrated performance. Independent
 evaluation folds and neural seed runs can execute in bounded spawned
 workers. External checkpoints are accepted only under the same
 scientific source, JSON constants, release version, case definitions,
@@ -853,133 +2352,42 @@ frontend suites and the build, with the counts of each release in
 https://oreflow.ml.fasl-work.com runs the engine in the browser on any
 state of any case.
 
-\section*{References}
-
 \begingroup
 \raggedright
-
-\begin{itemize}
-\tightlist
-\item
-  Audet, C. and Dennis, J.E. (2006). Mesh adaptive direct search
-  algorithms for constrained optimization. SIAM Journal on Optimization
-  17(1):188-217. doi:10.1137/040603371
-\item
-  Audet, C. and Dennis, J.E. (2009). A progressive barrier for
-  derivative-free nonlinear programming. SIAM Journal on Optimization
-  20(1):445-472. doi:10.1137/070692662
-\item
-  Bond, F.C. (1952). The third theory of comminution. Transactions AIME
-  193:484-494.
-\item
-  Booker, A.J., Dennis, J.E., Frank, P.D., Serafini, D.B., Torczon, V.
-  and Trosset, M.W. (1999). A rigorous framework for optimization of
-  expensive functions by surrogates. Structural Optimization 17(1):1-13.
-  doi:10.1007/BF01197708
-\item
-  Breiman, L. (2001). Random forests. Machine Learning 45:5-32.
-  doi:10.1023/A:1010933404324
-\item
-  Duarte, R., Yamashita, A., da Silva, M., Cota, L. and Euzébio, T.
-  (2021). Calibration and validation of a cone crusher model with
-  industrial data. Minerals 11(11):1256. doi:10.3390/min11111256
-\item
-  Friedman, J.H. (2001). Greedy function approximation: a gradient
-  boosting machine. Annals of Statistics 29(5):1189-1232.
-  doi:10.1214/aos/1013203451
-\item
-  Global Mining Guidelines Group (2021). Determining the Bond Efficiency
-  of Industrial Grinding Circuits, GMG01-MP-2021.
-\item
-  Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1997). Studies on
-  impeller type, impeller speed and air flow rate in an industrial scale
-  flotation cell. Part 4: Effect of bubble surface area flux on
-  flotation performance. Minerals Engineering 10(4):367-379.
-  doi:10.1016/S0892-6875(97)00014-9
-\item
-  Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1999). The
-  empirical prediction of bubble surface area flux in mechanical
-  flotation cells from cell design and operating data. Minerals
-  Engineering 12(3):309-322. doi:10.1016/S0892-6875(99)00008-4
-\item
-  Herbst, J.A. and Fuerstenau, D.W. (1980). Scale-up procedure for
-  continuous grinding mill design using population balance models.
-  International Journal of Mineral Processing 7(1):1-31.
-  doi:10.1016/0301-7516(80)90034-4
-\item
-  Herman, J. and Usher, W. (2017). SALib: an open-source Python library
-  for sensitivity analysis. Journal of Open Source Software 2(9):97.
-  doi:10.21105/joss.00097
-\item
-  Hoffimann, J., Augusto, J., Resende, L., Mathias, M., Mazzinghy, D.,
-  Bianchetti, M. et al.~(2022). Modeling geospatial uncertainty of
-  geometallurgical variables with Bayesian models and Hilbert-Kriging.
-  Mathematical Geosciences 54(7):1227-1253.
-  doi:10.1007/s11004-022-10013-1
-\item
-  King, R.P. (1979). A model for the quantitative estimation of mineral
-  liberation by grinding. International Journal of Mineral Processing
-  6:207-220. doi:10.1016/0301-7516(79)90037-1
-\item
-  Laplante, A.R. and Gray, S. (2005). Advances in gravity gold
-  technology. Developments in Mineral Processing 15:280-307.
-  doi:10.1016/S0167-4528(05)15013-3
-\item
-  Laplante, A.R. and Staunton, W.P. Gravity recovery of gold, an
-  overview of recent developments (AMIRA P420B).
-\item
-  Loshchilov, I. and Hutter, F. (2019). Decoupled weight decay
-  regularization. arXiv:1711.05101.
-\item
-  Moly-Cop Tools (Sepúlveda). BallSim\_Direct and BallParam\_Direct
-  spreadsheets and documentation.
-\item
-  Muthaphuli, P. (2014). Production of pelletizing concentrates from
-  Zandrivierspoort magnetite/haematite ore by magnetic separation.
-  Journal of the Southern African Institute of Mining and Metallurgy
-  114(7).
-\item
-  Oliveira, E.M. Quality prediction in a mining process: one iron-ore
-  flotation plant, March to September 2017 (CC0). Kaggle dataset 6294.
-  https://www.kaggle.com/datasets/edumagalhaes/quality-prediction-in-a-mining-process
-\item
-  Pereira, L., Frenzel, M., Khodadadzadeh, M., Tolosana-Delgado, R. and
-  Gutzmer, J. (2021). A self-adaptive particle-tracking method for
-  minerals processing. Journal of Cleaner Production 279:123711.
-  doi:10.1016/j.jclepro.2020.123711
-\item
-  Plitt, L.R. (1976). A mathematical model of the hydrocyclone
-  classifier. CIM Bulletin 69(776):114-123.
-\item
-  Polat, M. and Chander, S. (2000). First-order flotation kinetics
-  models and methods for estimation of the true distribution of
-  flotation rate constants. International Journal of Mineral Processing
-  58:145-166. doi:10.1016/S0301-7516(99)00069-1
-\item
-  Rasmussen, C.E. and Williams, C.K.I. (2006). Gaussian Processes for
-  Machine Learning. MIT Press.
-\item
-  Saltelli, A., Annoni, P., Azzini, I., Campolongo, F., Ratto, M. and
-  Tarantola, S. (2010). Variance based sensitivity analysis of model
-  output. Design and estimator for the total sensitivity index. Computer
-  Physics Communications 181(2):259-270. doi:10.1016/j.cpc.2009.09.018
-\item
-  Savassi, O.N., Alexander, D.J., Franzidis, J.P. and Manlapig, E.V.
-  (1998). An empirical model for entrainment in industrial flotation
-  plants. Minerals Engineering 11(3):243-256.
-  doi:10.1016/S0892-6875(98)00003-X
-\item
-  Torczon, V. (1997). On the convergence of pattern search algorithms.
-  SIAM Journal on Optimization 7(1):1-25. doi:10.1137/S1052623493250780
-\item
-  Trahar, W.J. (1981). A rational interpretation of the role of particle
-  size in flotation. International Journal of Mineral Processing
-  8(4):289-327. doi:10.1016/0301-7516(81)90019-3
-\item
-  Vinnett, L. and Waters, K.E. (2025). The use of compressed
-  exponentials for kinetic modelling of batch flotation. Minerals
-  Engineering 226:109246. doi:10.1016/j.mineng.2025.109246
-\end{itemize}
-
+\begin{thebibliography}{99}
+\bibitem{audet2006} Audet, C. and Dennis, J.E. (2006). Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization 17(1):188-217. doi:10.1137/040603371
+\bibitem{audet2009} Audet, C. and Dennis, J.E. (2009). A progressive barrier for derivative-free nonlinear programming. SIAM Journal on Optimization 20(1):445-472. doi:10.1137/070692662
+\bibitem{bond1952} Bond, F.C. (1952). The third theory of comminution. Transactions AIME 193:484-494.
+\bibitem{booker1999} Booker, A.J., Dennis, J.E., Frank, P.D., Serafini, D.B., Torczon, V. and Trosset, M.W. (1999). A rigorous framework for optimization of expensive functions by surrogates. Structural Optimization 17(1):1-13. doi:10.1007/BF01197708
+\bibitem{breiman2001} Breiman, L. (2001). Random forests. Machine Learning 45:5-32. doi:10.1023/A:1010933404324
+\bibitem{duarte2021} Duarte, R., Yamashita, A., da Silva, M., Cota, L. and Euzébio, T. (2021). Calibration and validation of a cone crusher model with industrial data. Minerals 11(11):1256. doi:10.3390/min11111256
+\bibitem{friedman2001} Friedman, J.H. (2001). Greedy function approximation: a gradient boosting machine. Annals of Statistics 29(5):1189-1232. doi:10.1214/aos/1013203451
+\bibitem{gmg2021} Global Mining Guidelines Group (2021). Determining the Bond Efficiency of Industrial Grinding Circuits, GMG01-MP-2021.
+\bibitem{gorain1997} Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1997). Studies on impeller type, impeller speed and air flow rate in an industrial scale flotation cell. Part 4: Effect of bubble surface area flux on flotation performance. Minerals Engineering 10(4):367-379. doi:10.1016/S0892-6875(97)00014-9
+\bibitem{gorain1999} Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1999). The empirical prediction of bubble surface area flux in mechanical flotation cells from cell design and operating data. Minerals Engineering 12(3):309-322. doi:10.1016/S0892-6875(99)00008-4
+\bibitem{herbst1980} Herbst, J.A. and Fuerstenau, D.W. (1980). Scale-up procedure for continuous grinding mill design using population balance models. International Journal of Mineral Processing 7(1):1-31. doi:10.1016/0301-7516(80)90034-4
+\bibitem{herman2017} Herman, J. and Usher, W. (2017). SALib: an open-source Python library for sensitivity analysis. Journal of Open Source Software 2(9):97. doi:10.21105/joss.00097
+\bibitem{hoffimann2022} Hoffimann, J., Augusto, J., Resende, L., Mathias, M., Mazzinghy, D., Bianchetti, M. et al. (2022). Modeling geospatial uncertainty of geometallurgical variables with Bayesian models and Hilbert-Kriging. Mathematical Geosciences 54(7):1227-1253. doi:10.1007/s11004-022-10013-1
+\bibitem{king1979} King, R.P. (1979). A model for the quantitative estimation of mineral liberation by grinding. International Journal of Mineral Processing 6:207-220. doi:10.1016/0301-7516(79)90037-1
+\bibitem{laplante2005} Laplante, A.R. and Gray, S. (2005). Advances in gravity gold technology. Developments in Mineral Processing 15:280-307. doi:10.1016/S0167-4528(05)15013-3
+\bibitem{laplantestaunton} Laplante, A.R. and Staunton, W.P. Gravity recovery of gold, an overview of recent developments (AMIRA P420B).
+\bibitem{loschchilov2019} Loshchilov, I. and Hutter, F. (2019). Decoupled weight decay regularization. arXiv:1711.05101.
+\bibitem{molycoptools} Moly-Cop Tools (Sepúlveda). BallSim\_Direct and BallParam\_Direct spreadsheets and documentation.
+\bibitem{muthaphuli2014} Muthaphuli, P. (2014). Production of pelletizing concentrates from Zandrivierspoort magnetite/haematite ore by magnetic separation. Journal of the Southern African Institute of Mining and Metallurgy 114(7), 505-510. \url{https://www.scielo.org.za/pdf/jsaimm/v114n7/06.pdf}.
+\bibitem{oliveira2017} Oliveira, E.M. Quality prediction in a mining process: one iron-ore flotation plant, March to September 2017 (CC0). Kaggle dataset 6294. https://www.kaggle.com/datasets/edumagalhaes/quality-prediction-in-a-mining-process
+\bibitem{pereira2021} Pereira, L., Frenzel, M., Khodadadzadeh, M., Tolosana-Delgado, R. and Gutzmer, J. (2021). A self-adaptive particle-tracking method for minerals processing. Journal of Cleaner Production 279:123711. doi:10.1016/j.jclepro.2020.123711
+\bibitem{plitt1976} Plitt, L.R. (1976). A mathematical model of the hydrocyclone classifier. CIM Bulletin 69(776):114-123.
+\bibitem{polat2000} Polat, M. and Chander, S. (2000). First-order flotation kinetics models and methods for estimation of the true distribution of flotation rate constants. International Journal of Mineral Processing 58:145-166. doi:10.1016/S0301-7516(99)00069-1
+\bibitem{rasmussen2006} Rasmussen, C.E. and Williams, C.K.I. (2006). Gaussian Processes for Machine Learning. MIT Press.
+\bibitem{saltelli2010} Saltelli, A., Annoni, P., Azzini, I., Campolongo, F., Ratto, M. and Tarantola, S. (2010). Variance based sensitivity analysis of model output. Design and estimator for the total sensitivity index. Computer Physics Communications 181(2):259-270. doi:10.1016/j.cpc.2009.09.018
+\bibitem{savassi1998} Savassi, O.N., Alexander, D.J., Franzidis, J.P. and Manlapig, E.V. (1998). An empirical model for entrainment in industrial flotation plants. Minerals Engineering 11(3):243-256. doi:10.1016/S0892-6875(98)00003-X
+\bibitem{torczon1997} Torczon, V. (1997). On the convergence of pattern search algorithms. SIAM Journal on Optimization 7(1):1-25. doi:10.1137/S1052623493250780
+\bibitem{trahar1981} Trahar, W.J. (1981). A rational interpretation of the role of particle size in flotation. International Journal of Mineral Processing 8(4):289-327. doi:10.1016/0301-7516(81)90019-3
+\bibitem{vinnett2025} Vinnett, L. and Waters, K.E. (2025). The use of compressed exponentials for kinetic modelling of batch flotation. Minerals Engineering 226:109246. doi:10.1016/j.mineng.2025.109246
+\bibitem{koh2021} Koh, E.J.Y., Amini, E., McLachlan, G.J. and Beaton, N. (2021). Utilising a deep neural network as a surrogate model to approximate phenomenological models of a comminution circuit for faster simulations. Minerals Engineering 171, 107026. https://doi.org/10.1016/j.mineng.2021.107026.
+\bibitem{whiten1972} Whiten, W.J. (1972). The simulation of crushing plants with models developed using multiple spline regression. APCOM 1972, pp. 317-324. \url{https://www.saimm.co.za/Conferences/Apcom72/317-Whiten.pdf}.
+\bibitem{rittinger1867} von Rittinger, P. (1867). Lehrbuch der Aufbereitungskunde. Berlin: Ernst \& Korn.
+\bibitem{kick1885} Kick, F. (1885). Das Gesetz der proportionalen Widerstände und seine Anwendung. Leipzig: Arthur Felix.
+\end{thebibliography}
 \endgroup
 \end{document}

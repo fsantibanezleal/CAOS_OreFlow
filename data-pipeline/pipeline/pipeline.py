@@ -13,6 +13,7 @@ import importlib.util
 import json
 import multiprocessing
 import os
+import shutil
 import time
 import warnings
 from concurrent.futures import ProcessPoolExecutor, as_completed
@@ -61,6 +62,24 @@ def _checker():
     return module
 
 
+def _stage_release_inputs(derived: Path, models_dir: Path) -> None:
+    """Stage committed measured records and baseline model without replacing run inputs."""
+    source_dir = derived / "source"
+    source_dir.mkdir(parents=True, exist_ok=True)
+    for name in ("hzdr_particle_benchmark.json", "hzdr_summary.json", "iron_plant_soft_sensor.json"):
+        source = REPO_ROOT / "data" / "derived" / "source" / name
+        destination = source_dir / name
+        if source.is_file() and not destination.is_file():
+            shutil.copy2(source, destination)
+            _log(f"staged committed source input: {destination.name}")
+    models_dir.mkdir(parents=True, exist_ok=True)
+    baseline_model = MODELS / "particle_mlp.onnx"
+    staged_model = models_dir / baseline_model.name
+    if baseline_model.is_file() and not staged_model.is_file():
+        shutil.copy2(baseline_model, staged_model)
+        _log(f"staged committed model input: {staged_model.name}")
+
+
 def run_all(output: Path | None = None, models: Path | None = None, workers: int | None = None,
             reuse_learning: Path | None = None, *, learning_workers: int = 1,
             checkpoint_dir: Path | None = None) -> dict[str, Any]:
@@ -70,6 +89,20 @@ def run_all(output: Path | None = None, models: Path | None = None, workers: int
     derived = Path(output) if output else DERIVED
     models_dir = Path(models) if models else MODELS
     timings: dict[str, float] = {}
+
+    # Direct and supervised runs must stage the same committed measured inputs
+    # before expensive compute. Existing run-specific inputs are preserved.
+    _stage_release_inputs(derived, models_dir)
+
+    # The benchmark and real-sample stages also consume the pinned GeoMet lane.
+    # Generate it when absent, while retaining any caller-provided copy.
+    geomet_artifact = derived / "source" / "geomet_lct_benchmark.json"
+    if not geomet_artifact.is_file():
+        _log("GeoMet benchmark missing; generating the pinned source lane before the bake")
+        from run_geomet import build as build_geomet
+        build_geomet(output_path=geomet_artifact)
+    else:
+        _log(f"GeoMet benchmark ready: {geomet_artifact}")
 
     t = time.perf_counter()
     contract = export_contract(derived / "contract" / "operating_contract.json", derived / "contract" / "contract_probes.json")

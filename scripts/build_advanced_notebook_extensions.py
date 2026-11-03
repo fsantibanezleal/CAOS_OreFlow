@@ -52,6 +52,8 @@ LABELS_ES = {
     'Solved classifier partition (host mineral)': 'Partición resuelta del clasificador (mineral huésped)',
     'kWh/t or dimensionless': 'kWh/t o adimensional', 'Product P80 (µm)': 'P80 de producto (µm)',
     'Specific energy (kWh/t)': 'Energía específica (kWh/t)',
+    'Empirical cumulative probability': 'Probabilidad acumulada empírica',
+    'Finite-sample recovery distribution': 'Distribución finita de recuperación',
     'Three laws at the same feed and work index': 'Tres leyes con igual alimentación e índice de trabajo',
     'Wi (kWh/t):': 'Wi (kWh/t):', '| feed F80 (µm):': '| F80 de alimentación (µm):',
     '| achieved P80 (µm):': '| P80 alcanzado (µm):', 'calibrated Kick constant:': 'constante calibrada de Kick:',
