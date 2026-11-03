@@ -3,21 +3,25 @@
 This file is the release gate for OreFlow. It separates reproducibility evidence from serving evidence so a green local build is not mistaken for a live deployment. The newest release is first; each section records what was checked, where and when.
 
 
-## 0.10.010 release candidate, 2026-11-03
+## 0.10.010, 2026-11-03
 
 ### Local verification
 
 - Fresh GPU bake: 12 authored cases and 96 variants; all study, benchmark and measured-data lanes validated. `validation.json` records `passed: true`, no errors, and contract digest `0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7`. The learned lane ran on the RTX 4070 Laptop GPU; all 15 evaluation jobs and 65 neural-seed jobs ran fresh with no resumed checkpoints. Independent `scripts/check_artifacts.py` recomputed balances and method records.
 - The direct pipeline entry now stages the committed HZDR particle, iron-plant soft-sensor and particle-model inputs when absent, without overwriting run-specific inputs. Its regression test passes.
-- Readiness is current for 17 contracts. All repository guards, artifact checks, version coherence, manuscript release/Zenodo checks, 32-notebook structure checks, and use-case page generation checks pass. The fresh pytest run exposed two stale timing-text assertions; the assertions and bake timing tables were corrected, and the two focused regression tests pass. No product/scientific test failure was reported in that run.
+- Readiness is current for 17 contracts. All repository guards, artifact checks, version coherence, manuscript release/Zenodo checks, 32-notebook structure checks, and use-case page generation checks pass. The full Python test suite passes when run with the documented external `CAOS_DATA_ROOT` and `CAOS_MODELS_ROOT`; the repository smoke guards and Ruff also pass.
+- All 32 bilingual notebooks were executed in fresh kernels. `scripts/run_notebooks.py --check --tmp E:\\_Temp\\oreflow-notebooks-check-010` then passed the strict no-write comparison with no stale notebook outputs.
 - All scientific framework examples completed, including a fresh 12-case learned-design comparison, fresh PyTorch/ONNX training and parity, SALib's 1,536-run committed sensitivity reproduction, GeoMet fold reproduction and accepted/rejected API examples. The GPU example reports its measured magnetite transfer rejection.
-- Frontend contract generation, typecheck, all 606 tests and production build pass. The build emits the existing advisory for the 518 kB main JavaScript chunk.
+- Frontend contract generation, typecheck, all 606 tests and production build pass. The test suite was run with an external `CAOS_TEMP_ROOT`; there were zero skips in the successful run. The build emits the existing advisory for the 518 kB main JavaScript chunk.
 - Shared-shell browser gate passed 1,412 measured states on the rebuilt bundle. OreFlow's browser gate passed 248 checks; the Focus walkthrough advanced, played, paused and verified all 12 case circuits (7 topology families, 12 result signatures) with no browser-console errors.
 - The 38-page technical report for 0.10.010 is published at version DOI `10.5281/zenodo.23905019`, concept DOI `10.5281/zenodo.23783845`. The public file was freshly downloaded and SHA-256 verified as `a9a35dceaadba42fdc76efad0560c57d6023d3ccbffe774dfef33f2e65b2ab0c` (344,698 bytes). Manuscript checks read the published Zenodo record.
 
 ### Remote verification
 
-Pending: commit, CI on the governed task-to-develop pull request, promotion to `main`, tag/release, VPS deployment, and live HTTPS/API/browser verification. No 0.10.010 software deployment is claimed yet.
+- Release commit `19ef16b311521e6afcd51128ca0d8e2b513fd262` was promoted through PR [#122](https://github.com/fsantibanezleal/CAOS_OreFlow/pull/122) to `develop` and PR [#123](https://github.com/fsantibanezleal/CAOS_OreFlow/pull/123) to `main`. Develop CI run `41601808048` and main CI run `41602406577` passed. Tag and GitHub release [`v0.10.010`](https://github.com/fsantibanezleal/CAOS_OreFlow/releases/tag/v0.10.010) point to exact main commit `b03620d03acbebf9095f230de4c5642bb2ac1e30`.
+- The GitHub software archive is published by the Zenodo integration as [record 23911495](https://zenodo.org/records/23911495), version DOI `10.5281/zenodo.23911495`, under concept DOI `10.5281/zenodo.23862388`. The public 11,359,629-byte ZIP was downloaded fresh; its MD5 matches Zenodo (`171becbfeab00f4824df6c57349bd03f`) and SHA-256 is `480e49d2864a38afdb49bdf52b4b83d86a7c3f4ae3f0ba0211e836644040fbc1`.
+- The ML VPS checkout at `/opt/fasl-apps/CAOS_OreFlow` is clean at the tagged main commit; `oreflow.service` is active and `nginx -t` passes. Public `/healthz` reports 0.10.010, and `/api/cases` reports 12 cases and 96 variants with the expected contract digest. Routes `/`, `/introduction`, `/methodology`, `/implementation`, `/experiments`, `/benchmark`, and `/focus/copper_porphyry_soft` return HTTP 200. Public API simulations for soft copper and fine magnetite return live results; an out-of-contract 50,000 t/h request returns 422.
+- On `https://oreflow.ml.fasl-work.com`, the OreFlow browser gate passed 248 checks and the Focus walkthrough exercised all 12 circuits (7 topology families and 12 distinct result signatures) without browser-console errors. The complete public shared-shell gate passed all 1,412 measured states with zero failures. Captures were inspected for the desktop workbench, Focus, methodology and narrow phone layout.
 
 ## 0.10.009 release candidate, 2026-11-02
 
