@@ -150,8 +150,9 @@ def test_the_bake_times_are_the_validation_records():
     assert f"in the committed {version} bake" in guide
     arch = " ".join((ROOT / "docs" / "architecture" / "02_bake-pipeline.md").read_text(encoding="utf-8").split())
     assert f"- {s['cases']:.0f} s and {s['learning']:.0f} s for the committed {version} bake" in arch
-    paper = " ".join((ROOT / "manuscripts" / "technical-report" / "main.md").read_text(encoding="utf-8").split())
-    assert f"took {s['cases']:.0f} s for the cases on {v['workers']} workers and {s['learning']:.0f} s for the learned lane" in paper
+    paper = " ".join((ROOT / "manuscripts" / "technical-report" / "main.tex").read_text(encoding="utf-8").split())
+    assert f"validation record reports {s['cases']:,.0f} s for the twelve cases on four" in paper
+    assert f"workers, {s['learning']:,.0f} s for the learning stage" in paper
     legacy = (ROOT / "manuscript" / "oreflow-digital-twin.md").read_text(encoding="utf-8")
     assert "Archived draft" in legacy and "Superseded by the" in legacy
     assert "https://doi.org/10.5281/zenodo.23783845" in legacy
@@ -166,6 +167,8 @@ def test_every_relative_link_resolves():
     broken = []
     for name in tracked:
         page = ROOT / name
+        if not page.is_file():
+            continue
         for m in re.finditer(r"\]\(([^)\s]+)\)", page.read_text(encoding="utf-8")):
             target = m.group(1).split("#")[0]
             if target and not re.match(r"[a-z]+:", m.group(1)) and not (page.parent / target).resolve().exists():

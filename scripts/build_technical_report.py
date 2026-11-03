@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import datetime
 import hashlib
+from html.parser import HTMLParser
 import json
 import os
 import re
@@ -17,8 +18,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 REPORT = Path("manuscripts/technical-report")
-INPUTS = (Path("VERSION"), Path("product.json"), REPORT / "zenodo.json", REPORT / "main.md", REPORT / "report-template.tex")
-TOOLS = ("pandoc", "xelatex", "pdfinfo", "pdftotext")
+BASE_INPUTS = (Path("VERSION"), Path("product.json"), REPORT / "zenodo.json", REPORT / "main.tex")
+TOOLS = ("xelatex", "pdfinfo", "pdftotext")
 MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December")
 
 
@@ -36,6 +37,18 @@ def _read(path):
         return path.read_bytes()
     except OSError as exc:
         raise ValueError(f"Missing or unreadable input/output {path}: {exc}") from exc
+
+
+def _inputs(root):
+    """Include generated report evidence in the candidate's immutable source snapshot."""
+    paths = list(BASE_INPUTS)
+    evidence = root / REPORT / "evidence.tex"
+    if evidence.is_file():
+        paths.append(REPORT / "evidence.tex")
+        figures = sorted((root / REPORT / "figures").glob("*.pdf"))
+        _need(bool(figures), "Generated evidence.tex exists but the vector figure directory is empty")
+        paths.extend(path.relative_to(root) for path in figures)
+    return tuple(paths)
 
 
 def _pairs(pairs):
@@ -104,6 +117,31 @@ def _identity(snapshot, doi, publication_date, expected_pages):
             "author": author, "orcid": orcid, "license": "CC BY 4.0", "expected_pages": expected_pages}
 
 
+def _tex_command(source, command):
+    name = re.escape(command)
+    match = re.search(r"\\newcommand\s*\{\s*\\" + name + r"\s*\}\s*\{([^{}]*)\}|\\" + name + r"\s*\{([^{}]*)\}", source, re.S)
+    _need(match is not None, f"LaTeX source is missing a plain \\{command}{{...}} declaration")
+    return " ".join(next(group for group in match.groups() if group is not None).split())
+
+
+def _validate_tex_identity(source, identity, doi):
+    declarations = {
+        "title": _tex_command(source, "title"),
+        "author": _tex_command(source, "author"),
+        "version": _tex_command(source, "docversion"),
+        "date": _tex_command(source, "docdate"),
+        "version DOI": _tex_command(source, "versiondoi"),
+        "concept DOI": _tex_command(source, "conceptdoi"),
+    }
+    expected = {"title": identity["title"],
+                "author": f"{identity['author']} (ORCID: {identity['orcid']})",
+                "version": "v" + identity["version"], "date": identity["display_date"],
+                "version DOI": doi, "concept DOI": identity["concept_doi"]}
+    for label, value in expected.items():
+        _need(_normalized(declarations[label]) == _normalized(value),
+              f"LaTeX source {label} differs from the verified release metadata")
+
+
 def _run(args, directory):
     try:
         result = subprocess.run(args, cwd=directory, shell=False, capture_output=True, text=True,
@@ -124,6 +162,27 @@ def _unchanged(root, snapshot):
 def _normalized(text):
     text = unicodedata.normalize("NFKC", text).replace("\u00ad", "").replace("\u2010", "-").replace("\u2011", "-")
     return " ".join(text.split()).casefold()
+
+
+class _PageBounds(HTMLParser):
+    def __init__(self):
+        super().__init__()
+        self.pages = []
+        self.current = None
+        self.words = 0
+        self.clipped = []
+
+    def handle_starttag(self, tag, attrs):
+        attrs = dict(attrs)
+        if tag == "page":
+            self.current = (float(attrs["width"]), float(attrs["height"]))
+            self.pages.append(self.current)
+        elif tag == "word" and self.current:
+            self.words += 1
+            width, height = self.current
+            box = tuple(float(attrs[key]) for key in ("xmin", "ymin", "xmax", "ymax"))
+            if box[0] < 0 or box[1] < 0 or box[2] > width or box[3] > height:
+                self.clipped.append(box)
 
 
 def _install(root, directory, snapshot):
@@ -174,11 +233,12 @@ def build_report(*, doi: str, publication_date: str, temp_root: Path | None = No
     A receipt proves a bounded local build, never scientific or visual acceptance.
     """
     root = Path(root).resolve()
-    snapshot = {path: _read(root / path) for path in INPUTS}
+    snapshot = {path: _read(root / path) for path in _inputs(root)}
     _need(type(write) is bool, "write must be an explicit boolean")
-    for path in (REPORT / "main.md", REPORT / "report-template.tex"):
-        _need(bool(snapshot[path].strip()), f"Empty report source: {path}")
+    _need(bool(snapshot[REPORT / "main.tex"].strip()), "Empty report source: manuscripts/technical-report/main.tex")
     identity = _identity(snapshot, doi, publication_date, expected_pages)
+    source_tex = snapshot[REPORT / "main.tex"].decode("utf-8")
+    _validate_tex_identity(source_tex, identity, doi)
     configured = temp_root if temp_root is not None else os.environ.get("CAOS_TEMP_ROOT")
     _need(configured is not None and str(configured).strip(), "Set CAOS_TEMP_ROOT or --temp-root to an external scratch root")
     scratch = Path(configured).expanduser().resolve()
@@ -194,18 +254,13 @@ def build_report(*, doi: str, publication_date: str, temp_root: Path | None = No
         version = (result.stdout + result.stderr).strip().splitlines()
         _need(bool(version), f"{name} did not report its tool version")
         versions[name] = version[0][:500]
-    (directory / "source.md").write_bytes(snapshot[REPORT / "main.md"])
-    (directory / "report-template.tex").write_bytes(snapshot[REPORT / "report-template.tex"])
-    parameters = {"title": identity["title"], "author": f"{identity['author']} (ORCID: {identity['orcid']})",
-                  "docversion": "v" + identity["version"], "docdate": identity["display_date"],
-                  "versiondoi": doi, "conceptdoi": identity["concept_doi"]}
-    (directory / "parameters.json").write_text(json.dumps(parameters, ensure_ascii=False, allow_nan=False), encoding="utf-8")
+    (directory / "main.tex").write_bytes(snapshot[REPORT / "main.tex"])
+    for path, data in snapshot.items():
+        if path == REPORT / "evidence.tex" or path.parent == REPORT / "figures":
+            target = directory / path.relative_to(REPORT)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(data)
     tex, pdf, log = [directory / name for name in ("main.tex", "main.pdf", "main.log")]
-    converted = _run([executables["pandoc"], str(directory / "source.md"), "--standalone", "--from=markdown+raw_tex", "--to=latex",
-                      "--template", str(directory / "report-template.tex"), "--metadata-file", str(directory / "parameters.json"),
-                      "--syntax-highlighting=none", "--output", str(tex)], directory)
-    _need(not converted.stderr.strip(), "Pandoc reported a warning; inspect the candidate")
-    _need(bool(_read(tex).strip()), "Pandoc produced empty TeX")
     for _ in range(2):
         # These are this fresh child's own outputs, not user/canonical files.
         pdf.unlink(missing_ok=True)
@@ -216,11 +271,19 @@ def build_report(*, doi: str, publication_date: str, temp_root: Path | None = No
         _read(log)
     final_log = _read(log)
     _need(len(final_log) <= 4*1024*1024, "Compiler log exceeds bounded 4 MiB limit")
-    _need(not re.search(r"\b(?:overfull|underfull)\s+\\[hv]box|\bwarning\s*:|^\s*missing character\s*:",
+    overfull = re.findall(r"\bOverfull\s+\\[hv]box\s+\(([^)]*)\)", final_log.decode("utf-8", errors="replace"), re.I)
+    _need(not re.search(r"\bUnderfull\s+\\[hv]box|\bwarning\s*:|^\s*missing character\s*:",
                         final_log.decode("utf-8", errors="replace"), re.I | re.M),
-          "Final compiler log contains a warning or overfull/underfull box; review layout")
+          "Final compiler log contains a warning, underfull box or missing character; review layout")
     pdf_bytes = _read(pdf)
     _need(pdf_bytes.startswith(b"%PDF-") and pdf_bytes.rstrip().endswith(b"%%EOF"), "Missing PDF signature or complete EOF trailer")
+    bbox = directory / "pdf-text-bounds.html"
+    _run([executables["pdftotext"], "-bbox", str(pdf), str(bbox)], directory)
+    bounds = _PageBounds()
+    bounds.feed(_read(bbox).decode("utf-8", errors="replace"))
+    _need(len(bounds.pages) == expected_pages and bounds.words > 0,
+          "PDF text-boundary inspection did not cover every expected page")
+    _need(not bounds.clipped, f"PDF has {len(bounds.clipped)} text glyph boxes beyond a physical page edge")
     info = _run([executables["pdfinfo"], str(pdf)], directory)
     _need(not info.stderr.strip(), "pdfinfo reported a PDF warning")
     pages = re.search(r"^Pages:\s+(\d+)\s*$", info.stdout, re.M)
@@ -241,7 +304,8 @@ def build_report(*, doi: str, publication_date: str, temp_root: Path | None = No
     receipt = {"schema": "oreflow.report-build/v1", "candidate_dir": str(directory),
                "inputs": {path.as_posix(): _hash(data) for path, data in snapshot.items()},
                "parameters": {**identity, "write_requested": write}, "tools": versions,
-               "outputs": {path.name: _hash(_read(path)) for path in (tex, pdf, log, directory / "parameters.json")}, "pages": int(pages[1]),
+               "layout": {"overfull_boxes_within_page_bounds": len(overfull), "pages_with_text_bounds": len(bounds.pages)},
+               "outputs": {path.name: _hash(_read(path)) for path in (tex, pdf, log)}, "pages": int(pages[1]),
                "builder_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest()}
     (directory / "receipt.json").write_text(json.dumps(receipt, sort_keys=True, ensure_ascii=False, indent=2, allow_nan=False)+"\n",
                                             encoding="utf-8")

@@ -1,0 +1,38 @@
+{
+  "methods": {
+    "M-1": ["01-comminution/02-the-method.ipynb"],
+    "M-2": ["03-learning/02-the-method.ipynb"],
+    "M-3": ["01-comminution/03-research-comparison.ipynb"],
+    "M-4": ["02-flotation/03-research-comparison.ipynb"],
+    "M-5": ["04-optimization/02-the-method.ipynb", "04-optimization/04-screening-evidence.ipynb"],
+    "M-6": ["05-uncertainty/02-the-method.ipynb", "05-uncertainty/03-research-comparison.ipynb"]
+  },
+  "contracts": {
+    "oreflow-benchmark-v2": ["03-learning/03-research-comparison.ipynb"],
+    "oreflow-case-v2": ["01-comminution/01-the-record.ipynb"],
+    "oreflow-contract-probes-v1": ["01-comminution/02-the-method.ipynb"],
+    "oreflow-contract-v1": ["01-comminution/01-the-record.ipynb"],
+    "oreflow-geomet-lct-v1": ["01-comminution/03-research-comparison.ipynb"],
+    "oreflow-hzdr-summary-v1": ["01-comminution/03-research-comparison.ipynb"],
+    "oreflow-index-v2": ["01-comminution/01-the-record.ipynb"],
+    "oreflow-iron-plant-soft-sens": ["05-uncertainty/03-research-comparison.ipynb"],
+    "oreflow-learning-v2": ["03-learning/03-research-comparison.ipynb"],
+    "oreflow-manifest-v2": ["01-comminution/01-the-record.ipynb"],
+    "oreflow-particle-benchmark-v": ["02-flotation/03-research-comparison.ipynb"],
+    "oreflow-process-surrogate-v1": ["03-learning/02-the-method.ipynb"],
+    "oreflow-real-samples-v1": ["01-comminution/03-research-comparison.ipynb"],
+    "oreflow-screen-v1": ["04-optimization/04-screening-evidence.ipynb"],
+    "oreflow-studies-v1": ["05-uncertainty/03-research-comparison.ipynb"],
+    "oreflow-validation-v2": ["03-learning/03-research-comparison.ipynb"],
+    "readiness": ["04-optimization/04-screening-evidence.ipynb"]
+  },
+  "stages": {
+    "benchmark": ["03-learning/03-research-comparison.ipynb"],
+    "cases": ["01-comminution/01-the-record.ipynb"],
+    "particle_experiment": ["02-flotation/03-research-comparison.ipynb"],
+    "preprocess": ["03-learning/01-the-record.ipynb"],
+    "real_samples": ["01-comminution/03-research-comparison.ipynb"],
+    "studies": ["05-uncertainty/03-research-comparison.ipynb"]
+  },
+  "packages": {}
+}
