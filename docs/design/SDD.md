@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.008, 2026-10-31. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.10.010, 2026-11-03. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
 
 ## Problem and non-goals
 
@@ -78,6 +78,38 @@ OreFlow currently contains six public routes, twelve authored cases and eight co
   is the release version, and the contract digest. The exported networks carry neither and are bound to the
   learning record by their byte counts. The three measured lanes' records (`data/derived/source/`) carry
   their own schemas and source pins. The schemas are in `docs/data-contract/`.
+
+## Visualization catalog
+
+OreFlow's physical model is a steady-state mineral-processing circuit. The system view therefore uses a
+process schematic with named equipment and streams; the data do not contain survey geometry or as-built
+equipment dimensions that would justify a fabricated 3D plant. Views read the selected case artifact and
+current browser-engine trace. Story headlines and values are taken from those records at runtime.
+
+| id | question | data contract | kind | interactions | linked views | placement |
+|---|---|---|---|---|---|---|
+| V1 | Where does each mineral, water stream and recycle travel through this case? | `data/derived/cases/<case>.json`, variant topology and stream records; live `Trace` | System: process schematic of feeder, crusher, mill, classifier, flotation and product routes, with state-coded streams and rates | Select an equipment unit or stream; inspect entering and leaving stream assays, size and balance; follow the steady-state route | V2 unit section, V3 size and classifier view, V4 response, V5 solver steps, V6 case comparison | App circuit stage; story context step; `/focus/circuit` |
+| V2 | What does the active unit do to each size-by-mineral class? | Selected `Trace` unit curves, input/output stream arrays and `balance.units` audit | Key component: named 2D section of the selected crusher, mill or flotation cell; disclose selection, breakage, partition or recovery by size without inventing internal plant geometry | Select a unit in V1; scrub size class; compare incoming and outgoing class mass and unit closure | V1 equipment and streams, V3 domain plot, V5 calculation trace | App unit detail dock; story measurement step; `/focus/circuit` |
+| V3 | Which size classes pass the grind target, classifier cut and liberation response? | Variant size-distribution curves, cyclone partition, liberation-by-size and operating point | Domain diagram: cumulative passing against particle diameter on log scale, with P80 and classifier cut; aligned partition and liberation detail | Toggle named streams; move size cursor; change grind target or classifier cut; retain units and threshold markers | V1 streams, V2 unit section, V4 response map, V6 case comparison | App grinding view and focus; story measurement step; methodology page |
+| V4 | How do recovery, grade, energy and water change across the declared operating range? | Operating contract bounds, live engine sweeps, precomputed uncertainty quantiles and named variant records | State and dynamics: response curves or maps with current-state marker, admissible range and uncertainty interval; this is a steady-state input response, not plant time history | Change one or two contracted inputs; scrub operating point; reveal exact values, units and interval provenance | V1 selected case, V3 size response, V5 method execution, V6 before/after comparison | App response stage and focus; story operating-response step |
+| V5 | How does the selected method reach and qualify its reported result? | Optimizer path, candidate records and exact engine evaluations; kinetic fit records; uncertainty samples with seed | Method at work: stepwise optimizer candidates and incumbent, kinetic fit residual, or sampled uncertainty envelope; each animation follows a real recorded computation | Step, play, pause, set the inspection interval, select a candidate or sample, and inspect exact-engine status and objective | V1 current circuit, V3 domain response, V4 output, V6 method comparison | App methods stage and focus; story method step |
+| V6 | Which case or method changes the decision, and by how much? | `data/derived/benchmark.json`, the 12 case artifacts, paired screened/unscreened records and bootstrap uncertainty | Comparison and decision: matched axes for cases or methods, labeled deltas and case-cluster interval; identify the selected alternative and its evidence | Select cases and methods; align units/scales; inspect paired records, interval and admissibility status | V1 selected case, V3 size result, V4 response, V5 method trace | App case and benchmark views; story comparison and decision steps; benchmark page |
+
+### Guided story and release state
+
+The story uses four steps: **Trace the circuit** (12 authored cases and the selected case's stream topology),
+**Inspect size response** (measured-by-model P80, partition and size-resolved liberation), **Evaluate the method**
+(the exact candidate path and the 17.25% evaluation increase observed in the 72 paired screening variants), and
+**Compare the decision** (the paired endpoint and the stated case-cluster interval). Counts and values are read from
+the current release artifacts; any unavailable statistic is named as unavailable. These are scenario and simulator
+results, not plant measurements. `/story/<step>` preserves case, variant and operating state when entered from or
+returned to `/app`.
+
+The current 0.10.010 workbench predates ADR-0082 and does not yet satisfy this catalog as an implemented stage/story
+experience. The catalog is the acceptance contract for the next app release: one dominant stage, one docked panel,
+at least three anchored unit-bearing callouts, linked stage/panel selection in both directions, staged transitions,
+reduced-motion behavior, and the story walk at 1280x800 and 390x844 in English/Spanish and light/dark themes. The
+shared shell and product template must carry those primitives and gate before OreFlow adopts their released versions.
 
 ## Technology and versions
 
