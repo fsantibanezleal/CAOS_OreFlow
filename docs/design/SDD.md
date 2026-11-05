@@ -1,6 +1,6 @@
 # OreFlow software design document
 
-Version: 0.10.010, 2026-11-03. This document retains the scientific model and feature history from 0.08.000 while adopting the current product-template design record.
+Version: 0.11.000, 2026-11-05. This release implements the guided process story, linked circuit inspection, and uncertainty-qualified comparison against the current CAOS shell and product-template rules.
 
 ## Problem and non-goals
 
@@ -105,19 +105,20 @@ the current release artifacts; any unavailable statistic is named as unavailable
 results, not plant measurements. `/story/<step>` preserves case, variant and operating state when entered from or
 returned to `/app`.
 
-The current 0.10.010 workbench predates ADR-0082 and does not yet satisfy this catalog as an implemented stage/story
-experience. The catalog is the acceptance contract for the next app release: one dominant stage, one docked panel,
-at least three anchored unit-bearing callouts, linked stage/panel selection in both directions, staged transitions,
-reduced-motion behavior, and the story walk at 1280x800 and 390x844 in English/Spanish and light/dark themes. The
-shared shell and product template must carry those primitives and gate before OreFlow adopts their released versions.
+The 0.11.000 workbench implements this catalog through the current circuit, grinding, response, methods and comparison
+views and the four-step guided story. Story controls link the selected circuit unit to its evidence panel, synchronize
+the operation cursor, expose source-backed values and units, preserve the case and operating state on exit, and honor
+reduced motion. The product gate verifies routes, artifact-backed callouts, linked selection and cursor, uncertainty
+qualification, return state and phone geometry; the shell's G21 gate measures rendered stage composition, transitions
+and performance on the release build.
 
 ## Technology and versions
 
-Pinned versions are read from the committed requirement files and npm lock. Shell 0.19.12 is the published package release.
+Pinned versions are read from the committed requirement files and npm lock. Shell 0.20.0 is the published package release.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
-| web | @fasl-work/caos-app-shell | 0.19.12 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | @fasl-work/caos-app-shell | 0.20.0 | ADR-0082 story frame, evidence callouts, linked views, reduced-motion transitions and the shared 3D scene frame; exact pin is checked against the lock. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/node | 24.13.4 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react-dom | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
