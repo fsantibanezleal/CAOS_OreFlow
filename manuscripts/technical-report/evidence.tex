@@ -85,11 +85,11 @@ refractory\_gold & rougher & 92.52 & 28.13 \\
 \begin{table}[htbp]
 \centering
 \small
-\caption{Recovery prediction errors by model and evaluation protocol, with attempted, scored and rejected fold counts kept beside the conditional metrics.}
+\caption{Recovery errors by model: interpolation (Interp.), leave-one-case-out (LOCO) and leave-one-ore-group-out (LOGO). Fold columns report scored/rejected.}
 \label{tab:learning-summary}
 \begin{tabular}{lrrrrr}
 \toprule
-Model & Interpolation & Held-out case & Held-out group & Case scored/rejected & Group scored/rejected \\
+Model & Interp. & LOCO & LOGO & Case folds & Group folds \\
 \midrule
 ridge & 9.46 & 13.68 & 15.99 & 12/0 & 7/0 \\
 random\_forest & 6.49 & 13.16 & 16.86 & 12/0 & 7/0 \\

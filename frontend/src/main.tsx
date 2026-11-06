@@ -36,7 +36,8 @@ const config: ShellConfig = {
   visibility: "public",
   contain: true,
   // Global containment keeps the page inside the viewport; long content scrolls within the shell.
-  fixedRoutes: ["/app", "/story"],
+  fixedRoutes: ["/app"],
+  immersiveRoutes: ["/story"],
   architecture: ARCHITECTURE,
   routes: [
     { path: "/app", en: "Workbench", es: "Simulador" },

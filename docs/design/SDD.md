@@ -114,11 +114,11 @@ and performance on the release build.
 
 ## Technology and versions
 
-Pinned versions are read from the committed requirement files and npm lock. Shell 0.20.0 is the published package release.
+Pinned versions are read from the committed requirement files and npm lock. Shell 0.22.0 is the published package release.
 
 | component | package | version | use | alternative considered |
 |---|---|---|---|---|
-| web | @fasl-work/caos-app-shell | 0.20.0 | ADR-0082 story frame, evidence callouts, linked views, reduced-motion transitions and the shared 3D scene frame; exact pin is checked against the lock. | The exact pin is retained for reproducibility and checked against its manifest. |
+| web | @fasl-work/caos-app-shell | 0.22.0 | ADR-0082 story frame, evidence callouts, linked views, reduced-motion transitions, shared 3D scene frame and story route containment; exact pin is checked against the lock. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/node | 24.13.4 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |
 | web | @types/react-dom | 19.3.0 | Directly pinned in `frontend/package-lock.json`; see the corresponding build or research lane. | The exact pin is retained for reproducibility and checked against its manifest. |

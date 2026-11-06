@@ -1,18 +1,7 @@
-body:has([data-story]) .app-shell > .site-header,
-body:has([data-story]) .app-shell > .site-footer { display: none !important; }
-body:has([data-story]) .app-shell > .page { min-height: 0; padding: 0; overflow: hidden; }
-body:has([data-story]) .oreflow-story { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; gap: .45rem; padding: .45rem .7rem; }
-body:has([data-story]) .oreflow-story .caos-story-header,
-body:has([data-story]) .oreflow-story .caos-story-stepper { flex: 0 0 auto; }
-body:has([data-story]) .oreflow-story .caos-story-layout { flex: 1 1 auto; min-height: 0; }
-body:has([data-story]) .oreflow-story .caos-story-stage { min-height: 0; }
+.oreflow-story { gap: .45rem; padding: .45rem .7rem; }
+.oreflow-story-loading { min-height: 100%; }
 .oreflow-story-visual { position: relative; display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; }
-.oreflow-story-visual > .caos-callout-layer { height: 100%; }
-.oreflow-story-drawing { flex: 1 1 auto; min-height: 0; padding-top: 78px; }
-.oreflow-story-drawing > .of-view,
-.oreflow-story-drawing > .of-view > .of-stage,
-.oreflow-story-drawing > .caos-plot.fill { width: 100%; height: 100%; min-height: 0; }
-.oreflow-story-visual .caos-callout-leaders line { stroke: var(--color-fg-faint); opacity: .42; }
+.oreflow-story-drawing { display: flex; flex: 1 1 auto; min-height: 0; padding-top: 78px; }
 .oreflow-story-panel-content { display: grid; align-content: start; gap: .65rem; }
 .oreflow-story-panel-content > h2 { margin: 0; font-size: 1.05rem; }
 .oreflow-story-result-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .4rem; }
@@ -41,13 +30,8 @@ body:has([data-story]) .oreflow-story .caos-story-stage { min-height: 0; }
 .of-story-entry:hover,
 .of-story-entry:focus-visible { border-color: var(--color-accent); color: var(--color-fg); }
 @media (max-width: 760px) {
-  body:has([data-story]) .app-shell > .page { overflow: auto; }
-  body:has([data-story]) .oreflow-story { min-height: 100%; height: auto; padding: .45rem; }
-  body:has([data-story]) .oreflow-story .caos-story-layout { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(48dvh, 1fr) auto; }
-  body:has([data-story]) .oreflow-story .caos-story-stage { min-height: 300px; }
-  body:has([data-story]) .oreflow-story .caos-story-panel { max-height: 34dvh; }
+  .oreflow-story { min-height: 100%; height: auto; padding: .45rem; }
   .oreflow-story-drawing { padding-top: 126px; }
-  .oreflow-story-visual .caos-callout-leaders { display: none; }
   .oreflow-story-result-grid span { font-size: .65rem; }
   .oreflow-story-result-grid strong { font-size: .9rem; }
   .of-story-entry { align-self: center; }

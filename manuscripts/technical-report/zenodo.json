@@ -33,7 +33,7 @@
         "resource_type": "software"
       }
     ],
-    "publication_date": "2026-11-05",
+    "publication_date": "2026-11-06",
     "version_notes": "Updated technical report for the 0.11.000 release, preserving the source-derived model, data, protocol and result boundaries while documenting the linked research workbench and its current reproducibility paths."
   }
 }

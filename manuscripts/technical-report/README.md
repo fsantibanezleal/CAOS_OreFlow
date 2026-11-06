@@ -20,7 +20,7 @@ inside the product repository, including through a junction or symlink.
 ```powershell
 python manuscripts/technical-report/generate_evidence.py
 & .venv/Scripts/python.exe scripts/build_technical_report.py `
-  --doi 10.5281/zenodo.23905019 --date 2026-11-03 `
+  --doi 10.5281/zenodo.23994678 --date 2026-11-06 `
   --expected-pages 38 --temp-root $env:CAOS_TEMP_ROOT
 ```
 
@@ -50,7 +50,7 @@ changes metadata or publishes a record.
 ```powershell
 python manuscripts/technical-report/generate_evidence.py
 & .venv/Scripts/python.exe scripts/build_technical_report.py `
-  --doi 10.5281/zenodo.23905019 --date 2026-11-03 `
+  --doi 10.5281/zenodo.23994678 --date 2026-11-06 `
   --expected-pages 38 --temp-root $env:CAOS_TEMP_ROOT
 & .venv/Scripts/python.exe -m pytest tests/test_build_technical_report.py -q
 ```

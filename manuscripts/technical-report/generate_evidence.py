@@ -92,8 +92,8 @@ def main() -> None:
     ax.grid(axis="y", alpha=.2)
     pdf("transfer-protocols")
     tables.append(table("tab:learning-summary",
-        "Recovery prediction errors by model and evaluation protocol, with attempted, scored and rejected fold counts kept beside the conditional metrics.",
-        ["Model", "Interpolation", "Held-out case", "Held-out group", "Case scored/rejected", "Group scored/rejected"],
+        "Recovery errors by model: interpolation (Interp.), leave-one-case-out (LOCO) and leave-one-ore-group-out (LOGO). Fold columns report scored/rejected.",
+        ["Model", "Interp.", "LOCO", "LOGO", "Case folds", "Group folds"],
         [[m, f'{learn["summary"][m]["recovery_pct"]["interpolation_rmse"]:.2f}',
           f'{learn["summary"][m]["recovery_pct"]["loco_rmse_mean"]:.2f}',
           f'{learn["summary"][m]["recovery_pct"]["transfer_rmse_mean"]:.2f}',

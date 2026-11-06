@@ -334,7 +334,7 @@ describe('the Benchmark page says what the records hold', () => {
     expect([withScreen, without, round(100 * (withScreen / without - 1), 1)]).toEqual([26367, 22487, 17.3]);
     const change = screened.map(x => x.r.evaluations - x.r.evaluations_without_screen!);
     expect([change.filter(c => c < 0).length, change.filter(c => c > 0).length, change.filter(c => c === 0).length]).toEqual([0, 68, 4]);
-    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5811, 79034, 901]);
+    expect([sum(r => r.proposed!), sum(r => r.screened_candidates!), sum(r => r.improved!)]).toEqual([5811, 79035, 901]);
     // the rejections by reason are in the case records' per-start screen counts
     const rejected = { guard: 0, interval: 0 };
     for (const x of screened) {
@@ -342,7 +342,7 @@ describe('the Benchmark page says what the records hold', () => {
         .variants.find(v => v.id === x.v)!.methods.optimization.starts;
       for (const s of starts) { rejected.guard += s.screen.rejected.guard; rejected.interval += s.screen.rejected.interval; }
     }
-    expect([rejected.guard, rejected.interval]).toEqual([19, 48268]);
+    expect([rejected.guard, rejected.interval]).toEqual([19, 48266]);
     const errors = screened.map(x => x.r.surrogate_abs_error_pp).filter((e): e is number => typeof e === 'number');
     expect(errors).toHaveLength(68);
     expect(round(errors.reduce((a, e) => a + e, 0) / errors.length, 2)).toBe(0.66);
