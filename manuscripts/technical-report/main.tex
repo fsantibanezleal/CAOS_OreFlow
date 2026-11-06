@@ -14,9 +14,9 @@
 \setlength{\parindent}{0pt}
 \setlength{\emergencystretch}{5em}
 \newcommand{\doctype}{Technical report}
-\newcommand{\docversion}{v0.10.010}
-\newcommand{\docdate}{3 November 2026}
-\newcommand{\versiondoi}{10.5281/zenodo.23905019}
+\newcommand{\docversion}{v0.11.000}
+\newcommand{\docdate}{6 November 2026}
+\newcommand{\versiondoi}{10.5281/zenodo.23994678}
 \newcommand{\conceptdoi}{10.5281/zenodo.23783845}
 \newcommand{\docrepo}{https://github.com/fsantibanezleal/CAOS\_OreFlow}
 \newcommand{\headerblock}{%
@@ -80,6 +80,11 @@ three:
   whose missed feature shifts remain visible by input and distance.
 \end{enumerate}
 
+\begin{sloppypar}
+Interpolation, whole-case holdout and ore-group holdout estimate different
+transfer regimes; the magnetite fold remains rejected, and conditional means
+use only the eleven admissible folds rather than combining unlike decisions.
+
 Published comminution and simulator studies provide context for the
 controlled engine comparison; their plant-specific results are not
 transferred as OreFlow calibration data \cite{whiten1972,koh2021}.
@@ -90,14 +95,14 @@ grinding can improve liberation while increasing energy and changing the
 flotation feed. A control selected from one unit response may therefore
 violate a downstream constraint.
 
-OreFlow exposes these couplings through stream and unit records. It
-creates a controlled teacher for method comparison and a transparent
-setting for testing how validation units alter conclusions; it does not
-replace plant sampling or metallurgical accounting.
+OreFlow records these couplings by stream and unit. It offers a controlled
+basis for method comparisons and tests how validation units affect
+conclusions; it does not replace plant sampling or metallurgical accounting.
 
 The report distinguishes numerical closure within implemented equations,
 reproduction of external reference cases and predictive agreement on
 held-out records. Passing one category does not imply passing another.
+\end{sloppypar}
 
 \section{Problem formulation}\label{problem-formulation}
 
@@ -252,7 +257,7 @@ The twelve case definitions are project-authored scenarios under the
 repository's MIT licence, not a measured plant dataset. Each definition
 identifies process family, category, scientific question, provenance,
 sources, KPI ranges, nominal controls and eight variants. The committed
-0.10.010 bake contains 96 variant records generated with contract digest
+0.11.000 bake contains 96 variant records generated with contract digest
 \texttt{0d2b65d272f3abcc6adffbf0f734c985cb002ab5cb665c109b8e8e9e31cecbd7}.
 The learning design contains 3,072 simulator states, 256 per authored
 case. Labels are exact relative to the implemented engine. They are not
@@ -533,7 +538,7 @@ template alignment, static artifact verification, notebook execution and
 the release-specific simulation bake. A candidate is not promoted
 because a page renders: its engine and artifacts must first agree, and
 the public bundle must then be checked against the candidate identity.
-This report records the 0.10.010 release candidate and its completed
+This report records the 0.11.000 release candidate and its completed
 source-derived bake. Its version record is reserved under the DOI shown
 on the title page. The software release remains subject to the product
 repository gates, publication record synchronization and deployment
@@ -1731,7 +1736,7 @@ Interp. RMSE
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
 Interp. R²
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
-Cases scored/12
+Case folds
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
 Case mean RMSE
 \end{minipage} & \begin{minipage}[b]{\linewidth}\raggedleft
@@ -2328,9 +2333,9 @@ and the documentation are versioned together; the source, records and
 computational environment are versioned with the software release.
 \texttt{./scripts/setup.ps1} builds the environments and
 \texttt{./scripts/precompute.ps1} regenerates every record. The
-0.10.010 validation record reports 4,606 s for the twelve cases on four
-workers, 3,350 s for the learning stage, 360 s for studies and 149 s for
-real-sample processing. The learning design, all fifteen evaluation jobs
+0.11.000 validation record reports 6,005 s for the twelve cases on
+twelve workers, 4,002 s for the learning stage, 550 s for studies and 292 s
+for real-sample processing. The learning design, all fifteen evaluation jobs
 and all 65 neural-seed jobs were executed fresh, with no resumed
 checkpoints. The learned stage records CUDA execution on an RTX 4070
 Laptop GPU. Its fit and evaluation concern authored simulator cases;

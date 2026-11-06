@@ -47,9 +47,11 @@ export interface FlowsheetProps {
   selected: string | null;
   onSelect: (unit: string | null) => void;
   summary: string;
+  linkedSelection?: boolean;
+  linkedCursorPosition?: number;
 }
 
-export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, summary }: FlowsheetProps) {
+export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, summary, linkedSelection = false, linkedCursorPosition }: FlowsheetProps) {
   const hostRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ width: 960, height: 520 });
   const [top, right, bottom, left] = useContext(OverlayInset);
@@ -130,7 +132,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
           if (JUNCTIONS.has(node.unit)) {
             const caption = captions.find(c => c.unit === node.unit);
             return (
-              <g key={node.unit} className={cls} role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} onClick={select} onKeyDown={onKeyDown}>
+              <g key={node.unit} className={cls} role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} data-linked-id={linkedSelection ? node.unit : undefined} data-linked-view={linkedSelection ? 'scene' : undefined} data-linked-selected={linkedSelection ? String(selected === node.unit) : undefined} data-linked-cursor-marker={linkedSelection && selected === node.unit ? '' : undefined} data-linked-cursor-position={linkedSelection && selected === node.unit ? linkedCursorPosition : undefined} onClick={select} onKeyDown={onKeyDown}>
                 <title>{name}</title>
                 <rect className="of-junction-hit" x={cx - 12} y={cy - 12} width={24} height={24} />
                 <circle cx={cx} cy={cy} r={NODE_R} />
@@ -142,7 +144,7 @@ export function FlowsheetDiagram({ trace, primary, lang, selected, onSelect, sum
           const lines = node.unit === 'gravity_split' && texts.bleedShare ? [name, `b = ${texts.bleedShare}`] : nameLines(name, d.boxW);
           return (
             <g key={node.unit} className={cls} transform={`translate(${cx - d.boxW / 2},${cy - BOX_H / 2})`}
-              role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} onClick={select} onKeyDown={onKeyDown}>
+              role="button" tabIndex={0} aria-pressed={selected === node.unit} aria-label={name} data-linked-id={linkedSelection ? node.unit : undefined} data-linked-view={linkedSelection ? 'scene' : undefined} data-linked-selected={linkedSelection ? String(selected === node.unit) : undefined} data-linked-cursor-marker={linkedSelection && selected === node.unit ? '' : undefined} data-linked-cursor-position={linkedSelection && selected === node.unit ? linkedCursorPosition : undefined} onClick={select} onKeyDown={onKeyDown}>
               <rect width={d.boxW} height={BOX_H} rx={7} />
               {lines.map((line, i) => {
                 // a single word longer than the box is condensed to fit, never clipped

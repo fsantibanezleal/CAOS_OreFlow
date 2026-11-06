@@ -25,7 +25,7 @@
     ],
     "license": "cc-by-4.0",
     "language": "eng",
-    "version": "0.10.010",
+    "version": "0.11.000",
     "related_identifiers": [
       {
         "relation": "isSupplementedBy",
@@ -33,7 +33,7 @@
         "resource_type": "software"
       }
     ],
-    "publication_date": "2026-11-03",
-    "version_notes": "Expanded scientific report and reproducibility evidence for the 0.10.010 release."
+    "publication_date": "2026-11-06",
+    "version_notes": "Updated technical report for the 0.11.000 release, preserving the source-derived model, data, protocol and result boundaries while documenting the linked research workbench and its current reproducibility paths."
   }
 }

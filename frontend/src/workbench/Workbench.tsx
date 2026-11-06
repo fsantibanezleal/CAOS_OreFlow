@@ -9,7 +9,7 @@
  */
 import { useFocusMode, WorkbenchLayout, useShellLang } from '@fasl-work/caos-app-shell';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { evaluateInWorker, RefusedState } from '../engine/client';
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
@@ -253,6 +253,8 @@ export default function Workbench() {
 
   let body: React.ReactNode = <p className="of-hint" role="status">{t(UI.loading, lang)}</p>;
   const rejection = rejected ? errors.map(e => contractMessage(contract, e, '', lang)) : null;
+  const storyQuery = new URLSearchParams(`${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`);
+  storyQuery.set('from', `${location.pathname}${location.search}`);
   if (rejection) {
     // U-03: no view draws the last valid state's results as if they were this state's
     body = (
@@ -296,6 +298,7 @@ export default function Workbench() {
         <div className="of-viewrow">
           <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names}
             disabled={source === 'hour' ? VIEWS.filter(v => v !== 'case') : []} />
+          {source !== 'hour' && !rejection && <Link className="of-story-entry" to={`/story/circuit?${storyQuery.toString()}`}>{lang === 'es' ? 'Recorrido guiado' : 'Guided story'}</Link>}
           {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
         </div>
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>

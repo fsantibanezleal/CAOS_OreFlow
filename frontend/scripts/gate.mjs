@@ -23,6 +23,7 @@ const root = join(here, '..', '..');
 const product = JSON.parse(readFileSync(join(root, 'product.json'), 'utf8'));
 
 const KINDS = ['workbench', 'surface'];
+const SHOWCASE_ROUTES = '/app,/introduction,/methodology,/implementation,/experiments,/benchmark,/story/circuit,/story/grinding,/story/methods,/story/compare';
 const MIN_REASON_WORDS = 8;
 const PLACEHOLDER = /^(?:tbd|tba|tbc|todo|fixme|xxx|lorem|ipsum|placeholder|n\/a|na|none|unknown)$/i;
 const NOT_APPLICABLE = /^not applicable:\s*(.+)$/i;
@@ -79,7 +80,10 @@ function redirectProblems(doc, extra) {
   if (routes !== null) {
     const appRoute = (surface ? value('--app-route') : null) || '/app';
     const trim = (r) => r.trim().replace(/(.)\/+$/, '$1');
-    if (!routes.split(',').map(trim).includes(trim(appRoute))) out.push(`--routes ${routes} leaves out the App route ${appRoute}, so the Focus check would measure nothing`);
+    const listed = routes.split(',').map(trim);
+    if (!listed.includes(trim(appRoute))) out.push(`--routes ${routes} leaves out the App route ${appRoute}, so the Focus check would measure nothing`);
+    const missingStory = SHOWCASE_ROUTES.split(',').filter((route) => !listed.includes(trim(route)));
+    if (missingStory.length) out.push(`--routes ${routes} leaves out showcase routes ${missingStory.join(', ')}; ADR-0082 requires all declared story steps and product views`);
   }
   return out.map((p) => `${p} (--require-focus, ADR-0070)`);
 }
@@ -94,7 +98,7 @@ function gateArguments({ doc, deploy, extra, dist, base, out }) {
   // On a VPS the build is served by nginx (try_files $uri $uri/ /index.html): no 404.html, so the gate serves it the same way.
   if (serving && deploy === 'vps') served.push('--spa-fallback');
   return [...served, ...(surface ? ['--workbench', ''] : []), '--expect-brand', doc.name,
-    ...(waived ? [] : ['--require-focus']), '--out', out, ...extra];
+    ...(waived ? [] : ['--require-focus']), '--require-showcase', '--routes', SHOWCASE_ROUTES, '--out', out, ...extra];
 }
 
 const sddPath = join(root, 'docs', 'design', 'SDD.md');

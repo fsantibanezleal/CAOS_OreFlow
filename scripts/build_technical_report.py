@@ -261,7 +261,8 @@ def build_report(*, doi: str, publication_date: str, temp_root: Path | None = No
             target.parent.mkdir(parents=True, exist_ok=True)
             target.write_bytes(data)
     tex, pdf, log = [directory / name for name in ("main.tex", "main.pdf", "main.log")]
-    for _ in range(2):
+    # A fresh auxiliary file can need a third pass to settle page references after figures and tables move.
+    for _ in range(3):
         # These are this fresh child's own outputs, not user/canonical files.
         pdf.unlink(missing_ok=True)
         log.unlink(missing_ok=True)
