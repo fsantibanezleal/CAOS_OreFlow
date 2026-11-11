@@ -173,6 +173,7 @@ written \(\Pr\); installed power is \(P_{inst}\).
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\caption{Notation for OreFlow's authored circuits, mineral-resolved streams, operating variables, optimization coordinates, and statistical evaluation quantities with declared units.}\label{tab:notation}\\
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Symbol
@@ -209,7 +210,7 @@ dimensionless \\
 \end{longtable}
 }
 
-The notation separates a requested setting from a solved state. The
+Table \ref{tab:notation} defines the symbols used throughout the physical and statistical methods. The notation separates a requested setting from a solved state. The
 input vector \(u\) is what the user or a study requests; the result
 \(z\) is what the engine converges to. In a power-limited grind,
 requested \(P_{80}\) and achieved \(P_{80}\) differ, and only the latter
@@ -1093,8 +1094,8 @@ valuable-mineral recovery and identify whether a record is batch,
 continuous-cell or modeled. These checks allow the method comparison to
 be extended without mixing different physical estimands.
 
-\subsection{Constrained pattern search and guarded
-proposals}\label{constrained-pattern-search-and-guarded-proposals}
+\subsection{Generalized pattern search with progressive feasibility barrier}
+\label{constrained-pattern-search-and-guarded-proposals}
 
 \label{method-optimization}
 
@@ -1109,26 +1110,6 @@ g_j(\mathbf{x})\leq0,\quad h_k(\mathbf{x})=0.
 \qquad
 \text{an exact engine result is required before an incumbent update}.
 \end{equation}
-
-\begin{algorithm}
-\caption{Guard a surrogate proposal with exact evaluation}
-\label{alg:guarded-search}
-\begin{algorithmic}[1]
-\Require Feasible incumbent, mesh, learned guard, exact circuit engine
-\State Generate bounded poll and mesh-neighbour candidates
-\State Rank eligible candidates using the learned objective estimate
-\For{each selected proposal}
-\State Apply reconstruction and uncertainty-width guards
-\If{both guards pass}
-\State Evaluate the proposal with the exact process engine
-\If{the result is finite, feasible under the barrier, and improves the incumbent}
-\State Update incumbent and record the exact result
-\EndIf
-\EndIf
-\EndFor
-\State Retain ordinary exact polling and record calls, refusals, and termination
-\end{algorithmic}
-\end{algorithm}
 
 The search's reported finite result depends on initialization, mesh,
 coordinate order, constraint tolerance and evaluation budget. Each
@@ -1150,14 +1131,14 @@ require assumptions on continuity, polling directions and refinement
 that the learned proposal insertion does not automatically establish;
 this report claims observed finite-suite behavior only.
 
-A useful method ablation disables the reconstruction guard and the
-GP-width threshold separately, while keeping proposals, objective,
-starts and budget fixed. It should report exact calls, rejected
-candidates, endpoint feasibility and same-start differences, with
-repetitions across declared cases. The existing 72-pair evidence tests
-the integrated screen against the unscreened baseline and gives a
-negative compute result; it does not identify which filter component
-caused the extra calls.
+A valid comparison disables one filter at a time while holding proposals,
+objective, starts, bounds and budget fixed. It records calls, rejection
+reasons, endpoint feasibility and same-start differences; changing the
+filter and the poll simultaneously would confound component effects.
+OreFlow's component study contains only four selected cases, so it is
+exploratory and cannot establish that either filter is generally useful.
+The 72-variant comparison isolates the integrated screen against the
+unscreened baseline and documents a negative compute result.
 
 The optimization method is a generalized pattern search with a
 progressive feasibility barrier. Its decision vector is normalized to
@@ -1188,6 +1169,39 @@ weights recovered payable metal and specific energy relative to the base
 state; the baked primary result uses the declared metal-only weight and
 companion weight-path records are separate.
 
+The evaluation complexity is bounded by the number of distinct normalized
+states requested from the circuit engine, rather than by iteration count
+alone: each poll can propose up to twice the decision dimension, while
+duplicate coordinates are served from the per-run cache. With at most six
+distinct starts and a finite call budget, the implementation terminates
+even when the mesh does not reach its stopping threshold. The report
+therefore records both iterations and distinct evaluations, and interprets
+the stop reason before comparing endpoints. The cached counter is
+reproducible for fixed code and inputs, but it is not a runtime-complexity
+bound for arbitrary cases because simulation cost can vary with circuit
+family and convergence behavior.
+
+The exact comparator is retained when evaluating the learned proposal
+path. It supplies a common decision objective and common constraint values;
+otherwise apparent improvements could arise from different physics,
+denominators or feasibility definitions. The app's implementation record
+emphasizes process-contract mapping, multi-start traces and audited
+feasibility, while the search family and barrier are established numerical
+methods. This distinction prevents the implementation description from
+implying a new convergence result.
+
+\subsection{Surrogate-screened proposal ordering and exact confirmation}
+\label{method-screened-search}
+
+This proposal inserts model-based ranking and two eligibility checks into
+the reference search. Surrogate management, trust-region response
+surfaces and Bayesian acquisition rules are established approaches;
+OreFlow tests one process-specific implementation rather than claiming
+that these ingredients are new \cite{booker1999,forresterkeane2009,
+jones1998,shahriari2016}. The experimental question is whether the added
+model stage reduces exact circuit work while preserving a useful terminal
+decision on the same authored cases.
+
 The screen proposes candidates one or two mesh steps from incumbents. A
 frozen neural model predicts their outputs, an autoencoder guard rejects
 features outside its learned reconstruction threshold, and a Gaussian
@@ -1198,6 +1212,47 @@ substituted for the neural prediction, and the interval is not claimed
 to be calibrated plant uncertainty. The normal pattern poll remains
 available. This arrangement preserves exact objective values but does
 not by itself prove convergence of the modified finite implementation.
+
+Let \(r(x)\) be reconstruction error and \(q(x)\) the Gaussian-process
+recovery half-width. A proposal is eligible only when both diagnostics
+meet their frozen thresholds, and ranking uses the neural objective:
+\begin{equation}
+I(x)=\mathbb{1}\{r(x)\leq r_{\max}\}\mathbb{1}\{q(x)\leq q_{\max}\},
+\qquad x^{p}=\arg\max_{x\in C:I(x)=1}\widehat J(x).
+\label{eq:oreflow-screen-rule}
+\end{equation}
+An empty candidate set yields no model proposal; it does not imply a
+feasible solution or an engine saving. Any proposed point must be
+evaluated exactly before it can change feasibility or replace an
+incumbent:
+\begin{equation}
+\operatorname{accept}(x^p)=\mathbb{1}\{\mathcal E(x^p)\text{ is finite and valid}
+\land H(x^p)\leq H_{\max}\land x^p\text{ dominates the incumbent}\}.
+\label{eq:oreflow-exact-confirmation}
+\end{equation}
+The interval-width threshold is a screening diagnostic, not a calibrated
+coverage guarantee for the process or a probability of plant error.
+Likewise, a low reconstruction error does not guarantee accuracy, and a
+legitimate combination may reconstruct poorly outside the training
+representation.
+
+\begin{algorithm}
+\caption{Screen pattern-search candidates before exact process evaluation}
+\label{alg:guarded-search}
+\begin{algorithmic}[1]
+\Require Incumbent, mesh candidates, fitted models, frozen thresholds, circuit engine
+\State Reject contract-bound candidates; compute diagnostics for remaining points
+\State Remove points above reconstruction or GP half-width limits
+\State Rank admitted points by the neural objective prediction
+\For{each selected proposal}
+\State Evaluate with the exact circuit engine and retain the full response
+\If{response is valid and barrier ordering improves}
+\State Update incumbent from exact values only
+\EndIf
+\EndFor
+\State Preserve the ordinary exact poll and record proposals, rejections and stop reason
+\end{algorithmic}
+\end{algorithm}
 
 The experiment compares paired searches with the same case, starts,
 objective, bounds, tolerances and budget, differing only by screening.
@@ -1220,6 +1275,18 @@ demonstrates that the uncertainty-width rule is not a universal error
 guarantee. These outcomes motivate ablations by guard and interval
 threshold, but any new threshold must be fixed a priori for a new paired
 run.
+
+For interpretation, the screened-minus-reference call count is paired
+within each case and case-level resampling keeps the six variants from an
+ore together. This interval quantifies variation across the twelve
+authored cases under the chosen bootstrap, not uncertainty about future
+plants. The endpoint comparison and call comparison answer different
+questions: similar recovered-metal values do not imply equivalent grade,
+water, energy or constraint status. A complete decision comparison must
+therefore retain all terminal controls and slacks, not only the primary
+recovered-metal difference. The current summary reports exact endpoint
+agreement, feasibility and metal difference, but does not establish
+equivalence on every secondary KPI.
 
 A new application should freeze case identity, starting points, decision
 bounds, objective weights, exact-call accounting and stopping rules
@@ -1499,13 +1566,14 @@ languages, with a test that fails on the earlier code, and every number
 below is from the fixed engine.
 
 \textbf{Published examples.} Each is labelled as a published example,
-not as plant data:
+not as plant data. Table \ref{tab:published-examples} compares the published inputs and outputs with the engine results and the predeclared tolerances:
 
 {\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}
   >{\raggedright\arraybackslash}p{(\linewidth - 4\tabcolsep) * \real{0.3333}}@{}}
+\caption{Published comminution, gravity, and magnetite examples compared with OreFlow engine outputs, discrepancies, and predeclared tolerances.}\label{tab:published-examples}\\
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Example
@@ -1713,7 +1781,7 @@ per-case and per-seed evidence is retained in the release record.
 \subsection{Interpolation and case
 holdout}\label{interpolation-and-case-holdout}
 
-\textbf{Table 1.} Recovery interpolation and conditional
+Table \ref{tab:interpolation} reports recovery interpolation and conditional
 leave-one-case-out scores. RMSE is in percentage points. Case counts are
 scored folds out of twelve attempts; the remaining fold is retained as
 rejected. Case means, maxima and medians use only each model's scored
@@ -1728,6 +1796,7 @@ folds, so their denominators differ.
   >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 12\tabcolsep) * \real{0.1126}}@{}}
+\caption{Recovery interpolation and leave-one-case-out errors for five models on the 3,072-state synthetic authored simulator design.}\label{tab:interpolation}\\
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Model
@@ -1757,7 +1826,7 @@ Perceptron & 3.38 & 0.951 & 11 & 6.86 & 12.76 & 0.573 \\
 \end{longtable}
 }
 
-The perceptron has the lowest interpolation recovery RMSE (3.38 points)
+Table \ref{tab:interpolation} shows that the perceptron has the lowest interpolation recovery RMSE (3.38 points)
 on the common 612-row test set. Its conditional case mean is 6.86 points
 over eleven scored folds, with one rejected recovery fold. Comparing
 that value directly with another model's twelve-fold mean would confound
@@ -1776,7 +1845,7 @@ identical cohort.
 
 \subsection{Case transfer errors}\label{case-transfer-errors}
 
-\textbf{Table 2.} Recovery RMSE (points) on each held-out case.
+Table \ref{tab:case-transfer} reports recovery RMSE (percentage points) on each held-out authored case.
 
 {\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}
@@ -1786,6 +1855,7 @@ identical cohort.
   >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1200}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1200}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 10\tabcolsep) * \real{0.1200}}@{}}
+\caption{Recovery RMSE by held-out authored ore case for ridge, random forest, boosting, Gaussian process, and perceptron models.}\label{tab:case-transfer}\\
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Held-out case
@@ -1823,7 +1893,7 @@ Refractory gold in sulphides & 19.44 & 15.41 & 13.77 & 10.33 & 9.86 \\
 \end{longtable}
 }
 
-The copper cases are not uniformly easy: holding out the soft porphyry
+Table \ref{tab:case-transfer} shows that transfer errors vary substantially across ore families: holding out the soft porphyry
 costs the perceptron 6.0 points, while its error on the hard porphyry,
 molybdenum and low-grade copper cases is 1.7 to 2.2 points. Mixed
 high-clay copper is 6.6 points. For all 256 magnetite rows, the
@@ -1834,7 +1904,7 @@ replacement error enters Table 2. The tree models also have large finite
 errors on magnetite. These model errors are measured against the
 authored simulator, not a plant assay.
 
-\textbf{Table 3.} Matched admissible recovery cohorts. Each case column
+Table \ref{tab:matched-cohort} compares matched admissible recovery cohorts. Each case column
 uses eleven of twelve planned folds; each group column uses six of
 seven. Magnetite is excluded from both intersections because the neural
 forecast was rejected. RMSE means are unweighted fold means, in
@@ -1848,6 +1918,7 @@ the complete planned design.
   >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1700}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1700}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1700}}@{}}
+\caption{Matched-case and matched-ore-group recovery errors for models scored on identical admissible held-out cohorts across twelve cases.}\label{tab:matched-cohort}\\
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Model
@@ -1880,7 +1951,7 @@ case folds. The perceptron's magnetite rejection therefore also appears
 in group transfer; its group summary scores six folds, while the other
 models score seven.
 
-\textbf{Table 4.} Conditional ore-group recovery scores. RMSE is in
+Table \ref{tab:group-transfer} reports conditional ore-group recovery scores. RMSE is in
 percentage points; counts are scored groups out of seven attempts. The
 perceptron's one rejected group remains in the record. Table 3 supplies
 the common six-group comparison.
@@ -1892,6 +1963,7 @@ the common six-group comparison.
   >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1591}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1591}}
   >{\raggedleft\arraybackslash}p{(\linewidth - 8\tabcolsep) * \real{0.1591}}@{}}
+\caption{Conditional recovery errors for five prediction models over seven held-out ore groups and their admissible folds.}\label{tab:group-transfer}\\
 \toprule\noalign{}
 \begin{minipage}[b]{\linewidth}\raggedright
 Model
@@ -1916,7 +1988,7 @@ Perceptron & 6 & 14.60 & 46.45 & 0.455 \\
 \end{longtable}
 }
 
-The MLP scores 0.795 on the five chalcopyrite cases held out together
+Table \ref{tab:group-transfer} shows that the perceptron scores 0.795 on the five chalcopyrite cases held out together
 and -10.2 on the two gold-in-pyrite cases, with recovery RMSE of 6.72
 and 46.45 points respectively. Over the common six groups, gradient
 boosting has mean RMSE 10.87 points and the perceptron 14.60 points. The
@@ -2073,6 +2145,7 @@ observed labels). A sparse logistic model per case and a shared network
 
 {\def\LTcaptype{none} % do not increment counter
 \begin{longtable}[]{@{}llll@{}}
+\caption{Per-case cross-entropy for sparse logistic and neural predictions against constructed HZDR probabilities, not observed labels.}\label{tab:particle-probabilities}\\
 \toprule\noalign{}
 Case & Published reference & L1 logistic & Network \\
 \midrule\noalign{}
@@ -2086,7 +2159,7 @@ Case & Published reference & L1 logistic & Network \\
 \end{longtable}
 }
 
-The linear model beats the network in cases 1 and 2 and fails only in
+Table \ref{tab:particle-probabilities} shows that the linear model beats the network in cases 1 and 2 and fails only in
 case 4, where the network does not.
 
 \textbf{Locked-cycle tests.} 52 GeoMet locked-cycle copper recoveries
@@ -2161,7 +2234,9 @@ the neural model's result for each held-out case. The red, labelled bar
 denotes a diagnostic rejection and is not a zero-error case. Figure
 \ref{fig:group-transfer} and Table \ref{tab:group-transfer} retain
 negative group-held-out coefficients of determination, which indicate
-that the model can be worse than a cohort-mean predictor. Figure
+that the model can be worse than a cohort-mean predictor. Table
+\ref{tab:group-transfer-evidence} gives the per-group scores, including
+the two-group Au:pyrite result. Figure
 \ref{fig:kinetic-models} and Table \ref{tab:kinetics} compare batch-fit
 errors for five fitted kinetic forms; their bank-lumping errors are
 separate measures and do not imply that the lowest batch error will
@@ -2358,6 +2433,7 @@ https://oreflow.ml.fasl-work.com runs the engine in the browser on any
 state of any case.
 
 \begingroup
+\small
 \raggedright
 \begin{thebibliography}{99}
 \bibitem{audet2006} Audet, C. and Dennis, J.E. (2006). Mesh adaptive direct search algorithms for constrained optimization. SIAM Journal on Optimization 17(1):188-217. doi:10.1137/040603371
@@ -2366,6 +2442,7 @@ state of any case.
 \bibitem{booker1999} Booker, A.J., Dennis, J.E., Frank, P.D., Serafini, D.B., Torczon, V. and Trosset, M.W. (1999). A rigorous framework for optimization of expensive functions by surrogates. Structural Optimization 17(1):1-13. doi:10.1007/BF01197708
 \bibitem{breiman2001} Breiman, L. (2001). Random forests. Machine Learning 45:5-32. doi:10.1023/A:1010933404324
 \bibitem{duarte2021} Duarte, R., Yamashita, A., da Silva, M., Cota, L. and Euzébio, T. (2021). Calibration and validation of a cone crusher model with industrial data. Minerals 11(11):1256. doi:10.3390/min11111256
+\bibitem{forresterkeane2009} Forrester, A.I.J. and Keane, A.J. (2009). Recent advances in surrogate-based optimization. Progress in Aerospace Sciences 45(1--3):50--79. doi:10.1016/j.paerosci.2008.11.001
 \bibitem{friedman2001} Friedman, J.H. (2001). Greedy function approximation: a gradient boosting machine. Annals of Statistics 29(5):1189-1232. doi:10.1214/aos/1013203451
 \bibitem{gmg2021} Global Mining Guidelines Group (2021). Determining the Bond Efficiency of Industrial Grinding Circuits, GMG01-MP-2021.
 \bibitem{gorain1997} Gorain, B.K., Franzidis, J.-P. and Manlapig, E.V. (1997). Studies on impeller type, impeller speed and air flow rate in an industrial scale flotation cell. Part 4: Effect of bubble surface area flux on flotation performance. Minerals Engineering 10(4):367-379. doi:10.1016/S0892-6875(97)00014-9
@@ -2374,6 +2451,7 @@ state of any case.
 \bibitem{herman2017} Herman, J. and Usher, W. (2017). SALib: an open-source Python library for sensitivity analysis. Journal of Open Source Software 2(9):97. doi:10.21105/joss.00097
 \bibitem{hoffimann2022} Hoffimann, J., Augusto, J., Resende, L., Mathias, M., Mazzinghy, D., Bianchetti, M. et al. (2022). Modeling geospatial uncertainty of geometallurgical variables with Bayesian models and Hilbert-Kriging. Mathematical Geosciences 54(7):1227-1253. doi:10.1007/s11004-022-10013-1
 \bibitem{king1979} King, R.P. (1979). A model for the quantitative estimation of mineral liberation by grinding. International Journal of Mineral Processing 6:207-220. doi:10.1016/0301-7516(79)90037-1
+\bibitem{jones1998} Jones, D.R., Schonlau, M. and Welch, W.J. (1998). Efficient global optimization of expensive black-box functions. Journal of Global Optimization 13(4):455--492. doi:10.1023/A:1008306431147
 \bibitem{laplante2005} Laplante, A.R. and Gray, S. (2005). Advances in gravity gold technology. Developments in Mineral Processing 15:280-307. doi:10.1016/S0167-4528(05)15013-3
 \bibitem{laplantestaunton} Laplante, A.R. and Staunton, W.P. Gravity recovery of gold, an overview of recent developments (AMIRA P420B).
 \bibitem{loschchilov2019} Loshchilov, I. and Hutter, F. (2019). Decoupled weight decay regularization. arXiv:1711.05101.
@@ -2386,6 +2464,7 @@ state of any case.
 \bibitem{rasmussen2006} Rasmussen, C.E. and Williams, C.K.I. (2006). Gaussian Processes for Machine Learning. MIT Press.
 \bibitem{saltelli2010} Saltelli, A., Annoni, P., Azzini, I., Campolongo, F., Ratto, M. and Tarantola, S. (2010). Variance based sensitivity analysis of model output. Design and estimator for the total sensitivity index. Computer Physics Communications 181(2):259-270. doi:10.1016/j.cpc.2009.09.018
 \bibitem{savassi1998} Savassi, O.N., Alexander, D.J., Franzidis, J.P. and Manlapig, E.V. (1998). An empirical model for entrainment in industrial flotation plants. Minerals Engineering 11(3):243-256. doi:10.1016/S0892-6875(98)00003-X
+\bibitem{shahriari2016} Shahriari, B., Swersky, K., Wang, Z., Adams, R.P. and de Freitas, N. (2016). Taking the human out of the loop: A review of Bayesian optimization. Proceedings of the IEEE 104(1):148--175. doi:10.1109/JPROC.2015.2494218
 \bibitem{torczon1997} Torczon, V. (1997). On the convergence of pattern search algorithms. SIAM Journal on Optimization 7(1):1-25. doi:10.1137/S1052623493250780
 \bibitem{trahar1981} Trahar, W.J. (1981). A rational interpretation of the role of particle size in flotation. International Journal of Mineral Processing 8(4):289-327. doi:10.1016/0301-7516(81)90019-3
 \bibitem{vinnett2025} Vinnett, L. and Waters, K.E. (2025). The use of compressed exponentials for kinetic modelling of batch flotation. Minerals Engineering 226:109246. doi:10.1016/j.mineng.2025.109246

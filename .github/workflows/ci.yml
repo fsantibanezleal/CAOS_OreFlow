@@ -58,6 +58,10 @@ jobs:
         run: python scripts/check_sdd.py
       - name: The notebooks, layout, English and Spanish mirror, levels, anatomy, metadata and cleanliness (static; the execution is a local gate, ADR-0074)
         run: python scripts/check_notebooks.py
+      - name: Notebook content depth and method coverage (template 0.15.006)
+        run: python scripts/check_notebook_depth.py
+      - name: Manuscript content depth and method coverage (template 0.15.006)
+        run: python scripts/check_manuscript_depth.py --report
       - name: Internal method labels never reach reader-facing content (template 0.14.000)
         run: python scripts/check_internal_names.py
       - name: The README states the repository by areas

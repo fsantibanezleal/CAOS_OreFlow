@@ -103,9 +103,9 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams, ena
     // S-12: a sample link carries its changed controls, applied after the sample's own point
     if (wantedSource === 'sample') sampleSet.current = parseSet(params.get('set'));
     if (params.get('hour')) setHour(params.get('hour') as string);
-    // back from the focus route the store already holds this state; the URL only mirrors it
-    const held = useWorkbench.getState();
-    if (held.caseId === target && held.point) return;
+    // The URL is the shareable state contract, including after returning from Focus or a guided story.
+    // A retained in-memory point can be stale when this route is reopened, so always hydrate the selected
+    // variant and changed inputs from the URL; setCase is a no-op when the case itself is already active.
     pending.current = { variant: params.get('variant'), set: parseSet(params.get('set')) };
     setCase(target);
   }, [loaded, params, setCase, setView, setSource, setHour]);

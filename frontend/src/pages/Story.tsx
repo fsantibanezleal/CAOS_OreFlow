@@ -1,11 +1,11 @@
 import { LinkedViewProvider, SceneCallouts, StoryFrame, useLinkedView, useLinkedCursor, useShellLang, type SceneCalloutDef, type StoryStep } from '@fasl-work/caos-app-shell';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router';
 import type { TopologyUnit } from '../engine/circuit';
 import type { Trace } from '../engine/trace';
 import { metricLabel, mineralName } from '../lib/i18n';
 import type { Lang } from '../lib/format';
-import { changedInputs, useWorkbench } from '../workbench/state';
+import { changedInputs, sourceQuery, stateQuery, useWorkbench } from '../workbench/state';
 import { useCaseState, useLoaded } from '../workbench/Workbench';
 import type { SelectionOrigin } from '@fasl-work/caos-app-shell';
 import { CircuitView } from '../workbench/views/CircuitView';
@@ -32,6 +32,29 @@ const COPY = {
 const STORY_STEPS = ['circuit', 'grinding', 'methods', 'compare'] as const;
 type StoryId = typeof STORY_STEPS[number];
 
+function anchorInDrawing(anchor: SceneCalloutDef['anchor'], band: number, height: number) {
+  if (!(height > 0) || !(band > 0) || band >= height) return anchor;
+  return { x: anchor.x, y: (band + anchor.y * (height - band)) / height };
+}
+
+function OreFlowStoryStage({ defs, children, onBand }: { defs: SceneCalloutDef[]; children: React.ReactNode; onBand: (height: number) => void }) {
+  const host = useRef<HTMLDivElement>(null);
+  const [band, setBand] = useState(0);
+  const [height, setHeight] = useState(0);
+  useEffect(() => {
+    const el = host.current;
+    if (!el) return;
+    const observer = new ResizeObserver(() => setHeight(el.getBoundingClientRect().height));
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+  const placed = useMemo(() => defs.map(item => ({ ...item, anchor: anchorInDrawing(item.anchor, band, height) })), [defs, band, height]);
+  return <div ref={host} className="oreflow-story-visual">
+    <SceneCallouts items={placed} placement="header" onLayout={({ bandHeight }) => { setBand(current => current === bandHeight ? current : bandHeight); onBand(bandHeight); }}/>
+    <div className="oreflow-story-drawing" style={band > 0 ? { paddingTop: band } : undefined}>{children}</div>
+  </div>;
+}
+
 type Props = { from: string };
 function StoryContent({ from }: Props) {
   const lang = useShellLang() as Lang;
@@ -39,8 +62,9 @@ function StoryContent({ from }: Props) {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const { loaded, failure } = useLoaded();
+  const [stageBand, setStageBand] = useState(0);
   const state = useCaseState(loaded, params);
-  const { caseId, variantId, base, point, selectedUnit, source, sampleId, selectUnit } = useWorkbench();
+  const { caseId, variantId, base, point, view, selectedUnit, source, sampleId, hourKey, selectUnit } = useWorkbench();
   const [inspection, setInspection] = useState<string | null>(null);
   const selectedId = useLinkedView(s => s.selectedId);
   const select = useLinkedView(s => s.select);
@@ -49,6 +73,9 @@ function StoryContent({ from }: Props) {
   const scrubCursor = useLinkedView(s => s.scrub);
   const { artifact, variant, trace, accepted, computing, rejected, errors } = state;
   const active = STORY_STEPS.includes(requested as StoryId) ? requested as StoryId : 'circuit';
+  const returnTo = from === '/app' && loaded && caseId && base && point
+    ? `/app?${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`
+    : from;
   useEffect(() => setInspection(null), [active]);
   const contract = loaded?.contract;
   const primary = contract && caseId ? contract.cases[caseId]?.primary : null;
@@ -70,7 +97,7 @@ function StoryContent({ from }: Props) {
 
   const metric = (key: string, unitFallback: string) => {
     const value = trace.metrics[key];
-    return { value: Number.isFinite(value) ? formatSignificant(value!, lang, 4) : '—', unit: trace.metric_units[key] || unitFallback, raw: value };
+    return { value: Number.isFinite(value) ? formatSignificant(value!, lang, 4) : '-', unit: trace.metric_units[key] || unitFallback, raw: value };
   };
   const p80 = metric('p80_um', 'µm');
   const recovery = metric('recovery_pct', '%');
@@ -121,16 +148,16 @@ function StoryContent({ from }: Props) {
   </section>;
   const title = artifact.title[lang];
   const hrefParams = new URLSearchParams(params);
-  hrefParams.set('from', from);
+  hrefParams.set('from', returnTo);
   const steps: StoryStep[] = STORY_STEPS.map((id, i) => ({
     id, number: (i + 1) as 1 | 2 | 3 | 4,
     verb: COPY[id], headline: headlines[id],
     summary: { en: `${title} · ${variant.label.en} · computed from the selected OreFlow state.`, es: `${title} · ${variant.label.es} · calculado desde el estado seleccionado de OreFlow.` },
     href: `/story/${id}?${hrefParams.toString()}`, accent: (i + 1) as 1 | 2 | 3 | 4 | 5,
-    stage: <div className="oreflow-story-visual"><SceneCallouts items={defs} placement="header"/><div className="oreflow-story-drawing">{views[id]}</div></div>,
+    stage: <OreFlowStoryStage defs={defs} onBand={setStageBand}>{views[id]}</OreFlowStoryStage>,
     panel: <><h2>{COPY[id][lang]}</h2>{panel}<p className="oreflow-story-case">{title} · {variant.label[lang]} · {caseId}</p></>,
   }));
-  return <StoryFrame className="page-body wide oreflow-story" steps={steps} activeId={active} onStepChange={id => navigate(`/story/${id}?${hrefParams.toString()}`)} onExit={() => navigate(from)} />;
+  return <StoryFrame className="page-body wide oreflow-story" steps={steps} activeId={active} mobileStageMinHeight={Math.min(900, Math.max(620, Math.round(stageBand + 490)))} onStepChange={id => navigate(`/story/${id}?${hrefParams.toString()}`)} onExit={() => navigate(returnTo)} />;
 }
 
 export default function Story() {

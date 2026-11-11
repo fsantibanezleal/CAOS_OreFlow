@@ -109,10 +109,10 @@ const url = (path: string) => `${import.meta.env.BASE_URL}${path}?v=${encodeURIC
 export function loadScreen(): Promise<Screen> {
   loaded ??= (async () => {
     const [doc, scalers] = await Promise.all([
-      fetch(url('models/process_screen.json')).then(r => r.json() as Promise<ScreenDoc>),
-      fetch(url('models/process_surrogate.json')).then(r => r.json() as Promise<Scalers>),
+      fetch(url('data/models/process_screen.json')).then(r => r.json() as Promise<ScreenDoc>),
+      fetch(url('data/models/process_surrogate.json')).then(r => r.json() as Promise<Scalers>),
     ]);
-    const buffer = await (await fetch(url(`models/${doc.gp.cholesky.file}`))).arrayBuffer();
+    const buffer = await (await fetch(url(`data/models/${doc.gp.cholesky.file}`))).arrayBuffer();
     return new Screen(doc, scalers, choleskyFrom(buffer));
   })();
   loaded.catch(() => { loaded = null; });

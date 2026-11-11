@@ -11,7 +11,7 @@
     "M-4": "method-kinetics",
     "M-5": "method-optimization",
     "M-6": "method-sobol",
-    "BS-1": "method-optimization"
+    "BS-1": "method-screened-search"
   },
   "contracts": {
     "oreflow-benchmark-v2": "contract-authored",

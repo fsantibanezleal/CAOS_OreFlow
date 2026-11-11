@@ -138,7 +138,7 @@ def main() -> None:
     ax.legend(frameon=False, fontsize=7, ncol=2)
     ax.grid(axis="y", alpha=.2)
     pdf("group-transfer")
-    tables.append(table("tab:group-transfer",
+    tables.append(table("tab:group-transfer-evidence",
         "Model scores for each held-out ore group; negative R squared values remain visible and group identity is not supplied as a predictor.",
         ["Ore group", "Cases", *models],
         [[g["held_out_group"], len(g["cases"]),
