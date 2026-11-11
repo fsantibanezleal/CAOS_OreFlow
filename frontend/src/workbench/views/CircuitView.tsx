@@ -28,8 +28,8 @@ const TEXT = {
   close: { en: 'Close', es: 'Cerrar' },
 };
 
-export function CircuitView({ trace, primary, lang, selected, onSelect }: {
-  trace: Trace; primary: { species: string; unit: string }; lang: Lang; selected: string | null; onSelect: (unit: string | null) => void;
+export function CircuitView({ trace, primary, lang, selected, onSelect, linkedSelection = false, linkedCursorPosition }: {
+  trace: Trace; primary: { species: string; unit: string }; lang: Lang; selected: string | null; onSelect: (unit: string | null) => void; linkedSelection?: boolean; linkedCursorPosition?: number;
 }) {
   const topology = trace.topology as unknown as TopologyUnit[];
   const streams = trace.streams as unknown as Record<string, StreamRecord>;
@@ -65,11 +65,11 @@ export function CircuitView({ trace, primary, lang, selected, onSelect }: {
       <div className="of-stage">
         {/* U-26, D-22: the hint's strip is reserved at its measured height (two lines on a phone), so the drawing
             never runs under it */}
-        <OverlayInset.Provider value={unit ? inset : [inset[0], inset[1], inset[2] + hintStrip, inset[3]]}>
-          <FlowsheetDiagram trace={trace} primary={primary} lang={lang} selected={selected} onSelect={onSelect} summary={TEXT.summary[lang]} />
+        <OverlayInset.Provider value={unit || linkedSelection ? inset : [inset[0], inset[1], inset[2] + hintStrip, inset[3]]}>
+          <FlowsheetDiagram trace={trace} primary={primary} lang={lang} selected={selected} onSelect={onSelect} summary={TEXT.summary[lang]} linkedSelection={linkedSelection} linkedCursorPosition={linkedCursorPosition} />
         </OverlayInset.Provider>
-        {!unit && <p className="of-stage-hint" ref={hintRef}>{TEXT.hint[lang]}</p>}
-        {unit && (
+        {!unit && !linkedSelection && <p className="of-stage-hint" ref={hintRef}>{TEXT.hint[lang]}</p>}
+        {unit && !linkedSelection && (
           <aside className="of-unit-card" aria-label={unitName(unit.unit, lang)}>
             <div className="of-unit-card-head">
               <h3>{unitName(unit.unit, lang)}</h3>

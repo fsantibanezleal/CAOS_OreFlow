@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.11.000] - 2026-11-05
+
+### Added
+- Add four direct, state-preserving story routes that walk the selected circuit, size response, method evaluation and case comparison using the current engine trace and source records.
+- Link story selection and cursor movement between the circuit diagram and the evidence panel; add anchored, source-backed value and unit callouts.
+- Draw the declared seeded input-uncertainty P05-P95 ranges in matched scenario comparisons, explicitly distinguishing empirical model ranges from confidence intervals and plant predictions.
+
+### Changed
+- Adopt CAOS Product Template 0.15.000 and published shell 0.22.0; use the shell's immersive StoryFrame route and keep product CSS on product-owned classes.
+- Record the story and V1-V6 visualization catalog against ADR-0082.
+
 ## [0.10.010] - 2026-11-03
 
 ### Changed

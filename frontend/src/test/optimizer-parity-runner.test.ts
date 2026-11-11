@@ -4,7 +4,7 @@ import {join, resolve, dirname, sep} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {tmpdir} from 'node:os';
 import {spawnSync} from 'node:child_process';
-import {SUBSET, SUITE, selectInventory, readInventory, planShards, admitShard, admitAll, snapshot, assertStable, parseArgs} from '../../scripts/optimizer-parity-lib.mjs';
+import {SUBSET, SUITE, selectInventory, readInventory, planShards, admitShard, admitAll, snapshot, assertStable, parseArgs} from '../../scripts/optimizer-parity-lib.product.mjs';
 
 const repo=fileURLToPath(new URL('../../../',import.meta.url));
 const base=resolve(process.env.OF_PARITY_TEST_TEMP ?? tmpdir());

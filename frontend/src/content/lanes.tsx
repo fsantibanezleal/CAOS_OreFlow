@@ -389,8 +389,8 @@ function InferencePanel({ lang }: { lang: Lang }) {
     try {
       const ort = await import('onnxruntime-web/wasm');
       ort.env.wasm.numThreads = 1;
-      ort.env.wasm.wasmPaths = `${import.meta.env.BASE_URL}ort/`;
-      session.current ??= await ort.InferenceSession.create(`${import.meta.env.BASE_URL}models/particle_mlp.onnx?v=${encodeURIComponent(APP_VERSION)}`, { executionProviders: ['wasm'] });
+      ort.env.wasm.wasmPaths = `${import.meta.env.BASE_URL}data/ort/`;
+      session.current ??= await ort.InferenceSession.create(`${import.meta.env.BASE_URL}data/models/particle_mlp.onnx?v=${encodeURIComponent(APP_VERSION)}`, { executionProviders: ['wasm'] });
       const { mean, scale } = particles.value.standardization;
       const input = Float32Array.from(values.map((v, i) => (v - mean[i]) / scale[i]));
       const out = await session.current.run({ features: new ort.Tensor('float32', input, [1, 4]) });

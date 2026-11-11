@@ -5,7 +5,8 @@
     "M-3": ["01-comminution/03-research-comparison.ipynb"],
     "M-4": ["02-flotation/03-research-comparison.ipynb"],
     "M-5": ["04-optimization/02-the-method.ipynb", "04-optimization/04-screening-evidence.ipynb"],
-    "M-6": ["05-uncertainty/02-the-method.ipynb", "05-uncertainty/03-research-comparison.ipynb"]
+    "M-6": ["05-uncertainty/02-the-method.ipynb", "05-uncertainty/03-research-comparison.ipynb"],
+    "BS-1": ["04-optimization/04-screening-evidence.ipynb"]
   },
   "contracts": {
     "oreflow-benchmark-v2": ["03-learning/03-research-comparison.ipynb"],

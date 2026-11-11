@@ -1,5 +1,5 @@
 /**
- * Implementation, the three tabs that 0.07.000 adds (PG-02): the model registry, the GPU lane and the
+ * Implementation, the three views added for the product: the model registry, the GPU lane and the
  * deployment. Transcribed from methods/learning.py, stages/particle_experiment.py, run_geomet.py,
  * requirements-gpu.txt, deploy/setup-vps.sh and architecture 05. The registry's training facts are read
  * from the learning and particle records at run time, and each served file's bytes and SHA-256 are
@@ -15,12 +15,12 @@ import { Arrow, Box, pick } from './figures';
 
 const r = String.raw;
 
-/** The files the site serves under models/, by the copy-data step of the build. */
+/** The files the site serves under data/models/, by the copy-data step of the build. */
 export const SERVED_MODELS = ['process_surrogate.onnx', 'process_guard.onnx', 'process_surrogate.json', 'process_screen.json', 'process_gp_cholesky.bin', 'particle_mlp.onnx'] as const;
 
 async function fingerprint(file: string): Promise<{ bytes: number; sha256: string }> {
-  const response = await fetch(`${import.meta.env.BASE_URL}models/${file}?v=${encodeURIComponent(APP_VERSION)}`, { cache: 'no-store' });
-  if (!response.ok) throw new Error(`${response.status} models/${file}`);
+  const response = await fetch(`${import.meta.env.BASE_URL}data/models/${file}?v=${encodeURIComponent(APP_VERSION)}`, { cache: 'no-store' });
+  if (!response.ok) throw new Error(`${response.status} data/models/${file}`);
   const data = await response.arrayBuffer();
   const digest = await crypto.subtle.digest('SHA-256', data);
   return { bytes: data.byteLength, sha256: Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, '0')).join('') };

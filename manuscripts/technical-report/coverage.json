@@ -10,7 +10,8 @@
     "M-3": "method-energy-laws",
     "M-4": "method-kinetics",
     "M-5": "method-optimization",
-    "M-6": "method-sobol"
+    "M-6": "method-sobol",
+    "BS-1": "method-screened-search"
   },
   "contracts": {
     "oreflow-benchmark-v2": "contract-authored",

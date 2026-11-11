@@ -9,7 +9,7 @@
  */
 import { useFocusMode, WorkbenchLayout, useShellLang } from '@fasl-work/caos-app-shell';
 import { useEffect, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router';
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router';
 import { evaluateInWorker, RefusedState } from '../engine/client';
 import type { ContractError, OperatingContract } from '../engine/contract';
 import type { OperatingPoint } from '../engine/model';
@@ -103,9 +103,9 @@ export function useCaseState(loaded: Loaded | null, params: URLSearchParams, ena
     // S-12: a sample link carries its changed controls, applied after the sample's own point
     if (wantedSource === 'sample') sampleSet.current = parseSet(params.get('set'));
     if (params.get('hour')) setHour(params.get('hour') as string);
-    // back from the focus route the store already holds this state; the URL only mirrors it
-    const held = useWorkbench.getState();
-    if (held.caseId === target && held.point) return;
+    // The URL is the shareable state contract, including after returning from Focus or a guided story.
+    // A retained in-memory point can be stale when this route is reopened, so always hydrate the selected
+    // variant and changed inputs from the URL; setCase is a no-op when the case itself is already active.
     pending.current = { variant: params.get('variant'), set: parseSet(params.get('set')) };
     setCase(target);
   }, [loaded, params, setCase, setView, setSource, setHour]);
@@ -253,6 +253,8 @@ export default function Workbench() {
 
   let body: React.ReactNode = <p className="of-hint" role="status">{t(UI.loading, lang)}</p>;
   const rejection = rejected ? errors.map(e => contractMessage(contract, e, '', lang)) : null;
+  const storyQuery = new URLSearchParams(`${stateQuery(caseId, variantId, base, point, view)}${sourceQuery(source, sampleId, hourKey)}`);
+  storyQuery.set('from', `${location.pathname}${location.search}`);
   if (rejection) {
     // U-03: no view draws the last valid state's results as if they were this state's
     body = (
@@ -296,6 +298,7 @@ export default function Workbench() {
         <div className="of-viewrow">
           <ViewTabs views={VIEWS} active={view} onChange={setView} label={t(UI.viewsLabel, lang)} names={names}
             disabled={source === 'hour' ? VIEWS.filter(v => v !== 'case') : []} />
+          {source !== 'hour' && !rejection && <Link className="of-story-entry" to={`/story/circuit?${storyQuery.toString()}`}>{lang === 'es' ? 'Recorrido guiado' : 'Guided story'}</Link>}
           {source !== 'hour' && !rejection && <FlagsLine trace={trace} lang={lang} />}
         </div>
         <div className="of-view-host" role="tabpanel" aria-label={names[view]}>{body}</div>

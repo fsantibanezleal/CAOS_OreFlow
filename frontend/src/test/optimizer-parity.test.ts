@@ -6,7 +6,7 @@ import type { OperatingPoint, Ore, Plant } from '../engine';
 import type { OperatingContract } from '../engine/contract';
 import { optimize, type OptimizationRecord, type Summary } from '../engine/optimize';
 import { close, compareScreen } from './optimizer-parity-comparison';
-import { selectInventory } from '../../scripts/optimizer-parity-lib.mjs';
+import { selectInventory } from '../../scripts/optimizer-parity-lib.product.mjs';
 import { choleskyFrom, Screen, type ScreenDoc } from '../learning/screen';
 import type { Scalers } from '../learning/surrogate';
 

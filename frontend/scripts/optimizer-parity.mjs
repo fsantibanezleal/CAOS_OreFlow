@@ -3,7 +3,7 @@ import {spawn} from 'node:child_process';
 import {mkdir, writeFile, readFile, realpath} from 'node:fs/promises';
 import {dirname, join, resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {admitAll, assertStable, parseArgs, planShards, readInventory, snapshot} from './optimizer-parity-lib.mjs';
+import {admitAll, assertStable, parseArgs, planShards, readInventory, snapshot} from './optimizer-parity-lib.product.mjs';
 
 const frontend = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const repo = resolve(frontend, '..');

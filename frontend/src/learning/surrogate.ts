@@ -30,10 +30,10 @@ function load() {
   loaded ??= (async () => {
     const ort = await import('onnxruntime-web/wasm');
     ort.env.wasm.numThreads = 1;
-    ort.env.wasm.wasmPaths = `${import.meta.env.BASE_URL}ort/`;
-    const scalers = (await (await fetch(url('models/process_surrogate.json'), { cache: 'no-store' })).json()) as Scalers;
-    const surrogate = await ort.InferenceSession.create(url('models/process_surrogate.onnx'), { executionProviders: ['wasm'] });
-    const guard = await ort.InferenceSession.create(url('models/process_guard.onnx'), { executionProviders: ['wasm'] });
+    ort.env.wasm.wasmPaths = `${import.meta.env.BASE_URL}data/ort/`;
+    const scalers = (await (await fetch(url('data/models/process_surrogate.json'), { cache: 'no-store' })).json()) as Scalers;
+    const surrogate = await ort.InferenceSession.create(url('data/models/process_surrogate.onnx'), { executionProviders: ['wasm'] });
+    const guard = await ort.InferenceSession.create(url('data/models/process_guard.onnx'), { executionProviders: ['wasm'] });
     return { ort, surrogate, guard, scalers };
   })();
   return loaded;

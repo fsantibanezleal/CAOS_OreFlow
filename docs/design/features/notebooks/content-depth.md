@@ -1,0 +1,5 @@
+# Notebook content and coverage policy
+
+`scripts/notebook_bar.json` is the machine-readable source for visible-content and teaching-quality floors. `scripts/notebook_depth.json` sets the depth progression. `scripts/check_notebooks.py` checks tree shape, bilingual parity, metadata, authored code and rendered prose; `scripts/check_notebook_depth.py` checks equations, figures, citations, sensitivity analysis, adaptation tasks and complete tool coverage. `scripts/run_notebooks.py --check` executes each notebook in a fresh kernel and compares the committed outputs with recomputed results.
+
+The current curriculum contains 32 notebooks across five topics and four levels. Each topic has a sourced record, a method explanation and a comparative research treatment; optimization also has a dedicated evidence notebook. Both languages are measured independently. These checks establish structural and quantitative depth, not scientific quality by themselves, so source review and method-level manuscript review remain required.

@@ -26,6 +26,7 @@ const Methodology = React.lazy(() => import("./pages/Methodology"));
 const Implementation = React.lazy(() => import("./pages/Implementation"));
 const Experiments = React.lazy(() => import("./pages/Experiments"));
 const Benchmark = React.lazy(() => import("./pages/Benchmark"));
+const Story = React.lazy(() => import("./pages/Story"));
 
 applyTheme(readTheme());
 const config: ShellConfig = {
@@ -36,6 +37,7 @@ const config: ShellConfig = {
   contain: true,
   // Global containment keeps the page inside the viewport; long content scrolls within the shell.
   fixedRoutes: ["/app"],
+  immersiveRoutes: ["/story"],
   architecture: ARCHITECTURE,
   routes: [
     { path: "/app", en: "Workbench", es: "Simulador" },
@@ -102,6 +104,7 @@ function AppRoutes() {
             <Route path="/implementation" element={<Implementation />} />
             <Route path="/experiments" element={<Experiments />} />
             <Route path="/benchmark" element={<Benchmark />} />
+            <Route path="/story/:step" element={<Story />} />
             <Route path="*" element={<Navigate to="/introduction?view=executive" replace />} />
           </Routes>
         </Boundary>

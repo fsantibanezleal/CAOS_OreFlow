@@ -29,6 +29,10 @@ const TEXT = {
   variantsTitle: { en: 'Variants of this case (numbered as in the table)', es: 'Variantes de este caso (numeradas como en la tabla)' },
   variantsSummary: { en: 'The chosen metric for each variant of the case, against the nominal state.', es: 'La métrica elegida para cada variante del caso, frente al estado nominal.' },
   casesSummary: { en: 'Recovery against total specific energy for the twelve cases at their nominal states.', es: 'Recuperación contra energía específica total de los doce casos en su estado nominal.' },
+  uncertainty: { en: 'Seeded model range, P05–P95', es: 'Rango del modelo con semilla, P05–P95' },
+  uncertaintyNote: { en: 'The interval is the empirical 5th–95th percentile range from the declared input-uncertainty draws; it is not a confidence interval or a plant prediction.', es: 'El intervalo es el rango empírico entre los percentiles 5 y 95 de las muestras de incertidumbre de entrada declaradas; no es un intervalo de confianza ni una predicción de planta.' },
+  median: { en: 'Median draw', es: 'Mediana de las muestras' },
+  deterministic: { en: 'Deterministic result', es: 'Resultado determinista' },
 };
 
 export function CompareView({ contract, artifact, index, benchmark, variantId, lang, onCursor }: {
@@ -42,6 +46,8 @@ export function CompareView({ contract, artifact, index, benchmark, variantId, l
   const unitOfInput = (name: string) => (declared[name].unit === 'case' ? entry.primary.unit : declared[name].unit);
   const variants = artifact.variants;
   const values = variants.map(v => v.trace.metrics[metric] ?? null);
+  const distributions = variants.map(v => v.methods.uncertainty.outputs[metric] ?? null);
+  const hasIntervals = distributions.every((d): d is NonNullable<typeof d> => d !== null);
   const nominal = variants.find(v => v.id === 'nominal')?.trace.metrics[metric];
   const unit = unitOfMetric(metric);
   const selected = variants.findIndex(v => v.id === variantId);
@@ -72,12 +78,16 @@ export function CompareView({ contract, artifact, index, benchmark, variantId, l
           <select value={metric} onChange={e => setMetric(e.target.value)}>{METRICS.map(k => <option key={k} value={k}>{metricLabel(k, lang)}</option>)}</select></label>
       </div>
       <div className="of-compare-charts">
-        <Chart data={[variants.map((_, i) => i), values, values.map((v, i) => (i === selected ? v : null))] as uPlot.AlignedData}
+        <Chart data={(hasIntervals
+          ? [variants.map((_, i) => i), distributions.map(d => d.p05), distributions.map(d => d.p95), distributions.map(d => d.p50), values, values.map((v, i) => (i === selected ? v : null))]
+          : [variants.map((_, i) => i), values, values.map((v, i) => (i === selected ? v : null))]) as uPlot.AlignedData}
           categories={variants.map((_, i) => String(i + 1))} xLabel={TEXT.variant[lang]} yLabel={`${metricLabel(metric, lang)} (${unitLabel(unit)})`}
           title={TEXT.variantsTitle[lang]}
-          series={[{ label: metricLabel(metric, lang), colour: 'accent', points: true }, { label: TEXT.selected[lang], colour: 'warn', points: true }]}
+          series={hasIntervals
+            ? [{ label: TEXT.uncertainty[lang], colour: 'accent-2', width: 0, legend: false }, { label: TEXT.uncertainty[lang], colour: 'accent-2', width: 0, fillTo: 1 }, { label: TEXT.median[lang], colour: 'accent', points: true }, { label: TEXT.deterministic[lang], colour: 'subtle', points: true }, { label: TEXT.selected[lang], colour: 'warn', points: true }]
+            : [{ label: metricLabel(metric, lang), colour: 'accent', points: true }, { label: TEXT.selected[lang], colour: 'warn', points: true }]}
           levels={nominal !== undefined ? [{ y: nominal, label: TEXT.nominal[lang] }] : []}
-          summary={TEXT.variantsSummary[lang]} format={(v, axis) => (axis === 'x' ? String(v) : formatValue(v, unit, lang))}
+          summary={`${TEXT.variantsSummary[lang]}${hasIntervals ? ` ${TEXT.uncertaintyNote[lang]}` : ''}`} format={(v, axis) => (axis === 'x' ? String(v) : formatValue(v, unit, lang))}
           onCursor={reading => onCursor(reading ? `${variants[reading.index].label[lang]} (${change(variants[reading.index])}): ${formatWithUnit(reading.values[0], unit, lang)}` : null)} />
         {rows.length > 0 && (
           <Chart data={[rows.map(r => r.energy), rows.map(r => r.recovery), rows.map(r => (r.id === artifact.case_id ? r.recovery : null))] as uPlot.AlignedData}
